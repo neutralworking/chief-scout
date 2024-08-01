@@ -15,12 +15,22 @@ MVP Requirements
 New Game
 
 Interview
-    - Determine profile through interview questions
+    - Determine profile through interview questions (interview.ts)
 Chairman Introduction
-    - Receive work laptop/phone
+    - Receive work laptop/phone (userinterface.ts)
 Club Introduction
+    - 
 Assistant Introduction
     - Tutorial
 Staff Introduction
 Squad Introduction
 Media Introduction
+
+
+Attributes
+
+48 total
+4 categories
+12 per category
+
+6 on the ball, 6 off the ball?

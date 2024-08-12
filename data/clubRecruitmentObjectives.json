@@ -1,0 +1,105 @@
+{
+    "recruitment_objectives": [
+      {
+        "objective": "Strengthen Defense",
+        "description": "Sign at least two high-quality defenders to improve the team's defensive capabilities."
+      },
+      {
+        "objective": "Enhance Midfield",
+        "description": "Recruit versatile midfielders to control the game and provide support both in defense and attack."
+      },
+      {
+        "objective": "Boost Attack",
+        "description": "Acquire a prolific striker to increase the team's goal-scoring potential."
+      },
+      {
+        "objective": "Sign Young Talents",
+        "description": "Focus on signing young, promising players with high potential for future development."
+      },
+      {
+        "objective": "Increase Squad Depth",
+        "description": "Add quality players to the squad to ensure strong backup options for each position."
+      },
+      {
+        "objective": "Add Experienced Players",
+        "description": "Bring in experienced players to provide leadership and guidance to younger teammates."
+      },
+      {
+        "objective": "Improve Goalkeeping",
+        "description": "Sign a top-tier goalkeeper to strengthen the last line of defense."
+      },
+      {
+        "objective": "Promote from Youth Academy",
+        "description": "Promote and integrate players from the youth academy into the first team."
+      },
+      {
+        "objective": "Financial Prudence",
+        "description": "Make signings that fit within the club's budget to maintain financial stability."
+      },
+      {
+        "objective": "Increase Marketability",
+        "description": "Sign high-profile players to increase the club's marketability and attract more fans."
+      },
+      {
+        "objective": "Improve Team Chemistry",
+        "description": "Sign players who will fit well with the existing team dynamics and enhance overall team chemistry."
+      },
+      {
+        "objective": "Sign Versatile Players",
+        "description": "Acquire players who can perform well in multiple positions to provide tactical flexibility."
+      },
+      {
+        "objective": "Strengthen Set-Piece Capability",
+        "description": "Recruit players with strong set-piece abilities to improve performance during free kicks and corners."
+      },
+      {
+        "objective": "Boost Physicality",
+        "description": "Sign physically strong players to improve the team's ability to compete in physical battles."
+      },
+      {
+        "objective": "Add Speed",
+        "description": "Recruit fast players to enhance the team's ability to play quick, counter-attacking football."
+      },
+      {
+        "objective": "Focus on Local Talent",
+        "description": "Prioritize signing players from the local region to strengthen the connection with local fans."
+      },
+      {
+        "objective": "Sign Technical Players",
+        "description": "Bring in highly technical players to improve the team's ball control and passing accuracy."
+      },
+      {
+        "objective": "Enhance Creativity",
+        "description": "Recruit creative midfielders who can unlock defenses with their vision and passing."
+      },
+      {
+        "objective": "Build for the Future",
+        "description": "Sign young players with the potential to become key players for the club in the future."
+      },
+      {
+        "objective": "Cover for Injuries",
+        "description": "Ensure adequate cover for positions prone to injuries to maintain squad performance throughout the season."
+      },
+      {
+        "objective": "Improve Aerial Ability",
+        "description": "Sign players who are strong in aerial duels to improve the team's performance in both defensive and attacking headers."
+      },
+      {
+        "objective": "Enhance Tactical Flexibility",
+        "description": "Acquire players who can adapt to different tactical setups and formations."
+      },
+      {
+        "objective": "Sign a Star Player",
+        "description": "Make a marquee signing to boost team morale and fan engagement."
+      },
+      {
+        "objective": "Balance the Squad",
+        "description": "Ensure a balanced squad with the right mix of defensive, midfield, and attacking options."
+      },
+      {
+        "objective": "Lower Average Age",
+        "description": "Focus on signing younger players to lower the average age of the squad and build a team for the long term."
+      }
+    ]
+  }
+  

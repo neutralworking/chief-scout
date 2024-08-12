@@ -1,0 +1,88 @@
+{
+    "staff_tactical_preferences": [
+        {
+            "type": "Head Coach",
+            "influences": {
+                "playing_experience": {
+                    "previous_position": "Midfielder",
+                    "success_as_player": "High",
+                    "past_coaches_influence": "Possession-Based"
+                },
+                "coaching_experience": {
+                    "roles": ["Head Coach", "Assistant Manager"],
+                    "success_with_tactics": "High",
+                    "mentors_influence": "High Pressing"
+                },
+                "club_philosophy": {
+                    "alignment_with_club": "High",
+                    "adaptability_to_club_needs": "Moderate"
+                },
+                "cultural_influences": {
+                    "national_football_culture": "Possession-Oriented",
+                    "regional_trends": "Attacking Play"
+                },
+                "personality_philosophy": {
+                    "risk_tolerance": "Moderate",
+                    "innovative_vs_conservative": "Innovative",
+                    "leadership_style": "Strong"
+                },
+                "tactical_education": {
+                    "coaching_badges": "UEFA Pro License",
+                    "professional_development": "Attends Regular Seminars"
+                },
+                "squad_adaptation": {
+                    "current_squad_strengths": "Strong Midfield",
+                    "injury_and_availability": "Adaptable"
+                }
+            },
+            "tactical_preferences": {
+                "preferred_formation": "4-3-3",
+                "playing_style": "Possession",
+                "pressing_style": "High Press",
+                "defensive_line": "High"
+            }
+        },
+        {
+            "type": "Assistant Manager",
+            "influences": {
+                "playing_experience": {
+                    "previous_position": "Defender",
+                    "success_as_player": "Moderate",
+                    "past_coaches_influence": "Defensive Stability"
+                },
+                "coaching_experience": {
+                    "roles": ["Assistant Manager", "Youth Coach"],
+                    "success_with_tactics": "Moderate",
+                    "mentors_influence": "Structured Defense"
+                },
+                "club_philosophy": {
+                    "alignment_with_club": "Moderate",
+                    "adaptability_to_club_needs": "High"
+                },
+                "cultural_influences": {
+                    "national_football_culture": "Defensive-Minded",
+                    "regional_trends": "Counter-Attack"
+                },
+                "personality_philosophy": {
+                    "risk_tolerance": "Low",
+                    "innovative_vs_conservative": "Conservative",
+                    "leadership_style": "Collaborative"
+                },
+                "tactical_education": {
+                    "coaching_badges": "UEFA A License",
+                    "professional_development": "Occasional Seminars"
+                },
+                "squad_adaptation": {
+                    "current_squad_strengths": "Strong Defense",
+                    "injury_and_availability": "Flexible"
+                }
+            },
+            "tactical_preferences": {
+                "preferred_formation": "4-4-2",
+                "playing_style": "Counter-Attack",
+                "pressing_style": "Mid Block",
+                "defensive_line": "Deep"
+            }
+        }
+    ]
+}

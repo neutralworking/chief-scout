@@ -1,0 +1,50 @@
+{
+    "scouting_reports": [
+        {
+            "player_name": "Player 1",
+            "age": 23,
+            "position": "Forward",
+            "current_club": "Club A",
+            "current_value": 5000000,
+            "potential_value": 9000000,
+            "attributes": {
+                "pace": 85,
+                "shooting": 80,
+                "passing": 70,
+                "dribbling": 78,
+                "defense": 40,
+                "physical": 82
+            },
+            "scout_comments": "Player 1 is a young and fast forward with high potential. He has excellent pace and shooting abilities. Needs to improve passing and defense.",
+            "market_demand": 70,
+            "suitability": {
+                "tactical_fit": 80,
+                "potential_growth": 90,
+                "injury_risk": "Low"
+            }
+        },
+        {
+            "player_name": "Player 2",
+            "age": 28,
+            "position": "Midfielder",
+            "current_club": "Club B",
+            "current_value": 3000000,
+            "potential_value": 4000000,
+            "attributes": {
+                "pace": 65,
+                "shooting": 70,
+                "passing": 85,
+                "dribbling": 75,
+                "defense": 70,
+                "physical": 78
+            },
+            "scout_comments": "Player 2 is an experienced midfielder known for his passing and defensive skills. He is a reliable player but has limited growth potential.",
+            "market_demand": 50,
+            "suitability": {
+                "tactical_fit": 75,
+                "potential_growth": 60,
+                "injury_risk": "Medium"
+            }
+        }
+    ]
+}

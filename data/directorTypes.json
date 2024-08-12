@@ -1,0 +1,144 @@
+{
+    "director_types": [
+        {
+            "type": "Financial Director",
+            "primary_goal": "Achieve and maintain financial stability and profitability for the club.",
+            "key_actions": [
+                "Maximize revenue streams such as sponsorships, matchday income, and merchandise sales.",
+                "Manage wages and transfer fees to ensure profitability.",
+                "Prioritize selling players at peak value and reinvesting profits wisely."
+            ],
+            "metrics_for_success": [
+                "Positive financial balance.",
+                "Consistent profit generation.",
+                "High return on investment from player transfers."
+            ]
+        },
+        {
+            "type": "Competitive Director",
+            "primary_goal": "Win trophies and achieve high competition standings.",
+            "key_actions": [
+                "Assemble the strongest possible squad to compete for league titles and cup trophies.",
+                "Invest heavily in top-tier players and coaching staff.",
+                "Prioritize short-term success over long-term financial stability if necessary."
+            ],
+            "metrics_for_success": [
+                "Number of trophies won.",
+                "League standings.",
+                "Success in domestic and international competitions."
+            ]
+        },
+        {
+            "type": "Transfer Director",
+            "primary_goal": "Generate profit through smart player transfers.",
+            "key_actions": [
+                "Focus on buying undervalued players and selling them for a profit.",
+                "Scout extensively for hidden gems and young talent.",
+                "Create a strong network of scouts and agents to find lucrative deals."
+            ],
+            "metrics_for_success": [
+                "Net transfer profit over time.",
+                "Successful flips of players bought and sold for a higher price.",
+                "Reputation as a shrewd operator in the transfer market."
+            ]
+        },
+        {
+            "type": "Reputation Director",
+            "primary_goal": "Increase the club's reputation on a national and international level.",
+            "key_actions": [
+                "Achieve consistent performances in high-profile competitions like the Champions League.",
+                "Attract world-class players and staff to the club.",
+                "Build a brand image that resonates globally, attracting fans and sponsors."
+            ],
+            "metrics_for_success": [
+                "Increase in global fanbase and media coverage.",
+                "Attraction of high-profile sponsorship deals.",
+                "Ranking improvement in reputation-based rankings (e.g., UEFA club coefficients)."
+            ]
+        },
+        {
+            "type": "Style Director",
+            "primary_goal": "Implement a distinctive playing style or football philosophy across the club.",
+            "key_actions": [
+                "Hire coaches and staff who align with the desired style (e.g., attacking football, possession-based play).",
+                "Develop the youth academy to produce players that fit the club's playing philosophy.",
+                "Ensure the playing style is reflected at all levels, from youth teams to the first team."
+            ],
+            "metrics_for_success": [
+                "Consistent implementation of the desired playing style across the club.",
+                "Development of a clear club identity recognized in the football world.",
+                "Success achieved while staying true to the chosen philosophy."
+            ]
+        },
+        {
+            "type": "Youth Development Director",
+            "primary_goal": "Develop and promote young talent from the academy to the first team.",
+            "key_actions": [
+                "Invest in state-of-the-art youth facilities and coaching staff.",
+                "Scout and recruit promising young players.",
+                "Ensure a pathway for youth players to progress to the first team."
+            ],
+            "metrics_for_success": [
+                "Number of academy graduates playing regularly in the first team.",
+                "Successful sales or promotions of academy products.",
+                "Reputation for developing young talent."
+            ]
+        },
+        {
+            "type": "Stability Director",
+            "primary_goal": "Maintain long-term stability and sustainability for the club.",
+            "key_actions": [
+                "Focus on balanced financial management, ensuring the club is not overly reliant on any single revenue stream.",
+                "Build a balanced squad with a mix of experienced players and youth.",
+                "Avoid risky financial decisions, such as overspending on transfers or wages."
+            ],
+            "metrics_for_success": [
+                "Consistent mid-to-high league finishes without financial overreach.",
+                "Long-term financial health.",
+                "Minimal debt or financial liabilities."
+            ]
+        },
+        {
+            "type": "Infrastructure Director",
+            "primary_goal": "Improve and expand the club's physical and organizational infrastructure.",
+            "key_actions": [
+                "Invest in stadium expansion, training facilities, and youth academies.",
+                "Ensure the club has top-notch medical facilities to reduce injuries and prolong player careers.",
+                "Develop the club's scouting network and data analysis capabilities."
+            ],
+            "metrics_for_success": [
+                "Completion of infrastructure projects.",
+                "Improved player performance and injury prevention.",
+                "Enhanced scouting and recruitment efficiency."
+            ]
+        },
+        {
+            "type": "Community Director",
+            "primary_goal": "Strengthen the club’s ties with its local community and fanbase.",
+            "key_actions": [
+                "Invest in community outreach programs and local partnerships.",
+                "Ensure affordable ticket prices and fan engagement initiatives.",
+                "Promote homegrown talent and maintain a strong local identity."
+            ],
+            "metrics_for_success": [
+                "Increase in local fan engagement and attendance.",
+                "Positive community relations and media coverage.",
+                "Contribution to local initiatives and charity work."
+            ]
+        },
+        {
+            "type": "Global Expansion Director",
+            "primary_goal": "Expand the club’s brand and reach globally.",
+            "key_actions": [
+                "Establish international partnerships and academies.",
+                "Engage in global marketing campaigns and preseason tours.",
+                "Sign players with global appeal to increase the club’s international profile."
+            ],
+            "metrics_for_success": [
+                "Growth in international fanbase.",
+                "Increase in global merchandise sales.",
+                "Successful establishment of overseas academies or partnerships."
+            ]
+        }
+    ]
+}

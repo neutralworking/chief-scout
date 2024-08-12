@@ -1,0 +1,12 @@
+[
+  { "id": 1, "objective": "Win the league" },
+  { "id": 2, "objective": "Challenge for the league" },
+  { "id": 3, "objective": "Qualify for best continental competition" },
+  { "id": 4, "objective": "Qualify for any continental competition" },
+  { "id": 5, "objective": "Challenge for continental competition" },
+  { "id": 6, "objective": "Finish in the top half" },
+  { "id": 7, "objective": "Challenge for the top half" },
+  { "id": 8, "objective": "Consolidate" },
+  { "id": 9, "objective": "Don't get relegated" },
+  { "id": 10, "objective": "Don't embarrass the club" }
+]

@@ -1,0 +1,250 @@
+{
+    "staff_responsibilities": [
+        {
+            "responsibility": "Player Scouting and Recruitment",
+            "default_staff_member": "Chief Scout",
+            "supporting_staff": ["Scouts", "Assistant Manager"],
+            "success_criteria": [
+                "Identifying and signing high-quality players that fit the club's needs",
+                "Discovering young talents with high potential",
+                "Providing accurate and timely scouting reports"
+            ],
+            "failure_criteria": [
+                "Failing to identify key targets",
+                "Signing players who do not fit the team's style or strategy",
+                "Providing inaccurate or delayed scouting information"
+            ]
+        },
+        {
+            "responsibility": "Tactical Analysis and Opponent Research",
+            "default_staff_member": "Tactical Analyst",
+            "supporting_staff": ["Assistant Manager", "Head Coach"],
+            "success_criteria": [
+                "Accurately analyzing opponent strategies and tactics",
+                "Providing actionable insights that influence match outcomes",
+                "Keeping the team prepared for various tactical challenges"
+            ],
+            "failure_criteria": [
+                "Misjudging opponent tactics, leading to poor match preparation",
+                "Failing to adapt to opponent strengths and weaknesses",
+                "Providing inaccurate or insufficient tactical analysis"
+            ]
+        },
+        {
+            "responsibility": "Training Session Planning and Execution",
+            "default_staff_member": "Head Coach",
+            "supporting_staff": ["Assistant Manager", "Fitness Coach", "Goalkeeping Coach", "Technical Coaches"],
+            "success_criteria": [
+                "Improving player skills and fitness through effective training",
+                "Maintaining high team morale and cohesion",
+                "Reducing injury rates through tailored training"
+            ],
+            "failure_criteria": [
+                "Players showing no improvement or regressing in skill",
+                "Low team morale or lack of cohesion",
+                "High injury rates due to poorly managed training"
+            ]
+        },
+        {
+            "responsibility": "Youth Development",
+            "default_staff_member": "Youth Development Manager",
+            "supporting_staff": ["Youth Coaches", "Head of Academy"],
+            "success_criteria": [
+                "Promoting young players to the first team",
+                "Developing youth players into high-potential prospects",
+                "Maintaining a steady pipeline of talent from the academy"
+            ],
+            "failure_criteria": [
+                "Failure to promote youth players to the first team",
+                "Youth players not reaching their potential",
+                "Neglecting the development of academy talent"
+            ]
+        },
+        {
+            "responsibility": "Fitness and Conditioning",
+            "default_staff_member": "Fitness Coach",
+            "supporting_staff": ["Physiotherapist", "Medical Team"],
+            "success_criteria": [
+                "Maintaining player fitness throughout the season",
+                "Minimizing injuries through effective conditioning",
+                "Improving players' physical attributes"
+            ],
+            "failure_criteria": [
+                "High injury rates among players",
+                "Players losing fitness during key parts of the season",
+                "Poor physical performance in matches"
+            ]
+        },
+        {
+            "responsibility": "Player Rehabilitation and Injury Management",
+            "default_staff_member": "Physiotherapist",
+            "supporting_staff": ["Fitness Coach", "Medical Team"],
+            "success_criteria": [
+                "Efficiently rehabilitating injured players back to full fitness",
+                "Preventing re-injuries during recovery",
+                "Minimizing the time players spend on the injury list"
+            ],
+            "failure_criteria": [
+                "Players taking too long to recover from injuries",
+                "Re-injuries occurring frequently",
+                "Key players being unavailable due to poor injury management"
+            ]
+        },
+        {
+            "responsibility": "Contract Negotiations",
+            "default_staff_member": "Director of Football",
+            "supporting_staff": ["Club Secretary", "Legal Advisor"],
+            "success_criteria": [
+                "Securing favorable contract terms for the club",
+                "Retaining key players through successful renewals",
+                "Signing new players within budget constraints"
+            ],
+            "failure_criteria": [
+                "Overpaying for players or wages",
+                "Losing key players due to failed negotiations",
+                "Breaching budget constraints"
+            ]
+        },
+        {
+            "responsibility": "Match Preparation and Strategy",
+            "default_staff_member": "Head Coach",
+            "supporting_staff": ["Assistant Manager", "Tactical Analyst"],
+            "success_criteria": [
+                "Preparing the team effectively for each match",
+                "Implementing successful tactical strategies",
+                "Making impactful in-game adjustments"
+            ],
+            "failure_criteria": [
+                "Poor match preparation leading to losses",
+                "Tactics failing to counter opponents",
+                "Inability to adjust strategy during matches"
+            ]
+        },
+        {
+            "responsibility": "Performance Data Analysis",
+            "default_staff_member": "Performance Analyst",
+            "supporting_staff": ["Tactical Analyst", "Fitness Coach"],
+            "success_criteria": [
+                "Providing accurate and actionable performance data",
+                "Identifying trends and areas for improvement",
+                "Contributing to player development and tactical decisions"
+            ],
+            "failure_criteria": [
+                "Incorrect or misleading data analysis",
+                "Failing to identify performance issues",
+                "Providing data too late to impact decisions"
+            ]
+        },
+        {
+            "responsibility": "Player Psychology and Motivation",
+            "default_staff_member": "Sports Psychologist",
+            "supporting_staff": ["Head Coach", "Assistant Manager"],
+            "success_criteria": [
+                "Maintaining high player morale and motivation",
+                "Addressing and resolving psychological issues",
+                "Enhancing team cohesion and mental toughness"
+            ],
+            "failure_criteria": [
+                "Low team morale and poor mental performance",
+                "Unaddressed psychological issues affecting players",
+                "Lack of team cohesion or unity"
+            ]
+        },
+        {
+            "responsibility": "Transfer Market Monitoring",
+            "default_staff_member": "Chief Scout",
+            "supporting_staff": ["Director of Football", "Scouts"],
+            "success_criteria": [
+                "Identifying and acting on transfer opportunities",
+                "Monitoring player availability and market trends",
+                "Signing players who add value to the team"
+            ],
+            "failure_criteria": [
+                "Missing out on key transfer targets",
+                "Overpaying in the transfer market",
+                "Failing to adapt to market trends"
+            ]
+        },
+        {
+            "responsibility": "Media Relations and Public Communication",
+            "default_staff_member": "Public Relations Officer",
+            "supporting_staff": ["Director of Football", "Head Coach"],
+            "success_criteria": [
+                "Maintaining a positive public image for the club",
+                "Effectively managing media interactions",
+                "Responding appropriately to media crises"
+            ],
+            "failure_criteria": [
+                "Negative media coverage damaging the club's reputation",
+                "Poor handling of press conferences or interviews",
+                "Failure to manage media crises effectively"
+            ]
+        },
+        {
+            "responsibility": "Schedule Management and Travel Coordination",
+            "default_staff_member": "Club Secretary",
+            "supporting_staff": ["Travel Coordinator", "Team Manager"],
+            "success_criteria": [
+                "Efficiently managing the team's schedule",
+                "Organizing smooth and timely travel arrangements",
+                "Minimizing disruptions to training and match preparation"
+            ],
+            "failure_criteria": [
+                "Travel delays or logistical issues",
+                "Poorly managed schedules leading to fatigue or missed opportunities",
+                "Disruptions affecting team performance"
+            ]
+        },
+        {
+            "responsibility": "Player Wellbeing and Welfare",
+            "default_staff_member": "Player Liaison Officer",
+            "supporting_staff": ["Club Secretary", "Sports Psychologist"],
+            "success_criteria": [
+                "Ensuring players are supported off the pitch",
+                "Addressing personal issues that may affect performance",
+                "Maintaining a positive and supportive club environment"
+            ],
+            "failure_criteria": [
+                "Player dissatisfaction or off-pitch issues affecting performance",
+                "Inadequate support for players' personal needs",
+                "Negative club environment leading to morale issues"
+            ]
+        },
+        {
+            "responsibility": "Facilities Management",
+            "default_staff_member": "Facilities Manager",
+            "supporting_staff": ["Head of Grounds", "Infrastructure Manager"],
+            "success_criteria": [
+                "Maintaining high-quality training and matchday facilities",
+                "Completing infrastructure projects on time and within budget",
+                "Ensuring facilities meet the needs of the team"
+            ],
+            "failure_criteria": [
+                "Poor facility conditions affecting performance",
+                "Delays or cost overruns in infrastructure projects",
+                "Facilities not meeting the team's needs"
+            ]
+        },
+        {
+            "responsibility": "Kit and Equipment Management",
+            "default_staff_member": "Kit Manager",
+            "supporting_staff": ["Equipment Staff", "Club Secretary"],
+            "success_criteria": [
+                "Ensuring all players and staff have the necessary kit and equipment",
+                "Maintaining and organizing equipment effectively",
+                "Responding quickly to any kit or equipment issues"
+            ],
+            "failure_criteria": [
+                "Players lacking necessary kit or equipment",
+                "Disorganized or missing equipment",
+                "Delays in addressing kit or equipment issues"
+            ]
+        },
+        {
+            "responsibility": "Sponsorship and Commercial Activities",
+            "default_staff_member": "Commercial Director",
+            "supporting_staff": ["Marketing Team", "Public Relations Officer"],
+            "success_criteria": [
+                "Securing lucrative sponsorship deals",
+                "Growing the club's brand and revenue streams",
+               

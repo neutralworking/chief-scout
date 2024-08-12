@@ -1,0 +1,81 @@
+{
+    "player_profiles": [
+        {
+            "name": "John Doe",
+            "age": 25,
+            "nationality": "English",
+            "position": "Midfielder",
+            "contract_info": {
+                "contract_length": "Unknown",
+                "wage_range": "Unknown"
+            },
+            "valuation": "Unknown",
+            "scouting_info": {
+                "tactical_knowledge": "Low",
+                "technical_knowledge": "Low",
+                "mental_knowledge": "Low",
+                "physical_knowledge": "Low"
+            }
+        }
+    ],
+    "scouting_operations": {
+        "in_house": {
+            "cost": "Low",
+            "time": "Slow",
+            "accuracy": "Dependent on staff quality"
+        },
+        "outsourced": {
+            "cost": "High",
+            "time": "Fast",
+            "accuracy": "High"
+        },
+        "data_sources": {
+            "video": {
+                "cost": "Medium",
+                "effect": "Improves tactical knowledge"
+            },
+            "data": {
+                "cost": "Medium",
+                "effect": "Improves technical knowledge"
+            },
+            "scout_report": {
+                "cost": "Medium",
+                "effect": "Improves mental knowledge"
+            },
+            "medical_report": {
+                "cost": "Medium",
+                "effect": "Improves physical knowledge"
+            }
+        }
+    },
+    "schedule": {
+        "match_schedule": [
+            {
+                "date": "2023-08-01",
+                "opponent": "Team A",
+                "location": "Home"
+            },
+            {
+                "date": "2023-08-08",
+                "opponent": "Team B",
+                "location": "Away"
+            }
+        ],
+        "staff_schedule": {
+            "scouting_trips": [
+                {
+                    "scout": "Scout 1",
+                    "date": "2023-08-03",
+                    "task": "Scout Player X at Team C"
+                }
+            ],
+            "training_sessions": [
+                {
+                    "coach": "Coach 1",
+                    "date": "2023-08-02",
+                    "focus": "Defensive Drills"
+                }
+            ]
+        }
+    }
+}

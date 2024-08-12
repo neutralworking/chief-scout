@@ -1,0 +1,59 @@
+{
+    "financial_health": {
+        "revenues": {
+            "matchday_income": {
+                "ticket_sales": 20000000,
+                "merchandise_sales": 5000000,
+                "hospitality_income": 3000000
+            },
+            "broadcasting_rights": {
+                "tv_revenue": 40000000,
+                "streaming_revenue": 10000000
+            },
+            "sponsorships": {
+                "shirt_sponsorships": 15000000,
+                "stadium_naming_rights": 10000000,
+                "advertising": 5000000
+            },
+            "player_sales": {
+                "transfer_fees": 30000000,
+                "sell_on_clauses": 2000000
+            },
+            "prize_money": {
+                "domestic_competitions": 5000000,
+                "international_competitions": 20000000
+            }
+        },
+        "expenditures": {
+            "player_salaries": 70000000,
+            "staff_salaries": 15000000,
+            "transfer_fees": {
+                "player_purchases": 60000000,
+                "loan_fees": 5000000
+            },
+            "infrastructure_costs": {
+                "stadium_maintenance": 10000000,
+                "stadium_expansion": 5000000,
+                "training_facilities": 3000000
+            },
+            "debt_servicing": {
+                "loan_repayments": 10000000,
+                "bonds_mortgages": 5000000
+            }
+        },
+        "financial_management": {
+            "transfer_budget": 50000000,
+            "wage_budget": 85000000,
+            "ffp_compliance": true,
+            "financial_reserves": 20000000
+        },
+        "external_factors": {
+            "economic_conditions": "Stable",
+            "fan_engagement": "High",
+            "sporting_success": {
+                "league_position": 3,
+                "cup_runs": "Finalists"
+            }
+        }
+    }
+}

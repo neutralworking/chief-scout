@@ -1,0 +1,40 @@
+{
+    "management_style": {
+        "intro": "Welcome to the club! Let's discuss your management style.",
+        "questions": [
+            {
+                "question": "How do you prefer to manage the team?",
+                "options": {
+                    "1": "Hands-on approach, involved in every aspect.",
+                    "2": "Delegative, trusting staff to handle details."
+                }
+            },
+            {
+                "question": "What are your expectations from the staff?",
+                "options": {
+                    "1": "High discipline and strict adherence to rules.",
+                    "2": "Flexibility and creative problem-solving."
+                }
+            }
+        ]
+    },
+    "tactics_style": {
+        "intro": "Let's talk about the tactics and playing style.",
+        "questions": [
+            {
+                "question": "What is your preferred playing style?",
+                "options": {
+                    "1": "Attacking, focusing on high pressing and possession.",
+                    "2": "Defensive, focusing on strong defense and counter-attacks."
+                }
+            },
+            {
+                "question": "How should the team approach matches?",
+                "options": {
+                    "1": "Aggressively, always looking to dominate.",
+                    "2": "Cautiously, minimizing risks."
+                }
+            }
+        ]
+    }
+}

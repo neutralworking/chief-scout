@@ -1,4 +1,5 @@
-Incorporating playing styles into your game adds another layer of strategic depth and realism. The idea that certain playing styles are more or less compatible with each other can significantly impact player performance and team cohesion, especially during transfers or tactical shifts. Here’s how you can model this concept:
+Style is the main module for Coaches. 
+Styles generally take the name of the training required for the style of play.
 
 ### 1. **Defining Playing Styles**
 
@@ -63,15 +64,3 @@ When a player transitions from one style to another, their performance can be af
 - **Focused Training**: Players can undergo specialized training to better adapt to a new style. For example, a player moving from a Counter-Attacking team to a Possession-Based team might need to work on passing accuracy, vision, and composure.
 - **Youth Development**: Young players in the academy should be trained in the style the club is looking to promote, ensuring a smoother transition to the first team.
 
-### 6. **Example: Timothy Castagne’s Style Transition**
-
-Let’s say Timothy Castagne, known for his versatility in a Counter-Attacking system, transfers to a team that plays Possession-Based football:
-
-- **Initial Impact**: He might struggle initially with the slower build-up play and the demand for high composure and passing accuracy. His strengths in quick transitions might not be as valued.
-- **Performance Adjustment**: His overall match ratings might drop, particularly in areas like passing and positioning, until he adapts.
-- **Training Focus**: The coaching staff should focus on improving his composure, passing, and vision to help him adapt to the new style.
-- **Long-Term Benefits**: Once adapted, his experience in a Counter-Attacking system could add tactical flexibility to the team, allowing them to switch strategies during matches effectively.
-
-### Summary
-
-By integrating a playing style compatibility system, your game will offer a deeper, more strategic experience. Players will need to carefully consider how new signings fit into their existing tactical setup, manage the adaptation period for players moving between incompatible styles, and possibly even tweak their overall tactical approach to get the best out of their squad. This adds realism and complexity, making the game more engaging and rewarding for those who invest time in understanding the nuances of football tactics.

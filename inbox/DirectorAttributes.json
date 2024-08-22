@@ -1,0 +1,64 @@
+{
+  "Attributes": [
+    {
+      "Name": "Administrator",
+      "Description": "Affects how quickly tasks are completed.",
+      "RelatedAttribute": "Productivity",
+      "StaffMember": "Assistant"
+    },
+    {
+      "Name": "Figurehead",
+      "Description": "Influences staff morale, player happiness, and media interactions.",
+      "RelatedAttribute": "Charisma",
+      "StaffMember": "PR Director"
+    },
+    {
+      "Name": "Savant",
+      "Description": "Determines the accuracy and depth of scouting reports.",
+      "RelatedAttribute": "Player Knowledge",
+      "StaffMember": ""
+    },
+    {
+      "Name": "Nomad",
+      "Description": "Affects the ease of finding transfer targets and staff.",
+      "RelatedAttribute": "Network Development",
+      "StaffMember": ""
+    },
+    {
+      "Name": "Dealmaker",
+      "Description": "Improves success in transfer and contract negotiations.",
+      "RelatedAttribute": "Negotiation Ability",
+      "StaffMember": ""
+    },
+    {
+      "Name": "Statto",
+      "Description": "Impacts the effectiveness of using data and analytics in decisions.",
+      "RelatedAttribute": "Tech Ability",
+      "StaffMember": ""
+    },
+    {
+      "Name": "Ployglot",
+      "Description": "Improves communication with international players, staff, and media.",
+      "RelatedAttribute": "Languages",
+      "StaffMember": ""
+    },
+    {
+      "Name": "Strategist",
+      "Description": "Enhances the ability to plan long-term objectives and set club direction.",
+      "RelatedAttribute": "Planning",
+      "StaffMember": "Technical Director"
+    },
+    {
+      "Name": "Financier",
+      "Description": "Improves the management of the club's finances and budgeting.",
+      "RelatedAttribute": "Financial Management",
+      "StaffMember": "Financial Director"
+    },
+    {
+      "Name": "Motivator",
+      "Description": "Boosts player and staff motivation, increasing overall performance.",
+      "RelatedAttribute": "Motivation",
+      "StaffMember": "Head of Sports Psychology"
+    }
+  ]
+}

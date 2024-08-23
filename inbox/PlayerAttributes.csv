@@ -1,24 +1,45 @@
 ﻿
 Mental
 Controller: Anticipation,Decisions,Composure,Tempo
-Commander: Communication,Drive,Leadership,Competitiveness
-Creator: First Touch,Flair,Guile,Vision
+Commander: Communication,Competitiveness,Drive,Leadership
+Creator: Creativity,Flair,Guile,Vision
 
 Physical
 Target: Aerial Duels,Heading,Jumping,Volleys
-Sprinter: Acceleration,Agility,Movement,Pace
+Sprinter: Acceleration,Balance,Movement,Pace
 Powerhouse: Aggression,Duels,Shielding,Throwing
 
 Tactical
 Cover: Awareness,Clearances,Discipline,Positioning
 Engine: Intensity,Pressing,Stamina,Versatility
-Destroyer: PassBlock,PlayerBlock,ShotBlock,Tackling
-
+Destroyer: Bravery,Interceptions,ShotBlock,Tackling
 
 Technical
-Dribbler: Balance,Carries,Skills,Takeons
-Passer: Pass Accuracy,Cross,Pass Range,Through
+Dribbler: First Touch,Carries,Skills,Takeons
+Passer: Accuracy,Crossing,Range,Through
 Striker: Finishing,Long Shots,Penalties,ShotPower
 
-GK: Handling, Reactions
+GK: Agility, Handling, Reactions, Sweeping
+
+var PlayerModels = [Controller,Commander,Creator,Target,Sprinter,Powerhouse,Cover,Engine,Destroyer,Dribbler,Passer,Striker,GK];
+var PlayerModelNames = ["Controller","Commander","Creator","Target","Sprinter","Powerhouse","Cover","Engine","Destroyer","Dribbler","Passer","Striker","GK"];
+var PlayerModelAttributes = ["Anticipation","Decisions","Composure","Tempo","Communication","Competitiveness","Drive","Leadership","Creativity","Flair","Guile","Vision","Aerial Duels","Heading","Jumping","Volleys","Acceleration","Balance","Movement","Pace","Aggression","Duels","Shielding","Throwing","Awareness","Clearances","Discipline","Positioning","Intensity","Pressing","Stamina","Versatility","Bravery","Interceptions","ShotBlock","Tackling","First Touch","Carries","Skills","Takeons","Accuracy","Crossing","Range","Through","Finishing","Long Shots","Penalties","ShotPower","Agility","Handling","Reactions","Sweeping"];
+var PlayerModelAttributesShort = ["Ant","Dec","Com","Tmp","Com","Cmp","Drv","Ldr","Crt","Flr","Gle","Vis","Aer","Hed","Jmp","Vol","Acc","Bal","Mov","Pce","Agr","Dls","Shd","Thr","Awr","Clr","Dsc","Pos","Int","Prs","Stm","Vrs","Bra","Int","ShB","Tck","Fst","Car","Skl","Tkn","Acc","Crs","Rng","Thr","Fin","Lng","Pnl","ShP","Agl","Hdl","Rct","Swg"];
+var PlayerModelsCount = 13;
+var PlayerModelAttributesCount = 52;
+var ControllerScore = 0;
+var CommanderScore = 0;
+var CreatorScore = 0;
+var TargetScore = 0;
+var SprinterScore = 0;
+var PowerhouseScore = 0;
+var CoverScore = 0;
+var EngineScore = 0;
+var DestroyerScore = 0;
+var DribblerScore = 0;
+var PasserScore = 0;
+var StrikerScore = 0;
+var GKScore = 0;
+var PlayerModelScores = [ControllerScore,CommanderScore,CreatorScore,TargetScore,SprinterScore,PowerhouseScore,CoverScore,EngineScore,DestroyerScore,DribblerScore,PasserScore,StrikerScore,GKScore];
+
 

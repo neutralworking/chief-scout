@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker		Juventus	ITA	B	0.0	Ravanelli was a strong, complete, energetic, and hardworking striker, who, in addition to scoring goals, was also capable of playing off of his team-mates. A prolific goalscorer, he was good in the air, and possessed an accurate shot.		A former striker, Ravanelli started and ended his playing career at hometown club Perugia Calcio. Other notable career stops were Middlesbrough, Juventus and Marseille. He won five titles with Juventus, including a Serie A championship in 1995 and a Champions League title in 1996. In all, during his career he played with twelve clubs from four countries; his native Italy, England, France and Scotland. He earned 22 caps for the Italian national team, scoring 8 goals, and was a member of the Italian squad that took part at UEFA Euro 1996

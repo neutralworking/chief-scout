@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					ENG	B	0.0	Although he is primarily remembered as a defensive midfielder, which was said to be remarkable for such a young player, "and he was particularly noted for his high level of stamina. Stanley Matthews described him as being ""like a rock in a raging sea""", "and Bobby Moore likened him to the Rock of Gibraltar when defending but also noted that he was ""dynamic coming forward"". His imposing physique earned him the nicknames ""Big Dunc"" and ""The Tank""", in a 3–1 friendly win against West Germany, "he was given the nickname ""Boom Boom"" by the local press because of ""the Big Bertha shot in his boots"". Physically", he was enormous. He was strong and had a fantastic football brain. His ability was complete – right foot, left foot, long passing, short passing. He did everything instinctively.–Bobby Charlton		1/10/1936

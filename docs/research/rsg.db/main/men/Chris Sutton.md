@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Athlete			ENG	C	0.0		Premier League Golden Boot	He played as a forward from 1991 to 2007 for Norwich City, Blackburn Rovers, Chelsea, Celtic, Birmingham City and Aston Villa. Sutton scored over 150 career goals in over 400 league appearances spanning 16 years in the English and Scottish Premier Leagues. He was capped once by England. Sutton played principally in midfield or attack, although usually in the latter role as a striker. A very physical player, Sutton was a fairly prolific goalscorer throughout his career and was joint top goalscorer (with Dion Dublin and Michael Owen) in the FA Premier League 1997–98 season. He is also known as being one of the foremost exponents of the glancing header. He scored many goals with this technique which made him particularly effective from set-pieces.

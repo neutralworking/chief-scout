@@ -1,0 +1,3 @@
+Players: crafty, excessive dribblers
+Characteristics: Most of the time, the ball is moved around with short passes and a lot of dribbling. Virtually all players have good 1v1 skills. Players rarely make quick runs. Overall, the tempo is slow during buildup except for the occasional and unexpected long, forward pass.
+Success: Mexico is probably the only noteworthy representative of this style of football.

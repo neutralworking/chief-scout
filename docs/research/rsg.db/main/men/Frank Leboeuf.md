@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD					FRA	B	0.0	A cultured centre back, Leboeuf was noted for his long range passing ability[9] and also for his consistent penalty-taking throughout his career.[8] He took more than 20 penalties for Chelsea, missing just 3 times.		Leboeuf was raised in the fishing village of Saint-Cyr-sur-Mer[3] in southeastern France and introduced to football by his father, a former Stade Rennais coach,[4] who trained children in the sport.[5] After starting his career in 1986 in the lower divisions of the French leagues, Leboeuf moved to Laval in 1988. In 1991, he moved to Strasbourg and played there until 1996, when he made a switch to English club Chelsea for £2.5m. He played over 200 games for the club and scored 24 goals, mainly from penalties and set pieces.[6] With Chelsea, he won two FA Cups, one League Cup and one Cup Winners' Cup.[6] He left in 2001 for club Olympique Marseille, before finishing out his career in Qatar

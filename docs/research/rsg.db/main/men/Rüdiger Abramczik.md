@@ -1,0 +1,5 @@
+---
+{}
+---
+
+International class: 3 times Broad circle: 2 times Considered: 13 times Rüdiger Abramczik was one of the great crowd-pleasers of the late-70s Bundesliga. A classic right winger, extremely gifted at dribbling, very good technique, tricky, fast and sprightly but most of all a master at crossing the ball. At his debut he was the youngest player in Bundesliga history with 17 years and 3 months. Abramczik can be rated as one of the league’s all-time best crossers. Many goals were scored by Klaus Fischer after a cross by Abramczik. What he lacked was the necessary ambition and consistency to succeed at the highest level. It appeared that to him, football was a bit of a laugh, not to be taken too seriously. Around 1980 his star started to fade as he found it hard to adapt to the tactical development of only two forwards instead of three and the abolishment of the classic winger. 

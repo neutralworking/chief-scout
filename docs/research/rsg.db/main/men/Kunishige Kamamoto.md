@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					JPN	C	0.0			Won the bronze medal with the Japan national team at the 1968 Summer Olympics in Mexico City, Mexico, finishing as the tournament's top scorer with seven goals. Kamamoto is often considered to be the greatest Japanese football player of all-time. He was born in Kyoto on April 15, 1944. He grew up in Kyoto and attended Yamashiro High School. Then, he was on to Waseda University School of commerce. His major was commerce and earned bachelor of arts degree from Waseda University in 1966. He was selected Japan national football team in his college year. He joined the 1964 Summer Olympics in Tokyo, Tokyo and the 1968 Summer Olympics in Mexico city, Mexico. Kamamoto was the first Japanese league superstar, being the Japan Soccer League's top scorer 6 times with his club Yanmar Diesel, the forerunner to today's Cerezo Osaka.

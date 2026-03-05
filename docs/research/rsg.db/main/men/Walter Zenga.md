@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper			ITA	B	0.0		“The Spider Man” Walter Zenga was one of the best goalkeepers in the World between late 1980s and early 1990s, set an all-time record longest streak without conceding a goal in consecutive 5 World Cup games and 518 minutes as a part of 990 minutes in total including pre-world cup games but most credit was attributed to world-class defender. As well as his clean sheets with 38 for Italy, possesses the best ratio clean sheet in history of modern era football with 0.65 and concede only 24 goals. Zenga made his international debut when he was already 26.5 years old. He was rated by Guerin around 6.5 points for 7 seasons but he was capped for Italy just 7 years. He was a great goalkeeper for his agility and keeping skills. He was rated by many journalists as the best goalkeeper ever to play for Inter Milan and the fifth best goalkeeper of all-time for Italian series A. In 1990, Zenga finished 10th Ballon'Dor.	

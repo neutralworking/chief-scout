@@ -1,0 +1,3 @@
+Thomas Strakosha is a professional footballer who was born on March 19, 1995, in Athens. He currently plays as a goalkeeper for Premier League club Brentford and represents the Albania national team. Strakosha began his career at Panionios and later joined Italian club Lazio in 2012. He made his professional debut while on loan at Salernitana in August 2015. During his time at Lazio, he made 208 appearances and won the Coppa Italia and the Supercoppa Italiana twice each. Strakosha made his senior international debut for Albania in March 2017 against Italy. [^1]
+
+[^1]: https://en.wikipedia.org/wiki/Thomas_Strakosha

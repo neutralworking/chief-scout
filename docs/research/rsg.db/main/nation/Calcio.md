@@ -1,0 +1,3 @@
+Players: skillful, cunning, cautious
+Characteristics: Italian teams are very cautious about the number of players they are committing forward. Players use a variety of skills and the tempo changes often during buildup. Attackers make runs at indirect angles which is unpredictable and difficult to contain. Defenders prefer to slow down the tempo by shielding and playing the ball back. Most Italian teams like to saturate their own half and shut down their opposition.
+Success: Italian clubs have had a dominant presence in European competition. Clubs like Milan, Juventus, Roma and Inter have been very successful.

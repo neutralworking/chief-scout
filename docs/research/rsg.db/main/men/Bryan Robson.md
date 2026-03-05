@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM	Dominant	Presence	Captain Fantastic	Man Utd	ENG	A	87.3	Robson had a good goal-scoring record; terrific anticipation, movement, timing on and off the ball; was fiercely competitive and brave; possessed high levels of stamina; tackled, passed well and was also a good header of the ball. He was a consistent box-to-box midfielder who made a large number of scores, great tackles, ball winning and passing abilities. Additionally, He was a good header of the ball, He was voted in top ten European Footballer Of The Year four times between 1983 to 1985 and 1987	Born in Chester-le-Street, County Durham, Robson began his playing career at West Bromwich Albion, before moving on to Manchester United, whom he captained to three FA Cups and a European Cup Winners' Cup. He also won two FA Premiership winners medals. Towards the end of his playing career he moved into management as player-manager with Middlesbrough.	11/1/1957

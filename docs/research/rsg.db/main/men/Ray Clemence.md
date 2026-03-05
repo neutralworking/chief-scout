@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper			ENG	B	0.0		Ray Clemence is Liverpool's greatest goalkeeper ever who is the most decorated goalkeeper in history of English football. He still held in very high regard by the Anfield faithful and was voted in at No.11 on the Official Liverpool Football Club web site He was also chosen as goalkeeper in the BBC's Merseyside team of the 20th century. Unfortunately for Clemence, there was the presence of another great goalkeeper Peter Shilton and unfortunately England disqualified in both world cup and UEFA Euro during the 1970s. Accordingly, He only played in one major international tournaments in the EURO 1980. Clemence was selected in PFA team of the year only 1976 - 1977 season. In 1978 - 1979, he made incredible 17 clean sheet in total 21 home games and conceded only four goals in English top division. Clemence totally played 995 games during his professional career in club level and is believed to hold the world record most career clean sheets with 460 approximately.	

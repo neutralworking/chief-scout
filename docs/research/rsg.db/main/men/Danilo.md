@@ -1,0 +1,1 @@
+	Brazil	CB / RB / LB	15 July 1991 (age 32)	2019	2025[12]	England Manchester City	€37M[13]	163	8

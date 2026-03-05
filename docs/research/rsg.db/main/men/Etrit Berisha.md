@@ -1,0 +1,3 @@
+Etrit Fadil Berisha is an Albanian professional footballer who plays as a goalkeeper for the Italian Serie A club Empoli. He also captains the Albania national team. Berisha began his career at local club KF 2 Korriku and later joined Kalmar in 2008. In 2013, he joined Lazio in Serie A. Berisha has represented Albania at the international level and played a key role in their qualification for Euro 2016. [^1]
+
+[^1]: https://en.wikipedia.org/wiki/Etrit_Berisha

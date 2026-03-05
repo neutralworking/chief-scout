@@ -1,0 +1,1 @@
+3 June 1994 (age 29)	25	11	England Tottenham Hotspur

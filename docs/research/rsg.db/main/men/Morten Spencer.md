@@ -1,0 +1,1 @@
+	Darlington, England	14 March 2004 (age 19)	MF	Norway U18s	2024	

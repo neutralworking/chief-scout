@@ -1,0 +1,7 @@
+---
+{}
+---
+
+CM					NED	B	0.0	A no-nonsense holding midfielder, very industrious and committed, the Dutchman Jan Wouters was a classic teamplayer without claims for leadership. Not a very technical player or accomplished passer, Wouters was mostly valuable because of his never tiring commitment.		"Wouters played for several clubs including PSV, FC Utrecht, Bayern Munich and Ajax Amsterdam. He was also a Dutch international (70 caps, 4 goals) and was hugely influential in 1988 when the Netherlands won the European Football Championship.
+ He was coach of Scottish Premier League club Rangers under Dick Advocaat and then Alex McLeish. He left Rangers at the end of the 2005–06 season along with McLeish and Andy Watson.
+ Wouters is infamous to England supporters after elbowing Paul Gascoigne and fracturing his cheekbone during a World Cup qualifier in 1993 at Wembley. Gascoigne was forced to wear a Phantom of the Opera style facemask to protect his fractured cheekbone until his injury healed. The following day, the Daily Mirror newspaper labelled Wouters a ""Dutch thug"". The match was drawn 2–2 and damaged England's hopes of qualifying for the 1994 World Cup finals in the U.S.A., despite England leading the match 2–0."

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			SCO	B	0.0	Primarily a left winger, Liddell's versatility enabled him to play comfortably on the opposite wing and as a striker, at centre and inside forward. Liddell became noted for his strong physique, Acceleration, powerful shot, professionalism, and good conduct on the pitch.		Such was his influence and popularity that the club acquired the contemporary nickname "Liddellpool". Posthumous recognition has included a plaque unveiled in 2004 at Anfield and sixth place in a poll of Liverpool fans, conducted in 2006 under the title "100 Players Who Shook The Kop". He was inducted into the Scottish Football Hall of Fame in November 2008. Billy Liddell was one of the hidden legends during the World War II. For Liverpool, having scored 228 goals in 534 appearances, placing Liddell fourth and 11th in the respective club rankings as of 2008. He became Liverpool's leading goalscorer in eight out of nine seasons from 1949 to 1958. . While serving as a Royal Air Force navigator during the Second World War, Liddell continued his career by appearing in unofficial games for Liverpool and guesting for various teams in the United Kingdom and Canada.

@@ -1,0 +1,1 @@
+	Brazil	CM / DM	12 August 1996 (age 27)	Italy Juventus	2023	2024	0	0	On loan

@@ -1,0 +1,1 @@
+	United States	CM	28 August 1998 (age 24)	2020	2025	Germany Schalke 04	€22M[22]	65	8

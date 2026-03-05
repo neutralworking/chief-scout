@@ -1,0 +1,1 @@
+Kristensen is also crazy. Fucker loves shooting. Seems like he also plays centre half? At least right centre half.

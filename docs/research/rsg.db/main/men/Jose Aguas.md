@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					POR	C	0.0			Born in Luanda, Portuguese Angola, Portuguese Empire from a white colonial family, Águas started his footballing career with local team Lusitano do Lobito, before moving to S.L. Benfica in 1950 where he gained legendary status. With Benfica he won the Primeira Liga five times (1955, 1957, 1960, 1961 and 1963) and the domestic cup seven, also being crowned national league's top scorer on five occasions. In the years previous to Eusébio's explosion he was also instrumental in the club's back-to-back European Cup conquests, in 1961 against FC Barcelona (3–2), and the next season against Real Madrid (5–3), scoring his team's first goal on both occasions and being club captain; he failed to complete a hat-trick of wins in the competition after the 1–2 defeat to A.C. Milan in the 1963 final (he did not play).

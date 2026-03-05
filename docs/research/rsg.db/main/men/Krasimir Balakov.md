@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					BUL	B	0.0			Balakov began his club career at the local Etar Veliko Tarnovo, before transferring to Portugal's Sporting Clube de Portugal in 1990, playing alongside future Ballon D'Or recipient Luís Figo, his compatriot Yordanov, and future two-time Champions League winner Paulo Sousa. Though Sporting had a quality squad, Balakov only managed to win the 1994–95 Portuguese Cup during his time at the club. Today, fans still remember him as an exceptional player.[citation needed] In 1995, he transferred to Germany's VfB Stuttgart where he won two UEFA Intertoto Cups (2000 and 2002) and a DFB-Pokal (1997), before retiring in 2003. As an attacking midfielder Balakov formed a successful attacking partnership with strikers Fredi Bobic and Giovane Élber at Stuttgart. The trio were known as the "magic triangle". He was voted as Stuttgart's best player of all time. Balakov made 92 appearances for Bulgaria, between 1988 and 2003 (one of the best totals in national history) and scored 16 goals. Other than the 1994 FIFA World Cup, he also played for his country at Euro 1996 and the 1998 FIFA World Cup.

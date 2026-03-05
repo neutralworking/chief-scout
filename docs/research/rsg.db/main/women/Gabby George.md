@@ -1,0 +1,1 @@
+2 February 1997 (age 26)	2	0	England Everton	v.  Norway, 15 November 2022

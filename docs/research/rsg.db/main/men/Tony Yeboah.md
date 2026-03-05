@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker		Leeds United	GHA	B	0.0	One of the most phenomenal strikers of the Bundesliga. A center forward type, the Ghanaian Yeboah was very beefy and physical, technically supreme with a lethal instinct in front of the goal who could hit balls really hard but also with a lot of feeling. Due to his physicality, Anthony Yeboah was a very forceful player in and around the box who was incredibly hard to contain and due to his technical skills he could also drop back into midfield if need be. While playing for Eintracht Frankfurt in the early-1990s, Yeboah blended in very well with Uwe Bein who would assist many of Yeboah’s goals with his deadly short through balls. And then there were also Antoine ‘Jay Jay’ Okocha and Andreas Möller, all of them hugely talented offensive players which made that Eintracht side one of the most joyful and hard to contain attractions ever in Bundesliga history. In Frankfurt, Yeboah had his own fan club called ‘Yeboah’s witnesses’.	Kicker Torjägerkanone x2, Shot Power

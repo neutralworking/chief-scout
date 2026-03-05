@@ -1,0 +1,1 @@
+Ghana	CM / DM	10 March 1993 (age 30)	Italy Sassuolo	2020	2024	75	4	

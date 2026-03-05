@@ -1,0 +1,193 @@
+Shirt Name = TEXT
+Current Ability
+Recommended Current Ability
+Potential Ability
+Potential Ability Range
+Current Reputation
+Home Reputation
+World Reputation
+Height
+Weight
+Left Foot
+Right Foot
+Has No Work Permit = BOOL
+National Service Status 
+
+Trained in Nation
+
+Nation / Type (3 Years Between 15 and 21/3 years before 21)
+
+Trained At Club
+
+Club / Type (3 Years Between 15 and 21/3 years before 21)
+
+Positions
+
+Position = FOREIGN KEY POSITIONS
+Best Roles = FOREIGN KEY Roles
+GK = NUM
+SW = NUM
+WDL = NUM
+CDL = NUM
+CDC = NUM
+CDR = NUM
+WDR = NUM
+WBL = NUM
+DML = NUM
+DMC = NUM
+DMR = NUM
+WBR = NUM
+WML = NUM
+MCL = NUM
+MCC = NUM
+MCR = NUM
+WMR = NUM
+WFL = NUM
+AML = NUM
+AMC = NUM
+AMR = NUM
+WFR = NUM
+CFL = NUM
+CFC = NUM
+CFR = NUM
+
+Technical Attributes
+
+Crossing
+Dribbling
+Finishing
+First Touch
+Heading
+Long Shots
+Marking
+Passing
+Tackling
+Technique
+
+Mental Attributes
+
+Aggression
+Anticipation
+Bravery
+Composure
+Concentration
+Consistency
+Decisions
+Determination
+Dirtiness
+Flair
+Important Matches
+Leadership
+Movement
+Positioning
+Teamwork
+Versatility
+Vision
+Work Rate
+
+Physical Attributes
+
+Acceleration
+Agility
+Balance
+Injury Proneness
+Jumping Reach
+Natural Fitness
+Pace
+Stamina
+Strength
+
+Set Piece Attributes
+Corners
+Direct Free Kicks
+Indirect Free Kicks
+Penalties
+Throwing
+
+Goalkeeper Attributes
+
+Aerial Ability
+Command Of Area
+Communication
+Eccentricity
+Handling
+Kicking
+Ones On Ones
+Reflexes
+Rushing Out
+Tendency To Punch
+Throwing
+
+Preferred Moves
+
+Runs With Ball Down Left
+Runs With Ball Down Right
+Runs With Ball Through The Centre
+Gets Into Opposition Area
+Moves Into Channels
+Gets Forwards Wherever Possible
+Plays Short Simple Passes
+Tries Killer Balls Often
+Shoots From Distance
+Shots With Power
+Places Shots
+Curls Ball
+Likes To Round Keeper
+Likes To Try To Break Offside Trap
+Argues With Officials
+Likes To Lob Keeper
+Plays No Through Balls
+Dwells On Ball
+Arrives Late In Opposition Area
+Tries To Play Way Out Of Trouble
+Stays Back At All Times
+Dives Into Tackles
+Does Not Dive Into Tackles
+Hits Free Kicks With Power
+Runs With Ball Often
+Runs With Ball Rarely
+Tries Long Range Free Kicks
+Cuts Inside From Both Wings
+Comes Deep To Get Ball
+Hugs Line
+Looks For Pass Rather Than Attempting To Score
+Marks Opponent Tightly
+Plays With Back To Goal
+Possesses Long Flat Throw
+Stops Play
+Tires First Time Shots
+Plays One-Twos
+Dictates Tempo
+Attempts Overhead Kicks
+Knocks Ball Past Opponent
+Avoids Using Weaker Foot
+Tries Long Range Passes
+Likes To Switch Ball To The Other Flank
+Uses Long Throw To Start Counter Attacks
+Refrains From Taking Long Shots
+Penalty Box Player
+Cuts Inside From Left Wing
+Cuts Inside From Right Wing
+
+Injuries
+
+Injury / Start Date / End Date / Future (Bool) / Permanent (Bool) / Severity
+
+Bans
+
+Ban Type / Start Date / End Date / Number of Matches
+
+MLS Player Details
+
+MLS Rights Club = FOREIGN KEY Club
+MLS Rights Expiry Date
+MLS Draft Tpye
+MLS Guaranteed Contract
+MLS Last Draft Club
+MLS Last Draft Year
+MLS Last Draft Round
+MLS Last Draft Picks
+
+
+
+An aside: Development status has to be a category. If a player is fully developed at the age of 22 then they are worth less than a player of the same ability that can improve massively. A player like Michael Owen was probably the best he was ever going to be by the age of 22. A player Like Luca Toni did not make his top tier debut until the age of 30 (check ages). The pace at which a player likes to play generally determines their longevity, although a player like Ryan Giggs can spectacularly belie this adage. 

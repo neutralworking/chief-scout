@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					GER	C	0.0	It would however be as an inside forward that he would become better known, the hard-working playmaker of the national team whose strength on the ball and accurate passing allowing him to co-ordinate attacks.  He was an extremely versatile player who was even capable of helping out in defence when required.	Attacking Versatility, Committment, Kaiserslautern	A one-club man with home town team 1. FC Kaiserslautern, Fritz Walter was the inspirational captain of the West Germany team which stunned favourites Hungary to win the World Cup in 1954.  Equally at home in a variety of positions along the forward line, his loyalty to Kaiserslautern was demonstrated throughout his career when he regularly turned down big money moves to clubs from across Europe. After a prolific season in 1939-40, which brought 30 goals and helped Kaiserslautern to reach the final of the 'Südwest' regional league, Walter was called up to the national team for the game against Romania on 14 July 1940.  Then playing as a centre forward, he scored a hat-trick on his debut in a 9-3 German victory. 

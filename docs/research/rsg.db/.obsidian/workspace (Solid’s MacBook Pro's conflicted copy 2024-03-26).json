@@ -1,0 +1,212 @@
+{
+  "main": {
+    "id": "49c2f0e1c04ea609",
+    "type": "split",
+    "children": [
+      {
+        "id": "1890591dadfc464b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "76be8c10aa59baca",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Home.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "66fc14a6e9c91be3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "dof/clubs/Aston Villa Legends.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "72715201d75763d1",
+    "type": "split",
+    "children": [
+      {
+        "id": "6927a1fe2ef8f547",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "35132aafb970b01e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "f14a94c794a74673",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "719451bc88c18771",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "45f5433a54d27d63",
+    "type": "split",
+    "children": [
+      {
+        "id": "f3d9ffc5129c3fb6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1bbbe3e6088c5793",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "dof/clubs/Aston Villa Legends.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "194eefc0467b4408",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "dof/clubs/Aston Villa Legends.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "36cd4e6a5f6551f5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "09aba59f3dfcc5e1",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "dof/clubs/Aston Villa Legends.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "66fc14a6e9c91be3",
+  "lastOpenFiles": [
+    "dof/RSG 2500.md",
+    "dof/clubs/Arsenal Legends.md",
+    "dof/clubs/Wolves Legends.md",
+    "dof/clubs/Wigan Athletic Legends.md",
+    "dof/clubs/West Bromwich Albion Legends.md",
+    "dof/clubs/Watford Legends.md",
+    "dof/clubs/Swansea Legends.md",
+    "dof/clubs/Stoke City Legends.md",
+    "dof/clubs/Sheffield Wednesday Legends.md",
+    "dof/clubs/Sheffield United Legends.md",
+    "dof/clubs/QPR Legends.md",
+    "dof/clubs/Portsmouth Legends.md",
+    "dof/clubs/Norwich City Legends.md",
+    "dof/clubs/Middlesbrough Legends.md",
+    "dof/clubs/Ipswich Legends.md",
+    "dof/clubs/Hull City Legends.md",
+    "dof/clubs/Derby Legends.md",
+    "dof/clubs/Charlton Legends.md",
+    "dof/clubs/Coventry Legends.md",
+    "dof/clubs/Cardiff Legends.md",
+    "dof/clubs/Birmingham City Legends.md",
+    "dof/clubs/Barnsley Legends.md",
+    "dof/clubs/West Ham Legends.md",
+    "dof/clubs/Tottenham Hotspur Legends.md",
+    "dof/clubs/Sunderland Legends.md",
+    "dof/clubs/Southampton Legends.md",
+    "dof/clubs",
+    "dof",
+    "assets/Vicente.jpg",
+    "assets/THE COMPACT BLOCK IN A 4-4-2.webp",
+    "assets/TACTICAL STYLE.webp",
+    "assets/f8d893_23dc24ad92de4c98a4a2b7f6f22dcc1c~mv2.jpeg.webp",
+    "Vicente.jpg",
+    "THE COMPACT BLOCK IN A 4-4-2.webp",
+    "TACTICAL STYLE.webp",
+    "f8d893_23dc24ad92de4c98a4a2b7f6f22dcc1c~mv2.jpeg.webp",
+    "dev/backend/scripts",
+    "dev/backend/transfers-master.zip",
+    "dev/backend/transfer_values.txt",
+    "dev/backend/the-fa-handbook-2023-24-update-311023.pdf",
+    "dev/backend/The transfer system in European football- A pro-competitive no-poaching agreement .pdf",
+    "dev/backend/tactical_objectives.txt",
+    "dev/backend/tactical module.txt",
+    "dev/backend/strategic_objectives.txt",
+    "dev/backend/raptor_ratings.png",
+    "Football/FM Screenshots/Screenshot 2024-01-31 at 16.09.56.png",
+    "dev/models/Player Skillsets.canvas"
+  ]
+}

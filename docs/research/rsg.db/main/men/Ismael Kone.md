@@ -1,0 +1,1 @@
+Requires some physical development and body control but is already strong. Composed on the ball and is a STRONG Carrier. [[Yaya Toure]] has to be the comp. 

@@ -1,0 +1,1 @@
+8 December 1992 (age 30)	71	8	England Aston Villa

@@ -1,0 +1,1 @@
+Viktoria Plzen forward Rafiu Durosinmi remains a £7m target, though Wolves face serious competition for his signature from Bundesliga club Eintracht Frankfurt.

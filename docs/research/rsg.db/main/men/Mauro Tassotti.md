@@ -1,0 +1,1 @@
+ - 81: Veteran presence, strong defensively.

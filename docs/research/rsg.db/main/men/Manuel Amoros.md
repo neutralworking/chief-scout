@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WD		Guardian	Wing Back		FRA	C	0.0	Strong C+, Rapid B-, Aerial C-, Def B-, Read B-, Pass B-, Tech B-		Manuel Amoros was a versatile full-back which he was able to play both left and right-side without a significant different due to his great in both feet. He was an extraordinary wing-back in the world during 1980s with his fast, excellent movement, intelligent and skillful. Amoros played his first World Cup as a starter in 1982 in spite of his age 20 year olds only. He often went forward to play like winger and his elegant style led him as a popular defender especially his performance in match against Brazil in World Cup 1986 which was regarded as the most beautifully classic game in history of World Cup and he was voted as the best right-back of tournament by international-press.Amoros was one of the most successful French players during his time, won the top trophies both club and international competitions. He was finished 4th European footballer of the year in 1986. 

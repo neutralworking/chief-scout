@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					URU	B	0.0	Blessed with a wide range of attacking skills that made him the complete inside forward, he won a wide range of honours in both Uruguay and later in Italy and represented both countries at international level. Pale and slightly built, he did not have the same strength as many players but his technical ability more than made up for that.  With stunning ball control, superb vision and accurate passing, Schiaffino created many goals for team-mates but he also possessed great speed and an accurate left-footed shot which made him a significant goal threat.		Unquestionably one of Uruguay's greatest ever players, inside-left Juan Schiaffino will always be remembered as one of the goalscorers in his country's 2-1 win over Brazil in the final match of the 1950 World Cup.  

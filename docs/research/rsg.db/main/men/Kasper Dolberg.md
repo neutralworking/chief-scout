@@ -1,0 +1,1 @@
+https://www.theguardian.com/football/2017/may/23/focused-kasper-dolberg-bears-fruit-dennis-bergkamp-connection-ajax-europa-league

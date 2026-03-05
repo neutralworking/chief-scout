@@ -1,0 +1,2 @@
+ - 83: Reliable, tough in tackles.
+ - 82: Solid defensive presence.

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM	Dominant	Presence	General	Bayern Munich	GER	A	88.2	Michael Ballack, for instance, is very versatile, can organise a team offensively and defensively, can initiate attacks with his good passing, scores a lot of goals (particularly good at headers, also freekicks), tackles well.	Michael Ballack is the greatest German footballer during the 2000s, was famous for his leadership and effectiveness. He is one of the most runner-up trophies players, won second place in UEFA champion league, European Championship and FIFA World Cup with no any champion in these tournament. Especially, Ballack won the triple runner-up in 2001-2002 season with Leverkusen, consisted of Bundesliga, UEFA Champion league and DFB-pokal. He played as defensive midfielder in some year during early 2000s and settle his position up to attacking midfielder. By the end of 2008-2009 season, Ballack is totally rated by kicker ranking in the same profile as Stefan Effenberg with a half of world-class season in 2002 and 8.5 international-class seasons, was voted fifth place European Footballer Of The Year in 2002. 	26/9/1976

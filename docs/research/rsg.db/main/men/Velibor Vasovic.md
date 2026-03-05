@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD					YUG	B	0.0	but it is undeniable that his pace and intelligence allowed Michels to implement the ruthlessly efficient offside trap that became a hallmark of Ajax's defensive strategy. He was never nominated in Ballon'Dor. Str B, Rapid C, Def B+, Aerial B, Read B+, Vision C+, Pass C, Tec C+		Velibor Vasovic is the most underrated defender of all-time due to his non-appearance in any big international tournament for Yugoslavia. He was a key player for Ajax Amsterdam in the era Rinus Michel originated his total football style of play. Vasovic arrived at Ajax from Partisan Belgrade where he had just picked up a European Cup runners-up medal, five years later he was to go one better by captaining the Amsterdam team to their first ever European Cup in 1971. In that time he had become the first non-Dutchman to captain Ajax; he had also laid out the blueprint for how to play the position of libero in the modern game. 

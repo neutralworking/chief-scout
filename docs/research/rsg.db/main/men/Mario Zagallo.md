@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF					BRA	B	0.0			After appearing in Brazil's 1958 and 1962 World Cup winning teams as a player, Mário Zagallo ensured his place in the competition's history by coaching his country in 1970, become the first player to win the World Cup in both capacities. A distinguished left-winger in his playing days, it is for his long coaching career that he is best remembered, working with both club and national sides in Brazil and overseas across a period of some 40 years. Although playing on the left wing, Zagallo recognised the importance of tracking back to help defensively when required and it was that which made him ideally suited to a role in Brazil's 1958 World Cup squad. Making his international debut against Paraguay a few weeks before the finals, he played in all of Brazil's six World Cup games and scored in the final against the hosts Sweden as they took their first ever world title. Although that team is often spoken of as having played a 4-2-4 formation, Zagallo's ability to combine defence and attack made it more like an early 4-3-3 at times and he was later credited with helping to define the role of the wide midfield player.

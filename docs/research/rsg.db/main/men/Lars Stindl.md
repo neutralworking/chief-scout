@@ -1,0 +1,7 @@
+---
+{}
+---
+
+CF				Gladbach	GER	C	0.0			Born in Speyer, Stindl began his career in the youth teams for TSV Wiesental and joined a similar setup at Karlsruher SC in summer 2000. He started his professional career with Karlsruher SC, making his first appearance on 15 March 2008 in the Bundesliga. He was substituted on in the 81st minute in a 0–1 defeat to Eintracht Frankfurt. On 29 November 2008, Stindl scored his first Bundesliga goal against Hannover 96. In February 2010, he announced his intention to leave Karlsruher SC. On 16 March 2010, his transfer to Hannover 96 was confirmed. On 25 March 2015 it was confirmed that Stindl would move to Borussia Mönchengladbach for the 2015-16 season. On 8 August 2015, he marked his competitive debut by scoring a brace in a 4–1 win at FC St. Pauli in the first round of the DFB-Pokal.
+
+On the home straight, in his last appearances in the Bundesliga, Stindl was, as so often before, the great driving force behind a stumbling Borussia, one who at least provided structure and a move towards the goal. With his average score of 3.69, the long-time Gladbach captain shouldn't have had a place in our rankings. But it also has an impact on him that he gave the game a twist in the final phase of many joker bets in which he did not receive a score.

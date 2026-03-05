@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					AUT	B	0.0			Krankl started his professional career at Rapid Wien and stayed there for 8 years, apart from a year at Wiener AC. He won the European Golden Boot at Rapid Wien in 1978, attracting the interest of Barcelona. His spell at Barcelona was successful, winning the Copa del Rey in his first season as well as the Cup Winners' Cup (scoring in the final itself), and picking up the top goalscorer's award in La Liga that season with 29 goals. He returned to Rapid Wien in 1981, captaining the side and again scoring over 100 goals for them over the next 5 years. He played a major part in the most successful of Rapid teams in the 1980s, claiming the League crown twice and most prominently losing the Cup Winners' Cup Final in 1985 against Everton. In 1986, he moved to become player-manager at Wiener Sport-Club. Krankl was named Austrian Player of the Year a record five times, and was voted the most popular Austrian player of the last 25 years.

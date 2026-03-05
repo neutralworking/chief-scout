@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker			ITA	B	0.0	Bettega was regarded as a player of noteworthy intelligence, and in his prime, he was one of the most feared Italian strikers, due to his strength and prolific goalscoring ability: an athletic player, he was known for his ability to score acrobatic goals, and was an accurate finisher with either foot as well as with his head. Bettega was also regarded as a complete and modern player, as he was capable of playing both as a midfielder and as a forward, courtesy of his stamina, Vision, passing ability, and technical skills. He was usually used as a centre-forward earlier on in his career, but was also deployed in a more creative role, as a supporting striker, or as an attacking midfielder, in his later career, after losing some of his pace and mobility. Bettega is mostly remembered for his successful time at his hometown club Juventus, "where he established himself as one of Italy's greatest ever players. He was nicknamed La penna bianca (""White Feather"") due to his appearance"	

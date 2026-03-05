@@ -1,0 +1,1 @@
+The Mainz long-distance runner doesn't use all the chances that come his way, collected - just like his strike partner Ludovic Ajorque - a strong nine scorer points and, as always, shone as a tireless fighter. With his goal to make it 2-0 in the meantime, Onisiwo also spit in the face of runners-up Dortmund.

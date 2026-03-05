@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK	Reliable	Shotstopper	Wall	Chelsea, Arsenal	CZE	B	0.0		Peter Cech was one of the best goalkeepers in the world in the middle of the 2000s. He currently holds one record: a Czech professional league record of not conceding a goal in 855 competitive minutes. He also has a club record at his former team Sparta Praha, having gone 928 minutes unbeaten in all competitions in 2001–2002. During the 2004–05 season of premier league, Čech held the record for the most clean sheets accomplished in a season with 25 matches and he went 1,025 minutes without conceding a goal - a former Premier League record until Edwin Van Der Sar broke later. His great performance partly helped Chelsea reached other semi-finalists in UEFA Champion League 3 Times. He holds the record all-time most clean sheet in history of Permier League with 180 as well as all-time best clean-sheet ratio with 48 %. Cech was named as Chelsea player of the year in 2011 He was selected in PFA team of the year only twice time and won Premier League player of the month once n 2007.	

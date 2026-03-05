@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WM					GER	B	0.0	He displayed a specialty for scoring spectacular free kicks, tireless stamina and dazzling dribbling sprees. Thomas ‘Icke’ Hässler was one of the most prominent and beloved midfielders of German football in the 1990s. A diminutive, a playmaker and a tricky winger. A rare breed in that he was an individualist who was committed to teamplay.		For Germany, Häßler was capped 101 times, scoring 11 goals. Other than the two major tournament wins at the 1990 FIFA World Cup and the 1996 UEFA European Championship, he also played for his country at the 1994 and 1998 FIFA World Cups, Euro 92, and Euro 2000. He also won a bronze medal for West Germany at the 1988 Summer Olympics. He was the dominant figure of the Euro 92, displaying performances that were reminiscent of Diego Maradona's 1986 World Cup exploits. He displayed a specialty for scoring spectacular free kicks, tireless stamina and dazzling dribbling sprees, as Germany went on to reach the final of the tournament.

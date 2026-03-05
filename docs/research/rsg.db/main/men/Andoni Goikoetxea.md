@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD		Centre Back			ESP	B	0.0	Goikoetxea was notorious for his aggressive style of play, "not least because of the two heavy fouls (see Maradona foul) on Maradona and Schuster which earned him the nickname ""Butcher of Bilbao"". In 2007", "English newspaper The Times named him the ""hardest defender of all times""."		Born in Alonsotegi, Biscay, Goikoetxea began playing football with local Arbuyo before joining Athletic Bilbao in 1973 where, after starting out at the reserve side, he soon established himself in the senior team squad. He scored four La Liga goals in 27 games in his debut season, but played a lesser role in the following three years with only 24 appearances combined.[1][2] During the 1980s, along with Dani, José Ramón Gallego, José Núñez, Manuel Sarabia and Andoni Zubizarreta, Goiko was a prominent member of the successful Bilbao side coached by Javier Clemente. In 1984 the Basque club renewed its league title, also achieving the double (league and Copa del Rey) in that year.

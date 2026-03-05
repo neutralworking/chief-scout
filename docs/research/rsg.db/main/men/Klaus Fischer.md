@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					GER	B	0.0	Erwin Kremers and later Rüdiger Abramczik. While he only was of average height, he possessed an exceptional aerial quality, not only with his head but also with his feet. He would have played more than 45 times for Germany if he didn’t have to compete with Gerd Müller for the center forward spot and even after Müller had retired from international play in 1974, he still was not an option for the national team because of his involvement in the 1971 Bundesliga scandal. When the ban was finally lifted in 1977, he immediately established himself as the no. 1 forward of the national team, scoring 11 times in his first 9 games. Of all times, again enjoying a goal scoring rout of 11 goals in his first 9 games just like in 1977. His 1982 World Cup was a more successful affair for him personally than the previous one, scoring 268 goals in 535 games for TSV 1860, FC Schalke 04, Köln and VfL Bochum.	Kicker Torjägerkanone	

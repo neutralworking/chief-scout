@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					ITA	C	0.0	Spectacular Saves	Enrico Albertosi was one of the top goalkeepers in the World during the second half 1960s, is regarded as one of the best domestic goalkeepers ever. His long period of reliable performance left the famous goalkeepers such as Giuliano Sarti and even Dino Zoff out of starting eleven during the 1960s. However, He was a part of Italy squad that lost North Korea in the 1966 World Cup. lost his position to Dino Zoff in 1968 European Championship that Italy win the trophy and he backed to get the first choice again in 1970 FIFA World Cup. Albertosi was involved in the so-called "Game of the Century", when Italy played Germany. Despite conceding three goals in this match Albertosi won praise for a string of acrobatic saves. Albertosi had a very long career, played for AC Milan until his 40 years old. He is regarded as the greatest goalkeeper in history of Cagliari club where he reached his prime.	

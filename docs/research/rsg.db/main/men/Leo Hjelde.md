@@ -1,0 +1,1 @@
+Nottingham, England	26 August 2003 (age 19)	DF	Norway U21s	2025	

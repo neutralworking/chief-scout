@@ -1,0 +1,2 @@
+Iván Balliu Campeny is a professional footballer who plays as a right-back for La Liga club Rayo Vallecano and the Albania national team. He started his career at Barcelona B and has since played in Spain, Portugal, and France. Balliu previously represented Spain at the youth level but later declared for Albania, qualifying through his father. He made his debut for the Albanian senior squad in October 2017. [^1]
+

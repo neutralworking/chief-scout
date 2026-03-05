@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD		Centre Back			SCO	B	0.0			Scottish footballer and manager. He is best known for captaining Celtic to the European Cup triumph in 1967 and he later went on to manage the club. He is now the official Club Ambassador at Celtic. McNeill was voted the greatest ever captain of Celtic by the club's fans in 2002. He was signed by Celtic from nearby junior team, Blantyre Victoria, in 1957 as a defender. As captain he won nine Scottish League championships, seven Scottish Cups, and six Scottish League Cups. He also led the team to victory in the European Cup in 1967, as part of the "Lisbon Lions", and was the first British footballer to hold aloft the European Cup. He retired as a player in 1975 after 790 appearances for Celtic, in which he played every minute, never having been substituted. He won 29 caps for Scotland. McNeill also represented the Scottish League XI

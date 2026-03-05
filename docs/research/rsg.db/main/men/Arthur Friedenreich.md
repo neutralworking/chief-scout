@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					BRA	B	0.0	His skill on the ball, pace and power impressed all the leading clubs in the area.  His strength surprised many given his relatively small stature (5 foot 7 and just over eight stone) and earned him the nickname 'The Tiger'.		One of the first great stars of Brazilian football, Arthur Friedenreich played an important role in changing attitudes within his country at a time when black players had previously not been allowed to play professionally.  He is also renowned for developing some of the techniques for which later Brazilian stars would become famous, and for having one of the highest, if not the highest, career goalscoring totals. Over the following five years, Friedenreich would move around a variety of clubs in the São Paulo area, including Américano, Atlas, Paulista, Paysandu and Paulistano.  He also had another short spell with Ypiranga, which brought a rapid run of goals that made him the league's leading scorer again in 1914.  That year also saw the first ever official Brazilian national side, and Friedenreich played in the first ever game, a friendly against English club side Exeter City.

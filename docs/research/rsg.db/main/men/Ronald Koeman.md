@@ -1,0 +1,5 @@
+---
+{}
+---
+
+	CD	Assertive	Ranger	Sniper	Barcelona	NED	B	80.9	Most of his goals came from by his free-kick specialist, powerful and rocket long shooting and penalty taking, not only scoring quality but also great as a sweeper with intelligent play ensured an organized defense and provided excellent distribution from the back, always generated precision passing. His leadership ability enabled him to excel as captain of Holland in 1994 World Cup final. Aside from Barcelona, He played for all three big of Holland like Ajax, PSV and Feyenood. Koeman played along with “Three Tiger Soldier” like Gullit, Rijkaard and Van Basten and being overshadowed by them. Koeman was known for his low speed which made him a hard time to catch high-speed attackers.		Ronald Koeman was well-known as the greatest defender-scorer in history of the game with 225 goals in 647 matches which is an all-time world record. This record could be as good as a lot of strikers who played as the same level as him. Koeman scored not less than 10 goals in a season almost every years for his career. In 1988, He was voted 5th in Ballon D’or. 

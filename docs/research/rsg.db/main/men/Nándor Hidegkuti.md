@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Creator			HUN	B	0.0	A highly intelligent player, he was equally competent in a variety of positions across the forward line.  Often used as a winger early in his career, many of his greatest successes came in the playmaker role either as an inside forward or in the deep position which became his trademark.		One of the stars of Hungary's 'Magical Magyars' of the 1950s, Nándor Hidegkuti was the man whose revolutionary role as a deep-lying centre forward confused defenders all across the world and helped to make the team one of the most feared in the game's history.  He helped his country to win an Olympic gold medal and reach the World Cup final in 1954, as well as scoring a famous hat-trick in a 6-3 win over England at Wembley. In 1947, he signed for top flight side MTK Hungária and it was there that Hidegkuti would spent the remainder of his playing career.  

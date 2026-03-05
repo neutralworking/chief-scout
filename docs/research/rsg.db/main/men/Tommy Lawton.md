@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					ENG	C	0.0	Lawton was widely regarded as the finest centre-forward of his generation.[94] He boasted a strong physique and good ball control skills, as well as a great passing range and a powerful shot.[95][96] He was naturally right-footed, though worked to improve his left foot to a good enough standard to be considered a two-footed player.[97] His greatest strength though was his ability to head the ball, as he possessed muscular legs to give himself a strong jump and long hang-time, "and was also able to time his jumps to perfection.[96] Stanley Matthews surmised that ""Quite simply", "Tommy was the greatest header of the ball I ever saw.""[98] Lawton was never booked throughout his career"		Widely viewed as England's finest centre forward, Tommy Lawton would surely have achieved far greater success in his career had it not been for the outbreak of the Second World War when he was just 19 years old.  One of the most prolific goalscorers in the English league while still a teenager, his senior career spanned 20 years despite making a remarkable drop into third tier football at the peak of his playing days. 

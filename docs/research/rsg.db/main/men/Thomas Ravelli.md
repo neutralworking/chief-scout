@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper			SWE	B	0.0		Thomas Ravelli has created his worldwide reputation in the World Cup 1994. He is especially well known for saving two goals during the penalty shootout that ended the quarterfinal match between Sweden and Romania in the 1994 World Cup and is arguably deserved to win Yashin Award. Ravelli is one of the longest span international footballers with 17 years of appearances and most caps for Sweden. Under Ravelli's period, Sweden failed to qualify for every major international tournaments in the 1980s. He is known as a reliable keeper with great positioning and claim under pressure  Ravelli was also very successful with IFK Gothenburg club, won 6 league titles within seven years and reached European Cup quarter-final twice times. He is regarded as the third best goalkeeper in history of Scandinavian football.	

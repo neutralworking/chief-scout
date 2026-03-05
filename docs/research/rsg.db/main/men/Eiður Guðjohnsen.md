@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF				Chelsea	ISL	C	0.0			He has previously played for Premier League club Chelsea and FC Barcelona of Spain, and has had two spells at Bolton Wanderers fourteen years apart. He was the captain of the Iceland national team until manager Ólafur Jóhannesson took over the team. Throughout his professional career, Eiður Smári has scored over 150 goals in all competitions with his clubs and the national team. He is the son of Arnór Guðjohnsen, a former professional footballer, and is often considered to be one of the greatest Icelandic footballers, having won titles in the Netherlands, Spain, and England as well as the Champions League. He made his full international debut for Iceland as a substitute for his father in 1996, and is the nation's top scorer of all time with 25 international goals in 84 caps. In his home country he is simply known as Eiður Smári due to the patronymic naming system in Iceland.

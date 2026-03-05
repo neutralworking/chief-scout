@@ -1,0 +1,2 @@
+Not even really a striker, he's in the same category as Jesus - [[Craque]]. Reminds me quick a lot of Hazard, a little of Tevez, and the vision, balance and volleys is a little like Totti.
+All are 10s. He plays in the half space. 

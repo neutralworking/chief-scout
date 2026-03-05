@@ -1,0 +1,1 @@
+ - 86: Strong in the air and a clinical finisher, scored twice in the final.

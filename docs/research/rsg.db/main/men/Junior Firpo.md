@@ -1,0 +1,2 @@
+Firpo should be a lot better than he is. When was his peak? Why did he play for Barcelona? Ah he can't really defend he's like a Ruan. He's just done a disgusting challenge as well, he can't tackle. OMG he's just given away a penalty for handball as well. Fucking liability. Get him out of the box. He's fallen over for the first penalty. Jesus he's now been sent off for treading on the foot of the last man running through on goal.
+						

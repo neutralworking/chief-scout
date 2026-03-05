@@ -1,0 +1,3 @@
+Mario Mitaj is an Albanian professional football player known for his playing style as a left-back. He currently plays for Lokomotiv Moscow in the Russian Premier League. Mitaj is known for his strong defensive skills and his ability to contribute to the attack by overlapping and providing crosses from the left flank. He represents Albania at the international level. [^1]
+
+[^1]: https://en.wikipedia.org/wiki/Mario_Mitaj

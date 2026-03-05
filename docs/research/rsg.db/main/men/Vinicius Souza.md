@@ -1,0 +1,1 @@
+RF, quite tall and powerful, decent technique and shot from distance. Loves a long shot! Just sits back and defends but really it's a ploy to take long shots. Seems quite emotional. I would describe him as a [[Lurker]]. Interesting purchase. He got hooked at 58' so either not fit or not defending well enough because they brought on [[Chris Basham]]. 

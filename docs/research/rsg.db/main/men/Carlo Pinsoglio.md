@@ -1,0 +1,1 @@
+Italy	GK	16 March 1990 (age 33)	2014	2025[5]	Italy Vicenza	€0.7M[6]	5	0

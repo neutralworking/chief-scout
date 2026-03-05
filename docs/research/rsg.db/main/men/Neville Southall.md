@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper	Wall	Everton	WAL	B	0.0		Nevile Southall was one of the best goalkeepers in the World during the second half 1980s, being regarded as the greatest goalkeeper Wales has ever produced. Southall joined Everton in 1981 and went on to make a club record 578 appearances in the Football League and 750 in all competitions, was an indispensable player for Everton in their golden era, most notable in 1985 when he much impacted on his club to win English top division title, Cup Winners' Cup and lost in FA Cup final match. Unfortunately, the suspension of English club in European competitions was happened in his prime year. The Times media ranked him as the third greatest player ever of Everton club. In international level, He was very closed to help Wales to qualify the first time in history of World Cup but Wales was narrowly disqualified. Southall was selected in PFA team of the year four times. He finished in top five IFFHS world best goalkeeper twice.	

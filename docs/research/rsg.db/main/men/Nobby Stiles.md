@@ -1,0 +1,8 @@
+---
+position: CM
+class: Guardian
+role: Destroyer
+nation: ENG
+tier: B
+---
+and this he did with much success. His ability to gain and retain possession also allowed his more skilled team-mates like Bobby Charlton and, later, George Best more space on the field to utilise. Stiles' defensive skills were also utilised by United managers to great effect throughout his successful career. He was an unlikely-looking footballer in many ways – he was short, meaning he needed strong contact lenses when playing and wore thick spectacles off the field.		Stiles played for England for five years, winning 28 caps and scoring 1 goal. He played every minute of England's victorious 1966 FIFA World Cup campaign. His best performance in an England shirt was probably the semi-final of that tournament against Portugal, where he was given the job of marking the prolific Eusébio. His tough performance resulted in Eusébio being practically nullified for the entire game. Stiles also played very well in the final, which England won 4–2 against West Germany. His post-match celebration has become one of the most famous images in English sport history. The sight of Stiles dancing on the Wembley pitch, holding the World Cup trophy in one hand and his false teeth in the other, has lived for decades. Stiles played the majority of his club career for Manchester United, spending eleven years at Old Trafford, where he became renowned for his tough tackling and ball winning qualities. With the Red Devils, he won two League titles and one European Cup. Stiles is one of only three Englishmen, alongside Bobby Charlton and Ian Callaghan, to have won both the FIFA World Cup and European Cup. He also had short spells with Middlesbrough and Preston North End.

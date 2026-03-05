@@ -1,0 +1,1 @@
+Roams around looking for the ball. A little reminiscent of [[Vinicius Júnior]] but with elements of [[R - RSG/men 1/Bukayo Saka]] 

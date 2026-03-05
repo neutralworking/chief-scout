@@ -1,0 +1,1 @@
+CM	Elegant	Creator	Magician	Tottenham	ENG	B	81.8	Sublime balance and close control, unrivalled passing and vision and extraordinary shooting ability, both from open play and set pieces		English former footballer and manager who played as a midfielder for Tottenham Hotspur, AS Monaco, Chelsea and Swindon Town and at international level for England.

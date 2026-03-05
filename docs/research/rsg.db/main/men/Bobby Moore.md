@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD		Defender	Gentleman	West Ham	ENG	B	82.7	A composed central defender, Moore was admired for his reading of the game and ability to anticipate opposition movements, thereby distancing himself from the image of the hard-tackling, high-jumping defender. Indeed, Moore's ability to head the ball or keep up with the pace was average at best, but the way he read the game, played as center-back mostly by his genius positional play, as he had uncanny intuitive sense for where the ball was headed. His timing in the tackle was unmatched, and he was rarely off of his feet while winning the ball back for his team. Moore is known as a true leader and gentleman with his fair play. In 1966, He was voted as the fourth best of Ballon D’or. Although his ability was not the best ever, His greatness as captain leading England to be champion of world cup could lead him to be ranked among the best.	Composure, anticipation, game-reading, positioning, tackling, timing, leadership, gentlemanliness	

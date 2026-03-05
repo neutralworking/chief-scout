@@ -1,0 +1,1 @@
+Long Shots, Shot Power

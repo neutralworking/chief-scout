@@ -1,0 +1,1 @@
+(Bologna)The midfielder has started strongly for Bologna this season, and is now Serie A’s highest-scoring Scottish player of all time after drawing level with Denis Law’s record.

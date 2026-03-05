@@ -1,0 +1,3 @@
+![[R - RSG/main 1/assets/Pasted image 20231212004454.png]]
+
+The Ukrainian forward returned home to SK Dnipro-1 from Midtjylland in 2020 and found another gear, scoring 54 goals in 86 appearances – including 32 last season as Dnipro-1 finished second in the league. Dovbyk also has a knack for big international goals, scoring late on against Scotland in a World Cup playoff and Sweden at Euro 2020. Everton and Forest have shown interest before Girona paid a club-record €7.7m (£6.62m) to sign him. Part of Manchester City’s CFG operation, the ambitious club have eyes on Europe. Dovbyk made an instant impact with an equaliser at Real Sociedad. The cut-price fee does have a couple of caveats – Dnipro-1 retain a percentage of his rights and Midtjylland a cut of any future sale.

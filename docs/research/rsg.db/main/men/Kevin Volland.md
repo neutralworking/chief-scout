@@ -1,0 +1,3 @@
+The former Leverkusen striker has returned to the Bundesliga with Union Berlin, who have sought to sprinkle a little stardust over their squad. With Hertha relegated, the Champions League debutants want to make the German capital their own, also bringing in Leonardo Bonucci and Robin Gosens. 
+
+Signed for €4m, Volland made an inauspicious start against RB Leipzig with a straight red card. Still, a player with 77 career Bundesliga goals and 63 assists is unlikely to be kept down for long.

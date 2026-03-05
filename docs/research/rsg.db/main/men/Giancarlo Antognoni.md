@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					ITA	C	0.0	Antognoni is regarded as one of the best Italian players of his generation, and as one of the best Italian advanced midfield playmakers of all time, due to his vision, control, technical ability, and accurate passing range, as well as his powerful shots from outside the area. He was also a fast and elegant player when dribbling with the ball, and he was capable of passing or striking the ball accurately with both feet and from set pieces		His position was that of a midfielder, and he played most of his club career with Fiorentina, where he won the Coppa Italia and the Anglo-Italian League Cup in 1975. He won the 1982 FIFA World Cup with the Italian national team, and he also represented his country at the 1978 FIFA World Cup, and at the 1980 UEFA European Championship, finishing in fourth place on both occasions. On the 11th October 2010, he was awarded the "Legends of football" Golden Foot award.

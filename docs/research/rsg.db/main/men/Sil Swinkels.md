@@ -1,0 +1,5 @@
+---
+{}
+---
+
+|50|[Sil Swinkels](https://en.wikipedia.org/wiki/Sil_Swinkels "Sil Swinkels")|[CB](https://en.wikipedia.org/wiki/Defender_(association_football)#Centre-back "Defender (association football)")|[![Netherlands](https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Flag_of_the_Netherlands.svg/23px-Flag_of_the_Netherlands.svg.png)](https://en.wikipedia.org/wiki/Netherlands "Netherlands")|[Sint-Oedenrode](https://en.wikipedia.org/wiki/Sint-Oedenrode "Sint-Oedenrode")|6 January 2004(age 19)|[![Netherlands](https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Flag_of_the_Netherlands.svg/23px-Flag_of_the_Netherlands.svg.png)](https://en.wikipedia.org/wiki/Royal_Dutch_Football_Association "Royal Dutch Football Association") [Vitesse](https://en.wikipedia.org/wiki/SBV_Vitesse "SBV Vitesse")|1 July 2020|Free transfer|30 June 2025|1|0|

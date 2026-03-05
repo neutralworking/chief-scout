@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper	Cat		GER	B	0.0	Dominating The Area	Bodo Illgner was considered a promising goalkeeping talent at young age when he was quite unexpectedly given the chance to become Köln’s no. 1 goalkeeper at age 19 after Harald Schumacher was sacked due to his controversial book “Anpfiff” in 1986. Illgner immediately seized the opportunity and remained Köln’s undisputed goalkeeper for the next ten years. A sober, unspectacular keeper but quite charismatic, he was voted “goalkeeper of the year” four times in Germany (1989 to 1992), but did not win any trophies while being with Köln. That changed when he joined Real Madrid in 1996 where he managed the win the Champions League in 1998, as well as the Spanish championship in 1997 and 2001. Had to retire due to a severe shoulder injury in 2001. When playing for Germany, Illgner was never entirely undisputed, as many pundits claimed that Uli Stein and Andreas Köpke were better goalkeepers.	

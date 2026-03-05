@@ -1,0 +1,1 @@
+ - 82: Versatile, played various roles effectively.

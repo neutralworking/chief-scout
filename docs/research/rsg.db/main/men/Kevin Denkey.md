@@ -1,0 +1,1 @@
+Cercle BruggeThe most potent taker of chances in the Belgian league at the moment, the Togo international striker inevitably has been the subject of much positive press of late. So much so that former Anderlecht, Club Brugge and Belgium centre-forward Marc Degryse recently opined that Denkey’s irresistibly powerful physique reminded him of a certain Romelu Lukaku.

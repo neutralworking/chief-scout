@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			NED	B	0.0	A creative left winger of considerable skillful, A talented dribbler as well as a cool finisher and defensive infiltrator. He only ever missed two penalties in his entire career, and often enjoyed telling the keeper before hand where he was going to place the ball, and then still beating him there. He played as second striker for his club but switched to play as a wing-forwarder for Holland.		Rob Rensenbrink was a famous player of Holland in their great years, is regarded as the greatest footballer ever to play in Belgium league. Fortunately, Piet Kaiser could not show his great performance as he had done for Ajax, Rensenbrink was replaced as a long-period starter after then. Rensenbrink also helped Holland reach semi-final in Euro 1976. He scored around 250 goals during his career.

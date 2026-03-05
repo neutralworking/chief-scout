@@ -1,0 +1,1 @@
+Always had quality but he’s unnecessary in this team. He looks to still have some juice though and I can see him as a left mezzala. 

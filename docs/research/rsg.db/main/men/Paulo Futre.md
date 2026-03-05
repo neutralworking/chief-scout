@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			POR	B	0.0	A highly talented and creative left-footed winger, whose playing style initially drew comparisons with Diego Maradona, Futre was known in particular for his explosive acceleration, as well as his excellent technical ability; his dribbling skills, pace, agility and quick feet, enabled him to be extremely fast with the ball at his feet and allowed him to take on several opponents. Due to his vision and work-rate, Futre was capable both of creating and scoring goals, and was a versatile player who was also deployed as a second striker and as an attacking midfielder on occasion during his time in Italy. Despite the precocious talent he demonstrated in his youth, he was also prone to injuries which greatly affected his career, leading to increasingly inconsistent performances, a poorer goalscoring rate and a premature retirement at the age of 32.

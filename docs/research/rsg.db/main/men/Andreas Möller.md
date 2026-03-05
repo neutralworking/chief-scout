@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM		Creator			GER	A	0.0	A talented, versatile, and complete advanced playmaker, Möller was known for his range of passing, Creativity, Vision, and technical ability, as well being capable of playing the ball first time and striking powerfully with both feet. In addition to his creative abilities, he also known for his goalscoring and his ability in the air, which also allowed him to be deployed as a supporting striker or even as a winger. One of the Bundesliga’s most lightfooted offensive midfielders, a high-tempo dribbler of a certain elegance and a very fast acceleration who didn’t lose speed with the ball at his feet and who was known to score wonderful goals after his explosive solos. Playing in central midfield, Möller possessed strategic qualities, too, but didn’t feel at home in the role of a playmaker who showed others the way. Not a hard character at all, Möller would easily get weepy when he was hit by fouls. Unfortunately prone to diving, Möller’s club career slightly outweighed his international career.	Diverse Attacking Skill Set With Both Feet	

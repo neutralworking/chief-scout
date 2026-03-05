@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					GER	C	0.0		Heinrich ("Heiner") Stuhlfauth was arguably the best goalkeeper in the World in the first half 1920s. He began his great career just after the World War I and was one of the most influential factors to lead Nurnberg dominating the German Championship with five title within eight years. In games he always wore a grey sweater and a flat caps. One of his specialties was his foot; He was an early proponent of "fellow goalkeeper" and was described by contemporary journalists as the 'third defender as he was known for being one of the first"playing"goalkeepers, actively participating in the game. Although he was capped only 21 games due to limitation of international competition at that era, he was temporarily the most capped German players. In 1956, he was elected in a poll of football as the most popular German football player.	

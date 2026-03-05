@@ -1,0 +1,1 @@
+Ivory Coast	CF	6 December 1997 (age 25)	Italy Genoa	2020	2024	68	6	

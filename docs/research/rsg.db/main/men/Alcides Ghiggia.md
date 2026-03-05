@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			URU	B	0.0	Despite his lack of height he was an extremely skilful player, able to dribble the ball at great speed and provide accurate crosses to his team-mates.		Right-winger on the team which won the 1950 World Cup in Brazil, Uruguay's Alcides Ghiggia was the scorer of one of the most famous goals in the history of football. It was his strike which sealed that famous triumph for Uruguay, a defining moment in the game in both his own country and in Brazil. He also enjoyed a long club career in Italy, the land of his ancestry, during which team he made several appearances for the Italian national team. Ghiggia was born into a middle class family in Montevideo on 22 December 1926 and did not go through the extreme poverty that many of his future team-mates had to endure in their childhood. As a teenager he played basketball and football but being relatively short for a footballer, let alone a basketball player, eventually chose football to be his career.

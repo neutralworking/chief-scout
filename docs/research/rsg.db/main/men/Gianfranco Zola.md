@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF	Enthusiastic	Creator	Fantasista	Napoli, Chelsea	ITA	B	79.0	During his playing career, Zola was primarily used as a supporting striker or as a playmaking attacking midfielder, due to his ability to create chances for team-mates; he was also deployed as a winger or as a striker on occasion.[63] A creative and technically gifted player, Zola was renowned for his ball control, his skilful dribbling ability, Vision, and passing ability, as well as his eye for goal.[29] His small stature and low centre of gravity gave him good balance and allowed him to be extremely quick and agile, along with his acceleration and ball skills, enabled him to change direction with the ball very quickly in tight spaces, and allowed him to beat defenders in one on one situations.[4] Zola was also a penalty kick and set piece specialist, "who was particularly renowned for his accuracy at bending direct free-kicks.[64] Zola was given the nickname ""Magic box"" whilst playing at Chelsea. Zola is regarded as one of the best Italian creative forwards of his generation", and as one of the best players in Premier League history		

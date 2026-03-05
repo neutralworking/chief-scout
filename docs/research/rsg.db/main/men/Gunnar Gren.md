@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					SWE	B	0.0	A creative forward, known for his technical skill, Vision, tactical intelligence, and passing ability as a playmaker, "he was part of the famous ""Gre-No-Li"" trio of forwards at Milan and the Swedish national team", and was also capable of playing as an attacking midfielder. One of the first Swedish players to make a significant impact on the global game, inside-right Gunnar Gren formed a fearsome partnership with countrymen Gunnar Nordahl and Nils Liedholm during their time together at AC Milan.  An intelligent playmaker, he was an exceptionally technically gifted player.  For most of his career Gren was much more of a goal creator than a prolific scorer, always knowing the right ball to play at any given time.  He made his senior debut for Gårda towards the end of the 1937-38 season and quickly became an indispensible part of the team, being ever present in each of the next two seasons.		

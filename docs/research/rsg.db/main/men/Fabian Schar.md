@@ -1,0 +1,1 @@
+Schar is also a bit crazy. Former midfielder? Always shooting.

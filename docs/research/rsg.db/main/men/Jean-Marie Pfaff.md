@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					BEL	B	0.0		Marie-Pfaff was among the best goalkeepers in the World during the 80’s. He played in Belgian league until 29 years old before moving to West Germany. Kicker rated him in world-class 1.5 seasons and 4.5 seasons of International-class from total 7 years in Bundesliga. His impressive performance led Belgium to the most successful in their history both European championship and FIFA World Cup, was voted 4th place best player of the 1986 FIFA World Cup tournament. He was noted for his undeniable talent, outlandish behavior and extravagant keeping style. He also finished second place in the 1977 Belgian Golden Shoe. He finished 6th and 11th Ballon'Dor in 1983 and 1986, respectively including being voted in top ten in the 1986 World Soccer Player of the Year. Marie Pfaff was voted by IFFHS’s poll 16th World’s best goalkeeper of the century.	

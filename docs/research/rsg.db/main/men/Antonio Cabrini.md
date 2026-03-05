@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WD					ITA	C	0.0	On the field, his technical and physical qualities made of him the most popular defender of the history of Italian football. Cabrini was almost a completed side-back, showing his world-class defensive and offensive quality but his right-foot was the only disadvantage that it was not rather useful in some occasions. But still		He has played left-back, mainly with Juventus. He won the 1982 FIFA World Cup with the Italian national team. Cabrini is remembered in particular for forming one of the most formidable defensive units of all time with Italy and Juventus, alongside goalkeeper Dino Zoff, as well as defenders Claudio Gentile, and Gaetano Scirea. Cabrini won the Best Young Player Award at the 1978 World Cup, after helping Italy managed a fourth-place finish, and also represented Italy at Euro 1980, once again finishing in fourth place. He is one of the few players to have won all UEFA Club competitions, an achievement he managed with Juventus. “The Beautiful Antonio” Antonio Cabrini is considered as the greatest full-back of the world during 1980s. 

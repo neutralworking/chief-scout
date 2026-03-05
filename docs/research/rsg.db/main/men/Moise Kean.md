@@ -1,0 +1,1 @@
+	Italy	ST	28 February 2000 (age 23)	2021	2025	England Everton	€30M[32]	103	22

@@ -1,0 +1,1 @@
+Paris, France	20 April 2002 (age 21)	FW	France U21s	2028	

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM	Determined	Director	Regista	Lazio	ARG	A	87.3	Verón was a complete and versatile midfielder; he was gifted with excellent technical ability, vision and passing range, as well as a powerful shot from distance. He was also a strong, tenacious, influential, hardworking, and physical player.		Verón's career started in Estudiantes, continued in Argentina's Boca Juniors, and included stints in several Serie A clubs (where he won the Scudetto with Lazio and with Internazionale, and a UEFA Cup with Parma), and England's Manchester United and Chelsea. In 2006, Verón returned to Estudiantes. In 2004, he was included in the FIFA 100 centenary list of the 125 greatest living footballers, selected by Pelé as part of FIFA's centenary celebrations. Verón has both Argentine and Italian citizenship. His nickname is La Brujita (The Little Witch), a nod to his father Juan Ramón who was known as La Bruja (The Witch) and was also a championship winning player with Estudiantes

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					ROU	B	0.0			He was born in Strehaia and debuted in Divizia A with Universitatea Craiova in 1974. He spent twelve seasons with Universitatea, winning the league titles in 1980 and 1981. In 1986, he was transferred to Dinamo Bucureşti, where he became the Divizia A top goalscorer the first season with 44 goals in 33 games. He retired in 1993, having played in Belgium and the Netherlands since 1989. Cămătaru scored his last ever goal as a professional in the Dutch cup final, playing for Heerenveen, on 20 May 1993. The match was won by Ajax. He controversially won the European Golden Boot as Europe's best goal scorer in 1987, after scoring 20 of his 44 goals in the last 6 games of the season. It is widely believed that this was due to manipulation, and so 20 years later, the second placed Toni Polster was also granted a Golden Boot. Cămătaru got 73 caps and scored 21 goals for the Romanian national team, and represented his country at Euro 1984 and the 1990 World Cup.

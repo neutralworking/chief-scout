@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					ITA	C	0.0	During his time with the club, Tacchinardi was also noted for his long range shooting skills and striking ability from volleys, scoring several goals from distance during his time with Juventus. A hard-working and tenacious player, he was predominantly known for his excellent positional sense, anticipation, and his tactical intelligence, as well as his technique, Vision, and passing range, in addition his tackling ability as a defensive midfielder, making effective both offensively and defensively.		During the carrer he played as defensive midfielder and spent the vast majority of his career playing for Juventus FC, winning 17 official trophies with the club. Tacchinardi is one of Juventus 50 Legends whose names are written inside the club's new stadium, the Juventus Stadium.

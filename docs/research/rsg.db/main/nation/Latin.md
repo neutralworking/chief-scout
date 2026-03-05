@@ -1,0 +1,3 @@
+Players: confident with the ball, good dribblers, creative
+Characteristics: The Latin game is very distinctive because of its possession-oriented character. Attacks are developed through possession. The ball is moved spontaneously with a lot of individual-based plays. Latin teams such as Spain, Portugal, Brazil and Argentina are typical examples. Brazil takes this style to the extreme through improvisational and free-flowing movement.
+Success: Brazil, Argentina, Portugal, and Spain are the leading forces when it comes to the Latin style. Spanish clubs have been very dominant in Europe while Brazil’s national squad has dominated in the World Cup.

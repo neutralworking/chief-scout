@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			AUS	B	76.0			Kewell played for Leeds United, Liverpool, Galatasaray, Melbourne Victory, Al-Gharafa and Melbourne Heart. Internationally he has received 58 caps, and scored 17 goals, while playing for the Australian national team. A left winger also capable of playing as an attacking midfielder or second striker, he is often regarded within the media as "Australia's finest football export",[4] despite his career being blighted with injury. Kewell scored a goal against Croatia which took Australia through to the knockout stages of the 2006 World Cup, the Australian national team's second World Cup. He is a member of the Executive Committee of the Australian Professional Footballers' Association.[7] Kewell also has a British passport through his father's heritage. Former Middlesbrough midfielder-turned pundit Robbie Mustoe named Kewell as one of the greatest players he had played against but questioned his consistency and attitude after his initial injuries.[8] Former German international Michael Ballack has also highlighted Kewell's ability and inconsistency

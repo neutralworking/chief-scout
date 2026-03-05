@@ -1,0 +1,1 @@
+Big lump, decent striker with a lot of size. Only really operates in the box. 

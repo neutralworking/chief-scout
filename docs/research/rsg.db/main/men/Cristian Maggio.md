@@ -1,0 +1,6 @@
+---
+{}
+---
+
+WD		Athlete			ITA	C	0.0	A dynamic and tenacious right sided player with an eye for goal, Maggio has been deployed as an attacking-minded fullback/wingback, although his preferred role is that of right-sided wide midfielder/winger in a 3-5-2 formation, which allows him to make attacking runs.[3] Due to his composure, pace, Positioning, anticipation and stamina, he is capable of aiding his team both offensively and defensively.[4][5] Maggio is a strong, athletic player, who is effective in the air; he also possesses reliable technique, tackling, tactical intelligence, crossing ability, and distribution		
+Stefano Fiore	WF		Winger			ITA	C	0.0	A creative, technically gifted playmaker, with good vision, he was renowned for his passing ability and his eye for goal, which also allowed him to play as a supporting striker on occasion, as well as in several midfield roles.		Fiore won 38 caps for the Italy national football team, and scored twice. He was selected in their squads for Euro 2000, in which they reached the final, and Euro 2004.

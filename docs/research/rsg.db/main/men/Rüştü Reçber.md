@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK				Fenerbache	TUR	C	0.0		During his professional career, he played for Antalyaspor, Fenerbahçe, Barcelona and Beşiktaş. Rüştü had got a key role in the success of the Turkish national squad, and it was at the 2002 FIFA World Cup, where Turkey finished third, that his performances saw him selected for the tournament's all-star team. He is Turkey's record appearance holder, having earned 120 caps.[7] He made his debut against Iceland in 1994 and his final appearance came against Finland in 2012. Rüştü was named the best goalkeeper in European competitions in 2002, selected for the 2002 UEFA Team of the Year by public vote.[9] In 2004, he was selected to FIFA 100 by Pelé as one of the 125 best living footballers in the world. Rüştü retired from international level after UEFA Euro 2008 with 118 international caps to his name but was called to play against Spain on 28 March 2009 and 1 April and played a final 'farewell' match against Finland in May 2012.	

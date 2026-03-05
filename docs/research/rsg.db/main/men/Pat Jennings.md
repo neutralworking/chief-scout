@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					NIR	B	0.0		Pat Jennings was one of the best goalkeepers in the World in the first half 1970s. He is one of the most consistent and longevity keeper of all-time with around 1,030 career top level games played across 2 decades in both club and national level, particularly holds the world record all-time most consecutive years of international caps. Jennings had amazing handling ability and his high jumping helping him to reach saving high-corner ball. He is rated as the greatest Goalkeeper in history of both Arsenal and Tottenham Hot Spurs club. However, his career met the fallen time when Tottenham relegated to second division as the worst place, conceding 72 goals in 1977 and decide to move for Arsenal. He also reached the 1974 UEFA Cup Finalist and 1980 Cup Winners Cup finalist. He holds the record most participation in qualification round of major international tournaments with incredible 11 times. Jennings was voted 13th World’s best goalkeeper of the century by IFFHS’s poll.	

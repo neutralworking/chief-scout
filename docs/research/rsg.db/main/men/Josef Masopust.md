@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					CZE	C	0.0	Starting his career as a left-half, Czechoslovakian playmaker Josef Masopust developed into one of the finest 'box-to-box' midfielders of his era. Spending almost his entire club career at Dukla Prague, he was a strong tackler and accurate passer and was able to switch the ball quickly between his feet when dribbling, allowing him to beat opponents on either side.	He played as midfielder and was a key player for Czechoslovakia, helping them reach the 1962 FIFA World Cup Final. He was capped 63 times, scoring 10 goals for his country. He was named European Footballer of the Year in 1962. In November 2003, to celebrate UEFA's Jubilee, Masopust was selected as his country's Golden Player by the Football Association of the Czech Republic as their most outstanding player of the past 50 years. He was named by Pelé as one of the top 125 greatest living footballers in March 2004.	9/2/1931

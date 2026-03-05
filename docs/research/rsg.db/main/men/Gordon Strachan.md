@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WD					SCO	C	0.0	Gordon Strachan was an aggressive and skilful midfielder. He played as a right-side midfielder in his early career which was his best position as he was able to reach his prime.  Lately, His speed was down caused he became a central midfielder instead.		Strachan had a fruitful International career. He appeared in two FIFA World Cups and it was in the latter that he scored his most famous International goal, a cross shot against West Germany in Scotland's second match of the tournament in Queretaro, Mexico. His celebration was unique and comical too, as he attempted to vault the advertising hoarding, his relatively small height made it difficult if not impossible, so he merely rested his right leg on it as his team-mates joined him in celebrating. This goal gave Scotland a surprise lead against one of the world's top national sides, but they ultimately lost the game 2-1 and failure to beat Uruguay in the final game of the group stages ended their hopes of reaching the last 16. In 1983, He was voted 4th place in Ballon d'Or. 

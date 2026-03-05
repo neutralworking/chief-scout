@@ -1,0 +1,1 @@
+	Italy	RB / RWB / LB / LWB	20 February 2000 (age 23)	2022	2027	Italy Genoa	€8.8M[16]	0	0

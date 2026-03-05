@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					ESP	B	0.0		“El Divino” Ricardo Zamora is an all-time greatest goalkeeper before World War II era, was happened and being among the best footballer ever of his country, becoming the most iconic player of Spain in his era. Zamora, was noted for wearing a cloth cap and a white polo-neck jumper on the field, a look later copied by several of his contemporaries. He claimed it was to protect him from both the sun and his opponents. He was also noted for his bravery and incredibly made clean sheets in all five international friendly games in 1925. Zamora was also the subject of controversy throughout his career. He allegedly enjoyed drinking Cognac and smoking up to three packs of cigarettes a day, was arrested for his violent behavior in Olympic Game 1926. The award for goalkeeper who have gotten the fewest conceding goal in La Liga, The Ricardo Zamora trophy, is named in his honour. Additionally, He played for Catalan XI and helped them winning the Copa Princep De Asturies 3 times. IFFHS’s poll result shows him as World’s fifth greatest goalkeeper of the century.	

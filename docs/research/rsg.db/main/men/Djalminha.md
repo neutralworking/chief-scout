@@ -1,0 +1,1 @@
+CM		Creator			BRA	B	0.0			Blessed with above-average skills but also having a troublesome character, he represented among others Flamengo and Deportivo, and was also a Brazilian international.

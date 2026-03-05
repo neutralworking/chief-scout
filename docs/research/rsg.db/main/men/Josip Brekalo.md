@@ -1,0 +1,1 @@
+Croatia	LW / RW / CF	23 June 1998 (age 25)	Germany VfL Wolfsburg	2023	2026	6	0	

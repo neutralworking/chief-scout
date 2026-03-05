@@ -1,0 +1,1 @@
+Fábio Cardoso is a Portuguese professional footballer who plays as a centre-back for FC Porto. He has made over 150 Primeira Liga appearances for clubs such as Paços de Ferreira, Vitória Setúbal, Santa Clara, and Porto. Cardoso also had a brief spell in the Scottish Premiership with Rangers. 

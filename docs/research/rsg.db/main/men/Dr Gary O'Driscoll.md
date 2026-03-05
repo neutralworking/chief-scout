@@ -1,0 +1,1 @@
+Dr Gary O'Driscoll will depart the club in late summer 2023.

@@ -1,0 +1,3 @@
+Sylvinho, whose full name is Sylvio Mendes Campos Júnior, is a former Brazilian football player and currently the manager of the Albania national football team. As a player, he started his career at Corinthians and later played for clubs such as Arsenal, Celta de Vigo, FC Barcelona, and Manchester City. He won the UEFA Champions League with Barcelona in 2006 and 2009. After retiring, Sylvinho had coaching stints at Lyon and Corinthians before becoming the coach of the Albanian national team in 2023, leading them to qualify for UEFA Euro 2024. [^1]
+
+[^1]: https://en.wikipedia.org/wiki/Sylvinho

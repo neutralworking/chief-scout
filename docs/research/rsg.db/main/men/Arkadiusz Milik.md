@@ -1,0 +1,1 @@
+	Poland	ST	28 February 1994 (age 29)	2022	2026	France Marseille	€6.3M[30]	39	9

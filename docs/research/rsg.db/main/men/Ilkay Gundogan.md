@@ -1,0 +1,6 @@
+---
+class: midfielder
+---
+  
+
+Ilkay Gündogan's classification didn't have to be discussed for a second, the suggestion of world class was immediately appreciated by everyone. Anything else would be difficult to justify when the German national player not only wins the treble (championship, FA Cup and Champions League) as captain of Manchester City, but also plays a crucial role in this star ensemble on the way there. Not only does his nine goals and five assists in those three competitions speak for him - including both goals in the 2-1 FA Cup final victory over city rivals Manchester United - but also how he led the way as the team's leader. Because he was always ready to play, almost always had a good idea with the ball at his feet, but also without it, if he created space for himself or his colleagues through running paths. Because he fulfilled the complicated role of the (mostly left) eight at City, which should initially be wide, but then sprayed goal danger in the box, excellently. Hence his classification in attacking midfield. And because he - which is objectively visible - makes the players around him better.

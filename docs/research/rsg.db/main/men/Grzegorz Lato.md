@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			POL	B	0.0	Great acceleration		Grzegorz Lato is regarded as the greatest right-winger ever to come from the Eastern Europe. Lato's playing career coincided with the golden era of Polish football. Blessed with remarkable acceleration, the talented winger consistently lived up to the high expectations placed before him whenever he was given the opportunity to compete at the international level. Lato was not renowned as crowd pleaser, but rather as a consistent and complete team player. His uncanny awareness on the playing field was ostensibly what allowed him to achieve great success at the international and club levels. He scored around 150 goal during his club career. Lato holds the all-time record the most appearances for Poland national team. Remarkably, He is an all-time World’s Top scorer as winger for international competition. 

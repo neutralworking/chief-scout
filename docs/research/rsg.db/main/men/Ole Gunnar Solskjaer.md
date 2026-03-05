@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker	Assassin		NOR	C	0.0	"He will perhaps be best remembered[8] as a ""super-sub""", "Solskjær said: ""I had to think about myself", "how can I do the most damage for the opposition if I come on? I sat there and I studied football games but I didn't exactly analyse their strikers. [...] Instead I would pay attention to what the defenders and full-backs were doing wrong."""		Before his arrival in England, Solskjær played for the Norwegian clubs Clausenengen and Molde. He joined Manchester United in 1996 for a transfer fee of £1.5 million. Nicknamed "The Baby-faced Assassin", he played 366 times for United, and scored 126 goals during a successful period for the club. He was regarded as a "super sub" for his trait of coming off the substitute bench to score late goals. Solskjær's defining moment in football came in injury time of the 1999 UEFA Champions League Final, where he scored the winning last-minute goal against Bayern Munich, completing a remarkable comeback and winning The Treble for United.

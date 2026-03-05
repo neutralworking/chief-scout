@@ -1,0 +1,1 @@
+Belfast, Northern Ireland	22 November 2003 (age 19)	MF	Northern Ireland U21s	2024	

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK			Commander		ENG	B	0.0		Peter Shilton is one of the most consistency goalkeepers of all-time. His name appeared in PFA team of the year 10 times. Shilton holds the all-time record most appearances in history of the game with 1362 official matches and 1180 first level games and is the most caps player for England national team. He has the rare distinction of having played over 100 league games for 5 different clubs. Shilton did not make his World Cup finals debut until the age of 32 and also holds the record for most clean sheets in world cup tournament with 10. He was known for his bossing defense and his reliability. Nonetheless, His career was played in second division for full 4 seasons. He conceded only 83 goals in his international appearance. IFFHS’s poll shows his 8th rank of the greatest goalkeeper of the century. Shilton was voted in 10th and 5th Ballon'Dor in 1978 and 1989, respectively.	

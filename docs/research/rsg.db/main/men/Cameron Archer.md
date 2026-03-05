@@ -1,0 +1,2 @@
+Jermaine Defoe
+Ian Wright

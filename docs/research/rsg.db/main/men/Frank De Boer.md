@@ -1,0 +1,6 @@
+---
+{}
+---
+
+CD		Playmaker			NED	B	0.0			"He spent most of his professional playing career with Ajax, winning five Eredivisie titles, two KNVB Cups, one UEFA Cup and one UEFA Champions League. He later spent five years at FC Barcelona, where he won the 1998–99 La Liga title, before retiring after short spells at Galatasaray, Rangers, Al Rayyan and Al-Shamal. De Boer is the most capped outfield player in the history of the Netherlands national football team, with 112 caps.[3] He captained the Oranje to the semi-finals of both the 1998 FIFA World Cup and UEFA Euro 2000.
+ After retiring from playing, he went into management with the Ajax youth team and as assistant to Bert van Marwijk with the Dutch national team. In December 2010, he took over as manager of Ajax and went on to win the Eredivisie title in his first season. In 2013, De Boer received the Rinus Michels Award for manager of the year in the Netherlands after leading Ajax to their third successive Eredivisie title.[4] A year later, he became the first manager to win four consecutive Eredivisie titles. He is the twin brother of Ronald de Boer, with whom he was a teammate at Ajax, Barcelona, Rangers, Al Rayyan, Al-Shamal and the Netherlands national team."

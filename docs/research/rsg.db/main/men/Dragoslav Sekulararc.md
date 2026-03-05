@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					YUG	C	0.0			Nicknamed Šeki, he was quick and crafty with the ball, displaying creative skills that turned a lot of heads. Possessing supreme self-confidence along with impeccable technical ability, he was one of the biggest showmen and crowd draws in the history of Yugoslav football. His enormous popularity throughout FPR Yugoslavia during the early 1960s transcended sports as he easily became one of the most recognizable individuals in the country.[1] As a coach, he led several clubs in Canada, Colombia, Australia, Serbia, Mexico, and Spain, and the Guatemala national team in the 1986 World Cup qualification. Šekularac is considered one of the most important players in the history of Red Star Belgrade, he is one of only five players to have been awarded the Zvezdina zvezda status.

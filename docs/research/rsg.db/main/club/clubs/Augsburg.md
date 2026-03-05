@@ -1,0 +1,48 @@
+1 [[Finn Dahmen]]
+
+3 [[Pedersen]]
+19 [[Felix Uduokhai]]
+23 [[Maximilian Bauer]]
+27 [[Arne Engels]]
+
+9 [[Ermedin Demirović 1]]
+30 [[Niklas Dorsch]]
+8 [[Elvis Rexhbeçaj]]
+16 [[Ruben Vargas]]
+
+21 [[dev/main/men/Phillip Tietz]]
+7 [[Dion Drena Beljo]]
+
+
+1	GK	Germany GER	[[Finn Dahmen]]
+2	DF	Poland POL	[[Robert Gumny]]
+3	DF	Denmark DEN	[[Mads Valentin]]
+4	DF	England ENG	[[Reece Oxford]]
+5	DF	Ghana GHA	[[Patric Pfeiffer]]
+6	DF	Netherlands NED	[[Jeffrey Gouweleeuw]]
+7	FW	Croatia CRO	[[Dion Drena Beljo]]
+9	FW	Bosnia and Herzegovina BIH	[[Ermedin Demirović 1]] (captain)
+10	MF	Germany GER	[[Arne Maier]]
+13	MF	Kosovo KOS	[[Elvis Rexhbeçaj]]
+14	MF	Japan JPN	[[Masaya Okugawa]]
+16	MF	Switzerland SUI	[[Ruben Vargas]]
+18	MF	Germany GER	[[Tim Breithaupt]]
+19	DF	Germany GER	[[Felix Uduokhai]]
+20	FW	Germany GER	[[Sven Michel]]
+21	FW	Germany GER	[[dev/main/men/Phillip Tietz]]
+22	DF	Brazil BRA	[[Iago]]
+23	DF	Germany GER	[[Maximilian Bauer]]
+24	MF	Finland FIN	[[Fredrik Jensen]]
+26	DF	Denmark DEN	[[Frederik Winther]]
+27	MF	Belgium BEL	[[Arne Engels]]
+30	MF	Germany GER	[[Niklas Dorsch]]
+32	DF	Germany GER	[[Raphael Framberger]]
+33	GK	Poland POL	[[Marcel Łubik]]
+34	FW	France FRA	[[Nathanaël Mbuku]]
+36	MF	Germany GER	[[Mert Kömür]]
+38	DF	Croatia CRO	[[David Čolina]]
+39	DF	England ENG	[[Japhet Tanganga]] (on loan from Tottenham Hotspur)
+40	GK	Czech Republic CZE	[[Tomáš Koubek]]
+42	DF	Germany GER	[[Aaron Zehnter]]
+43	DF	Switzerland SUI	[[Kevin Mbabu]] (on loan from Fulham)
+48	FW	France FRA	[[Irvin Cardona]]

@@ -1,0 +1,1 @@
+	Italy	CB	29 July 1994 (age 29)	2015	2024	Italy Empoli	€3.5M[15]	130	8

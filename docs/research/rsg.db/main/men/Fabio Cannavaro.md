@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD	Determined	Defender	Titan	Parma	ITA	A	87.3	due to his ability to read the game, he was also deployed as a right or left sided fullback on occasion, technical ability, ball playing ability, stamina, and pace. Cannavaro was known for his concentration, strength, anticipation, positioning and aerial ability, which made him particularly adept at defending crosses, or scoring with his head from set-pieces, despite his relatively small stature for a defender. He was a dynamic, consistent, and tenacious defender throughout his career, and also excelled as a man marker and at making tackles. Cannavaro was also known for his leadership, noted for his outstanding in his fierce defending, aggressive and interception. Cannavaro was always overshadowed by Nesta		Cannavaro is regarded as one of the greatest defenders of his generation, and of all time, winning the World Cup as Italy's captain, as well as the Ballon d'Or and the FIFA World Player of the Year Award in 2006. 

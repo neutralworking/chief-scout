@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM		Creator		Bayern Munich	GER	A	0.0	Mehmet Scholl, a classical ‘unfinished’ talent was one of the most promising players of the 1990s who couldn’t live up to that promise. Son of a Turk and a German woman, he was a remarkably good, lightfooted technical player of great intelligence who was a bit afflicted by his versatility. His de facto position was often not really obvious, had a good shooting technique and was a very good freekick taker. Nevertheless one would have expected him to score a few more goals during the second, more mature half of his career when he dropped his joker mentality and became a more reputable player. During the later years of his career, Scholl was afflicted by many injuries. He had the abilities to reach the absolute top level during his time but it wasn’t to be.		

@@ -1,0 +1,3 @@
+## Pepelu (Levante to Valencia, £4.3m)
+
+Locked in constant financial crisis, Valencia have had to cut their cloth accordingly in recent years. Since their last top-four finish in 2019-20, the club have spent €35m on new players with €170m worth of talent leaving to balance the books. Transfer coups are rare in this corner of Spain but after beating the drop last term _Los Che_ managed to prise the midfielder Pepelu from Levante. Their city rivals were left furious. Pepelu insists he “doesn’t feel like a traitor” and has got down to business, scoring the winner in a man-of-the-match performance against Las Palmas.

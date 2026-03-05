@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker			ENG	C	0.0	Although he was not the biggest or strongest of players, his skill on the ball, pace and accurate passing enabled him to play not only at centre forward but also at either inside-right or inside-left.  He was also recognised as one of the finest headers of the ball of his era.		One of the greatest amateur players in the history of the game, Vivian Woodward was an outstanding all around sportsman.  In his football career he became a prolific centre forward throughout the early years of the 20th century, but might have been lost to the game had his father, who wanted him to concentrate on cricket and tennis, had his way. Woodward was born into a wealthy family in the Kennington area of London on 3 June 1879, and spent a good deal of his youth in the Essex town of Clacton, where the family also had a home.  He followed in his father's footsteps by training as an architect, and even though his father eventually allowed him to play football as a teenager he resisted all offers to turn professional throughout his career.  

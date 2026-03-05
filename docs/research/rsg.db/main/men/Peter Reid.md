@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM		Guardian			ENG	C	0.0			A defensive midfielder in his playing days, Reid enjoyed a long and successful career. He built his reputation as one of England's brightest midfield talents of the time at Bolton Wanderers,[1] before signing for Everton in 1982. It was there that he enjoyed the most fruitful spell of his career, as he helped the club win domestic and European honours, including the Football League twice. He was voted as the PFA Players' Player of the Year in 1985 and came fourth in the World Soccer Player of the Year award, behind Michel Platini, Preben Elkjær and Diego Maradona. He also received his first senior England call-up that year, and represented his country at the 1986 FIFA World Cup and 1988 UEFA European Championship. He won 13 caps in total. Reid joined Queens Park Rangers in 1989, but moved on to Manchester City a year later to begin his managerial career.

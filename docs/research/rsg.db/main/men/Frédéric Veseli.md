@@ -1,0 +1,3 @@
+Frédéric Veseli, also known as Freddie Veseli, is a professional footballer who plays as a defender for Süper Lig club Fatih Karagümrük and the Albania national team. His main position is center back, but he can also play at right-back and left-back. Veseli began his youth career with FC Renens and later joined Manchester City and Manchester United. He has also played for clubs such as Ipswich Town, Bury, Port Vale, Lugano, Empoli, Le Mans, Salernitana, and Benevento. Veseli represented Switzerland at various youth levels before accepting an invitation from the Albania national team in 2015. He was named in the squad for UEFA Euro 2016. [^1]
+
+[^1]: https://en.wikipedia.org/wiki/Fr%C3%A9d%C3%A9ric_Veseli

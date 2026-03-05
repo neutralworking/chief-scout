@@ -1,0 +1,1 @@
+ - 89: Renowned for his powerful shots and speed, very effective in both defense and attack.

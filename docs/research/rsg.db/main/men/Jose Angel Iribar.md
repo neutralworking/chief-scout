@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					ESP	C	0.0		Jose Angel Iribar is regarded as one of the finest Spanish goalkeepers of all-time. He still has the record for keeping a clean sheet at ten successive home games, or 1,018 minutes, during the 1970-71 season. He never won La Liga trophy in the dominant era of Real Madrid but the closest was the runner-up in the 1969 -1970 season, was also in team reached the UEFA Cup final in 1977. He made a Atheletic Bilbao record 466 appearances in La Liga. Although he was just a regular starter in his club career at 1963, he was immediately selected as a regular choice goalkeeper of Spain national team and made outstanding performance to help Spain won EURO 64. Unfortunately, he was one of Spanish team which disqualified in both two World Cup during the 1970s and 1976 UEFA Euro. Iribar was a very consistency and longevity goalkeeper, sustain high level of performance until his late career.	

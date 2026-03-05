@@ -1,0 +1,3 @@
+## Ylber Ramadani (Aberdeen to Lecce, £1m)
+
+Born in Germany and raised in Kosovo, Ramadani has “spent 12 years away from home” to pursue his dream of playing elite football. Last summer, Aberdeen paid £120,000 to sign the midfielder from MTK Budapest. Ramadani made 44 appearances last season as the Dons finished third – but was on the move again after Lecce sought him out as a replacement for the Sporting-bound Morten Hjulmand. Aberdeen allowed the 27-year-old to pursue his Serie A dream, and he has quickly earned comparisons with Gennaro Gattuso. After more than a decade on the road, Ramadani appears to finally be in the right place.

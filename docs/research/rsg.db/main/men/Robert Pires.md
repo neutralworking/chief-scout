@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF	Elegant	Creator	Artist	Arsenal	FRA	B	79.0			Robert Pires is the greatest winger in history of France national team. He normally plays on the left wing but can play all across the midfield or in a position to support the striker(s). He is of Portuguese and Asturian descent. Pires started his professional career with Metz  for six seasons. After World Cup 1998 was finished, He signed for Olympic Marseille and won Runner-Up 1999 UEFA Cup. He became a famous player with Arsenal as the Trio of the Highbury alongside Patrice Vieira and Thierry Henry, noted for his acceleration, assisting and scoring by himself.  In 2008, Arsenal fans voted Pirès as the club's sixth greatest player of all time. After he was disappointed not be a regular first team in 2006, He agreed to join with Villareal soon after. All in all, He has played 642 games and scored 155 goals in his professional career.

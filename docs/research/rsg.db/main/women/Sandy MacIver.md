@@ -1,0 +1,1 @@
+18 June 1998 (age 25)	1	0	England Manchester City

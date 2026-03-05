@@ -1,0 +1,24 @@
+---
+class: attacker
+---
+
+He made a whole generation of Lille fans dream with his swaying runs, sharp dribbles and goals from elsewhere, as well as his smile and kindness. Now 32, LOSC's Eden Hazard has announced the end of his career. The club that gave him his start in soccer has taken the opportunity to pay tribute to him.
+
+A DIAMOND POLISHED IN LUCHIN 
+
+He was the crack, the nugget, the little prodigy of the Lille training center, which he quietly joined at the age of 14, the young Belgian. At LOSC, the exceptional potential of the kid from Braine-le-Comte was immediately recognized. There's no doubt he'll go far. But beware of rushing. A diamond like this needs to be polished gently. So we support him, we develop him, we inculcate in him the values of LOSC, all the weapons necessary for his innate gift for the ball to blossom at the highest level. When, on November 24 2007, Claude Puel threw him into the deep end of Ligue 1 for a few minutes at Nancy (2-0), Eden Hazard was not yet 17, but he already had fire in his legs. A few months later, Rudi Garcia was at the helm of Les Dogues. He has no hesitation in incorporating the youngster, who still occupies a room at the Domaine de Luchin boarding school where he is also studying, into his training group.
+
+DOUBLE TOP PROSPECT AND DOUBLE TOP LEAGUE 1 PLAYER  A few minutes of play at the end of a match here, some impressive flashes of brilliance there: the Eden fuse is lit and the Hazard bomb is just waiting to explode. The little number 26 scored his first Ligue 1 goal on September 20, 2008 against Auxerre (3-2), becoming one of the youngest goalscorers in LOSC's history. As the weeks went by, he gradually took on the mantle of the impact player who is thrown in at the end of games to dynamize tired defenses. Two further goals against Saint-Etienne (3-0, 15/11/08) and Sochaux (3-2, 07/02/09), followed by a recital, the first of many: in the last 16 of the Coupe de France, LOSC eliminated reigning French champions Olympique Lyonnais at the Stadium (3-2, 04/03/09).
+
+The nugget was a starter, and that evening the whole of France made his discovery. Flamboyantly, Eden Hazard was decisive in all three of Lille's goals (two assists, one goal). The machine was set in motion for the man who had just celebrated his first cap with the Red Devils a few months earlier (Luxembourg-Belgium, 19/11/08). At just 18, he was voted Ligue 1's best young player at the end of the 2008-2009 season (35 matches, 6 goals, 3 assists). He won the award again the following year (52 games, 10 goals, 8 assists) at the heart of an irresistible LOSC attack (72 goals in Ligue 1, best attack in 2009-2010) and author of a fine European epic, ending in Liverpool in the 1/8th final of the Europa League, with a goal by the Belgian for Lille's victory in the first leg (1-0).
+
+THE 2011 DOUBLE AS AN INDELIBLE MARK  In 2010, Eden became the playmaker of LOSC, which he now takes to the pinnacle of French soccer, by winning a legendary Coupe de France-Championnat double, 65 years after the last performance of this kind in LOSC's history. His 35-meter left-footed strike at the Velodrome against reigning French champions OM (06/03/11, 1-2) was voted Ligue 1 goal of the year and LOSC goal of the century. This time, it was the Ligue 1's best player trophy that he took home in 2010-2011 (54 games, 12 goals, 13 assists) before a final, individually exceptional 2011-2012 season (49 games, 22 goals, 18 assists), crowned by a new title of best player in the league. Europe is at his feet, and his future is now being written far from Luchin. It's already time to say goodbye. On May 20, 2012 against Nancy (4-1), Eden left his hometown with a hat-trick, before being carried off as a hero, armband in hand. "Oé, oé oé oé, Eden Hazard", sings the Stadium one last time.
+
+A few weeks before the move to the Grand Stade, Hazard takes the Eurostar. Heading for London and Chelsea, soon to be hit by Hazardmania. 7 seasons (2012-2019) during which he added 2 English Championship titles (2015, 2017), a Cup (2018), a League Cup (2015) and two Europa League titles (2013, 2019), not to mention a host of individual awards. Then it's off to Real Madrid, where the most illustrious of Belgian footballers (126 caps, 33 goals) will add to his trophy cabinet with 2 Spanish championships (2020, 2022), a King's Cup (2023), a Champions League (2022), as well as a European Supercup (2022) and a Club World Cup (2022).
+
+Eden Hazard is more than just a former LOSC player. Lillois fans have never stopped following and encouraging him throughout his career, like a heartfelt ambassador whose face is engraved at the entrance to the Domaine de Luchin, he the greatest talent to come out of LOSC. Just yesterday, he was twenty years old. We loved him and will always love him.
+
+Thank you, Eden.
+
+
+

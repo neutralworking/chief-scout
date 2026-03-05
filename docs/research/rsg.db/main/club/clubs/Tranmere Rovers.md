@@ -1,0 +1,1 @@
+Kieran Morris - decent winger (seems two footed)

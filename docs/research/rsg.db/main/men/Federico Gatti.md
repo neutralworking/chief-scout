@@ -1,0 +1,1 @@
+	Italy	CB	24 June 1998 (age 25)	2022	2026	Italy Frosinone	€5.4M[11]	27	2

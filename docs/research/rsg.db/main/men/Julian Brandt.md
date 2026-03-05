@@ -1,0 +1,1 @@
+One of the climbers sailed up to 3rd place: Julian Brandt, who was 9th in the winter half-year, improved again and was a very important factor in Dortmund's comeback. However, Brandt's momentum was somewhat slowed down by his injury in the second leg at Chelsea; after his comeback he needed a week or two to get back to his old level. Otherwise there would have been a little more.

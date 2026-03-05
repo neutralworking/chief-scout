@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger			FRA	B	0.0	David Ginola was one of the most elegant players as a left-winger. He possessed beautiful style of play particularly in his dribbling, got pass defenders by his technical abilities was done by a routine. However, He was not much to care about team work playing, always tried to more find opportunity to make score by himself than create assist to his teammate.		In a qualifier against Bulgaria in 1993 his refusal to take the ball to the corner in the last minute, and instead send a bad cross that lead directly to a goal being conceded led many to say he caused France to not qualify for the 1994 World Cup. This event effected Ginola never been called for France any longer. In 1999 before the Euro 2000 tournament, Dutch legend Johan Cruijff remarked that it was his belief that Ginola was currently the best player in the world. 

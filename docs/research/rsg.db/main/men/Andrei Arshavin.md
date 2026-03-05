@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Creator	Magician	Arsenal	RUS	B	0.0	He played in various positions on the field, starting as a right midfielder, then as an attacking midfielder, and finally adopted the second striker's role playing on a flank or behind the target man.		Arshavin began his career at Zenit Saint Petersburg in 2000. He won numerous trophies with the club until his departure in 2009: the Russian Premier League, Russian Premier League Cup, Russian Super Cup, UEFA Cup and the UEFA Super Cup. During his time with Zenit, Arshavin was named Russian Footballer of the Year. In 2009, Arshavin signed for English Premier League club Arsenal, becoming the most expensive player in Arsenal's history at the time, with a fee of £15 million (since surpassed by Mesut Özil, Alexis Sánchez, Calum Chambers and Danny Welbeck). Arshavin, after dissapointing and becoming the most overrated player in the league, returned to Zenit on 24 February 2012 for a loan deal that concluded in July 2012,[2] and returned permanently on a free transfer in June 2013.

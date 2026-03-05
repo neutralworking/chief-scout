@@ -1,0 +1,1 @@
+CM		Presence			RUS	C	0.0			12/1/1989

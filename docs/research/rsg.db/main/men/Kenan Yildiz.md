@@ -1,0 +1,1 @@
+(Juventus)Juve saw off stiff competition to sign the 18-year-old from Bayern Munich in the summer of 2022 and now Turkey are attempting to do the same, handing the German-born attacker – who had already been capped by Turkey’s U17 and U21 sides – his senior debut in October.

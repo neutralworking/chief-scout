@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					BRA	B	0.0	An elegant and technically gifted player, Falcão usually functioned as a deep-lying playmaker, although he was capable of aiding his team defensively, as well as creatively and offensively, due to his physique and tenacity. He was known in particular for his control, Vision, Press Resistant, and long-range shooting ability, as well as tactical intelligence and leadership.	He is widely considered one of the best players in Internacional and Roma history, and he is universally considered one of the greatest Brazilian players of all time, especially at his peak in the 1980s. At one stage, he was the world's highest paid footballer. Due to his success and performances with Roma, he earned the knickname "the eighth King of Rome" from the fans, and was inducted into the A.S. Roma Hall of Fame in 2013.	

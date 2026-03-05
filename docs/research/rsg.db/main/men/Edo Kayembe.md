@@ -1,0 +1,1 @@
+More of a possession midfielder, doesn’t get involved much when the midfield is bypassed 

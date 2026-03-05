@@ -1,0 +1,1 @@
+Glider. Floats through midfield with the ball at feet and lays off. Plays a little deeper than you’d expect, I thought he wouldn’t help defensively but he works hard. Exciting player. Good eye for a pass also. 

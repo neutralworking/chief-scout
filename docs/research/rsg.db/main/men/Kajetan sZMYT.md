@@ -1,0 +1,3 @@
+Warta Poznan
+
+Incredibly mature 21-year-old winger or attacking midfielder, who, in addition to his strength on the ball, is also an excellent finisher, often popping up with vital goals for his hometown club. After three loan spells (at Gornik Polkowice and Nielba Wagrowiec), he’s now really flourishing with the Greens – winning the Polish top flight’s Young Player of the Month for August – and a first full

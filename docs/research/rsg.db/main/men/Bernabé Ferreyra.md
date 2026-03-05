@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					ARG	B	0.0	As his career progressed, Ferreyra developed a reputation as one of the most powerful shooters of a ball in South America, a skill which he had developed as a result of constant encouragement from his brothers.  He was also known as a very intelligent player both on and off the ball, with the ability to get himself into perfect goalscoring position.  Unfortunately, his abilities also made him a regular target for extremely tough tackling, with opposing defenders regularly kicking him, grabbing his shirt and tackling him in a way more suited to rugby than football.  It is widely assumed that this treatment shortened his career by several years.		Argentine striker Bernabé Ferreyra was one of the most prolific goalscorers in the history of South American football, being one of only three players from that continent to average more than one goal per game throughout his career.  Surprisingly, he was regularly overlooked at international level but at the peak of his career was the world's most expensive footballer, a record which he held for 20 years. 

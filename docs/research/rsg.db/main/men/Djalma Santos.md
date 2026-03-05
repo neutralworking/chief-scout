@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WD		Guardian	Wing Back		BRA	B	83.6			Djalma Santos was not just one of Brazil's finest ever defenders but one of the greatest players ever to play at right-back and one of the first real attacking full-backs the game had seen.  He appeared in four World Cups for his country, winning two titles, and set a national record for international appearances that lasted for thirty years.  At domestic level, he had the relatively rare distinction of having made more than 400 league appearances for two different clubs. In the early years of his career, Djalma was often used as a centre-half but eventually found his best position to be right-back.   He is one of the two players in history of world cup to be voted in All-Star team 3 times which is the record together with Franz Beckenbauer. Additionally, He was selected in world team of century more sources than any right-back with 4 from total 9 sources. Djalma Santos is supposed to know as the best defender of the world during 1950s.

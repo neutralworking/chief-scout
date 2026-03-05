@@ -1,0 +1,1 @@
+looks overweight and is very left footed. Big booty and dreads.A strange player. Is he serious with that pen. He's clumsy. Is he a left wing back?

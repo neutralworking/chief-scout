@@ -1,0 +1,1 @@
+https://www.transfermarkt.co.uk/goran-loncar/profil/spieler/574668

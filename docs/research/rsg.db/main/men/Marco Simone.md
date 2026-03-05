@@ -1,0 +1,1 @@
+CF		Striker	Finisher	AC Milan	ITA	B	0.0			He most prominently played for A.C. Milan, with whom he won four Italian Serie A championships and two UEFA Champions League titles, as well as French clubs Paris Saint-Germain and AS Monaco. Simone played four games for the Italian national team.

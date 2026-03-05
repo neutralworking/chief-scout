@@ -1,0 +1,1 @@
+The captain was still the Wolfsburg driver in the game, but could not build on the performance of the first half of the season. The 29-year-old presented himself less dominantly, the form curve pointed downwards.#driver

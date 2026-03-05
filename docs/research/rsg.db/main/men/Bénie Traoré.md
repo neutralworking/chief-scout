@@ -1,0 +1,3 @@
+He's quick but his touch isn't great and he's not clinical. 
+
+Cameron Archer and Vinícius Souza have arrived at Sheffield United this season for a combined £30m but, beyond that, the club have been bargain hunting. One potential rough diamond is Traoré, a 20-year-old forward whose progress at the Swedish side Häcken was derailed by injury. However, the Ivorian began the current Allsvenskan season with 15 goals in 20 games. That impressive hit-rate led United to take a chance on him and he has already shown glimpses of the kind of pace and trickery that can sharpen the Blades’ cutting edge.

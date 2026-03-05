@@ -1,0 +1,1 @@
+	CF					BRA	B	0.0			He spent the better part of his 15-year career with São Paulo[1] and Paris Saint-Germain, winning 10 major titles with the two teams combined, and nearing the 100-goal mark. He is the younger brother of more famous Brazilian footballer Sócrates. Raí played with Brazil for more than one decade, helping the country win the 1994 World Cup.

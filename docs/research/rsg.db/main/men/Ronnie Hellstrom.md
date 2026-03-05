@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					SWE	B	0.0		Ronnie Hellstorm is considered as the greatest Swedish goalkeeper of all-time. He is one of the most underrated keepers ever because of playing for Hammarby and Kaiserslautern which incredibly could not win any trophy, closest in twice times DFB-Pokal runner-up. Nevertheless, He was rated in world-class a half of season and 6.5 seasons of international-class from total 10 seasons played in the Bundesliga game. His style of play was not exciting but full of effectiveness and reliability. Hellstrom kept only 9 clean sheets in 31 UEFA Euro and World Cup qualifying round. In 1974 World Cup, he kept clean sheets in all three first round games and total won five clean sheets in 10 world cup games. 1978 was his best year, was voted 6th in Ballon d’Or. All in all, He is rated as one of the top goalkeepers in Europe during the 1970s.	

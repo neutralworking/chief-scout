@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					ROU	B	0.0	A highly skilful midfield playmaker, Stojković was also capable of playing as an attacking midfielder or as a forward; he was known in particular for his vision, technique, Creativity, dribbling skills, and passing ability.	Legend Blighted By Injury	Despite his talent, his career was affected by several injuries, which hindered his potential Stojković was long time captain of the Yugoslavia national football team and Red Star Belgrade, and is considered one of the best players in the history of Yugoslavian and Serbian football. He starred for Yugoslavia at the 1990 FIFA World Cup (where he was named in the World Cup All-Star Team) and 1998 FIFA World Cup where he captained the team. He is one of the five players to be awarded the title Star of the Red Star. He is widely considered to have never shown his true potential in Europe as injury prevented him from establishing himself at Marseille over the long term. Despite this, there is consensus among critics that he displayed an extraordinary ability throughout his career in spite of his chronic injuries, being most renowned in Japan.

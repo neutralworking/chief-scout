@@ -1,0 +1,7 @@
+---
+{}
+---
+
+---
+position: gk
+Shotstopper	Cat		GER	A	86.7		“The Cat from Anzing” is his nickname due to incredible reflexes, is regarded as the greatest goalkeeper in history of European Cup. Maier is one of the most team decorated goalkeepers of all-time as he won every major trophies both club and international level. Kicker magazine ranked Maier in 3 seasons of world-class and 11 seasons of international-class. As well as his goalkeeping exploits, Maier was famous for his overlong shorts and outsize gloves, and, despite his undoubted talent, was seen in some circles as somewhat of a clown. He is rated as one of the very best goalkeeper in the 1974 World Cup if not the best. Maier is chosen starting first 11 in Bayern Munich’s team of century and considered by many as the greatest goalkeeper in history of Germany national team. According to German Footballer of the year voting, he holds the record as the most German goalkeeper of the year with nine, also finished third place German Footballer of the Year three times and is ranked as the third best in history of the awards. Maier reached his best place in Ballon'Dor at 5th in 1975. He was voted 4th World’s best goalkeeper of the century by IFFHS’spoll.	

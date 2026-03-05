@@ -1,0 +1,7 @@
+---
+class: attacker
+subclass: poacher
+---
+  
+
+CF Striker Finisher MEX C 0.0 "Hernández has been typically described as a ""goal-poacher""", due to a number of his goals being scored from close-range. His movement off the ball, pace, and ability to find space inside the box has also been praised. He has been described by Sir Alex Ferguson as two-footed, very quick, in possession of a good spring, he is extremely quick and agile, also possessing good technique. He began his career in 2006, playing for the Mexican club Guadalajara, before becoming the first Mexican player to join Manchester United in July 2010. After falling out of favour under managers David Moyes and Louis van Gaal, he spent the 2014–15 season on loan to Real Madrid, then moved permanently to Bundesliga club Bayer Leverkusen in August 2015. His minutes-per-goal ratio during his time with Manchester United is among the most prolific in the history of the Premier League. Hernández made his debut for Mexico in September 2009 in a match against Colombia. He has represented Mexico at the 2010 FIFA World Cup, the 2011 CONCACAF Gold Cup, the 2013 FIFA Confederations Cup, and the 2014 FIFA World Cup. He was the Gold Cup's top scorer with seven goals and was named the most valuable player of the tournament.[5] He is the second highest goalscorer of all-time for the Mexico national team

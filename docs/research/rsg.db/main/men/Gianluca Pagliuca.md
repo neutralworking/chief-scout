@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Shotstopper	Cat		ITA	B	0.0		Gianluca Pagliuca is one of the top goalkeepers in history of Italian Series A, was the most outstanding goalkeeper of Italy during the Mid 90’s. He was starter in two world cup 1994 and 1998. Especially, He returned to have impressive performance after showing mistakes in world cup 1994 first round in Match against Ireland and also being sent-off in match against Norway, finally helped Italy reaching final round. However, His appearances for Italy were not consistency due to the very high competitive between the world-class Italian goalkeepers during his era. Pagliuca was rated by Italian Media above 6.5 in average ratio in 3 Series A seasons.  He holds the record 2nd all-time most appearances in Italian Series A with 592 only to Paolo Maldini. Additionally, Pagluica was voted by www.channel4.com as the 4th all-time greatest goalkeeper in Italian Series A even above the great goalkeeper like Walter Zenga.	

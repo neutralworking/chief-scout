@@ -1,0 +1,3 @@
+The improvement of Gilmour is incredible. I completely love him, because now he is playing very much like a leader on the pitch. Big quality, big attitude, big player. 
+
+He is improving in the quality of the pass, in the personality, how he can drive and control the game, drive the team, to understand the play before he receives the ball. He understood when he has to play a long ball and a short pass because the defensive space starts from how long is the pass. In his reaction, when we lose the ball. I am very pleased for his performances.”

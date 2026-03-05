@@ -1,0 +1,28 @@
+
+Kasper Hjulmand's side navigated a tricky qualifying group to reach Germany, and they'll fancy their chances in Group C.
+
+- GK: Kasper Schmeichel (Anderlecht)
+- GK: Mads Hermansen (Leicester City)
+- GK: Frederik Ronnow (Union Berlin)
+- DF: Joachim Andersen (Crystal Palace)
+- DF: Victor Nelsson (Galatasaray)
+- DF: Jannik Vestergaard (Leicester City)
+- DF: Joakim Maehle (Wolfsburg)
+- DF: Andreas Christensen (Barcelona)
+- DF: Rasmus Kristensen (Roma _on loan from Leeds United_)
+- DF: Victor Kristiansen (Bologna _on loan from Leicester City)_
+- MF: Mathias Jensen (Brentford)
+- MF: Thomas Delaney (Anderlecht)
+- MF: Christian Eriksen (Manchester United)
+- MF: Morten Hjulmand (Sporting Lisbon)
+- MF: Matt O'Riley (Celtic)
+- MF: Christian Norgaard (Brentford)
+- MF: Pierre-Emile Hojbjerg (Tottenham)
+- FW: Robert Skov (Hoffenheim)
+- FW: Andreas Skov Olsen (Club Brugge)
+- FW: Kasper Dolberg (Anderlecht)
+- FW: Mohamed Daramy (Reims)
+- FW: Jonas Wind (Wolfsburg)
+- FW: Yussuf Poulsen (RB Leipzig)
+- FW: Rasmus Hojlund (Manchester United)
+- FW: Anders Dreyer (Anderlecht)

@@ -1,0 +1,2 @@
+https://community.sigames.com/topic/368532-a-high-intensity-system-inspired-by-schmidts-leverkusen/
+http://www.sbnation.com/soccer/2014/12/2/7312419/bayer-leverkusen-bundesliga-statistical-analysis-roger-schmidt

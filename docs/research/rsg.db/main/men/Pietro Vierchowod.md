@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD				Juventus	ITA	B	0.0	Str A, Rapid B-, Aerial B-, Pos B+, Tack  A, Read A-, Mark A, Atk D+		“The Tsar” Pietro Vierchowod was one of the best stoppers in the World during the mid-1980s. A tenacious physical player, he is considered as one of the toughest defenders in Series A during the mid and late-1980s, being renown for his immense strength, aggression, tight marking and hard tackling. His speed, anticipation and ability to read the game enabled him to break down opposing plays, win back possession and intercept loose ball. These attributes also allows him to excel the zonal marking system. Maradona said Vierchowod is his toughest opponent as he always could turn his position to come back against him. He played for five big Italian clubs. Four of them stay only a season. As an era of high competitiveness among congregation of world-class defenders, he was limited in the opportunity. According to media rating in Series A, it is considered to win three world-class seasons. 

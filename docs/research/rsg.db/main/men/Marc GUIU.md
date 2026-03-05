@@ -1,0 +1,1 @@
+(Barcelona)The 17-year-old striker’s name had been barely heard outside the walls of La Masia when he scored 33 seconds after coming off the bench on his senior Barca debut.

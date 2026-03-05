@@ -1,0 +1,1 @@
+	Italy	CM	8 January 1998 (age 25)	2021	2026	Italy Sassuolo	€30M[19]	92	3

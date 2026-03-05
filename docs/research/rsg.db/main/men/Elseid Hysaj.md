@@ -1,0 +1,4 @@
+Elseid Hysaj is an Albanian professional footballer who plays as a full-back for Serie A club Lazio and captains the Albania national team. He is known for his versatility and ability to play as a right-back, left-back, and wing-back. Hysaj is recognized for his defensive skills, including solid positioning, good tackling, and interception abilities. He prefers to play short passes and contribute to the team's build-up play. [^1] [Source](https://www.whoscored.com/Players/108345/Show/Elseid-Hysaj)
+
+[^1]: https://en.wikipedia.org/wiki/Elseid_Hysaj
+[^2]: https://en.wikipedia.org/wiki/Elseid_Hysaj

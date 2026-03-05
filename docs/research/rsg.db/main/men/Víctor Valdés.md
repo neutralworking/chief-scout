@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK		Playmaker	Distributor	Barcelona	ESP	B	0.0		He spent most of his professional career with FC Barcelona in La Liga, and is regarded as one of the best goalkeepers in the club's history, having appeared in 535 official games for the club and won 21 major titles, notably six La Liga titles and three UEFA Champions League championships. Valdés also won the Zamora Trophy a record five times. He currently holds the club records as goalkeeper with most appearances in the league and in official competition, breaking Andoni Zubizarreta's records during the 2011–12 season. After leaving Barcelona at the end of his contract in July 2014, he joined Manchester United in January 2015.Valdés made his full international debut in 2010 and earned 20 international caps. He was part of the Spanish squads which won the 2010 FIFA World Cup and UEFA Euro 2012.	

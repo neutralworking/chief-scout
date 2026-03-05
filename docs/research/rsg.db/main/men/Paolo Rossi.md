@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker	Poacher		ITA	B	79.0	Although he lacked the intimidating physical presence of a typical out-and-out striker, Rossi was a quick, agile, prolific, and elegant centre-forward, with good technique, balance, Reactions, and an eye for goal. He made up for his lack of strength, physicality and power with his keen sense of opportunism, intelligence, Positioning, and sharp finishing skills with his feet, as well as in the air, and also with his head. Although Rossi was primarily known as a striker, he began his career as a right winger, and in his later career with Juventus, he was also deployed out of a position as a supporting forward, due to the offensive attributes of new arrivals such as Boniek and Michel Platini, in particular.		Paolo Rossi is widely regarded as one the greatest and most prolific Italian forwards of all time.

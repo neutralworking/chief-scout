@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF	Assertive	Striker	Hitman	Newcastle, Man Utd	ENG	B	79.1		Finishing, Premier League Golden Boot	As a player, he was a striker from 1988 to 2008. He is most notably remembered for his time in the Premier League, with Manchester United, where he spent six years of his career and winning numerous trophies in the process. He also played in the top division of English football for Arsenal, Newcastle United, Blackburn Rovers, Fulham, Manchester City, Portsmouth and Sunderland, as well as in the Football League for Bristol City, Birmingham City, Burnley and Nottingham Forest. He is the third highest goalscorer in Premier League history, with 187 goals. Cole has the distinction of being one of the few players in England to have swept all possible honours in the English game, including the PFA Young Player of the Year award, as well as the coveted UEFA Champions League title. Cole was also capped fifteen times for England between 1995 and 2001, scoring once against Albania in a World Cup qualifier.

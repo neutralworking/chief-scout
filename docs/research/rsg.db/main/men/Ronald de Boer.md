@@ -1,0 +1,5 @@
+---
+{}
+---
+
+WF		Winger		Rangers, Ajax	NED	B	0.0			De Boer won 67 caps and scored 13 goals for the Dutch national team. He played for the Netherlands in the 1994 and the 1998 World Cups, where he played in six matches and scored two goals. He missed a penalty in the penalty shootout against Brazil in the 1998 semi-finals. De Boer also played in Euro 96 and Euro 2000. In the Dutch national team De Boer was used in various positions, including right-half, centre forward, and attacking midfielder. In his early Ajax years, De Boer played either centre forward or attacking midfielder. In later years he shifted to right midfield. De Boer was never officially captain of the Dutch national team or Ajax, but he has worn the captain's armband on several occasions for both club teams and the national team when the first-choice captain was not playing. In most teams, this was his brother Frank, with whom he has played side by side for most of his career.

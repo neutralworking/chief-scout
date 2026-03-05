@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					ARG	C	0.0		“The Duck” Ubaldo Fillol is the greatest South American goalkeeper of all-time. He was totally voted in top five South American footballer of the year in 8 times. His best highlight is the performance in world cup 1978 which he made many brilliant saves especially final match until Argentina won their victory first world cup. Fillol was a keeper with some of the fastest reflexes to ever play the game plus his excellent shot-blocking and positional play. His world-class performance was during lately 70’s to early 80’s. In 1972, He made the best record most penalties shot saves in a season of Argentinean league with six and holds the record all-time most penalty saves in Argentine football with 26 along with Hugo Gatti. He kept 4 clean sheets in 10 World Cup games. El Grafico and El Pais rate Fillol in six times world-class seasons and eight times best goalkeeper of season in Argentina. He also won argentinian league player of the year by El Grafico in 1975 sports journalist association in 1977. He also finished 4th South American footballer of the year twice times and 5th once time. 	

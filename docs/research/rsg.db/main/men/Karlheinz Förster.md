@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CD					GER	C	0.0	Arguably Germany’s best pure defender, a very reliable and consistent stopper who like his older brother Bernd did not offer much in terms of offense. A rough edged man-marker with a decent touch, aerial prowess in spite of his average height. His great asset was that his performance level remained constantly high year after year, always reaching between 90-100% of his potential		Karlheinz Forster is rated as the greatest man’s marker in history of the Bundesliga games. Kicker ranking rated him 1.5 world-class seasons and 7.5 International-class seasons. Forster was the most important player in defensive line of both VFB Stuttgart and Germany during early 1980s. After Germany had to be disappointed with 2 consecutive losing in World Cup final round, Forster feel his mission for West Germany should be enough and decide to retire from international competition in spite of his 28 year olds of age only and immediately moved to play in France. This regrettably led him not participate in World Cup 1990 which West Germany was able to win a title and he was still in very good performance with Olympic Marseille. 

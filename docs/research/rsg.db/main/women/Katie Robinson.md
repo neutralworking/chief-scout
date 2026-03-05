@@ -1,0 +1,1 @@
+8 August 2002 (age 21)	5	0	England Brighton & Hove Albion

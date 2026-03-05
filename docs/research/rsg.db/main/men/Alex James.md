@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CM					SCO	B	0.0	He was shorter than many players, only standing about 5 foot 6, but was incredibly gifted with the ball at his feet.  He built his game around his dribbling skills, surging runs towards goal and accurate passing.  His visual trademark was his extremely baggy shorts which emphasised his short stature, and which were said to hide long underwear which he wore because he suffered from rheumatism. Manager Herbert Chapman saw James as his ideal 'link man', and utilised his creative abillity as a means of supplying goalscoring chances for his other forwards.  This meant that he was never a prolific goalscorer for Arsenal, the six league goals in his first season being his highest total for the club, but James did play a major role in the club's incredible run of success over the next few years. Although it was his team-mate Cliff Bastin who scored many of the vital goals, his job was made much easier by the accurate through balls that he received from James.	Passing	

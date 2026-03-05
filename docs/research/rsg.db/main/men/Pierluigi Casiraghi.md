@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF					ITA	B	0.0	Casiraghi was a centre-forward who was also capable of playing anywhere in the front line. Throughout his career, he became renowned for his ability in the air, and for having a penchant for scoring acrobatic goals. He was a strong, hardworking, and prolific forward, who was also capable of using his strength to hold up the ball to create space for team mates and provide them with assists.		Casiraghi began his playing career in Italy in 1985, with Monza. He later played for Juventus, and Lazio, before ending his career with Chelsea in the Premier League. He retired after failing to recover from a cruciate ligament injury sustained in 1998. Casiraghi was a member of the Italy national football team that reached the 1994 FIFA World Cup Final, and was also a member of Italy's UEFA Euro 1996 squad.

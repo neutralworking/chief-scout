@@ -1,0 +1,5 @@
+---
+{}
+---
+
+GK					ITA	C	0.0		He was the first choice goalkeeper for the Italian national team for many years and was the first goalkeeper to captain a World Cup winning team. Gianpiero Combi is regarded as one of the best goalkeeper in the world during 1930s. Combi is one of the mail pillar of the great Juventus team which is known as “The Golden Quinquennium” won five Italian Series A and finished four Mitropa Cup semi-finalist in row during the first half 1930s. He kept a clean sheet for 934 consecutive minutes in 1925-1926 season which is the best record in Italian series A beat Sebastino Rossi from AC Milan just 5 minutes. This record is more creditable than any record in recent decade because it is supposed that there are a lot higher ratio goal per game in the 30’s. He had an undesirable international debut, conceding 7 goals to Hungary. 

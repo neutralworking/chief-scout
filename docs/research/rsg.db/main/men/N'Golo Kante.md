@@ -1,0 +1,1 @@
+By the end of the season, Kanté had managed 175 tackles (31 more than any other player) and 157 interceptions (15 more than any other player), topping the defensive stats at the end of the 2015–16 Premier League season.

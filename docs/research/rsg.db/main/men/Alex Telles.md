@@ -1,0 +1,1 @@
+WD		Creator			BRA	C	0.0			He played most of his professional career in Brazil, most notably for Grêmio.Telles is highly rated in Brazil and was rewarded with a place in the 2013 Brasileirão Team of the Year. He also has an Italian passport.

@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF		Striker			ESP	C	0.0	Zarra's goalscoring talent shone through however, as he seemed to have an incredible instinct to find the net with an ability to score almost any kind of goal imaginable, from long range or short.	Trofeo Pichichi x6	Still the all-time record goalscorer in the Spanish Primera División, Telmo Zarra was one of the most prolific goalscorers in world football during the 1940s and 1950s, spending the entirety of his top division career with Athletic Bilbao.  Despite only making 20 appearances at international level, he also formed part of the Spanish squad which achieved the country's highest ever World Cup placing prior to their success in 2010. During the last of those seasons he was also the leading scorer in the Primera División with 20 goals and broke into the national team for the first time in March 1945, in a game against Portugal.  He was by that time considered one of the most dangerous strikers in Spain.

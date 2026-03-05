@@ -1,0 +1,3 @@
+[[Powerful]]
+[[Tenacity]]
+[[Striker]]

@@ -1,0 +1,1 @@
+One of the faces of a weak Gladbach season, which simply rippled away in the second half of the season. After ten goals in the first half of the season, the Frenchman only scored three times, like many of his colleagues, he collapsed completely and is now leaving Gladbach on a free transfer.

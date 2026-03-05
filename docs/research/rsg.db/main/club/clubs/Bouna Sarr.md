@@ -1,0 +1,7 @@
+Bouna Sarr, a 31-year-old footballer, currently plays for FC Bayern München. He holds nationalities from Senegal, France, and Guinea. As a defender, Sarr has had a relatively quiet 2023/2024 season with Bayern München, featuring in only a limited number of games.
+
+In the 2023/2024 season, Sarr has made 2 appearances in the Bundesliga, without scoring any goals or assists. His defensive contributions include 14 tackles won and 3 aerial duels won. He's also shown some activity in terms of running, with 37 sprints and 95 intensive runs, covering a total distance of 13.7 km in matches. His top speed recorded is 32.52 km/h. In terms of passing, he hasn't made a significant impact, with only 1 cross and no completed passes noted.
+
+Sarr's career before joining Bayern München included stints at FC Gerland, Olympique Lyonnais, FC Metz, and Olympique de Marseille. His time at Bayern has been marked by winning the German championship title in 2020/21, 2021/22, and 2022/23 seasons, as well as the Supercup in 2021.
+
+In summary, Bouna Sarr (31, Senegal, FC Bayern München, Defender, Role: Right-Footed Defender, Similar Player: TBD) has had a limited role in the current season but boasts a successful career with multiple championship titles to his name.

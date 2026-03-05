@@ -1,0 +1,4 @@
+Although Eintracht had a notable drop in performance in the second half of the season and only managed a meager four wins in the league, as in the previous year, Randal Kolo Muani delivered consistently. Without the Frenchman, who is now part of the national team, the Frankfurt team might have lost all of their European business and not reached the DFB Cup final. But Kolo Muani still shot his men into the Europa Conference League with a strong ten goals and five assists. Despite his unlucky debut in the Champions League knockout rounds, which ended with a red card in the first leg against Napoli (0-2), there was no doubt in putting the coveted 24-year-old at the top.
+
+High IQ.
+Excellent movement in the box.

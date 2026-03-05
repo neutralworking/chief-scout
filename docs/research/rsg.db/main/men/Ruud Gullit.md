@@ -1,0 +1,5 @@
+---
+{}
+---
+
+CF	Strategic	Playmaker	Heartbeat	AC Milan	NED	A	86.4	Complete, Total Footballer, Icon, Athleticism, Ball Control, Elegant, Balance, Baller, Poise, Creativity, Vision, Spatial Awareness, Tactical Intelligence, Flair, Mental Acuity, Formidable, Touch, Icon, Injury Prone	Versatility, Balance, Leap, Heading, Technique, Decisions, Power, Poise, Composure, Decisions	He was the captain of the Netherlands national team that was victorious at Euro 88 and was also a member of the squad for the 1990 World Cup and Euro 92. At club level, in 1987 he moved from PSV Eindhoven to Milan for a world record transfer fee.[4] Easily recognizable with his distinctive dreadlocks, he was part of the famed Dutch trio at Milan which included Marco van Basten and Frank Rijkaard. Gullit won three Serie A titles and two European Cups with Milan. Gullit was named the Ballon d'Or in 1987 and the World Soccer Player of the Year in 1987 and 1989. Normally an attacking midifielder, he was a versatile player, playing in numerous positions during his career. In 2004 he was named one of the Top 125 greatest living footballers as part of FIFA's 100th anniversary celebration.

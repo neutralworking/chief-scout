@@ -102,6 +102,21 @@ def compute_mvt(level, peak, division: str | None) -> int:
 # ENTERTAINER     needs Prestige 4, Atmosphere 3
 # JOURNEYMAN      needs Ambition 1 (any club)
 
+def archetype_confidence(level: float | None, peak: float | None) -> str:
+    """
+    How reliable is the inferred archetype?
+
+      high   — explicit level set (scouted quality data exists)
+      medium — only peak available (career high, no current scouting)
+      low    — neither level nor peak (MVT is division-floor only)
+    """
+    if level:
+        return "high"
+    if peak:
+        return "medium"
+    return "low"
+
+
 def infer_archetype(
     mvt: int,
     age: int | None,
@@ -242,6 +257,12 @@ def main():
         ADD COLUMN IF NOT EXISTS secondary_position TEXT
             CHECK (secondary_position IN ('GK','WD','CD','DM','CM','WM','AM','WF','CF'))
     """)
+    # Add archetype_confidence column (idempotent)
+    cur.execute("""
+        ALTER TABLE players
+        ADD COLUMN IF NOT EXISTS archetype_confidence TEXT
+            CHECK (archetype_confidence IN ('high','medium','low'))
+    """)
 
     # Load all players — compute age in SQL to avoid Python date edge cases
     print("Loading players...")
@@ -286,6 +307,7 @@ def main():
 
         # ── Archetype (always re-infer; archetype_override reset to NULL)
         new_arch = infer_archetype(new_mvt, age, division, club, mentality, character, prim_cls)
+        new_conf = archetype_confidence(level, peak)
         arch_dist[new_arch] = arch_dist.get(new_arch, 0) + 1
         if new_arch != cur_arch:
             arch_changed += 1
@@ -306,7 +328,7 @@ def main():
             new_sec = inferred_s
             sec_set += 1
 
-        updates.append((pid, new_mvt, new_arch, new_pos, new_sec))
+        updates.append((pid, new_mvt, new_arch, new_conf, new_pos, new_sec))
 
     # ── Summary
     print(f"\nPlan:")
@@ -332,27 +354,29 @@ def main():
     BATCH = 500
     for i in range(0, len(updates), BATCH):
         batch = updates[i:i + BATCH]
-        for pid, mvt, arch, new_pos, new_sec in batch:
+        for pid, mvt, arch, conf, new_pos, new_sec in batch:
             if new_pos:
                 cur.execute(
                     """UPDATE players SET
                         market_value_tier = %s,
                         archetype = %s,
+                        archetype_confidence = %s,
                         archetype_override = NULL,
                         position = %s::\"position\",
                         secondary_position = %s
                        WHERE id = %s""",
-                    (mvt, arch, new_pos, new_sec, pid),
+                    (mvt, arch, conf, new_pos, new_sec, pid),
                 )
             else:
                 cur.execute(
                     """UPDATE players SET
                         market_value_tier = %s,
                         archetype = %s,
+                        archetype_confidence = %s,
                         archetype_override = NULL,
                         secondary_position = %s
                        WHERE id = %s""",
-                    (mvt, arch, new_sec, pid),
+                    (mvt, arch, conf, new_sec, pid),
                 )
         conn.commit()
         done = min(i + BATCH, len(updates))

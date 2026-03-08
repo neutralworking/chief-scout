@@ -1,0 +1,28 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+.next/
+
+# Pipeline cache
+pipeline/.cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Archive (kept locally, not in version control)
+archive/

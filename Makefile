@@ -30,7 +30,10 @@ push:
 statsbomb:
 	cd $(PIPELINE) && $(PYTHON) 08_statsbomb_ingest.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb
+understat:
+	cd $(PIPELINE) && $(PYTHON) 09_understat_ingest.py
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

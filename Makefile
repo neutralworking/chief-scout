@@ -27,7 +27,10 @@ dof:
 push:
 	cd $(PIPELINE) && $(PYTHON) 07_push_to_supabase.py
 
-pipeline: parse insert enrich refine valuation dof push
+statsbomb:
+	cd $(PIPELINE) && $(PYTHON) 08_statsbomb_ingest.py
+
+pipeline: parse insert enrich refine valuation dof push statsbomb
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

@@ -132,9 +132,10 @@ def infer_archetype(
     ch   = character or ""
     cls  = primary_class or ""
 
-    # 1. SUPERSTAR — demands everything; world-class + elite environment
-    #    Tight: requires mvt 5 (level 90+ or peak 94+ in top-5) AND top-5 league
-    if mvt == 5 and div in TOP_5_LEAGUES:
+    # 1. SUPERSTAR — globally famous brand; demands prestige, wealth, ambition
+    #    Requires Attacking mentality — world-class professionals without star
+    #    personality (elite CBs, GKs, holding mids) fall to Serial Winner instead
+    if mvt == 5 and div in TOP_5_LEAGUES and ment == "Attacking":
         return "The Superstar"
 
     # 2. MERCENARY — money first; Saudi move is the clearest real-world signal
@@ -144,8 +145,9 @@ def infer_archetype(
         return "The Mercenary"
 
     # 3. SERIAL WINNER — trophy hunter; elite quality at a winning institution
-    #    Tight: top-4 quality (level 86+), at a known winning club, Attacking
-    if mvt >= 4 and clb in BIG_CLUBS and ment == "Attacking":
+    #    Balanced included: world-class professionals (elite CBs, GKs, holding mids)
+    #    at big clubs are driven by trophies, not celebrity
+    if mvt >= 4 and clb in BIG_CLUBS and ment in ("Attacking", "Balanced"):
         return "The Serial Winner"
 
     # 4. VETERAN PRO — career stage drives decisions; currently active, older player

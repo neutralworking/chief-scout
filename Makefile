@@ -1,4 +1,4 @@
-.PHONY: setup pipeline dry-run parse insert enrich refine valuation dof push news
+.PHONY: setup pipeline dry-run parse insert enrich refine valuation dof push news metrics
 
 PYTHON ?= python3
 PIPELINE := pipeline
@@ -42,7 +42,10 @@ fbref:
 news:
 	cd $(PIPELINE) && $(PYTHON) 12_news_ingest.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news
+metrics:
+	cd $(PIPELINE) && $(PYTHON) 13_stat_metrics.py
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news metrics
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

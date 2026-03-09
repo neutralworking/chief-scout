@@ -194,15 +194,18 @@ with UnderstatClient() as understat:
         print(f"  [{idx}/{len(matches_to_sync)}] match_id={match_id}", end=" ")
 
         try:
-            player_data = understat.match(match_id=str(match_id)).get_player_data()
+            roster = understat.match(match=str(match_id)).get_roster_data()
         except Exception as e:
             print(f"— WARN: {e}")
             time.sleep(0.5)
             continue
 
+        # roster is {"h": {id: {...}, ...}, "a": {id: {...}, ...}}
+        player_data = list(roster.get("h", {}).values()) + list(roster.get("a", {}).values())
+
         player_rows = []
         for p in player_data:
-            player_id = _safe_int(p.get("id"))
+            player_id = _safe_int(p.get("player_id"))
             if player_id is None:
                 continue
 

@@ -365,10 +365,17 @@ def call_llm(gemini_model, groq_client, headline: str, body: str) -> dict | None
     return None
 
 
+def _unaccent(text: str) -> str:
+    """Strip diacritics for accent-insensitive matching."""
+    import unicodedata
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
 def match_player(name: str, club: str | None = None, nationality: str | None = None) -> int | None:
     """
     Try to match a player name to people.id.
-    Strategy: exact → contains → last-name, each narrowed by club if ambiguous.
+    Strategy: exact → contains → unaccent → last-name, each narrowed by club if ambiguous.
     """
     if not name:
         return None
@@ -385,8 +392,11 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
         club_rows = cur.fetchall()
         return club_rows if club_rows else rows
 
-    # 1. Exact ILIKE match
-    cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (name,))
+    # All queries use unaccent() for accent-insensitive matching
+    # (Džeko matches Dzeko, Mbappé matches Mbappe, etc.)
+
+    # 1. Exact match (accent-insensitive)
+    cur.execute("SELECT id, name FROM people WHERE unaccent(name) ILIKE unaccent(%s)", (name,))
     rows = cur.fetchall()
     if len(rows) == 1:
         return rows[0][0]
@@ -395,8 +405,8 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
         if len(narrowed) == 1:
             return narrowed[0][0]
 
-    # 2. Contains match — "Messi" matches "Lionel Messi"
-    cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (f"%{name}%",))
+    # 2. Contains match — "Messi" matches "Lionel Messi", "Dzeko" matches "Edin Džeko"
+    cur.execute("SELECT id, name FROM people WHERE unaccent(name) ILIKE unaccent(%s)", (f"%{name}%",))
     rows = cur.fetchall()
     if len(rows) == 1:
         return rows[0][0]
@@ -404,18 +414,17 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
         narrowed = _narrow_by_club(rows)
         if len(narrowed) == 1:
             return narrowed[0][0]
-        # Prefer shorter names (more likely the actual player vs "Messiah Bright")
-        narrowed.sort(key=lambda r: len(r[1]))
-        # If top result's name ends with the search term, it's likely correct
+        # Prefer names ending with the search term
+        ascii_name = _unaccent(name).lower()
         for r in narrowed:
-            if r[1].lower().endswith(name.lower()) or r[1].lower() == name.lower():
+            if _unaccent(r[1]).lower().endswith(ascii_name) or _unaccent(r[1]).lower() == ascii_name:
                 return r[0]
 
     # 3. Last-name only match
     parts = name.strip().split()
     if len(parts) >= 2:
         last_name = parts[-1]
-        cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (f"% {last_name}",))
+        cur.execute("SELECT id, name FROM people WHERE unaccent(name) ILIKE unaccent(%s)", (f"% {last_name}",))
         rows = cur.fetchall()
         if len(rows) == 1:
             return rows[0][0]

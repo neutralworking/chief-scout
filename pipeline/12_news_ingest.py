@@ -368,52 +368,61 @@ def call_llm(gemini_model, groq_client, headline: str, body: str) -> dict | None
 def match_player(name: str, club: str | None = None, nationality: str | None = None) -> int | None:
     """
     Try to match a player name to people.id.
-    Uses ILIKE fuzzy matching, narrows by club if needed.
+    Strategy: exact → contains → last-name, each narrowed by club if ambiguous.
     """
     if not name:
         return None
 
-    # Exact ILIKE match
-    cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (name,))
-    rows = cur.fetchall()
-
-    if len(rows) == 1:
-        return rows[0][0]
-
-    if len(rows) == 0:
-        # Try partial match: last name
-        parts = name.strip().split()
-        if len(parts) >= 2:
-            last_name = parts[-1]
-            cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (f"%{last_name}%",))
-            rows = cur.fetchall()
-
-            if len(rows) == 1:
-                return rows[0][0]
-
-            # If still multiple, try first+last
-            if len(rows) > 1 and club:
-                cur.execute("""
-                    SELECT p.id, p.name FROM people p
-                    LEFT JOIN clubs c ON c.id = p.club_id
-                    WHERE p.name ILIKE %s AND c.clubname ILIKE %s
-                """, (f"%{last_name}%", f"%{club}%"))
-                club_rows = cur.fetchall()
-                if len(club_rows) == 1:
-                    return club_rows[0][0]
-
-        return None
-
-    # Multiple exact matches — try club disambiguation
-    if club and len(rows) > 1:
+    def _narrow_by_club(rows):
+        """If multiple matches, try to narrow by club name."""
+        if len(rows) <= 1 or not club:
+            return rows
         cur.execute("""
             SELECT p.id, p.name FROM people p
             LEFT JOIN clubs c ON c.id = p.club_id
-            WHERE p.name ILIKE %s AND c.clubname ILIKE %s
-        """, (name, f"%{club}%"))
+            WHERE p.id = ANY(%s) AND c.clubname ILIKE %s
+        """, ([r[0] for r in rows], f"%{club}%"))
         club_rows = cur.fetchall()
-        if len(club_rows) == 1:
-            return club_rows[0][0]
+        return club_rows if club_rows else rows
+
+    # 1. Exact ILIKE match
+    cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (name,))
+    rows = cur.fetchall()
+    if len(rows) == 1:
+        return rows[0][0]
+    if rows:
+        narrowed = _narrow_by_club(rows)
+        if len(narrowed) == 1:
+            return narrowed[0][0]
+
+    # 2. Contains match — "Messi" matches "Lionel Messi"
+    cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (f"%{name}%",))
+    rows = cur.fetchall()
+    if len(rows) == 1:
+        return rows[0][0]
+    if rows:
+        narrowed = _narrow_by_club(rows)
+        if len(narrowed) == 1:
+            return narrowed[0][0]
+        # Prefer shorter names (more likely the actual player vs "Messiah Bright")
+        narrowed.sort(key=lambda r: len(r[1]))
+        # If top result's name ends with the search term, it's likely correct
+        for r in narrowed:
+            if r[1].lower().endswith(name.lower()) or r[1].lower() == name.lower():
+                return r[0]
+
+    # 3. Last-name only match
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        last_name = parts[-1]
+        cur.execute("SELECT id, name FROM people WHERE name ILIKE %s", (f"% {last_name}",))
+        rows = cur.fetchall()
+        if len(rows) == 1:
+            return rows[0][0]
+        if rows:
+            narrowed = _narrow_by_club(rows)
+            if len(narrowed) == 1:
+                return narrowed[0][0]
 
     return None
 

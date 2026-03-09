@@ -41,7 +41,16 @@ chief-scout/
 - [ ] Inbox event generator: scouting reports as game messages
 - [ ] Chief Scout role as NPC in DoF game
 
+## Phase 4 — News Layer
+- [ ] Create `news_stories` + `news_player_tags` Supabase tables (schema in `docs/design/news-layer.md`)
+- [ ] `08_news_ingest.py` — RSS fetch (BBC Sport, Sky Sports, Guardian) → deduplicate → insert
+- [ ] Gemini Flash tagging — extract player names + story type from headlines
+- [ ] Player name matching — fuzzy match against `players` table
+- [ ] Scout Pad integration — News tab on player card
+- [ ] Director integration — transfer rumours as inbox events
+
 ## Connects to
 - `director/` — chief scout provides player data + scouting reports to the game
 - `supabase-fbref-scraper/` — data source
 - `transfer_availability/` — player decision model
+- News Layer — real-world stories feed availability signals + game inbox events

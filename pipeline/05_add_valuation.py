@@ -62,14 +62,7 @@ def main():
     conn.autocommit = False
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Add columns (idempotent)
-    for col, typedef in [
-        ("true_mvt",          "INTEGER"),
-        ("market_premium",    "INTEGER"),
-        ("scarcity_score",    "INTEGER"),
-        ("national_scarcity", "INTEGER"),
-    ]:
-        cur.execute(f"ALTER TABLE players ADD COLUMN IF NOT EXISTS {col} {typedef}")
+    # Columns now live in player_market — no ALTER needed
     print("Columns ready.")
 
     # Load all players
@@ -177,12 +170,12 @@ def main():
     for i in range(0, len(updates), BATCH):
         batch = updates[i:i+BATCH]
         cur.executemany(
-            """UPDATE players SET
+            """UPDATE player_market SET
                 true_mvt = %s,
                 market_premium = %s,
                 scarcity_score = %s,
                 national_scarcity = %s
-               WHERE id = %s""",
+               WHERE person_id = %s""",
             batch,
         )
         conn.commit()

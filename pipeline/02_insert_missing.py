@@ -199,21 +199,28 @@ def main():
     # ── Update scouting notes for matched players ─────────────────────────────
     if matched_with_notes:
         print(f"\nUpdating scouting notes for {len(matched_with_notes)} matched players...")
-        update_sql = """
-            UPDATE players SET
-                scouting_notes = COALESCE(NULLIF(scouting_notes, ''), %(scouting_notes)s),
+        update_status_sql = """
+            UPDATE player_status SET
+                scouting_notes = COALESCE(NULLIF(scouting_notes, ''), %(scouting_notes)s)
+            WHERE person_id = %(id)s
+        """
+        update_market_sql = """
+            UPDATE player_market SET
                 hg = COALESCE(hg, %(hg)s),
                 prev_club = COALESCE(NULLIF(prev_club, ''), %(prev_club)s),
                 joined_year = COALESCE(joined_year, %(joined_year)s),
                 transfer_fee_eur = COALESCE(transfer_fee_eur, %(transfer_fee_eur)s)
-            WHERE id = %(id)s
+            WHERE person_id = %(id)s
         """
         ok = 0
         for db_id, p in matched_with_notes:
             try:
-                cur.execute(update_sql, {
+                cur.execute(update_status_sql, {
                     "id": db_id,
                     "scouting_notes": p["scouting_notes"],
+                })
+                cur.execute(update_market_sql, {
+                    "id": db_id,
                     "hg": p.get("hg", False),
                     "prev_club": p.get("prev_club"),
                     "joined_year": p.get("joined_year"),
@@ -228,26 +235,32 @@ def main():
     if to_insert:
         print(f"\nInserting {len(to_insert)} new player records...")
 
-        insert_sql = """
-            INSERT INTO players (
-                name, nation, club, position, preferred_foot, date_of_birth,
-                hg, joined_year, prev_club, transfer_fee_eur, scouting_notes
-            )
-            SELECT
-                %(name)s, %(nation)s, %(club)s, %(position)s, %(preferred_foot)s, %(date_of_birth)s,
-                %(hg)s, %(joined_year)s, %(prev_club)s, %(transfer_fee_eur)s, %(scouting_notes)s
-            WHERE NOT EXISTS (SELECT 1 FROM players WHERE name = %(name)s)
+        insert_person_sql = """
+            INSERT INTO people (name, preferred_foot, date_of_birth, active)
+            SELECT %(name)s, %(preferred_foot)s, %(date_of_birth)s, true
+            WHERE NOT EXISTS (SELECT 1 FROM people WHERE name = %(name)s)
+            RETURNING id
+        """
+        insert_profile_sql = """
+            INSERT INTO player_profiles (person_id, position)
+            VALUES (%(id)s, %(position)s)
+        """
+        insert_status_sql = """
+            INSERT INTO player_status (person_id, scouting_notes)
+            VALUES (%(id)s, %(scouting_notes)s)
+        """
+        insert_market_sql = """
+            INSERT INTO player_market (person_id, hg, joined_year, prev_club, transfer_fee_eur)
+            VALUES (%(id)s, %(hg)s, %(joined_year)s, %(prev_club)s, %(transfer_fee_eur)s)
         """
 
         ok = errors = skipped = 0
         for p in to_insert:
             row = {
                 "name": p["name"],
-                "nation": p.get("nation"),
-                "club": p.get("club"),
-                "position": p.get("position"),
                 "preferred_foot": p.get("foot"),
                 "date_of_birth": p.get("dob"),
+                "position": p.get("position"),
                 "hg": p.get("hg", False),
                 "joined_year": p.get("joined_year"),
                 "prev_club": p.get("prev_club"),
@@ -255,22 +268,24 @@ def main():
                 "scouting_notes": p.get("scouting_notes"),
             }
             try:
-                cur.execute(insert_sql, row)
+                cur.execute(insert_person_sql, row)
                 if cur.rowcount > 0:
+                    new_id = cur.fetchone()["id"]
+                    row["id"] = new_id
+                    try:
+                        cur.execute(insert_profile_sql, row)
+                    except psycopg2.errors.InvalidTextRepresentation:
+                        conn.rollback()
+                        row["position"] = None
+                        cur.execute(insert_person_sql, row)
+                        new_id = cur.fetchone()["id"]
+                        row["id"] = new_id
+                        cur.execute(insert_profile_sql, row)
+                    cur.execute(insert_status_sql, row)
+                    cur.execute(insert_market_sql, row)
                     ok += 1
                 else:
                     skipped += 1
-            except psycopg2.errors.InvalidTextRepresentation as e:
-                # Position enum violation — insert without position
-                conn.rollback()
-                row["position"] = None
-                try:
-                    cur.execute(insert_sql, row)
-                    ok += 1
-                except Exception as e2:
-                    conn.rollback()
-                    errors += 1
-                    print(f"  ERR {p['name']}: {e2}")
             except Exception as e:
                 conn.rollback()
                 errors += 1

@@ -87,7 +87,7 @@ def main():
 
     # ── 1. NATION via people table name-match ────────────────────────────────
 
-    cur.execute("SELECT \"Name\", \"Nation\" FROM people WHERE \"Nation\" IS NOT NULL AND \"Nation\" != ''")
+    cur.execute("SELECT name AS \"Name\", n.name AS \"Nation\" FROM people p JOIN nations n ON n.id = p.nation_id WHERE p.nation_id IS NOT NULL")
     people_rows = cur.fetchall()
     people_map = {normalise(r["Name"]): r["Nation"] for r in people_rows}
     print(f"People table: {len(people_map):,} entries with nation")
@@ -140,14 +140,23 @@ def main():
         return
 
     # ── Write nation ──────────────────────────────────────────────────────────
+    # Nation updates: look up nation_id and update people table
     if nation_updates:
-        cur.executemany("UPDATE players SET nation = %s WHERE id = %s", nation_updates)
-        conn.commit()
-        print(f"\n{len(nation_updates)} nation values written.")
+        cur.execute("SELECT id, name FROM nations")
+        nation_name_to_id = {r["name"]: r["id"] for r in cur.fetchall()}
+        nation_id_updates = []
+        for nation_name, pid in nation_updates:
+            nid = nation_name_to_id.get(nation_name)
+            if nid:
+                nation_id_updates.append((nid, pid))
+        if nation_id_updates:
+            cur.executemany("UPDATE people SET nation_id = %s WHERE id = %s", nation_id_updates)
+            conn.commit()
+            print(f"\n{len(nation_id_updates)} nation values written.")
 
     # ── Write position ────────────────────────────────────────────────────────
     if pos_updates:
-        cur.executemany("UPDATE players SET position = %s::\"position\" WHERE id = %s", pos_updates)
+        cur.executemany("UPDATE player_profiles SET position = %s::\"position\" WHERE person_id = %s", pos_updates)
         conn.commit()
         print(f"{len(pos_updates)} position values written.")
 

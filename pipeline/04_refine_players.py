@@ -471,26 +471,7 @@ def main():
     conn.autocommit = False
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Add secondary_position column (idempotent)
-    cur.execute("""
-        ALTER TABLE players
-        ADD COLUMN IF NOT EXISTS secondary_position TEXT
-            CHECK (secondary_position IN ('GK','WD','CD','DM','CM','WM','AM','WF','CF'))
-    """)
-    # Add archetype_confidence column (idempotent)
-    cur.execute("""
-        ALTER TABLE players
-        ADD COLUMN IF NOT EXISTS archetype_confidence TEXT
-            CHECK (archetype_confidence IN ('high','medium','low'))
-    """)
-    # Add blueprint column (idempotent)
-    cur.execute("""
-        ALTER TABLE players ADD COLUMN IF NOT EXISTS blueprint TEXT
-    """)
-    # Add attributes column (idempotent)
-    cur.execute("""
-        ALTER TABLE players ADD COLUMN IF NOT EXISTS attributes JSONB DEFAULT '{}'::jsonb
-    """)
+    # Columns now live in player_profiles — no ALTER needed
 
     # Load all players — compute age in SQL to avoid Python date edge cases
     print("Loading players...")
@@ -598,28 +579,32 @@ def main():
     for i in range(0, len(updates), BATCH):
         batch = updates[i:i + BATCH]
         for pid, mvt, arch, conf, new_pos, new_sec in batch:
+            # player_market: market_value_tier
+            cur.execute(
+                "UPDATE player_market SET market_value_tier = %s WHERE person_id = %s",
+                (mvt, pid),
+            )
+            # player_profiles: archetype, confidence, override, position, secondary
             if new_pos:
                 cur.execute(
-                    """UPDATE players SET
-                        market_value_tier = %s,
+                    """UPDATE player_profiles SET
                         archetype = %s,
                         archetype_confidence = %s,
                         archetype_override = NULL,
                         position = %s::\"position\",
                         secondary_position = %s
-                       WHERE id = %s""",
-                    (mvt, arch, conf, new_pos, new_sec, pid),
+                       WHERE person_id = %s""",
+                    (arch, conf, new_pos, new_sec, pid),
                 )
             else:
                 cur.execute(
-                    """UPDATE players SET
-                        market_value_tier = %s,
+                    """UPDATE player_profiles SET
                         archetype = %s,
                         archetype_confidence = %s,
                         archetype_override = NULL,
                         secondary_position = %s
-                       WHERE id = %s""",
-                    (mvt, arch, conf, new_sec, pid),
+                       WHERE person_id = %s""",
+                    (arch, conf, new_sec, pid),
                 )
         conn.commit()
         done = min(i + BATCH, len(updates))

@@ -29,3 +29,6 @@ archive/
 
 # Claude Code local config (keep settings.json local, but share commands)
 .claude/settings.json
+
+# Cron job logs
+scripts/logs/

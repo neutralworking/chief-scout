@@ -24,23 +24,26 @@ from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
 
 parser = argparse.ArgumentParser(description="Ingest Understat xG data into Supabase")
 parser.add_argument("--league", default=None,
-                    help="Restrict to a single league (e.g. EPL, La_liga, Bundesliga)")
+                    help="Restrict to a single league (e.g. EPL, La_Liga, Bundesliga)")
 parser.add_argument("--season", default=None,
                     help="Restrict to a single season (e.g. 2023)")
 parser.add_argument("--dry-run", action="store_true",
                     help="Print counts without inserting anything")
 parser.add_argument("--force", action="store_true",
                     help="Re-sync player stats even if match already present")
+parser.add_argument("--matches-only", action="store_true",
+                    help="Only fetch and upsert match data, skip player stats")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
 FORCE = args.force
 LEAGUE_FILTER = args.league
 SEASON_FILTER = args.season
+MATCHES_ONLY = args.matches_only
 CHUNK_SIZE = 100
 
-LEAGUES = ["EPL", "La_liga", "Bundesliga", "Serie_A", "Ligue_1", "RFPL"]
-SEASONS = ["2023", "2022", "2021", "2020", "2019"]
+LEAGUES = ["EPL", "La_Liga", "Bundesliga", "Serie_A", "Ligue_1", "RFPL"]
+SEASONS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014"]
 
 if LEAGUE_FILTER:
     if LEAGUE_FILTER not in LEAGUES:
@@ -160,6 +163,11 @@ print(f"Upserted {n} rows into understat_matches")
 
 # ── 2. Determine which matches need player stats sync ─────────────────────────
 
+if MATCHES_ONLY:
+    print(f"\n--matches-only: skipping player stats. Done.")
+    print(f"  Matches upserted: {len(all_match_rows)}")
+    sys.exit(0)
+
 all_match_ids = [r["id"] for r in all_match_rows]
 
 if FORCE:
@@ -200,8 +208,16 @@ with UnderstatClient() as understat:
             time.sleep(0.5)
             continue
 
-        # roster is {"h": {id: {...}, ...}, "a": {id: {...}, ...}}
-        player_data = list(roster.get("h", {}).values()) + list(roster.get("a", {}).values())
+        # roster is usually {"h": {id: {...}, ...}, "a": {id: {...}, ...}}
+        # but sometimes values are lists instead of dicts
+        def _flatten_side(side):
+            if isinstance(side, dict):
+                return list(side.values())
+            if isinstance(side, list):
+                return side
+            return []
+
+        player_data = _flatten_side(roster.get("h", {})) + _flatten_side(roster.get("a", {}))
 
         player_rows = []
         for p in player_data:

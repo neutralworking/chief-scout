@@ -149,7 +149,7 @@ CREATE INDEX IF NOT EXISTS news_stories_published_idx ON news_stories(published_
 CREATE TABLE IF NOT EXISTS news_player_tags (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   story_id      uuid REFERENCES news_stories(id) ON DELETE CASCADE,
-  player_id     uuid REFERENCES players(id) ON DELETE CASCADE,
+  player_id     uuid REFERENCES people(id) ON DELETE CASCADE,
   story_type    text,
   confidence    float,
   UNIQUE (story_id, player_id)

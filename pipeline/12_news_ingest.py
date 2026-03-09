@@ -377,8 +377,8 @@ def process_stories():
     processed_count = 0
     tagged_count = 0
 
-    for story_id, headline, body in stories:
-        print(f"\n  [{processed_count + 1}/{len(stories)}] {headline[:80]}...")
+    for idx, (story_id, headline, body) in enumerate(stories, 1):
+        print(f"\n  [{idx}/{len(stories)}] {headline[:80]}...")
 
         result = call_gemini(model, headline, body or "")
 

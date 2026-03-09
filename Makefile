@@ -33,7 +33,10 @@ statsbomb:
 understat:
 	cd $(PIPELINE) && $(PYTHON) 09_understat_ingest.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat
+match:
+	cd $(PIPELINE) && $(PYTHON) 10_player_matching.py
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

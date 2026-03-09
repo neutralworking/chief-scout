@@ -41,15 +41,15 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `01–07` → core player data pipeline (parse → push to Supabase)
 - `08_statsbomb_ingest.py` → StatsBomb open data → `sb_competitions/matches/events/lineups`. Flags: `--competition`, `--dry-run`, `--force`
 - `09_understat_ingest.py` → Understat xG → `understat_matches/player_match_stats`. Flags: `--league`, `--season`, `--dry-run`, `--force`
+- `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|all`, `--dry-run`
 
-**⚠️ Pending**: Run `pipeline/sql/003_news_statsbomb_understat.sql` in Supabase SQL Editor before using scripts 08/09.
-
-## External Data Tables (migration 003 — pending)
+## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
 |---|---|---|
 | `sb_competitions/matches/events/lineups` | StatsBomb open data | Event-level match data |
 | `understat_matches` + `understat_player_match_stats` | Understat | xG/xA/npxG per match |
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging |
+| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.

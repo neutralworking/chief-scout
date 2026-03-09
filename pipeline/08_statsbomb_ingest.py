@@ -71,23 +71,28 @@ def _safe(val):
     return val
 
 
+def _sanitize(obj):
+    """Recursively replace NaN/inf/NaT with None for JSON safety."""
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    if isinstance(obj, pd.Timestamp):
+        return obj.isoformat() if not pd.isnull(obj) else None
+    if pd.api.types.is_scalar(obj) and pd.isna(obj):
+        return None
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
 def _row_to_json(row: dict) -> str:
     """Serialise a DataFrame row dict to a JSON string, coercing bad values."""
-    cleaned = {}
-    for k, v in row.items():
-        if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
-            cleaned[k] = None
-        elif isinstance(v, pd.Timestamp):
-            cleaned[k] = v.isoformat() if not pd.isnull(v) else None
-        elif isinstance(v, list):
-            cleaned[k] = v
-        else:
-            cleaned[k] = v
-    return json.dumps(cleaned, default=str)
+    return json.dumps(_sanitize(row), default=str)
 
 
 def chunked_upsert(table: str, rows: list, on_conflict: str):
-    """Upsert rows in batches of CHUNK_SIZE."""
+    """Upsert rows in batches of CHUNK_SIZE. Sanitizes all values first."""
     if not rows:
         return 0
     if DRY_RUN:
@@ -95,7 +100,7 @@ def chunked_upsert(table: str, rows: list, on_conflict: str):
         return len(rows)
     total = 0
     for i in range(0, len(rows), CHUNK_SIZE):
-        chunk = rows[i:i + CHUNK_SIZE]
+        chunk = [_sanitize(row) for row in rows[i:i + CHUNK_SIZE]]
         client.table(table).upsert(chunk, on_conflict=on_conflict).execute()
         total += len(chunk)
     return total

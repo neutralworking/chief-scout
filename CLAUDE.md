@@ -4,7 +4,7 @@
 - **App**: Next.js (Turbopack) in `apps/player-editor/`
 - **DB**: Supabase (project ref: `fnvlemkbhohyouhjebwf`, region: EU Frankfurt)
 - **Pipeline**: Python scripts in `pipeline/`
-- **Skills**: `/ceo`, `/project-manager`, `/design-manager`, `/qa-manager`, `/supabase`, `/debugger`, etc.
+- **Skills**: Custom commands in `.claude/commands/` (see below)
 
 ## Database Schema (normalized 2026-03-09)
 The old monolithic `players` table has been split. A **`players` view** exists for backward compatibility (reads only).
@@ -50,6 +50,22 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `sb_competitions/matches/events/lineups` | StatsBomb open data | Event-level match data |
 | `understat_matches` + `understat_player_match_stats` | Understat | xG/xA/npxG per match |
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging |
+
+## Custom Skills (Slash Commands)
+Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.
+
+| Command | Role | Use for |
+|---|---|---|
+| `/ceo` | Director of Football | Strategic priorities, phase planning, high-level decisions |
+| `/project-manager` | Project Manager | Task decomposition, sequencing, scope estimation |
+| `/design-manager` | Architect | Schema design, migrations, architecture review |
+| `/qa-manager` | QA Lead | Data validation, pipeline testing, regression checks |
+| `/supabase` | DB Specialist | Queries, mutations, migrations, RLS debugging |
+| `/debugger` | Debugger | Error investigation, root cause analysis, fixes |
+| `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
+| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
+
+**Workflow example**: `/ceo` to prioritize → `/project-manager` to break down → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate.
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

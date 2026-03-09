@@ -27,5 +27,5 @@ pipeline/.cache/
 # Archive (kept locally, not in version control)
 archive/
 
-# Claude Code local config
-.claude/
+# Claude Code local config (keep settings.json local, but share commands)
+.claude/settings.json

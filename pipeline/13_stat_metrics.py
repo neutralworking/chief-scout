@@ -264,7 +264,7 @@ def aggregate_understat(cur, player_positions):
                 "stat_score": score,
                 "source": "understat",
                 "is_inferred": True,
-                "confidence": "medium",
+                "confidence": "Medium",
                 "updated_at": now_iso,
             })
 
@@ -280,16 +280,28 @@ def aggregate_statsbomb(cur, player_positions):
     """Aggregate StatsBomb event data into attribute grades."""
     print("\n── StatsBomb Aggregation ──────────────────────────────────────────")
 
+    # Build temp mapping: sb_player_id (float string from events) → person_id
+    # This avoids repeated CAST on 3.25M rows in every query.
+    print("  Building SB player mapping...")
+    cur.execute("""
+        CREATE TEMP TABLE IF NOT EXISTS sb_player_map AS
+        SELECT pil.person_id,
+               pil.external_id,
+               pil.external_id || '.0' AS sb_player_id_str
+        FROM player_id_links pil
+        WHERE pil.source = 'statsbomb'
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_sb_map ON sb_player_map(sb_player_id_str)")
+
     # Step 1: Get matches played per SB-linked player
     print("  Counting matches per player...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(DISTINCT e.match_id) AS matches
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        GROUP BY m.person_id
         HAVING COUNT(DISTINCT e.match_id) >= %s
     """, (MIN_MATCHES,))
     eligible = {r[0]: r[1] for r in cur.fetchall()}
@@ -303,7 +315,7 @@ def aggregate_statsbomb(cur, player_positions):
     # Step 2: Aggregate passing metrics
     print("  Aggregating passes...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) AS total_passes,
                COUNT(*) FILTER (WHERE e.raw->>'pass_outcome' IS NULL) AS completed_passes,
                COUNT(*) FILTER (
@@ -312,13 +324,12 @@ def aggregate_statsbomb(cur, player_positions):
                      AND (e.raw->'pass_end_location'->>0)::float - (e.location[1])::float > 10
                ) AS progressive_passes,
                COUNT(*) FILTER (WHERE e.raw->>'pass_through_ball' IS NOT NULL) AS through_balls
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type = 'Pass'
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type = 'Pass'
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     pass_data = {r[0]: {"total": r[1], "completed": r[2], "progressive": r[3], "through": r[4]}
                  for r in cur.fetchall()}
@@ -326,86 +337,81 @@ def aggregate_statsbomb(cur, player_positions):
     # Step 3: Aggregate shooting metrics
     print("  Aggregating shots...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) AS total_shots,
                COUNT(*) FILTER (WHERE e.raw->>'shot_outcome' = 'Goal') AS goals,
                AVG(NULLIF((e.raw->>'shot_statsbomb_xg')::float, 0)) AS avg_xg_per_shot
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type = 'Shot'
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type = 'Shot'
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     shot_data = {r[0]: {"shots": r[1], "goals": r[2], "avg_xg": r[3]} for r in cur.fetchall()}
 
     # Step 4: Aggregate dribble metrics
     print("  Aggregating dribbles...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) AS attempts,
                COUNT(*) FILTER (WHERE e.raw->>'dribble_outcome' = 'Complete') AS successful
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type = 'Dribble'
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type = 'Dribble'
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     dribble_data = {r[0]: {"attempts": r[1], "successful": r[2]} for r in cur.fetchall()}
 
     # Step 5: Aggregate carries (progressive distance)
     print("  Aggregating carries...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) AS total_carries,
                COUNT(*) FILTER (
                    WHERE e.raw->'carry_end_location' IS NOT NULL
                      AND e.location IS NOT NULL
                      AND (e.raw->'carry_end_location'->>0)::float - (e.location[1])::float > 10
                ) AS progressive_carries
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type = 'Carry'
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type = 'Carry'
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     carry_data = {r[0]: {"total": r[1], "progressive": r[2]} for r in cur.fetchall()}
 
     # Step 6: Aggregate defensive metrics (pressures + ball recoveries)
     print("  Aggregating defensive actions...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) FILTER (WHERE e.type = 'Pressure') AS pressures,
                COUNT(*) FILTER (WHERE e.type = 'Ball Recovery') AS recoveries
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type IN ('Pressure', 'Ball Recovery')
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type IN ('Pressure', 'Ball Recovery')
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     def_data = {r[0]: {"pressures": r[1], "recoveries": r[2]} for r in cur.fetchall()}
 
     # Step 7: Aggregate duels (aerial + tackles)
     print("  Aggregating duels...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) FILTER (WHERE e.raw->>'duel_type' LIKE 'Aerial%%') AS aerial_total,
                COUNT(*) FILTER (WHERE e.raw->>'duel_type' = 'Aerial Lost') AS aerial_lost,
                COUNT(*) FILTER (WHERE e.raw->>'duel_type' LIKE 'Tackle%%') AS tackles
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.type = 'Duel'
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.type = 'Duel'
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     duel_data = {r[0]: {"aerial_total": r[1], "aerial_lost": r[2], "tackles": r[3]}
                  for r in cur.fetchall()}
@@ -413,21 +419,20 @@ def aggregate_statsbomb(cur, player_positions):
     # Step 8: Under-pressure success rate
     print("  Aggregating under-pressure actions...")
     cur.execute("""
-        SELECT pil.person_id,
+        SELECT m.person_id,
                COUNT(*) AS total_pressured,
                COUNT(*) FILTER (
                    WHERE (e.type = 'Pass' AND e.raw->>'pass_outcome' IS NULL)
                       OR (e.type = 'Dribble' AND e.raw->>'dribble_outcome' = 'Complete')
                       OR (e.type = 'Shot' AND e.raw->>'shot_outcome' = 'Goal')
                ) AS successful_pressured
-        FROM player_id_links pil
+        FROM sb_player_map m
         JOIN sb_events e
-            ON e.raw->>'player_id' = pil.external_id
-        WHERE pil.source = 'statsbomb'
-          AND e.under_pressure = true
+            ON e.raw->>'player_id' = m.sb_player_id_str
+        WHERE e.under_pressure = true
           AND e.type IN ('Pass', 'Dribble', 'Shot')
-          AND pil.person_id = ANY(%s)
-        GROUP BY pil.person_id
+          AND m.person_id = ANY(%s)
+        GROUP BY m.person_id
     """, (eligible_pids,))
     pressure_data = {r[0]: {"total": r[1], "successful": r[2]} for r in cur.fetchall()}
 
@@ -499,7 +504,7 @@ def aggregate_statsbomb(cur, player_positions):
                 "stat_score": score,
                 "source": "statsbomb",
                 "is_inferred": True,
-                "confidence": "medium",
+                "confidence": "Medium",
                 "updated_at": now_iso,
             })
 

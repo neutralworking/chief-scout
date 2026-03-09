@@ -56,7 +56,9 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 
 | Command | Role | Use for |
 |---|---|---|
-| `/ceo` | Director of Football | Strategic priorities, phase planning, high-level decisions |
+| `/ceo` | CEO | Business strategy, commercial decisions, product-market fit |
+| `/dof` | Director of Football | Transfer strategy, squad building, player valuation, market timing |
+| `/marketing` | Head of Marketing | Brand, content, community, growth, launch strategy |
 | `/project-manager` | Project Manager | Task decomposition, sequencing, scope estimation |
 | `/design-manager` | Architect | Schema design, migrations, architecture review |
 | `/qa-manager` | QA Lead | Data validation, pipeline testing, regression checks |
@@ -65,7 +67,10 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
 | `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
 
-**Workflow example**: `/ceo` to prioritize → `/project-manager` to break down → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate.
+**Workflow examples**:
+- Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down
+- Football: `/dof` for transfer priorities → `/scout` for player data → `/supabase` to query
+- Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

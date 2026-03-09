@@ -23,6 +23,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 POSTGRES_DSN = os.environ.get("POSTGRES_DSN", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 # Common paths
 REPO_ROOT = Path(__file__).resolve().parent.parent

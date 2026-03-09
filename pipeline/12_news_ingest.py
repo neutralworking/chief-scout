@@ -292,11 +292,19 @@ def init_groq():
 
 
 def _parse_llm_response(text: str) -> dict | None:
-    """Parse JSON from LLM response, stripping markdown fences."""
+    """Parse JSON from LLM response, stripping markdown fences and think tags."""
     text = text.strip()
+    # Strip <think>...</think> blocks (Llama/DeepSeek reasoning)
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    # Strip markdown code fences
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
+    # Try to find JSON object if there's extra text around it
+    if not text.startswith("{"):
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            text = match.group(0)
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:

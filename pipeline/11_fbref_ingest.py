@@ -6,6 +6,10 @@ FBRef enforces strict rate limits. This script respects them:
   - Incremental: tracks synced comp/season/stat_type in fbref_sync_log
   - First run fetches everything; subsequent runs skip already-synced pages
 
+Note: FBRef now blocks automated requests via Cloudflare. The primary ingest
+path is CSV import through the admin panel (/admin → Import tab). This script
+is a fallback/reference for when direct scraping works.
+
 Usage:
     python 11_fbref_ingest.py                           # all priority comps, current season
     python 11_fbref_ingest.py --season 2023-2024        # specific season
@@ -23,7 +27,7 @@ from datetime import datetime, timezone
 from urllib.parse import urljoin
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 import psycopg2
 from psycopg2.extras import execute_values
 
@@ -189,10 +193,9 @@ def parse_stats_table(soup: BeautifulSoup, stat_type: str) -> list[dict]:
     # Try direct table lookup
     table = soup.find("table", {"id": target_id})
 
-    # If not found, search inside HTML comments
+    # If not found, search inside HTML comments (FBRef hides tables this way)
     if table is None:
-        for comment in soup.find_all(string=lambda t: isinstance(t, type(soup.new_string("")))
-                                     and t.__class__.__name__ == "Comment"):
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
             if target_id in str(comment):
                 comment_soup = BeautifulSoup(str(comment), "lxml")
                 table = comment_soup.find("table", {"id": target_id})

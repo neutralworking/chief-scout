@@ -52,6 +52,7 @@ function PlayersContent() {
   const searchParams = useSearchParams();
   const [allPlayers, setAllPlayers] = useState<PlayerCardType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
@@ -61,16 +62,19 @@ function PlayersContent() {
   useEffect(() => {
     async function load() {
       if (!supabase) {
+        setError("Supabase not configured. Run scripts/setup-env.sh to set credentials.");
         setLoading(false);
         return;
       }
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from("player_intelligence_card")
         .select(
           "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
         );
 
-      if (!error && data) {
+      if (fetchError) {
+        setError(`Supabase error: ${fetchError.message}. Check RLS policies (run migration 009).`);
+      } else if (data) {
         setAllPlayers(data as PlayerCardType[]);
       }
       setLoading(false);
@@ -105,11 +109,17 @@ function PlayersContent() {
         ))}
       </div>
 
-      {!loading && filtered.length === 0 && (
+      {error && (
+        <div className="mt-8 p-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg">
+          <p className="text-sm text-[var(--sentiment-negative)]">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && filtered.length === 0 && (
         <div className="mt-12 text-center text-[var(--text-muted)]">
           <p className="text-sm">
             {allPlayers.length === 0
-              ? "Connect Supabase to load player data."
+              ? "No player data found. Run migration 007 + pipeline seed script."
               : "No players match the current filters."}
           </p>
         </div>

@@ -1,6 +1,3 @@
 [submodule "transfer_availability"]
 	path = transfer_availability
 	url = https://github.com/neutralworking/availability.git
-[submodule "apps/player-editor"]
-	path = apps/player-editor
-	url = https://github.com/neutralworking/scout-pad.git

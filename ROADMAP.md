@@ -7,7 +7,8 @@ A football scouting and management platform. The `transfer_availability` submodu
 ```
 chief-scout/
 ├── pipeline/                ← data pipeline (7 numbered scripts)
-├── apps/player-editor/      ← Next.js player editing UI
+├── apps/player-editor/      ← Next.js player intelligence UI
+├── prototypes/              ← prototype log + tracking (INDEX.md)
 ├── imports/                 ← CSV data (Real Players Active, clubs)
 ├── transfer_availability/   ← submodule: player archetype + transfer model
 ├── docs/
@@ -29,12 +30,16 @@ chief-scout/
 - [x] Number pipeline scripts, add Makefile automation
 - [ ] Connect `supabase-fbref-scraper` output as additional data source
 
-## Phase 2 — Scouting Interface
+## Phase 2 — Scouting Interface [IN PROGRESS]
+- [x] **B1: App shell** — Next.js scaffold, player list with filters, detail page (`prototypes/INDEX.md`)
+- [ ] B2: Design token refinement (Inter/JetBrains Mono fonts, spacing)
+- [ ] B3: Wire `player_intelligence_card` view end-to-end
+- [ ] C1: `<PersonalityBadge>` + `<ArchetypeShape>` hero components
+- [ ] E1: Attribute detail drill-down with progressive disclosure
 - [ ] Build web dashboard from Dashboard.md spec
 - [ ] Scouting radar: statistical alert system (see Scripts.md)
 - [ ] Free agent grader: Transfermarkt scraper → ranked shortlists
 - [ ] Formation analysis tool: match formations in `docs/formations/` to squad
-- [ ] Player editor app (apps/player-editor) — in progress
 
 ## Phase 3 — Game Integration
 - [ ] Export availability scores to Director of Football game

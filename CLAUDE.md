@@ -67,6 +67,7 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/debugger` | Debugger | Error investigation, root cause analysis, fixes |
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
 | `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
+| `/prototype-tracker` | Prototype Tracker | Log new prototypes, update status, review progress |
 
 **Workflow examples**:
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down

@@ -28,7 +28,7 @@ from config import POSTGRES_DSN
 
 parser = argparse.ArgumentParser(description="Match external player IDs to people table")
 parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
-parser.add_argument("--source", choices=["understat", "statsbomb", "all"], default="all",
+parser.add_argument("--source", choices=["understat", "statsbomb", "fbref", "all"], default="all",
                     help="Which source to match (default: all)")
 parser.add_argument("--auto-add", action="store_true",
                     help="Auto-add unmatched players to people table")
@@ -406,6 +406,99 @@ if SOURCE in ("statsbomb", "all"):
                 if count >= 20:
                     break
 
+# ── Match FBRef ──────────────────────────────────────────────────────────
+
+if SOURCE in ("fbref", "all"):
+    print("\n── Matching FBRef players ──")
+    cur.execute("""
+        SELECT fbref_id, name, nation, position
+        FROM fbref_players
+        WHERE person_id IS NULL
+    """)
+    fbref_players = cur.fetchall()
+    print(f"  {len(fbref_players)} unlinked fbref_players")
+
+    # Also get team hints from season stats (most recent season per player)
+    cur.execute("""
+        SELECT DISTINCT ON (fbref_id) fbref_id, team
+        FROM fbref_player_season_stats
+        ORDER BY fbref_id, season DESC
+    """)
+    fbref_teams = {r[0]: r[1] for r in cur.fetchall()}
+
+    matched = 0
+    ambiguous = 0
+    unmatched = 0
+    skipped = 0
+    link_inserts = []
+    direct_updates = []  # (person_id, fbref_id) for fbref_players.person_id
+
+    for fbref_id, ext_name, nation, position in fbref_players:
+        if ("fbref", fbref_id) in already_linked:
+            skipped += 1
+            continue
+
+        club_hint = fbref_teams.get(fbref_id, "")
+        pid, orig_name, method = find_match(ext_name, club_hint=club_hint)
+        if pid:
+            matched += 1
+            link_inserts.append((pid, "fbref", fbref_id, ext_name, method, 1.0 if method == "exact" else 0.8))
+            direct_updates.append((pid, fbref_id))
+        elif method == "ambiguous":
+            ambiguous += 1
+        else:
+            unmatched += 1
+
+    print(f"  Matched: {matched} | Ambiguous: {ambiguous} | Unmatched: {unmatched} | Skipped (existing): {skipped}")
+
+    if link_inserts and not DRY_RUN:
+        execute_values(cur, """
+            INSERT INTO player_id_links (person_id, source, external_id, external_name, match_method, confidence)
+            VALUES %s
+            ON CONFLICT (source, external_id) DO NOTHING
+        """, link_inserts)
+        print(f"  Inserted {len(link_inserts)} links into player_id_links")
+
+        # Also set person_id directly on fbref_players for easy joins
+        for pid, fid in direct_updates:
+            cur.execute("UPDATE fbref_players SET person_id = %s WHERE fbref_id = %s AND person_id IS NULL",
+                        (pid, fid))
+        print(f"  Updated {len(direct_updates)} fbref_players.person_id")
+    elif link_inserts:
+        print(f"  [dry-run] would insert {len(link_inserts)} links + update {len(direct_updates)} fbref_players")
+
+    # Show unmatched for review
+    if unmatched > 0:
+        print(f"\n  Unmatched FBRef players ({min(unmatched, 20)} shown):")
+        count = 0
+        for fbref_id, ext_name, nation, position in fbref_players:
+            if ("fbref", fbref_id) in already_linked:
+                continue
+            club_hint = fbref_teams.get(fbref_id, "")
+            pid, _, method = find_match(ext_name, club_hint=club_hint)
+            if pid is None and method == "none":
+                print(f"    {ext_name} ({fbref_id}) [{club_hint}]")
+                count += 1
+                if count >= 20:
+                    break
+
+    if ambiguous > 0:
+        print(f"\n  Ambiguous matches ({min(ambiguous, 10)} shown):")
+        count = 0
+        for fbref_id, ext_name, nation, position in fbref_players:
+            if ("fbref", fbref_id) in already_linked:
+                continue
+            club_hint = fbref_teams.get(fbref_id, "")
+            pid, _, method = find_match(ext_name, club_hint=club_hint)
+            if method == "ambiguous":
+                norm = normalize_name(ext_name)
+                candidates = people_by_norm.get(norm, [])
+                ids = [str(c[0]) for c in candidates]
+                print(f"    {ext_name} [{club_hint}] → people ids: {', '.join(ids)}")
+                count += 1
+                if count >= 10:
+                    break
+
 # ── Auto-add unmatched players ────────────────────────────────────────────────
 
 if AUTO_ADD:
@@ -450,6 +543,19 @@ if AUTO_ADD:
             pid, _, method = find_match(ext_name)
             if pid is None and method != "ambiguous":
                 unmatched_players.append(("statsbomb", ext_id, ext_name))
+
+    if SOURCE in ("fbref", "all"):
+        cur.execute("SELECT fbref_id, name FROM fbref_players WHERE person_id IS NULL")
+        for fbref_id, ext_name in cur.fetchall():
+            if ("fbref", fbref_id) in already_linked:
+                continue
+            cur.execute("SELECT 1 FROM player_id_links WHERE source='fbref' AND external_id=%s", (fbref_id,))
+            if cur.fetchone():
+                continue
+            club_hint = ""
+            pid, _, method = find_match(ext_name, club_hint=club_hint)
+            if pid is None and method != "ambiguous":
+                unmatched_players.append(("fbref", fbref_id, ext_name))
 
     print(f"  {len(unmatched_players)} unmatched players to add")
 

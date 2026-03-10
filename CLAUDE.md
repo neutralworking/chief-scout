@@ -41,7 +41,8 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `01–07` → core player data pipeline (parse → push to Supabase)
 - `08_statsbomb_ingest.py` → StatsBomb open data → `sb_competitions/matches/events/lineups`. Flags: `--competition`, `--dry-run`, `--force`
 - `09_understat_ingest.py` → Understat xG → `understat_matches/player_match_stats`. Flags: `--league`, `--season`, `--dry-run`, `--force`
-- `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|all`, `--dry-run`
+- `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
+- `11_fbref_ingest.py` → FBRef season stats → `fbref_players/fbref_player_season_stats`. Flags: `--comp`, `--season`, `--seasons-back`, `--dry-run`, `--force`
 - `12_news_ingest.py` → RSS + Gemini Flash → `news_stories/news_player_tags`. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`, `--force`
 
 ## External Data Tables (migration 003 — applied)
@@ -50,7 +51,8 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `sb_competitions/matches/events/lineups` | StatsBomb open data | Event-level match data |
 | `understat_matches` + `understat_player_match_stats` | Understat | xG/xA/npxG per match |
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging (migration 003 + 005) |
-| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb) |
+| `fbref_players` + `fbref_player_season_stats` | FBRef | Season stats (35+ cols: xG, passing, defense, possession, GK) (migration 004) |
+| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.
@@ -73,6 +75,17 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down
 - Football: `/dof` for transfer priorities → `/scout` for player data → `/supabase` to query
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
+
+## Admin Panel (`/admin`)
+Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
+
+| Tab | Purpose | API Route |
+|---|---|---|
+| **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
+| **Pipeline** | Table row counts, sync timestamps, freshness indicators, FBRef sync log | `GET /api/admin/pipeline` |
+| **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
+
+CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Player matching uses normalized exact name matching (no fuzzy).
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

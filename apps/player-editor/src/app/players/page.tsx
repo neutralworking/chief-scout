@@ -1,10 +1,13 @@
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { createServiceClient } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { PlayerCard as PlayerCardType } from "@/lib/types";
 import { PlayerCard } from "@/components/PlayerCard";
 import { PlayerFilters } from "@/components/PlayerFilters";
 
-// DoF sort: pursuit status (Priority first) > position > level desc
 const PURSUIT_ORDER: Record<string, number> = {
   Priority: 0,
   Interested: 1,
@@ -15,21 +18,10 @@ const PURSUIT_ORDER: Record<string, number> = {
 };
 
 const POSITION_ORDER: Record<string, number> = {
-  GK: 0,
-  CD: 1,
-  WD: 2,
-  DM: 3,
-  CM: 4,
-  WM: 5,
-  AM: 6,
-  WF: 7,
-  CF: 8,
+  GK: 0, CD: 1, WD: 2, DM: 3, CM: 4, WM: 5, AM: 6, WF: 7, CF: 8,
 };
 
-function sortPlayers(
-  players: PlayerCardType[],
-  sortKey: string
-): PlayerCardType[] {
+function sortPlayers(players: PlayerCardType[], sortKey: string): PlayerCardType[] {
   const sorted = [...players];
   switch (sortKey) {
     case "level":
@@ -56,79 +48,80 @@ function sortPlayers(
   }
 }
 
-async function fetchPlayers(params: {
-  q?: string;
-  position?: string;
-  pursuit?: string;
-  sort?: string;
-}): Promise<PlayerCardType[]> {
-  const supabase = createServiceClient();
+function PlayersContent() {
+  const searchParams = useSearchParams();
+  const [allPlayers, setAllPlayers] = useState<PlayerCardType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  let query = supabase
-    .from("player_intelligence_card")
-    .select(
-      "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
-    );
+  const position = searchParams.get("position") ?? "";
+  const pursuit = searchParams.get("pursuit") ?? "";
+  const q = searchParams.get("q") ?? "";
+  const sort = searchParams.get("sort") ?? "pursuit";
 
-  if (params.position) {
-    query = query.eq("position", params.position);
-  }
+  useEffect(() => {
+    async function load() {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("player_intelligence_card")
+        .select(
+          "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
+        );
 
-  if (params.pursuit) {
-    query = query.eq("pursuit_status", params.pursuit);
-  }
+      if (!error && data) {
+        setAllPlayers(data as PlayerCardType[]);
+      }
+      setLoading(false);
+    }
+    load();
+  }, []);
 
-  if (params.q) {
-    query = query.ilike("name", `%${params.q}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Error fetching players:", error);
-    return [];
-  }
-
-  return sortPlayers(data as PlayerCardType[], params.sort ?? "pursuit");
-}
-
-export default async function PlayersPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | undefined>>;
-}) {
-  const params = await searchParams;
-  const players = await fetchPlayers(params);
+  const filtered = useMemo(() => {
+    let result = allPlayers;
+    if (position) result = result.filter((p) => p.position === position);
+    if (pursuit) result = result.filter((p) => p.pursuit_status === pursuit);
+    if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+    return sortPlayers(result, sort);
+  }, [allPlayers, position, pursuit, q, sort]);
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl font-bold tracking-tight mb-1">Players</h2>
         <p className="text-xs text-[var(--text-secondary)]">
-          {players.length} player{players.length !== 1 ? "s" : ""}
-          {params.position ? ` · ${params.position}` : ""}
-          {params.pursuit ? ` · ${params.pursuit}` : ""}
+          {loading ? "Loading..." : `${filtered.length} player${filtered.length !== 1 ? "s" : ""}`}
+          {position ? ` · ${position}` : ""}
+          {pursuit ? ` · ${pursuit}` : ""}
         </p>
       </div>
 
-      {/* Filters */}
-      <Suspense fallback={null}>
-        <PlayerFilters />
-      </Suspense>
+      <PlayerFilters />
 
-      {/* Card grid */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {players.map((player) => (
+        {filtered.map((player) => (
           <PlayerCard key={player.person_id} player={player} />
         ))}
       </div>
 
-      {players.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <div className="mt-12 text-center text-[var(--text-muted)]">
-          <p className="text-sm">No players match the current filters.</p>
+          <p className="text-sm">
+            {allPlayers.length === 0
+              ? "Connect Supabase to load player data."
+              : "No players match the current filters."}
+          </p>
         </div>
       )}
     </div>
+  );
+}
+
+export default function PlayersPage() {
+  return (
+    <Suspense fallback={<div className="text-[var(--text-muted)] text-sm">Loading...</div>}>
+      <PlayersContent />
+    </Suspense>
   );
 }

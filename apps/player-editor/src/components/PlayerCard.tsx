@@ -42,7 +42,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
 
   return (
     <Link
-      href={`/players/${player.person_id}`}
+      href={`/player?id=${player.person_id}`}
       className="block group"
     >
       <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4 hover:border-[var(--text-muted)] hover:bg-[var(--bg-elevated)] transition-all duration-150">

@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, PURSUIT_COLORS, POSITION_COLORS } from "@/lib/types";
-import { PersonalityBadge } from "@/components/PersonalityBadge";
-import { ArchetypeShape } from "@/components/ArchetypeShape";
+import { PlayerIdentityPanel } from "@/components/PlayerIdentityPanel";
 
 interface IntelligenceCard {
   person_id: number;
@@ -215,29 +214,22 @@ export default async function PlayerDetailPage({
       </div>
 
       {/* Zone B: Personality + Archetype (hero section) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 min-h-[320px]" style={{ background: "linear-gradient(135deg, rgba(232,197,71,0.05) 0%, transparent 60%)" }}>
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Personality — WHO</h3>
-          <PersonalityBadge
-            personalityType={player.personality_type}
-            ei={player.ei}
-            sn={player.sn}
-            tf={player.tf}
-            jp={player.jp}
-            competitiveness={player.competitiveness}
-            coachability={player.coachability}
-            size="hero"
-          />
-        </div>
-
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Archetype — HOW</h3>
-          <ArchetypeShape
-            archetype={player.archetype}
-            blueprint={player.blueprint}
-            size="full"
-          />
-        </div>
+      <div className="mb-4">
+        <PlayerIdentityPanel
+          personality={{
+            personalityType: player.personality_type,
+            ei: player.ei,
+            sn: player.sn,
+            tf: player.tf,
+            jp: player.jp,
+            competitiveness: player.competitiveness,
+            coachability: player.coachability,
+          }}
+          archetype={{
+            archetype: player.archetype,
+            blueprint: player.blueprint,
+          }}
+        />
       </div>
 
       {/* Zone C: Key Moments */}

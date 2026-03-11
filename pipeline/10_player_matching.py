@@ -148,7 +148,7 @@ MANUAL_OVERRIDES = {
 
 print("Loading people table...")
 cur.execute("""
-    SELECT p.id, p.name, c.clubname
+    SELECT p.id, p.name, c.name AS club_name
     FROM people p
     LEFT JOIN clubs c ON c.id = p.club_id
     WHERE p.name IS NOT NULL
@@ -161,20 +161,116 @@ people_by_norm = defaultdict(list)
 for pid, pname, club in people_rows:
     people_by_norm[normalize_name(pname)].append((pid, pname, club))
 
+# Also index people by their name variants for reverse matching
+# This helps when the external source uses a short name and people table has a long name
+people_by_variant = defaultdict(list)
+for pid, pname, club in people_rows:
+    for variant in name_variants(pname):
+        if variant != normalize_name(pname):  # skip exact (already in people_by_norm)
+            people_by_variant[variant].append((pid, pname, club))
+
+print(f"  {len(people_by_norm)} unique normalized names, {len(people_by_variant)} variant entries")
+
 # Club name normalization for fuzzy club matching
 CLUB_ALIASES = {
+    # Premier League
     "tottenham": "tottenham hotspur",
     "spurs": "tottenham hotspur",
     "west ham": "west ham united",
     "man city": "manchester city",
+    "manchester city fc": "manchester city",
     "man united": "manchester united",
     "man utd": "manchester united",
+    "manchester united fc": "manchester united",
     "newcastle": "newcastle united",
+    "newcastle utd": "newcastle united",
     "wolves": "wolverhampton wanderers",
+    "wolverhampton": "wolverhampton wanderers",
     "nottm forest": "nottingham forest",
     "nott'm forest": "nottingham forest",
     "sheffield utd": "sheffield united",
     "luton": "luton town",
+    "brighton": "brighton & hove albion",
+    "brighton and hove albion": "brighton & hove albion",
+    "brighton hove albion": "brighton & hove albion",
+    "leicester": "leicester city",
+    "west brom": "west bromwich albion",
+    "west bromwich": "west bromwich albion",
+    "crystal palace fc": "crystal palace",
+    "arsenal fc": "arsenal",
+    "liverpool fc": "liverpool",
+    "chelsea fc": "chelsea",
+    "everton fc": "everton",
+    # La Liga
+    "atletico madrid": "atletico de madrid",
+    "atlético madrid": "atletico de madrid",
+    "atlético de madrid": "atletico de madrid",
+    "atletico": "atletico de madrid",
+    "real sociedad": "real sociedad de futbol",
+    "athletic bilbao": "athletic club",
+    "athletic club bilbao": "athletic club",
+    "betis": "real betis",
+    "real betis balompie": "real betis",
+    "villarreal cf": "villarreal",
+    "celta vigo": "celta de vigo",
+    "celta": "celta de vigo",
+    "real madrid cf": "real madrid",
+    "fc barcelona": "barcelona",
+    "barça": "barcelona",
+    "barca": "barcelona",
+    # Bundesliga
+    "bayern": "bayern munich",
+    "bayern munchen": "bayern munich",
+    "bayern münchen": "bayern munich",
+    "fc bayern munchen": "bayern munich",
+    "fc bayern münchen": "bayern munich",
+    "bayer leverkusen": "bayer 04 leverkusen",
+    "leverkusen": "bayer 04 leverkusen",
+    "dortmund": "borussia dortmund",
+    "borussia monchengladbach": "borussia monchengladbach",
+    "gladbach": "borussia monchengladbach",
+    "rb leipzig": "rasenballsport leipzig",
+    "leipzig": "rasenballsport leipzig",
+    "eintracht frankfurt": "eintracht frankfurt",
+    "frankfurt": "eintracht frankfurt",
+    "wolfsburg": "vfl wolfsburg",
+    "freiburg": "sc freiburg",
+    # Serie A
+    "ac milan": "milan",
+    "inter": "inter milan",
+    "inter milan": "internazionale",
+    "internazionale milano": "internazionale",
+    "fc internazionale": "internazionale",
+    "juventus fc": "juventus",
+    "juve": "juventus",
+    "napoli": "ssc napoli",
+    "as roma": "roma",
+    "ss lazio": "lazio",
+    # Ligue 1
+    "paris saint-germain": "paris saint germain",
+    "paris saint germain f.c.": "paris saint germain",
+    "psg": "paris saint germain",
+    "olympique lyonnais": "lyon",
+    "olympique de marseille": "marseille",
+    "om": "marseille",
+    "as monaco": "monaco",
+    "as monaco fc": "monaco",
+    "stade rennais": "rennes",
+    "ogc nice": "nice",
+    "rc lens": "lens",
+    "losc lille": "lille",
+    "losc": "lille",
+    # Eredivisie
+    "ajax amsterdam": "ajax",
+    "afc ajax": "ajax",
+    "psv eindhoven": "psv",
+    "feyenoord rotterdam": "feyenoord",
+    "az alkmaar": "az",
+    # Portuguese
+    "fc porto": "porto",
+    "sl benfica": "benfica",
+    "sporting cp": "sporting lisbon",
+    "sporting clube de portugal": "sporting lisbon",
 }
 
 
@@ -258,6 +354,16 @@ def find_match(ext_name: str, club_hint: str = "") -> tuple[int | None, str | No
             pid, pname = _disambiguate_by_club(candidates, club_hint)
             if pid:
                 return pid, pname, "variant_club"
+
+    # 5. Reverse variant lookup — check if ext_name matches any people variant
+    #    (handles case: ext has "João Félix", people has "João Félix Sequeira")
+    candidates = people_by_variant.get(norm, [])
+    if len(candidates) == 1:
+        return candidates[0][0], candidates[0][1], "reverse_variant"
+    if len(candidates) > 1:
+        pid, pname = _disambiguate_by_club(candidates, club_hint)
+        if pid:
+            return pid, pname, "reverse_variant_club"
 
     return None, None, "none"
 

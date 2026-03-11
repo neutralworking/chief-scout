@@ -6,6 +6,8 @@ import { PlayerIdentityPanel } from "@/components/PlayerIdentityPanel";
 import { CompoundMetrics } from "@/components/CompoundMetrics";
 import { KeyMomentsList } from "@/components/KeyMomentsList";
 import type { KeyMoment } from "@/components/KeyMomentsList";
+import { ScoutPad } from "@/components/ScoutPad";
+import type { NewsStory } from "@/components/ScoutPad";
 
 interface IntelligenceCard {
   person_id: number;
@@ -63,7 +65,7 @@ export default async function PlayerDetailPage({
   }
 
   // Fetch all data in parallel
-  const [playerResult, momentsResult, gradesResult] = await Promise.all([
+  const [playerResult, momentsResult, gradesResult, newsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -79,6 +81,12 @@ export default async function PlayerDetailPage({
       .from("attribute_grades")
       .select("attribute, scout_grade, stat_score")
       .eq("player_id", playerId),
+    supabaseServer
+      .from("news_player_tags")
+      .select("story_type, confidence, sentiment, news_stories(id, headline, summary, source, url, published_at, story_type)")
+      .eq("player_id", playerId)
+      .order("news_stories(published_at)", { ascending: false })
+      .limit(20),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -89,6 +97,22 @@ export default async function PlayerDetailPage({
     news_story: Array.isArray(m.news_stories) ? m.news_stories[0] ?? null : m.news_stories ?? null,
   })) as KeyMoment[];
   const grades = (gradesResult.data ?? []) as AttributeGrade[];
+  const news: NewsStory[] = [];
+  for (const t of (newsResult.data ?? []) as Record<string, unknown>[]) {
+    const story = t.news_stories as Record<string, unknown> | null;
+    if (!story) continue;
+    news.push({
+      id: story.id as string,
+      headline: story.headline as string,
+      summary: (story.summary as string | undefined) ?? null,
+      source: (story.source as string | undefined) ?? null,
+      url: (story.url as string | undefined) ?? null,
+      published_at: (story.published_at as string | undefined) ?? null,
+      story_type: (t.story_type as string | undefined) ?? (story.story_type as string | undefined) ?? null,
+      sentiment: (t.sentiment as string | undefined) ?? null,
+      confidence: (t.confidence as number | undefined) ?? null,
+    });
+  }
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -209,25 +233,13 @@ export default async function PlayerDetailPage({
       {/* Zone E: Attribute Grades — Progressive Disclosure */}
       <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
 
-      {/* Zone F: Scouting Notes + Status */}
-      {(player.scouting_notes || player.squad_role || player.loan_status) && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Scouting Notes</h3>
-          {(player.squad_role || player.loan_status) && (
-            <div className="flex gap-4 mb-3 text-xs text-[var(--text-secondary)]">
-              {player.squad_role && (
-                <div><span className="text-[var(--text-muted)]">Squad Role: </span><span className="font-medium">{player.squad_role}</span></div>
-              )}
-              {player.loan_status && (
-                <div><span className="text-[var(--text-muted)]">Loan: </span><span className="font-medium">{player.loan_status}</span></div>
-              )}
-            </div>
-          )}
-          {player.scouting_notes && (
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">{player.scouting_notes}</p>
-          )}
-        </div>
-      )}
+      {/* Zone F: Scout Pad (tabbed) */}
+      <ScoutPad
+        scoutingNotes={player.scouting_notes}
+        squadRole={player.squad_role}
+        loanStatus={player.loan_status}
+        news={news}
+      />
     </div>
   );
 }

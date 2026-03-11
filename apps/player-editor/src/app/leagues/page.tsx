@@ -46,6 +46,14 @@ export default async function LeaguesPage() {
     );
   }
 
+  // Fetch ALL clubs with their nations — don't limit to clubs with players
+  const { data: clubs } = await supabaseServer
+    .from("clubs")
+    .select("id, name, league_name, nation_id, nations(name)")
+    .not("nation_id", "is", null)
+    .order("name");
+
+  // Also get player counts per club for display
   const { data: people } = await supabaseServer
     .from("people")
     .select("club_id")
@@ -55,12 +63,6 @@ export default async function LeaguesPage() {
   for (const p of people ?? []) {
     clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
   }
-
-  const clubIds = [...clubCounts.keys()];
-  const { data: clubs } = await supabaseServer
-    .from("clubs")
-    .select("id, name, league_name, nations(name)")
-    .in("id", clubIds.slice(0, 2000));
 
   // Group by nation
   const nationMap = new Map<string, { id: number; name: string; leagueName: string | null; playerCount: number }[]>();
@@ -81,7 +83,7 @@ export default async function LeaguesPage() {
     if (!clubs) return null;
     return {
       nation,
-      clubs: clubs.sort((a, b) => b.playerCount - a.playerCount),
+      clubs: clubs.sort((a, b) => b.playerCount - a.playerCount || a.name.localeCompare(b.name)),
       totalPlayers: clubs.reduce((sum, c) => sum + c.playerCount, 0),
     };
   };
@@ -91,14 +93,16 @@ export default async function LeaguesPage() {
     .filter((n) => !TIER_NATIONS.has(n))
     .map((n) => buildGroup(n)!)
     .filter(Boolean)
-    .sort((a, b) => b.totalPlayers - a.totalPlayers);
+    .sort((a, b) => b.clubs.length - a.clubs.length || b.totalPlayers - a.totalPlayers);
+
+  const totalClubs = (clubs ?? []).length;
+  const totalPlayers = (people ?? []).length;
 
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-1">Leagues</h1>
       <p className="text-xs text-[var(--text-secondary)] mb-6">
-        {nationMap.size} nations · {(people ?? []).length.toLocaleString()} players across{" "}
-        {(clubs ?? []).length} clubs
+        {nationMap.size} nations · {totalClubs.toLocaleString()} clubs · {totalPlayers.toLocaleString()} players tracked
       </p>
 
       {/* Tiered leagues */}
@@ -142,7 +146,7 @@ function LeagueCard({ league }: { league: LeagueGroup }) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">{league.nation}</h3>
         <span className="text-xs font-mono text-[var(--text-muted)]">
-          {league.totalPlayers} players · {league.clubs.length} clubs
+          {league.clubs.length} clubs{league.totalPlayers > 0 ? ` · ${league.totalPlayers} players` : ""}
         </span>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
@@ -153,9 +157,11 @@ function LeagueCard({ league }: { league: LeagueGroup }) {
             className="flex items-center justify-between px-3 py-2 rounded bg-[var(--bg-elevated)]/50 hover:bg-[var(--bg-elevated)] transition-colors"
           >
             <span className="text-xs text-[var(--text-secondary)] truncate">{club.name}</span>
-            <span className="text-xs font-mono text-[var(--text-muted)] ml-2 shrink-0">
-              {club.playerCount}
-            </span>
+            {club.playerCount > 0 && (
+              <span className="text-xs font-mono text-[var(--text-muted)] ml-2 shrink-0">
+                {club.playerCount}
+              </span>
+            )}
           </Link>
         ))}
       </div>

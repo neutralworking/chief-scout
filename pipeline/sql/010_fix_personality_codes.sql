@@ -42,7 +42,7 @@ SELECT
 
   -- Nation & Club (resolved names)
   n.name              AS nation,
-  c.clubname          AS club,
+  c.name              AS club,
 
   -- Profile (player_profiles)
   pp.position,

@@ -387,7 +387,7 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
         cur.execute("""
             SELECT p.id, p.name FROM people p
             LEFT JOIN clubs c ON c.id = p.club_id
-            WHERE p.id = ANY(%s) AND c.clubname ILIKE %s
+            WHERE p.id = ANY(%s) AND c.name ILIKE %s
         """, ([r[0] for r in rows], f"%{club}%"))
         club_rows = cur.fetchall()
         return club_rows if club_rows else rows

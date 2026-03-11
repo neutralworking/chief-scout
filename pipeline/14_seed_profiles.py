@@ -2456,7 +2456,7 @@ PLAYERS = [
             "height_cm": 187,
             "preferred_foot": "Right",
             "nation": "Sweden",
-            "club": "Sporting CP",
+            "club": "Arsenal",
         },
         "profile": {
             "position": "CF",
@@ -2478,10 +2478,10 @@ PLAYERS = [
         "status": {
             "pursuit_status": "Priority",
             "scouting_notes": (
-                "Prolific striker. 60+ goals in a calendar year at Sporting. "
+                "Prolific striker. 60+ goals in a calendar year at Sporting before Arsenal move Jan 2026. "
                 "Pressing monster — intensity and work rate off the ball are relentless. "
-                "Can play alone or in a pair. Late bloomer — Coventry before Sporting. "
-                "Release clause ~€100M. Top of acquisition list."
+                "Can play alone or in a pair. Late bloomer — Coventry → Sporting → Arsenal. "
+                "Signed for ~€75M. Adapting to Premier League physicality."
             ),
             "squad_role": "starter",
         },
@@ -2915,7 +2915,7 @@ VALUES (
   (SELECT COALESCE(MAX(id), 0) + 1 FROM people),
   %(name)s, %(dob)s, %(height_cm)s, %(preferred_foot)s,
   (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
-  (SELECT id FROM clubs  WHERE clubname = %(club)s   LIMIT 1),
+  (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
   true
 )
 RETURNING id;
@@ -2927,7 +2927,7 @@ UPDATE people SET
   height_cm      = %(height_cm)s,
   preferred_foot = %(preferred_foot)s,
   nation_id      = (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
-  club_id        = (SELECT id FROM clubs  WHERE clubname = %(club)s   LIMIT 1),
+  club_id        = (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
   updated_at     = now()
 WHERE id = %(id)s;
 """

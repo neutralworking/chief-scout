@@ -174,15 +174,15 @@ export default async function PlayerDetailPage({
       </Link>
 
       {/* Zone A: Identity Bar */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5 mb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-base font-bold text-[var(--text-muted)]">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4 sm:p-5 mb-3 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-sm sm:text-base font-bold text-[var(--text-muted)] shrink-0">
               {player.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">{player.name}</h1>
-              <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)]">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate">{player.name}</h1>
+              <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)] flex-wrap">
                 {player.club && <span>{player.club}</span>}
                 {player.nation && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.nation}</span></>}
                 {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span>{age}y</span></>}
@@ -191,7 +191,7 @@ export default async function PlayerDetailPage({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <span className={`text-[10px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
               {player.position ?? "–"}
             </span>
@@ -203,7 +203,7 @@ export default async function PlayerDetailPage({
           </div>
         </div>
         {/* Inline ratings + market info */}
-        <div className="mt-3 flex items-center gap-6">
+        <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6">
           <div className="flex items-center gap-4">
             {[
               { label: "Level", value: player.level },

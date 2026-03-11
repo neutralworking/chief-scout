@@ -47,6 +47,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `13_stat_metrics.py` → Computed stat metrics from external data
 - `14_seed_profiles.py` → Seed full player profiles (50 curated players with all 6 tables)
 - `15_wikidata_enrich.py` → Wikidata SPARQL → backfill DOB/height/foot + cross-link IDs. Flags: `--phase 1|2|3`, `--player`, `--force`, `--batch-size`
+- `16_club_ingest.py` → Parse `imports/clubs.csv` → `clubs` + `nations` tables. Flags: `--dry-run`, `--force`, `--parse-only`
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/components/AuthProvider";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", exact: true },
@@ -20,6 +21,7 @@ const POSITION_SHORTCUTS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { user, loading: authLoading } = useAuth();
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -144,11 +146,41 @@ export function Sidebar() {
           </div>
         </nav>
 
-        {/* Footer */}
+        {/* Auth section */}
         <div className="p-4 border-t border-[var(--border-subtle)]">
-          <p className="text-[10px] text-[var(--text-muted)]">
-            v0.1 · Chief Scout
-          </p>
+          {authLoading ? (
+            <div className="h-10" />
+          ) : user ? (
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 p-2 -m-2 rounded-lg hover:bg-[var(--bg-elevated)]/50 transition-colors"
+            >
+              {user.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[var(--accent-tactical)] flex items-center justify-center text-white text-xs font-bold">
+                  {(user.user_metadata?.full_name ?? user.email ?? "?")[0].toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">
+                  {user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "Scout"}
+                </div>
+                <div className="text-[10px] text-[var(--text-muted)] truncate">{user.email}</div>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 rounded-lg hover:bg-[var(--accent-tactical)]/10 transition-colors"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </aside>
     </>

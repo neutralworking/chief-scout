@@ -46,6 +46,10 @@
   --text-primary: #e8e8f0;
   --text-secondary: #8888aa;
   --text-muted: #555570;
+  /* Club theme accents — overridden by JS when user selects a club */
+  --accent-club: #3dba6f;
+  --accent-club-primary: #3dba6f;
+  --accent-club-secondary: #4a90d9;
 }
 
 html, body {

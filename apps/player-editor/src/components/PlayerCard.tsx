@@ -6,6 +6,7 @@ import {
   POSITION_COLORS,
 } from "@/lib/types";
 import { PersonalityBadge } from "@/components/PersonalityBadge";
+import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 
 function LevelBar({
   label,
@@ -40,13 +41,15 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const pursuitColor =
     PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "bg-[var(--text-muted)]";
+  const theme = getCardTheme(player.personality_type);
+  const styles = THEME_STYLES[theme];
 
   return (
     <Link
       href={`/players/${player.person_id}`}
       className="block group"
     >
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4 hover:border-[var(--text-muted)] hover:bg-[var(--bg-elevated)] transition-all duration-150">
+      <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
         {/* Row 1: Position badge + Name + Age */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -55,7 +58,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
             >
               {player.position ?? "–"}
             </span>
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] truncate">
+            <h3 className={`text-sm text-[var(--text-primary)] truncate ${styles.nameFont}`}>
               {player.name}
             </h3>
           </div>

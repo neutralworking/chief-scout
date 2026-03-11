@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/components/AuthProvider";
 
 interface SquadPosition {
   slot: number;
@@ -44,17 +45,8 @@ const POSITION_COORDS: Record<number, { top: string; left: string }> = {
   11: { top: "18%", left: "20%" },  // LW
 };
 
-function getUserId(): string {
-  if (typeof window === "undefined") return "";
-  let uid = localStorage.getItem("fc_user_id");
-  if (!uid) {
-    uid = crypto.randomUUID();
-    localStorage.setItem("fc_user_id", uid);
-  }
-  return uid;
-}
-
 export function AllTimeXI() {
+  const { fcUserId } = useAuth();
   const [phase, setPhase] = useState<Phase>("pitch");
   const [positions, setPositions] = useState<SquadPosition[]>([]);
   const [picks, setPicks] = useState<Record<number, Pick>>({});
@@ -64,16 +56,14 @@ export function AllTimeXI() {
   const [loading, setLoading] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const timerRef = useRef(0);
-  const userId = useRef("");
 
   useEffect(() => {
-    userId.current = getUserId();
-    loadSquad();
-  }, []);
+    if (fcUserId) loadSquad();
+  }, [fcUserId]);
 
   async function loadSquad() {
     try {
-      const res = await fetch(`/api/choices/squad?user_id=${userId.current}&template=classic-433`);
+      const res = await fetch(`/api/choices/squad?user_id=${fcUserId}&template=classic-433`);
       const data = await res.json();
       if (data.template?.positions) {
         setPositions(data.template.positions);
@@ -130,7 +120,7 @@ export function AllTimeXI() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: userId.current,
+          user_id: fcUserId,
           template_slug: "classic-433",
           slot: activeSlot,
           player_name: candidate.player_name,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "Chief Scout",
@@ -29,11 +30,13 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className="antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <ServiceWorkerRegistration />
-          <main className="flex-1 min-w-0 p-4 pt-16 lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
-        </div>
+        <AuthProvider>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <ServiceWorkerRegistration />
+            <main className="flex-1 min-w-0 p-4 pt-16 lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

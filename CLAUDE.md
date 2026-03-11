@@ -90,6 +90,9 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/devops` | DevOps Engineer | Secrets management, service access, migrations, CI/CD, health checks |
 | `/db-migrate` | Migration Runner | Table cleanup, SQL migrations, before/after size reporting |
 | `/git-clean` | Git Housekeeper | Branch cleanup, stale refs, secrets audit, repo hygiene |
+| `/categorist` | Categorist | Player classification taxonomy: personality types, archetypes, traits, tags |
+
+**Key reference**: `docs/systems/SACROSANCT.md` — single source of truth for all classification systems.
 
 **Workflow examples**:
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down

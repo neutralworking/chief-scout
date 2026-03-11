@@ -101,7 +101,7 @@ export default async function PlayerDetailPage({
       .single(),
     supabaseServer
       .from("key_moments")
-      .select("id, title, description, moment_date, moment_type, sentiment, source_url, news_stories(title, url, summary, published_at)")
+      .select("id, title, description, moment_date, moment_type, sentiment, source_url, news_stories(headline, url, summary, published_at)")
       .eq("person_id", playerId)
       .order("display_order", { ascending: true })
       .order("moment_date", { ascending: false }),

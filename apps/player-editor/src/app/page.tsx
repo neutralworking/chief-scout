@@ -57,7 +57,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     // Recent news
     supabaseServer
       .from("news_stories")
-      .select("id, title, url, published_at, summary")
+      .select("id, headline, url, published_at, summary")
       .order("published_at", { ascending: false })
       .limit(5),
     // Trending players: most mentioned in recent news
@@ -115,7 +115,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   }
 
   // News
-  const news = (newsResult.data ?? []) as { id: number; title: string; url: string | null; published_at: string | null; summary: string | null }[];
+  const news = (newsResult.data ?? []) as { id: number; headline: string; url: string | null; published_at: string | null; summary: string | null }[];
 
   // Trending: aggregate person mentions from news tags
   const trendingRaw = (trendingResult.data ?? []) as Array<{ person_id: number; people: { name: string } }>;
@@ -314,7 +314,7 @@ export default async function DashboardPage() {
                   {formatDate(story.published_at)}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm text-[var(--text-primary)] truncate">{story.title}</p>
+                  <p className="text-sm text-[var(--text-primary)] truncate">{story.headline}</p>
                   {story.summary && (
                     <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{story.summary}</p>
                   )}

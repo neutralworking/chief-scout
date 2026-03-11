@@ -1,7 +1,7 @@
 """
-14_seed_profiles.py — Seed all 23 Chief Scout player profiles into Supabase.
+14_seed_profiles.py — Seed all 50 Chief Scout player profiles into Supabase.
 
-Codifies the 21 profiles from sessions 1-5 plus 2 LB profiles (Calafiori, Chilwell).
+Codifies 50 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
 Inserts into: people, player_profiles, player_personality, player_market,
               player_status, attribute_grades.
 
@@ -1366,6 +1366,1540 @@ PLAYERS = [
             "shielding": (11, "Low"), "throwing": (10, "Low"),
             "aerial_duels": (11, "Low"), "heading": (10, "Low"),
             "jumping": (10, "Low"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 24. William Saliba ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "William Saliba",
+            "dob": "2001-03-24",
+            "height_cm": 192,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "Arsenal",
+        },
+        "profile": {
+            "position": "CD",
+            "level": 87,
+            "peak": 91,
+            "overall": 87,
+            "archetype": "Cover-Destroyer",
+            "blueprint": "Modern CB",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 68, "sn": 30, "tf": 40, "jp": 70,
+            "competitiveness": 8, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 0,
+            "scarcity_score": 90, "transfer_fee_eur": 90000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Elite ball-playing centre-back. Composed on the ball, aggressive in duels, "
+                "excellent recovery pace for his frame. Cornerstone of Arsenal's title challenge. "
+                "France international since 22. Still has ceiling to reach — could become "
+                "the best CB in the Premier League."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (12, "Medium"), "first_touch": (13, "Medium"),
+            "skills": (10, "Low"), "take_ons": (10, "Low"),
+            "pass_accuracy": (14, "High"), "crossing": (10, "Low"),
+            "pass_range": (13, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (15, "High"), "discipline": (15, "High"),
+            "interceptions": (15, "High"), "positioning": (15, "High"),
+            "blocking": (14, "High"), "clearances": (14, "High"),
+            "marking": (15, "High"), "tackling": (15, "High"),
+            "intensity": (14, "High"), "pressing": (13, "Medium"),
+            "stamina": (14, "High"), "versatility": (11, "Medium"),
+            "acceleration": (13, "Medium"), "balance": (13, "Medium"),
+            "movement": (12, "Medium"), "pace": (14, "High"),
+            "aggression": (14, "High"), "duels": (15, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (15, "High"), "heading": (14, "High"),
+            "jumping": (14, "High"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 25. Ronald Araujo ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Ronald Araujo",
+            "dob": "1999-03-07",
+            "height_cm": 188,
+            "preferred_foot": "Right",
+            "nation": "Uruguay",
+            "club": "Barcelona",
+        },
+        "profile": {
+            "position": "CD",
+            "level": 85,
+            "peak": 88,
+            "overall": 85,
+            "archetype": "Destroyer",
+            "blueprint": "Aggressive CB",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 45, "sn": 35, "tf": 60, "jp": 75,
+            "competitiveness": 9, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 5,
+            "scarcity_score": 80, "transfer_fee_eur": 70000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Interested",
+            "scouting_notes": (
+                "Physically dominant CB. Raw pace, aerial power, and aggression in duels "
+                "make him a nightmare for strikers. On-ball game improving under Xavi/Flick. "
+                "Injury record a concern — long-term hamstring issues. Versatile enough to "
+                "play RB in emergencies. Uruguay captain material."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (11, "Medium"), "first_touch": (12, "Medium"),
+            "skills": (10, "Low"), "take_ons": (10, "Low"),
+            "pass_accuracy": (13, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (12, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (14, "High"), "discipline": (13, "Medium"),
+            "interceptions": (14, "High"), "positioning": (14, "High"),
+            "blocking": (14, "High"), "clearances": (15, "High"),
+            "marking": (14, "High"), "tackling": (15, "High"),
+            "intensity": (14, "High"), "pressing": (13, "Medium"),
+            "stamina": (14, "High"), "versatility": (12, "Medium"),
+            "acceleration": (14, "High"), "balance": (13, "Medium"),
+            "movement": (12, "Medium"), "pace": (15, "High"),
+            "aggression": (15, "High"), "duels": (15, "High"),
+            "shielding": (14, "High"), "throwing": (10, "Low"),
+            "aerial_duels": (15, "High"), "heading": (14, "High"),
+            "jumping": (15, "High"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 26. Alessandro Bastoni ────────────────────────────────────────
+    {
+        "person": {
+            "name": "Alessandro Bastoni",
+            "dob": "1999-04-13",
+            "height_cm": 190,
+            "preferred_foot": "Left",
+            "nation": "Italy",
+            "club": "Inter Milan",
+        },
+        "profile": {
+            "position": "CD",
+            "level": 87,
+            "peak": 89,
+            "overall": 87,
+            "archetype": "Cover-Passer",
+            "blueprint": "Progressor CB",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 65, "sn": 30, "tf": 35, "jp": 55,
+            "competitiveness": 7, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 0,
+            "scarcity_score": 92, "transfer_fee_eur": 80000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Left-footed ball-playing CB — rare profile. Progressive passing from deep is "
+                "elite. Comfortable stepping into midfield with the ball. Key to Inter's "
+                "three-at-the-back system. Italy regular. Underrated internationally due to "
+                "Serie A visibility bias."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (14, "High"),
+            "skills": (10, "Low"), "take_ons": (10, "Low"),
+            "pass_accuracy": (15, "High"), "crossing": (11, "Medium"),
+            "pass_range": (14, "High"), "through_balls": (12, "Medium"),
+            "awareness": (15, "High"), "discipline": (14, "High"),
+            "interceptions": (14, "High"), "positioning": (14, "High"),
+            "blocking": (13, "Medium"), "clearances": (14, "High"),
+            "marking": (14, "High"), "tackling": (14, "High"),
+            "intensity": (13, "Medium"), "pressing": (12, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (12, "Medium"),
+            "acceleration": (12, "Medium"), "balance": (13, "Medium"),
+            "movement": (13, "Medium"), "pace": (12, "Medium"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (14, "High"), "heading": (13, "Medium"),
+            "jumping": (13, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 27. Josko Gvardiol ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Josko Gvardiol",
+            "dob": "2002-01-23",
+            "height_cm": 185,
+            "preferred_foot": "Left",
+            "nation": "Croatia",
+            "club": "Manchester City",
+        },
+        "profile": {
+            "position": "CD",
+            "level": 85,
+            "peak": 91,
+            "overall": 85,
+            "archetype": "Cover-Engine",
+            "blueprint": "Hybrid Defender",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 55, "sn": 40, "tf": 45, "jp": 70,
+            "competitiveness": 8, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 10,
+            "scarcity_score": 95, "transfer_fee_eur": 90000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Versatile left-footed defender. Can play CB or LB at the highest level. "
+                "Exceptional dribbling and carrying for a centre-back — Guardiola has used him "
+                "as an inverted full-back to devastating effect. Still only 24, enormous ceiling. "
+                "Croatia international. Premium price tag reflects scarcity of profile."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (13, "Medium"),
+            "skills": (11, "Medium"), "take_ons": (12, "Medium"),
+            "pass_accuracy": (14, "High"), "crossing": (12, "Medium"),
+            "pass_range": (13, "Medium"), "through_balls": (11, "Medium"),
+            "awareness": (14, "High"), "discipline": (14, "High"),
+            "interceptions": (14, "High"), "positioning": (14, "High"),
+            "blocking": (13, "Medium"), "clearances": (14, "High"),
+            "marking": (14, "High"), "tackling": (14, "High"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (14, "High"), "versatility": (15, "High"),
+            "acceleration": (14, "High"), "balance": (13, "Medium"),
+            "movement": (13, "Medium"), "pace": (14, "High"),
+            "aggression": (13, "Medium"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (14, "High"), "heading": (13, "Medium"),
+            "jumping": (13, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 28. Jarrad Branthwaite ────────────────────────────────────────
+    {
+        "person": {
+            "name": "Jarrad Branthwaite",
+            "dob": "2002-06-27",
+            "height_cm": 195,
+            "preferred_foot": "Left",
+            "nation": "England",
+            "club": "Everton",
+        },
+        "profile": {
+            "position": "CD",
+            "level": 79,
+            "peak": 88,
+            "overall": 79,
+            "archetype": "Destroyer",
+            "blueprint": "Traditional CB",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 40, "sn": 35, "tf": 50, "jp": 65,
+            "competitiveness": 8, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 2, "true_mvt": 2, "market_premium": 5,
+            "scarcity_score": 85, "transfer_fee_eur": 50000000, "hg": True,
+        },
+        "status": {
+            "pursuit_status": "Priority",
+            "scouting_notes": (
+                "Best young English CB prospect. Left-footed, aerially dominant at 6'5, "
+                "excellent timing in the tackle. Leadership qualities beyond his years — "
+                "Everton captain material. Injury concerns (groin) but recovers well. "
+                "HG-eligible. Acquirable if Everton are relegated or need to sell."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (11, "Medium"), "first_touch": (12, "Medium"),
+            "skills": (10, "Low"), "take_ons": (10, "Low"),
+            "pass_accuracy": (13, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (12, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (13, "Medium"), "discipline": (14, "High"),
+            "interceptions": (14, "High"), "positioning": (14, "High"),
+            "blocking": (14, "High"), "clearances": (15, "High"),
+            "marking": (14, "High"), "tackling": (15, "High"),
+            "intensity": (13, "Medium"), "pressing": (12, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (11, "Medium"),
+            "acceleration": (12, "Medium"), "balance": (12, "Medium"),
+            "movement": (11, "Medium"), "pace": (12, "Medium"),
+            "aggression": (14, "High"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (15, "High"), "heading": (15, "High"),
+            "jumping": (15, "High"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 29. Alphonso Davies ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Alphonso Davies",
+            "dob": "2000-11-02",
+            "height_cm": 183,
+            "preferred_foot": "Left",
+            "nation": "Canada",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "WD",
+            "level": 86,
+            "peak": 89,
+            "overall": 86,
+            "archetype": "Engine-Sprinter",
+            "blueprint": "Overlapping Full-Back",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 35, "sn": 50, "tf": 55, "jp": 60,
+            "competitiveness": 7, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 0,
+            "scarcity_score": 88, "transfer_fee_eur": 50000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Elite athletic LB. Raw pace is top-tier in world football. Progressive "
+                "carrying and 1v1 defending both strong. Moved to Real Madrid as a free agent. "
+                "Defensive concentration can dip in low-tempo phases. Canada captain."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (13, "Medium"),
+            "skills": (12, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (13, "Medium"),
+            "pass_range": (12, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (13, "Medium"), "discipline": (12, "Medium"),
+            "interceptions": (13, "Medium"), "positioning": (12, "Medium"),
+            "blocking": (12, "Medium"), "clearances": (12, "Medium"),
+            "marking": (12, "Medium"), "tackling": (13, "Medium"),
+            "intensity": (15, "High"), "pressing": (14, "High"),
+            "stamina": (15, "High"), "versatility": (13, "Medium"),
+            "acceleration": (16, "High"), "balance": (13, "Medium"),
+            "movement": (14, "High"), "pace": (16, "High"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (11, "Low"), "heading": (11, "Low"),
+            "jumping": (12, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 30. Theo Hernandez ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Theo Hernandez",
+            "dob": "1997-10-06",
+            "height_cm": 184,
+            "preferred_foot": "Left",
+            "nation": "France",
+            "club": "AC Milan",
+        },
+        "profile": {
+            "position": "WD",
+            "level": 86,
+            "peak": 87,
+            "overall": 86,
+            "archetype": "Engine-Sprinter",
+            "blueprint": "Attacking Full-Back",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 40, "sn": 55, "tf": 60, "jp": 55,
+            "competitiveness": 8, "coachability": 6,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": -5,
+            "scarcity_score": 82, "transfer_fee_eur": 60000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Interested",
+            "scouting_notes": (
+                "One of the most attacking LBs in football. Elite pace, powerful carries, "
+                "and goal threat from deep. Defensive lapses remain — can be caught out of "
+                "position. Milan contract situation uncertain. France regular. "
+                "Potential acquisition if Milan price drops."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (13, "Medium"),
+            "skills": (12, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (14, "High"),
+            "pass_range": (12, "Medium"), "through_balls": (11, "Medium"),
+            "awareness": (12, "Medium"), "discipline": (11, "Medium"),
+            "interceptions": (12, "Medium"), "positioning": (11, "Medium"),
+            "blocking": (11, "Medium"), "clearances": (12, "Medium"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (14, "High"), "pressing": (13, "Medium"),
+            "stamina": (14, "High"), "versatility": (11, "Medium"),
+            "acceleration": (15, "High"), "balance": (13, "Medium"),
+            "movement": (14, "High"), "pace": (15, "High"),
+            "aggression": (13, "Medium"), "duels": (13, "Medium"),
+            "shielding": (12, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (12, "Medium"), "heading": (12, "Medium"),
+            "jumping": (12, "Medium"), "volleys": (11, "Medium"),
+        },
+    },
+
+    # ─── 31. Nuno Mendes ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Nuno Mendes",
+            "dob": "2002-06-19",
+            "height_cm": 176,
+            "preferred_foot": "Left",
+            "nation": "Portugal",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {
+            "position": "WD",
+            "level": 84,
+            "peak": 89,
+            "overall": 84,
+            "archetype": "Engine",
+            "blueprint": "Two-Way Full-Back",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 45, "sn": 40, "tf": 45, "jp": 60,
+            "competitiveness": 7, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 2, "market_premium": -5,
+            "scarcity_score": 85, "transfer_fee_eur": 55000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Interested",
+            "scouting_notes": (
+                "Dynamic LB with excellent two-way game. Defensively sound and aggressive "
+                "in the press. Good crosser and progressive runner. Still developing — enormous "
+                "upside at 23. Portugal regular. PSG might sell if right offer comes."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (13, "Medium"),
+            "skills": (11, "Medium"), "take_ons": (13, "Medium"),
+            "pass_accuracy": (13, "Medium"), "crossing": (13, "Medium"),
+            "pass_range": (12, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (13, "Medium"), "discipline": (13, "Medium"),
+            "interceptions": (13, "Medium"), "positioning": (13, "Medium"),
+            "blocking": (12, "Medium"), "clearances": (12, "Medium"),
+            "marking": (13, "Medium"), "tackling": (13, "Medium"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (14, "High"), "versatility": (12, "Medium"),
+            "acceleration": (15, "High"), "balance": (13, "Medium"),
+            "movement": (14, "High"), "pace": (15, "High"),
+            "aggression": (13, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (11, "Low"), "heading": (11, "Low"),
+            "jumping": (12, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 32. Trent Alexander-Arnold ────────────────────────────────────
+    {
+        "person": {
+            "name": "Trent Alexander-Arnold",
+            "dob": "1998-10-07",
+            "height_cm": 180,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "WD",
+            "level": 88,
+            "peak": 89,
+            "overall": 88,
+            "archetype": "Creator-Passer",
+            "blueprint": "Playmaking Full-Back",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 70, "sn": 30, "tf": 35, "jp": 55,
+            "competitiveness": 7, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 5,
+            "scarcity_score": 98, "transfer_fee_eur": 0, "hg": True,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Unique profile — a genuine playmaker playing RB. Crossing, long-range passing, "
+                "and set-piece delivery are world-class. Defensive 1v1 remains a vulnerability. "
+                "Moved to Real Madrid on a free transfer. England regular. "
+                "Scarcity score near-maximum — no comparable profile exists."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (14, "High"),
+            "skills": (12, "Medium"), "take_ons": (11, "Medium"),
+            "pass_accuracy": (16, "High"), "crossing": (16, "High"),
+            "pass_range": (16, "High"), "through_balls": (14, "High"),
+            "awareness": (15, "High"), "discipline": (12, "Medium"),
+            "interceptions": (12, "Medium"), "positioning": (12, "Medium"),
+            "blocking": (11, "Medium"), "clearances": (11, "Medium"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (13, "Medium"), "pressing": (12, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (14, "High"),
+            "acceleration": (12, "Medium"), "balance": (12, "Medium"),
+            "movement": (13, "Medium"), "pace": (12, "Medium"),
+            "aggression": (11, "Medium"), "duels": (11, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 33. Pedro Porro ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Pedro Porro",
+            "dob": "1999-09-13",
+            "height_cm": 173,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Tottenham Hotspur",
+        },
+        "profile": {
+            "position": "WD",
+            "level": 84,
+            "peak": 87,
+            "overall": 84,
+            "archetype": "Engine-Dribbler",
+            "blueprint": "Inverted Full-Back",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 40, "sn": 50, "tf": 55, "jp": 65,
+            "competitiveness": 8, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 2, "true_mvt": 2, "market_premium": 0,
+            "scarcity_score": 75, "transfer_fee_eur": 50000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Aggressive, attack-minded RB. Excellent dribbler and crosser from wide. "
+                "Defensively inconsistent — caught upfield too often. Spain international. "
+                "Good option if Spurs rebuild. Suits a system with a covering CB."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (13, "Medium"),
+            "skills": (12, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (14, "High"),
+            "pass_range": (12, "Medium"), "through_balls": (11, "Medium"),
+            "awareness": (12, "Medium"), "discipline": (11, "Medium"),
+            "interceptions": (12, "Medium"), "positioning": (12, "Medium"),
+            "blocking": (11, "Medium"), "clearances": (11, "Medium"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (14, "High"), "versatility": (12, "Medium"),
+            "acceleration": (14, "High"), "balance": (13, "Medium"),
+            "movement": (14, "High"), "pace": (14, "High"),
+            "aggression": (13, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (11, "Medium"), "volleys": (11, "Medium"),
+        },
+    },
+
+    # ─── 34. Aurélien Tchouameni ───────────────────────────────────────
+    {
+        "person": {
+            "name": "Aurélien Tchouameni",
+            "dob": "2000-01-27",
+            "height_cm": 187,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "DM",
+            "level": 86,
+            "peak": 90,
+            "overall": 86,
+            "archetype": "Destroyer-Engine",
+            "blueprint": "Box-to-Box Anchor",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 60, "sn": 30, "tf": 40, "jp": 68,
+            "competitiveness": 8, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 0,
+            "scarcity_score": 85, "transfer_fee_eur": 80000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Complete DM. Long-range passing, ball recovery, and positional intelligence "
+                "are all elite. Has filled in at CB for Real Madrid comfortably. "
+                "France international. Still growing — could become Casemiro's successor "
+                "at the top level. Not easily acquirable from Madrid."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (13, "Medium"),
+            "skills": (10, "Low"), "take_ons": (11, "Medium"),
+            "pass_accuracy": (14, "High"), "crossing": (10, "Low"),
+            "pass_range": (14, "High"), "through_balls": (12, "Medium"),
+            "awareness": (15, "High"), "discipline": (15, "High"),
+            "interceptions": (15, "High"), "positioning": (15, "High"),
+            "blocking": (14, "High"), "clearances": (13, "Medium"),
+            "marking": (14, "High"), "tackling": (15, "High"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (14, "High"), "versatility": (14, "High"),
+            "acceleration": (13, "Medium"), "balance": (13, "Medium"),
+            "movement": (13, "Medium"), "pace": (13, "Medium"),
+            "aggression": (13, "Medium"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (14, "High"), "heading": (13, "Medium"),
+            "jumping": (13, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 35. Martín Zubimendi ──────────────────────────────────────────
+    {
+        "person": {
+            "name": "Martín Zubimendi",
+            "dob": "1999-02-02",
+            "height_cm": 180,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Real Sociedad",
+        },
+        "profile": {
+            "position": "DM",
+            "level": 85,
+            "peak": 88,
+            "overall": 85,
+            "archetype": "Controller",
+            "blueprint": "Deep-Lying Playmaker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 72, "sn": 22, "tf": 30, "jp": 50,
+            "competitiveness": 7, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 2, "market_premium": -5,
+            "scarcity_score": 90, "transfer_fee_eur": 60000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Priority",
+            "scouting_notes": (
+                "Elegant deep-lying playmaker. Metronomic passing, intelligent positioning, "
+                "and composure under pressure. Not physically dominant — relies on brain. "
+                "Spain Euro 2024 starter. Release clause reportedly ~€60M. "
+                "Has turned down Liverpool before — loyalty to Sociedad. Top target."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (15, "High"),
+            "skills": (12, "Medium"), "take_ons": (11, "Medium"),
+            "pass_accuracy": (16, "High"), "crossing": (10, "Low"),
+            "pass_range": (15, "High"), "through_balls": (14, "High"),
+            "awareness": (16, "High"), "discipline": (15, "High"),
+            "interceptions": (14, "High"), "positioning": (15, "High"),
+            "blocking": (12, "Medium"), "clearances": (11, "Medium"),
+            "marking": (13, "Medium"), "tackling": (13, "Medium"),
+            "intensity": (12, "Medium"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (11, "Medium"),
+            "acceleration": (11, "Medium"), "balance": (13, "Medium"),
+            "movement": (13, "Medium"), "pace": (11, "Medium"),
+            "aggression": (11, "Medium"), "duels": (12, "Medium"),
+            "shielding": (12, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (11, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (11, "Medium"),
+        },
+    },
+
+    # ─── 36. Jude Bellingham ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Jude Bellingham",
+            "dob": "2003-06-29",
+            "height_cm": 186,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "CM",
+            "level": 89,
+            "peak": 93,
+            "overall": 89,
+            "archetype": "Engine-Commander",
+            "blueprint": "Box-to-Box Creator",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 40, "sn": 45, "tf": 60, "jp": 80,
+            "competitiveness": 10, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 15,
+            "scarcity_score": 95, "transfer_fee_eur": 150000000, "hg": True,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Generational talent. Combines physical dynamism with technical excellence "
+                "and elite mentality. Goals, assists, pressing, defending — does everything. "
+                "Already a Ballon d'Or contender at 22. England talisman. "
+                "Not acquirable — Real Madrid long-term project."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (15, "High"),
+            "skills": (13, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (14, "High"), "crossing": (12, "Medium"),
+            "pass_range": (14, "High"), "through_balls": (13, "Medium"),
+            "awareness": (15, "High"), "discipline": (14, "High"),
+            "interceptions": (13, "Medium"), "positioning": (14, "High"),
+            "blocking": (12, "Medium"), "clearances": (11, "Medium"),
+            "marking": (12, "Medium"), "tackling": (13, "Medium"),
+            "intensity": (15, "High"), "pressing": (15, "High"),
+            "stamina": (15, "High"), "versatility": (14, "High"),
+            "acceleration": (14, "High"), "balance": (14, "High"),
+            "movement": (15, "High"), "pace": (14, "High"),
+            "aggression": (14, "High"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (14, "High"), "heading": (13, "Medium"),
+            "jumping": (14, "High"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 37. Pedri ────────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Pedri",
+            "dob": "2002-11-25",
+            "height_cm": 174,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Barcelona",
+        },
+        "profile": {
+            "position": "CM",
+            "level": 87,
+            "peak": 92,
+            "overall": 87,
+            "archetype": "Controller-Creator",
+            "blueprint": "Interior Playmaker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 75, "sn": 20, "tf": 30, "jp": 45,
+            "competitiveness": 7, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 10,
+            "scarcity_score": 92, "transfer_fee_eur": 100000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Xavi-esque midfielder. Close control in tight spaces, weight of pass, "
+                "and spatial awareness are all exceptional. Not physically imposing — relies "
+                "on intelligence and technique. Injury history (hamstring, thigh) is concerning. "
+                "Barcelona and Spain cornerstone. Release clause astronomical."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (16, "High"),
+            "skills": (14, "High"), "take_ons": (14, "High"),
+            "pass_accuracy": (16, "High"), "crossing": (11, "Medium"),
+            "pass_range": (14, "High"), "through_balls": (15, "High"),
+            "awareness": (16, "High"), "discipline": (14, "High"),
+            "interceptions": (12, "Medium"), "positioning": (14, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (11, "Medium"), "tackling": (11, "Medium"),
+            "intensity": (12, "Medium"), "pressing": (13, "Medium"),
+            "stamina": (12, "Medium"), "versatility": (13, "Medium"),
+            "acceleration": (12, "Medium"), "balance": (15, "High"),
+            "movement": (15, "High"), "pace": (11, "Medium"),
+            "aggression": (10, "Low"), "duels": (11, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 38. Moisés Caicedo ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Moisés Caicedo",
+            "dob": "2001-11-02",
+            "height_cm": 178,
+            "preferred_foot": "Right",
+            "nation": "Ecuador",
+            "club": "Chelsea",
+        },
+        "profile": {
+            "position": "CM",
+            "level": 84,
+            "peak": 89,
+            "overall": 84,
+            "archetype": "Engine-Destroyer",
+            "blueprint": "Ball-Winning Midfielder",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 45, "sn": 40, "tf": 50, "jp": 72,
+            "competitiveness": 9, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 2, "market_premium": 10,
+            "scarcity_score": 78, "transfer_fee_eur": 115000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Tireless ball-winner. Covers enormous ground, aggressive in the press, "
+                "and has improved passing range significantly. Chelsea paid record fee but "
+                "performances have justified it. Ecuador captain. Still maturing tactically."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (12, "Medium"),
+            "skills": (10, "Low"), "take_ons": (11, "Medium"),
+            "pass_accuracy": (13, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (13, "Medium"), "through_balls": (11, "Medium"),
+            "awareness": (14, "High"), "discipline": (14, "High"),
+            "interceptions": (15, "High"), "positioning": (14, "High"),
+            "blocking": (13, "Medium"), "clearances": (12, "Medium"),
+            "marking": (13, "Medium"), "tackling": (15, "High"),
+            "intensity": (15, "High"), "pressing": (15, "High"),
+            "stamina": (15, "High"), "versatility": (13, "Medium"),
+            "acceleration": (13, "Medium"), "balance": (13, "Medium"),
+            "movement": (13, "Medium"), "pace": (13, "Medium"),
+            "aggression": (14, "High"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (12, "Medium"), "heading": (11, "Medium"),
+            "jumping": (12, "Medium"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 39. Vitinha ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Vitinha",
+            "dob": "2000-02-13",
+            "height_cm": 172,
+            "preferred_foot": "Right",
+            "nation": "Portugal",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {
+            "position": "CM",
+            "level": 85,
+            "peak": 89,
+            "overall": 85,
+            "archetype": "Controller-Dribbler",
+            "blueprint": "Technical Midfielder",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 68, "sn": 25, "tf": 35, "jp": 55,
+            "competitiveness": 7, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 2, "market_premium": -5,
+            "scarcity_score": 80, "transfer_fee_eur": 70000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Interested",
+            "scouting_notes": (
+                "Silky midfielder with elite close control and press resistance. "
+                "Glides past pressure with ease. Progressive passer. Slight frame limits "
+                "aerial contribution. Portugal regular. PSG's midfield conductor. "
+                "Could be available if PSG restructure."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (15, "High"),
+            "skills": (14, "High"), "take_ons": (14, "High"),
+            "pass_accuracy": (15, "High"), "crossing": (11, "Medium"),
+            "pass_range": (14, "High"), "through_balls": (13, "Medium"),
+            "awareness": (15, "High"), "discipline": (13, "Medium"),
+            "interceptions": (12, "Medium"), "positioning": (13, "Medium"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (13, "Medium"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (12, "Medium"),
+            "acceleration": (13, "Medium"), "balance": (15, "High"),
+            "movement": (14, "High"), "pace": (12, "Medium"),
+            "aggression": (10, "Low"), "duels": (11, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (11, "Medium"),
+        },
+    },
+
+    # ─── 40. Jamal Musiala ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Jamal Musiala",
+            "dob": "2003-02-26",
+            "height_cm": 183,
+            "preferred_foot": "Right",
+            "nation": "Germany",
+            "club": "Bayern Munich",
+        },
+        "profile": {
+            "position": "AM",
+            "level": 89,
+            "peak": 94,
+            "overall": 89,
+            "archetype": "Creator-Dribbler",
+            "blueprint": "Floating Playmaker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 55, "sn": 30, "tf": 40, "jp": 50,
+            "competitiveness": 7, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 15,
+            "scarcity_score": 95, "transfer_fee_eur": 150000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Dribbling genius. Glides past defenders with effortless close control. "
+                "Finds pockets of space instinctively. Creative output improving every season. "
+                "Germany's crown jewel. Bayern trying to lock him down long-term. "
+                "Not acquirable — would cost a world record fee."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (16, "High"), "first_touch": (16, "High"),
+            "skills": (15, "High"), "take_ons": (16, "High"),
+            "pass_accuracy": (14, "High"), "crossing": (12, "Medium"),
+            "pass_range": (13, "Medium"), "through_balls": (14, "High"),
+            "awareness": (15, "High"), "discipline": (12, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (13, "Medium"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (13, "Medium"), "pressing": (12, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (14, "High"),
+            "acceleration": (14, "High"), "balance": (15, "High"),
+            "movement": (15, "High"), "pace": (13, "Medium"),
+            "aggression": (10, "Low"), "duels": (12, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 41. Bukayo Saka ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Bukayo Saka",
+            "dob": "2001-09-05",
+            "height_cm": 178,
+            "preferred_foot": "Left",
+            "nation": "England",
+            "club": "Arsenal",
+        },
+        "profile": {
+            "position": "WF",
+            "level": 88,
+            "peak": 92,
+            "overall": 88,
+            "archetype": "Creator-Engine",
+            "blueprint": "Inverted Winger",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 50, "sn": 35, "tf": 35, "jp": 70,
+            "competitiveness": 9, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 10,
+            "scarcity_score": 92, "transfer_fee_eur": 120000000, "hg": True,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Complete winger. Goals, assists, defensive work rate — does it all. "
+                "Equally dangerous cutting inside or going to the byline. "
+                "Mental toughness exceptional for his age — Euro 2024 penalty miss "
+                "hasn't affected him. Arsenal and England's most important player."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (15, "High"),
+            "skills": (14, "High"), "take_ons": (15, "High"),
+            "pass_accuracy": (14, "High"), "crossing": (14, "High"),
+            "pass_range": (13, "Medium"), "through_balls": (13, "Medium"),
+            "awareness": (14, "High"), "discipline": (14, "High"),
+            "interceptions": (12, "Medium"), "positioning": (13, "Medium"),
+            "blocking": (11, "Medium"), "clearances": (10, "Low"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (14, "High"), "versatility": (15, "High"),
+            "acceleration": (14, "High"), "balance": (14, "High"),
+            "movement": (14, "High"), "pace": (14, "High"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (11, "Medium"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 42. Erling Haaland ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Erling Haaland",
+            "dob": "2000-07-21",
+            "height_cm": 194,
+            "preferred_foot": "Left",
+            "nation": "Norway",
+            "club": "Manchester City",
+        },
+        "profile": {
+            "position": "CF",
+            "level": 92,
+            "peak": 95,
+            "overall": 92,
+            "archetype": "Target-Sprinter",
+            "blueprint": "Goal Machine",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 40, "sn": 50, "tf": 65, "jp": 85,
+            "competitiveness": 10, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 20,
+            "scarcity_score": 98, "transfer_fee_eur": 200000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Lethal finisher. Movement in the box, raw pace, and aerial power are "
+                "unmatched in modern football. Limited involvement outside the box — "
+                "reliant on service. Norway's only world-class player. "
+                "Release clause reportedly active in 2025. Not acquirable."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (12, "Medium"), "first_touch": (13, "Medium"),
+            "skills": (11, "Medium"), "take_ons": (11, "Medium"),
+            "pass_accuracy": (11, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (10, "Low"), "through_balls": (10, "Low"),
+            "awareness": (14, "High"), "discipline": (13, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (16, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (14, "High"), "pressing": (14, "High"),
+            "stamina": (13, "Medium"), "versatility": (10, "Low"),
+            "acceleration": (15, "High"), "balance": (13, "Medium"),
+            "movement": (16, "High"), "pace": (15, "High"),
+            "aggression": (14, "High"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (15, "High"), "heading": (15, "High"),
+            "jumping": (15, "High"), "volleys": (13, "Medium"),
+        },
+    },
+
+    # ─── 43. Viktor Gyökeres ──────────────────────────────────────────
+    {
+        "person": {
+            "name": "Viktor Gyökeres",
+            "dob": "1998-06-04",
+            "height_cm": 187,
+            "preferred_foot": "Right",
+            "nation": "Sweden",
+            "club": "Sporting CP",
+        },
+        "profile": {
+            "position": "CF",
+            "level": 86,
+            "peak": 88,
+            "overall": 86,
+            "archetype": "Target-Engine",
+            "blueprint": "Complete Striker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 42, "sn": 45, "tf": 55, "jp": 75,
+            "competitiveness": 9, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 5,
+            "scarcity_score": 85, "transfer_fee_eur": 75000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Priority",
+            "scouting_notes": (
+                "Prolific striker. 60+ goals in a calendar year at Sporting. "
+                "Pressing monster — intensity and work rate off the ball are relentless. "
+                "Can play alone or in a pair. Late bloomer — Coventry before Sporting. "
+                "Release clause ~€100M. Top of acquisition list."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (13, "Medium"), "first_touch": (13, "Medium"),
+            "skills": (11, "Medium"), "take_ons": (12, "Medium"),
+            "pass_accuracy": (12, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (11, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (14, "High"), "discipline": (13, "Medium"),
+            "interceptions": (11, "Medium"), "positioning": (15, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (11, "Medium"),
+            "intensity": (15, "High"), "pressing": (15, "High"),
+            "stamina": (15, "High"), "versatility": (12, "Medium"),
+            "acceleration": (14, "High"), "balance": (13, "Medium"),
+            "movement": (15, "High"), "pace": (14, "High"),
+            "aggression": (14, "High"), "duels": (14, "High"),
+            "shielding": (13, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (14, "High"), "heading": (13, "Medium"),
+            "jumping": (13, "Medium"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 44. Alexander Isak ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Alexander Isak",
+            "dob": "1999-09-21",
+            "height_cm": 192,
+            "preferred_foot": "Right",
+            "nation": "Sweden",
+            "club": "Newcastle United",
+        },
+        "profile": {
+            "position": "CF",
+            "level": 87,
+            "peak": 90,
+            "overall": 87,
+            "archetype": "Sprinter-Dribbler",
+            "blueprint": "Mobile Striker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 55, "sn": 35, "tf": 45, "jp": 60,
+            "competitiveness": 8, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 5,
+            "scarcity_score": 88, "transfer_fee_eur": 90000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Elegant striker with pace, dribbling, and clinical finishing. "
+                "Movement between the lines is intelligent. Links play well despite height. "
+                "Newcastle's talisman. Sweden captain. Would require a massive fee."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (14, "High"),
+            "skills": (13, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (11, "Medium"), "through_balls": (11, "Medium"),
+            "awareness": (14, "High"), "discipline": (13, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (15, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (13, "Medium"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (12, "Medium"),
+            "acceleration": (15, "High"), "balance": (14, "High"),
+            "movement": (15, "High"), "pace": (14, "High"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (12, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (13, "Medium"), "heading": (13, "Medium"),
+            "jumping": (13, "Medium"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 45. Gianluigi Donnarumma ─────────────────────────────────────
+    {
+        "person": {
+            "name": "Gianluigi Donnarumma",
+            "dob": "1999-02-25",
+            "height_cm": 196,
+            "preferred_foot": "Right",
+            "nation": "Italy",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {
+            "position": "GK",
+            "level": 87,
+            "peak": 90,
+            "overall": 87,
+            "archetype": "Commander",
+            "blueprint": "Shot-Stopper",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 45, "sn": 40, "tf": 55, "jp": 55,
+            "competitiveness": 7, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": -5,
+            "scarcity_score": 80, "transfer_fee_eur": 50000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Elite shot-stopper with enormous frame. Reflexes and one-on-one saving "
+                "are world-class. Distribution has improved but remains below elite. "
+                "Italy captain. Euro 2020 hero. PSG contract situation fluctuates. "
+                "Concentration lapses remain a concern."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (10, "Low"), "first_touch": (11, "Medium"),
+            "skills": (10, "Low"), "take_ons": (10, "Low"),
+            "pass_accuracy": (12, "Medium"), "crossing": (10, "Low"),
+            "pass_range": (12, "Medium"), "through_balls": (10, "Low"),
+            "awareness": (14, "High"), "discipline": (13, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (14, "High"),
+            "blocking": (15, "High"), "clearances": (12, "Medium"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (11, "Medium"), "pressing": (10, "Low"),
+            "stamina": (11, "Medium"), "versatility": (10, "Low"),
+            "acceleration": (10, "Low"), "balance": (12, "Medium"),
+            "movement": (11, "Medium"), "pace": (10, "Low"),
+            "aggression": (12, "Medium"), "duels": (12, "Medium"),
+            "shielding": (12, "Medium"), "throwing": (14, "High"),
+            "aerial_duels": (14, "High"), "heading": (10, "Low"),
+            "jumping": (14, "High"), "volleys": (10, "Low"),
+        },
+    },
+
+    # ─── 46. Kylian Mbappé ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Kylian Mbappé",
+            "dob": "1998-12-20",
+            "height_cm": 178,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "WF",
+            "level": 92,
+            "peak": 95,
+            "overall": 92,
+            "archetype": "Sprinter-Striker",
+            "blueprint": "Inside Forward",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 40, "sn": 55, "tf": 65, "jp": 80,
+            "competitiveness": 10, "coachability": 6,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 20,
+            "scarcity_score": 98, "transfer_fee_eur": 0, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Generational pace and finishing. Devastating in transition. "
+                "Can play LW or central striker. Real Madrid marquee signing. "
+                "France captain. Ego management reportedly a factor. "
+                "Not acquirable — top 3 player in the world."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (14, "High"),
+            "skills": (14, "High"), "take_ons": (15, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (12, "Medium"),
+            "pass_range": (11, "Medium"), "through_balls": (12, "Medium"),
+            "awareness": (14, "High"), "discipline": (12, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (15, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (14, "High"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (13, "Medium"),
+            "acceleration": (16, "High"), "balance": (14, "High"),
+            "movement": (16, "High"), "pace": (16, "High"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (12, "Medium"), "heading": (12, "Medium"),
+            "jumping": (12, "Medium"), "volleys": (13, "Medium"),
+        },
+    },
+
+    # ─── 47. Vinícius Júnior ──────────────────────────────────────────
+    {
+        "person": {
+            "name": "Vinícius Júnior",
+            "dob": "2000-07-12",
+            "height_cm": 176,
+            "preferred_foot": "Right",
+            "nation": "Brazil",
+            "club": "Real Madrid",
+        },
+        "profile": {
+            "position": "WF",
+            "level": 91,
+            "peak": 94,
+            "overall": 91,
+            "archetype": "Dribbler-Sprinter",
+            "blueprint": "Explosive Winger",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 35, "sn": 55, "tf": 60, "jp": 70,
+            "competitiveness": 9, "coachability": 7,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 20,
+            "scarcity_score": 95, "transfer_fee_eur": 200000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Electrifying winger. Dribbling, pace, and big-game mentality are elite. "
+                "Decision-making has matured enormously — now clinical in front of goal. "
+                "Ballon d'Or winner. Brazil's talisman. Occasional temperament flashes. "
+                "Not acquirable at any price."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (16, "High"), "first_touch": (15, "High"),
+            "skills": (15, "High"), "take_ons": (16, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (13, "Medium"),
+            "pass_range": (11, "Medium"), "through_balls": (12, "Medium"),
+            "awareness": (14, "High"), "discipline": (11, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (14, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (14, "High"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (13, "Medium"),
+            "acceleration": (16, "High"), "balance": (15, "High"),
+            "movement": (15, "High"), "pace": (16, "High"),
+            "aggression": (12, "Medium"), "duels": (13, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (11, "Medium"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 48. Raphinha ─────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Raphinha",
+            "dob": "1996-12-14",
+            "height_cm": 176,
+            "preferred_foot": "Left",
+            "nation": "Brazil",
+            "club": "Barcelona",
+        },
+        "profile": {
+            "position": "WF",
+            "level": 87,
+            "peak": 88,
+            "overall": 87,
+            "archetype": "Engine-Creator",
+            "blueprint": "Work-Rate Winger",
+            "profile_tier": 2,
+        },
+        "personality": {
+            "ei": 42, "sn": 45, "tf": 50, "jp": 72,
+            "competitiveness": 9, "coachability": 8,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 2, "market_premium": -5,
+            "scarcity_score": 72, "transfer_fee_eur": 60000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Watch",
+            "scouting_notes": (
+                "Relentless winger. Work rate and pressing are among the best in La Liga. "
+                "Free-kick specialist. Improved finishing under Flick. Brazil regular. "
+                "Thrived after initially being written off at Barcelona. Age 29 — "
+                "still at peak but window is closing."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (14, "High"), "first_touch": (14, "High"),
+            "skills": (13, "Medium"), "take_ons": (14, "High"),
+            "pass_accuracy": (13, "Medium"), "crossing": (14, "High"),
+            "pass_range": (12, "Medium"), "through_balls": (12, "Medium"),
+            "awareness": (13, "Medium"), "discipline": (13, "Medium"),
+            "interceptions": (11, "Medium"), "positioning": (13, "Medium"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (11, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (15, "High"), "pressing": (15, "High"),
+            "stamina": (15, "High"), "versatility": (13, "Medium"),
+            "acceleration": (14, "High"), "balance": (14, "High"),
+            "movement": (14, "High"), "pace": (14, "High"),
+            "aggression": (13, "Medium"), "duels": (13, "Medium"),
+            "shielding": (11, "Medium"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (11, "Medium"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 49. Bernardo Silva ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Bernardo Silva",
+            "dob": "1994-08-10",
+            "height_cm": 173,
+            "preferred_foot": "Left",
+            "nation": "Portugal",
+            "club": "Manchester City",
+        },
+        "profile": {
+            "position": "WM",
+            "level": 89,
+            "peak": 90,
+            "overall": 89,
+            "archetype": "Controller-Engine",
+            "blueprint": "Tireless Technician",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 65, "sn": 25, "tf": 35, "jp": 68,
+            "competitiveness": 9, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": -5,
+            "scarcity_score": 90, "transfer_fee_eur": 70000000, "hg": False,
+        },
+        "status": {
+            "pursuit_status": "Interested",
+            "scouting_notes": (
+                "One of the most intelligent players in football. Pressing triggers, "
+                "spatial awareness, and ball retention are elite. Can play CM, RW, or "
+                "as a false 9. Guardiola's most trusted player. Portugal regular. "
+                "Has wanted to leave City for Barcelona — could become available."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (16, "High"),
+            "skills": (14, "High"), "take_ons": (14, "High"),
+            "pass_accuracy": (15, "High"), "crossing": (13, "Medium"),
+            "pass_range": (14, "High"), "through_balls": (14, "High"),
+            "awareness": (16, "High"), "discipline": (15, "High"),
+            "interceptions": (13, "Medium"), "positioning": (14, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (12, "Medium"), "tackling": (12, "Medium"),
+            "intensity": (15, "High"), "pressing": (16, "High"),
+            "stamina": (15, "High"), "versatility": (15, "High"),
+            "acceleration": (13, "Medium"), "balance": (14, "High"),
+            "movement": (15, "High"), "pace": (12, "Medium"),
+            "aggression": (13, "Medium"), "duels": (12, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (12, "Medium"),
+        },
+    },
+
+    # ─── 50. Phil Foden ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Phil Foden",
+            "dob": "2000-05-28",
+            "height_cm": 171,
+            "preferred_foot": "Left",
+            "nation": "England",
+            "club": "Manchester City",
+        },
+        "profile": {
+            "position": "WM",
+            "level": 88,
+            "peak": 92,
+            "overall": 88,
+            "archetype": "Creator-Dribbler",
+            "blueprint": "Free-Roaming Attacker",
+            "profile_tier": 1,
+        },
+        "personality": {
+            "ei": 55, "sn": 30, "tf": 40, "jp": 55,
+            "competitiveness": 7, "coachability": 9,
+        },
+        "market": {
+            "market_value_tier": 1, "true_mvt": 1, "market_premium": 10,
+            "scarcity_score": 88, "transfer_fee_eur": 100000000, "hg": True,
+        },
+        "status": {
+            "pursuit_status": "Pass",
+            "scouting_notes": (
+                "Natural talent. Left foot is magical — dribbling, finishing, and creativity "
+                "all elite. PFA Player of the Year. Can play anywhere across the front line. "
+                "Small frame but deceptive strength. England's most gifted attacker. "
+                "City academy product — deeply embedded. Not acquirable."
+            ),
+            "squad_role": "starter",
+        },
+        "attributes": {
+            "carries": (15, "High"), "first_touch": (16, "High"),
+            "skills": (15, "High"), "take_ons": (15, "High"),
+            "pass_accuracy": (14, "High"), "crossing": (12, "Medium"),
+            "pass_range": (13, "Medium"), "through_balls": (14, "High"),
+            "awareness": (15, "High"), "discipline": (13, "Medium"),
+            "interceptions": (10, "Low"), "positioning": (14, "High"),
+            "blocking": (10, "Low"), "clearances": (10, "Low"),
+            "marking": (10, "Low"), "tackling": (10, "Low"),
+            "intensity": (13, "Medium"), "pressing": (13, "Medium"),
+            "stamina": (13, "Medium"), "versatility": (15, "High"),
+            "acceleration": (14, "High"), "balance": (15, "High"),
+            "movement": (15, "High"), "pace": (13, "Medium"),
+            "aggression": (10, "Low"), "duels": (11, "Medium"),
+            "shielding": (10, "Low"), "throwing": (10, "Low"),
+            "aerial_duels": (10, "Low"), "heading": (10, "Low"),
+            "jumping": (10, "Low"), "volleys": (13, "Medium"),
         },
     },
 ]

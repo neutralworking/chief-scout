@@ -1,237 +1,63 @@
 """
-15_wikidata_enrich.py — Enrich player data from Wikidata SPARQL endpoint.
+15_wikidata_enrich.py — Enrich people table with Wikidata IDs and metadata.
 
-Three phases:
-  Phase 1: For players WITH wikidata_id, fetch structured data → backfill people gaps
-  Phase 2: For players WITHOUT wikidata_id, resolve via name+DOB matching
-  Phase 3: Extract external IDs (FBRef, Transfermarkt, Soccerway) → player_id_links
+Searches Wikidata for football players by name, validates matches using
+date of birth, nationality, and occupation, then updates people.wikidata_id.
 
 Usage:
-    python 15_wikidata_enrich.py                      # all phases
-    python 15_wikidata_enrich.py --phase 1             # enrich existing only
-    python 15_wikidata_enrich.py --phase 2             # resolve missing QIDs only
-    python 15_wikidata_enrich.py --phase 3             # cross-link external IDs only
-    python 15_wikidata_enrich.py --dry-run             # preview without writing
-    python 15_wikidata_enrich.py --player 42            # single player by people.id
-    python 15_wikidata_enrich.py --force               # overwrite existing values
+    python 15_wikidata_enrich.py --dry-run              # preview all
+    python 15_wikidata_enrich.py --player 42 --dry-run  # single player preview
+    python 15_wikidata_enrich.py                        # full run
+    python 15_wikidata_enrich.py --force                # re-enrich existing
+    python 15_wikidata_enrich.py --limit 50             # cap batch size
 """
 import argparse
-import json
 import sys
 import time
 import unicodedata
-import urllib.parse
-import urllib.request
-from datetime import date
+import re
+from datetime import datetime
 
+import requests
 import psycopg2
 
 from config import POSTGRES_DSN
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 
-parser = argparse.ArgumentParser(description="Enrich player data from Wikidata")
+parser = argparse.ArgumentParser(description="Enrich people with Wikidata IDs")
 parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
-parser.add_argument("--phase", type=int, choices=[1, 2, 3], default=None,
-                    help="Run a single phase (default: all)")
-parser.add_argument("--player", type=int, default=None,
-                    help="Single player by people.id")
-parser.add_argument("--force", action="store_true",
-                    help="Overwrite existing values (default: only fill gaps)")
-parser.add_argument("--batch-size", type=int, default=50,
-                    help="SPARQL batch size (default: 50)")
+parser.add_argument("--force", action="store_true", help="Re-enrich players with existing wikidata_id")
+parser.add_argument("--player", type=int, default=None, help="Single person_id to enrich")
+parser.add_argument("--limit", type=int, default=None, help="Max players to process")
+parser.add_argument("--verbose", action="store_true", help="Show detailed match info")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
-PHASE = args.phase
-PLAYER_ID = args.player
 FORCE = args.force
-BATCH_SIZE = args.batch_size
-
-# ── Wikidata SPARQL ───────────────────────────────────────────────────────────
-
-WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
-USER_AGENT = "ChiefScout/1.0 (https://github.com/neutralworking/chief-scout) pipeline"
-REQUEST_DELAY = 1.5  # seconds between SPARQL requests (be polite)
-
-
-def sparql_query(query: str) -> list[dict]:
-    """Execute a SPARQL query against Wikidata and return results."""
-    url = WIKIDATA_ENDPOINT + "?" + urllib.parse.urlencode({
-        "query": query,
-        "format": "json",
-    })
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data.get("results", {}).get("bindings", [])
-    except urllib.error.HTTPError as e:
-        if e.code == 429:
-            print("  Rate limited by Wikidata, waiting 30s...")
-            time.sleep(30)
-            return sparql_query(query)  # retry once
-        print(f"  SPARQL error {e.code}: {e.reason}")
-        return []
-    except Exception as e:
-        print(f"  SPARQL error: {e}")
-        return []
-
-
-def extract_qid(uri: str) -> str:
-    """Extract QID from a Wikidata entity URI."""
-    if not uri:
-        return ""
-    return uri.rsplit("/", 1)[-1] if "/" in uri else uri
-
-
-def extract_value(binding: dict, key: str) -> str | None:
-    """Safely extract a string value from a SPARQL binding."""
-    if key in binding and binding[key].get("value"):
-        return binding[key]["value"]
-    return None
-
+VERBOSE = args.verbose
 
 # ── DB connection ─────────────────────────────────────────────────────────────
 
 if not POSTGRES_DSN:
-    print("ERROR: POSTGRES_DSN not set. Check .env or .env.local")
+    print("ERROR: Set POSTGRES_DSN in .env.local")
     sys.exit(1)
 
 conn = psycopg2.connect(POSTGRES_DSN)
 conn.autocommit = True
 cur = conn.cursor()
 
-# ── PHASE 1: Enrich players with existing wikidata_id ────────────────────────
+# ── Wikidata SPARQL endpoint ─────────────────────────────────────────────────
 
-
-def run_phase1():
-    """Fetch structured data from Wikidata for players that already have a QID."""
-    print("\n══ Phase 1: Enrich existing Wikidata IDs ══")
-
-    # Load players with wikidata_id
-    if PLAYER_ID:
-        cur.execute("""
-            SELECT id, name, wikidata_id, dob, height_cm, preferred_foot
-            FROM people WHERE id = %s AND wikidata_id IS NOT NULL
-        """, (PLAYER_ID,))
-    else:
-        cur.execute("""
-            SELECT id, name, wikidata_id, dob, height_cm, preferred_foot
-            FROM people WHERE wikidata_id IS NOT NULL
-        """)
-    players = cur.fetchall()
-    print(f"  {len(players)} players with wikidata_id")
-
-    if not players:
-        print("  Nothing to enrich.")
-        return
-
-    # Process in batches
-    updated = 0
-    skipped = 0
-    errors = 0
-
-    for i in range(0, len(players), BATCH_SIZE):
-        batch = players[i:i + BATCH_SIZE]
-        qids = [p[2] for p in batch]
-        qid_to_player = {p[2]: p for p in batch}
-
-        # SPARQL: fetch DOB, height, foot, country for batch
-        values_clause = " ".join(f"wd:{qid}" for qid in qids)
-        query = f"""
-        SELECT ?player ?playerLabel ?dob ?height ?footLabel ?countryLabel WHERE {{
-          VALUES ?player {{ {values_clause} }}
-          OPTIONAL {{ ?player wdt:P569 ?dob . }}
-          OPTIONAL {{ ?player wdt:P2048 ?height . }}
-          OPTIONAL {{ ?player wdt:P552 ?foot . }}
-          OPTIONAL {{ ?player wdt:P27 ?country . }}
-          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en" . }}
-        }}
-        """
-
-        results = sparql_query(query)
-        if not results:
-            errors += len(batch)
-            if i + BATCH_SIZE < len(players):
-                time.sleep(REQUEST_DELAY)
-            continue
-
-        # Index results by QID
-        by_qid = {}
-        for row in results:
-            qid = extract_qid(extract_value(row, "player") or "")
-            if qid and qid not in by_qid:
-                by_qid[qid] = row
-
-        for qid, (pid, name, _, existing_dob, existing_height, existing_foot) in qid_to_player.items():
-            row = by_qid.get(qid)
-            if not row:
-                skipped += 1
-                continue
-
-            updates = {}
-
-            # DOB
-            raw_dob = extract_value(row, "dob")
-            if raw_dob and (FORCE or existing_dob is None):
-                try:
-                    dob_val = date.fromisoformat(raw_dob[:10])
-                    updates["dob"] = dob_val
-                except ValueError:
-                    pass
-
-            # Height (Wikidata stores in metres, we store cm)
-            raw_height = extract_value(row, "height")
-            if raw_height and (FORCE or existing_height is None):
-                try:
-                    h = float(raw_height)
-                    if h < 3:  # metres → cm
-                        h = round(h * 100)
-                    else:
-                        h = round(h)
-                    if 140 <= h <= 220:
-                        updates["height_cm"] = h
-                except ValueError:
-                    pass
-
-            # Preferred foot
-            raw_foot = extract_value(row, "footLabel")
-            if raw_foot and (FORCE or existing_foot is None):
-                foot_map = {
-                    "right foot": "Right",
-                    "left foot": "Left",
-                    "ambidextrous": "Both",
-                    "both feet": "Both",
-                }
-                mapped = foot_map.get(raw_foot.lower())
-                if mapped:
-                    updates["preferred_foot"] = mapped
-
-            if updates:
-                if DRY_RUN:
-                    print(f"  [dry-run] {name}: would update {updates}")
-                else:
-                    set_clause = ", ".join(f"{k} = %s" for k in updates)
-                    values = list(updates.values()) + [pid]
-                    cur.execute(f"UPDATE people SET {set_clause} WHERE id = %s", values)
-                updated += 1
-            else:
-                skipped += 1
-
-        if i + BATCH_SIZE < len(players):
-            time.sleep(REQUEST_DELAY)
-
-    print(f"  Updated: {updated} | Skipped (no new data): {skipped} | Errors: {errors}")
-    if DRY_RUN:
-        print("  (dry-run — no data was written)")
-
-
-# ── PHASE 2: Resolve missing wikidata_ids ─────────────────────────────────────
+WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+WIKIDATA_API = "https://www.wikidata.org/w/api.php"
+USER_AGENT = "ChiefScout/1.0 (football scouting tool; https://github.com/neutralworking/chief-scout)"
+SESSION = requests.Session()
+SESSION.headers.update({"User-Agent": USER_AGENT})
 
 
 def normalize_name(name: str) -> str:
-    """Strip accents and normalize for comparison."""
+    """Strip accents and lowercase for comparison."""
     if not name:
         return ""
     name = unicodedata.normalize("NFKD", name)
@@ -239,235 +65,301 @@ def normalize_name(name: str) -> str:
     return name.lower().strip()
 
 
-def run_phase2():
-    """Try to find Wikidata QIDs for players that don't have one yet."""
-    print("\n══ Phase 2: Resolve missing Wikidata IDs ══")
+def sparql_search(name: str, dob: str | None = None) -> list[dict]:
+    """
+    Search Wikidata for football players matching a name.
+    Returns list of {qid, label, dob, description, occupation_ids}.
+    """
+    # Escape quotes in name for SPARQL
+    safe_name = name.replace('"', '\\"').replace("'", "\\'")
 
-    # Players without wikidata_id
-    if PLAYER_ID:
-        cur.execute("""
-            SELECT id, name, dob FROM people
-            WHERE id = %s AND wikidata_id IS NULL AND name IS NOT NULL
-        """, (PLAYER_ID,))
-    else:
-        cur.execute("""
-            SELECT id, name, dob FROM people
-            WHERE wikidata_id IS NULL AND name IS NOT NULL
-        """)
-    players = cur.fetchall()
-    print(f"  {len(players)} players missing wikidata_id")
+    # SPARQL: find humans who are footballers with matching label/altLabel
+    query = f"""
+    SELECT DISTINCT ?item ?itemLabel ?dob ?itemDescription WHERE {{
+      ?item wdt:P31 wd:Q5 .
+      ?item wdt:P106/wdt:P279* wd:Q937857 .
+      {{
+        ?item rdfs:label "{safe_name}"@en .
+      }} UNION {{
+        ?item skos:altLabel "{safe_name}"@en .
+      }} UNION {{
+        ?item rdfs:label "{safe_name}"@de .
+      }} UNION {{
+        ?item rdfs:label "{safe_name}"@fr .
+      }} UNION {{
+        ?item rdfs:label "{safe_name}"@es .
+      }} UNION {{
+        ?item rdfs:label "{safe_name}"@pt .
+      }}
+      OPTIONAL {{ ?item wdt:P569 ?dob . }}
+      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en,de,fr,es,pt" . }}
+    }}
+    LIMIT 10
+    """
 
-    if not players:
-        print("  Nothing to resolve.")
-        return
+    try:
+        resp = SESSION.get(WIKIDATA_SPARQL, params={"query": query, "format": "json"}, timeout=30)
+        if resp.status_code == 429:
+            print("  Rate limited by Wikidata, waiting 5s...")
+            time.sleep(5)
+            resp = SESSION.get(WIKIDATA_SPARQL, params={"query": query, "format": "json"}, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        if VERBOSE:
+            print(f"  SPARQL error for '{name}': {e}")
+        return []
 
-    resolved = 0
-    ambiguous = 0
-    unmatched = 0
-
-    for pid, name, dob in players:
-        # Search Wikidata for association football players matching name
-        escaped_name = name.replace('"', '\\"')
-        query = f"""
-        SELECT ?player ?playerLabel ?dob WHERE {{
-          ?player wdt:P106 wd:Q937857 .  # occupation: association football player
-          ?player rdfs:label "{escaped_name}"@en .
-          OPTIONAL {{ ?player wdt:P569 ?dob . }}
-          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en" . }}
-        }}
-        LIMIT 10
-        """
-
-        results = sparql_query(query)
-        time.sleep(REQUEST_DELAY)
-
-        if not results:
-            # Try with label search (looser)
-            query = f"""
-            SELECT ?player ?playerLabel ?dob WHERE {{
-              ?player wdt:P106 wd:Q937857 .
-              ?player rdfs:label ?label .
-              FILTER(LANG(?label) = "en")
-              FILTER(LCASE(?label) = "{normalize_name(name)}")
-              OPTIONAL {{ ?player wdt:P569 ?dob . }}
-              SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en" . }}
-            }}
-            LIMIT 10
-            """
-            results = sparql_query(query)
-            time.sleep(REQUEST_DELAY)
-
-        if not results:
-            unmatched += 1
+    results = []
+    for binding in data.get("results", {}).get("bindings", []):
+        item_uri = binding.get("item", {}).get("value", "")
+        qid = item_uri.split("/")[-1] if item_uri else ""
+        if not qid.startswith("Q"):
             continue
 
-        # If we have DOB, use it to disambiguate
-        candidates = results
-        if dob and len(candidates) > 1:
-            dob_str = dob.isoformat() if hasattr(dob, "isoformat") else str(dob)
-            candidates = [
-                r for r in candidates
-                if extract_value(r, "dob") and extract_value(r, "dob")[:10] == dob_str[:10]
-            ]
+        wd_dob = binding.get("dob", {}).get("value", "")[:10] if "dob" in binding else None
+        results.append({
+            "qid": qid,
+            "label": binding.get("itemLabel", {}).get("value", ""),
+            "dob": wd_dob,
+            "description": binding.get("itemDescription", {}).get("value", ""),
+        })
 
-        if len(candidates) == 1:
-            qid = extract_qid(extract_value(candidates[0], "player") or "")
-            if qid:
-                if DRY_RUN:
-                    print(f"  [dry-run] {name} → {qid}")
-                else:
-                    cur.execute("UPDATE people SET wikidata_id = %s WHERE id = %s", (qid, pid))
-                resolved += 1
-        elif len(candidates) > 1:
-            ambiguous += 1
-            qids = [extract_qid(extract_value(r, "player") or "") for r in candidates[:3]]
-            print(f"  Ambiguous: {name} → {', '.join(qids)}")
-        else:
-            unmatched += 1
+    # Deduplicate by QID
+    seen = set()
+    unique = []
+    for r in results:
+        if r["qid"] not in seen:
+            seen.add(r["qid"])
+            unique.append(r)
 
-    print(f"  Resolved: {resolved} | Ambiguous: {ambiguous} | Unmatched: {unmatched}")
+    return unique
+
+
+def wbsearchentities_search(name: str) -> list[dict]:
+    """
+    Fallback: use Wikidata API wbsearchentities for broader name matching.
+    """
+    try:
+        resp = SESSION.get(WIKIDATA_API, params={
+            "action": "wbsearchentities",
+            "search": name,
+            "language": "en",
+            "type": "item",
+            "limit": 10,
+            "format": "json",
+        }, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        if VERBOSE:
+            print(f"  wbsearch error for '{name}': {e}")
+        return []
+
+    results = []
+    for item in data.get("search", []):
+        qid = item.get("id", "")
+        desc = item.get("description", "").lower()
+        # Filter to likely footballers
+        if any(kw in desc for kw in ["football", "soccer", "footballer", "player"]):
+            results.append({
+                "qid": qid,
+                "label": item.get("label", ""),
+                "dob": None,  # Not returned by wbsearch
+                "description": item.get("description", ""),
+            })
+
+    return results
+
+
+def get_entity_dob(qid: str) -> str | None:
+    """Fetch DOB for a specific entity (used with wbsearch fallback)."""
+    try:
+        resp = SESSION.get(WIKIDATA_API, params={
+            "action": "wbgetentities",
+            "ids": qid,
+            "props": "claims",
+            "format": "json",
+        }, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        claims = data.get("entities", {}).get(qid, {}).get("claims", {})
+        dob_claims = claims.get("P569", [])
+        if dob_claims:
+            time_val = dob_claims[0].get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("time", "")
+            # Format: +1990-01-15T00:00:00Z → 1990-01-15
+            if time_val:
+                return time_val[1:11]
+    except Exception:
+        pass
+    return None
+
+
+def score_match(player_name: str, player_dob: str | None, candidate: dict) -> float:
+    """
+    Score a Wikidata candidate against our player data.
+    Returns 0.0-1.0 confidence.
+    """
+    score = 0.0
+
+    # Name similarity (normalized exact = 0.5, case-insensitive partial = 0.3)
+    norm_player = normalize_name(player_name)
+    norm_candidate = normalize_name(candidate["label"])
+    if norm_player == norm_candidate:
+        score += 0.5
+    elif norm_player in norm_candidate or norm_candidate in norm_player:
+        score += 0.3
+
+    # DOB match (exact = 0.5, year only = 0.2)
+    if player_dob and candidate.get("dob"):
+        if str(player_dob) == candidate["dob"]:
+            score += 0.5
+        elif str(player_dob)[:4] == candidate["dob"][:4]:
+            score += 0.2
+
+    # Description contains "football" keywords = small bonus
+    desc = (candidate.get("description") or "").lower()
+    if any(kw in desc for kw in ["football", "soccer", "footballer"]):
+        score += 0.1
+
+    return min(score, 1.0)
+
+
+# ── Load players to enrich ───────────────────────────────────────────────────
+
+print("Loading players to enrich...")
+
+if args.player:
+    cur.execute("""
+        SELECT p.id, p.name, p.date_of_birth, p.wikidata_id, p.wikipedia_url,
+               n.name AS nation
+        FROM people p
+        LEFT JOIN nations n ON n.id = p.nation_id
+        WHERE p.id = %s
+    """, (args.player,))
+else:
+    where = "WHERE p.name IS NOT NULL"
+    if not FORCE:
+        where += " AND p.wikidata_id IS NULL"
+    cur.execute(f"""
+        SELECT p.id, p.name, p.date_of_birth, p.wikidata_id, p.wikipedia_url,
+               n.name AS nation
+        FROM people p
+        LEFT JOIN nations n ON n.id = p.nation_id
+        {where}
+        ORDER BY p.id
+    """)
+
+players = cur.fetchall()
+total = len(players)
+
+if args.limit and not args.player:
+    players = players[:args.limit]
+
+print(f"  {total} total candidates, processing {len(players)}")
+
+if not players:
+    print("Nothing to enrich.")
+    cur.close()
+    conn.close()
+    sys.exit(0)
+
+# ── Enrich loop ──────────────────────────────────────────────────────────────
+
+matched = 0
+skipped = 0
+failed = 0
+low_confidence = 0
+updates = []  # (wikidata_id, person_id)
+
+CONFIDENCE_THRESHOLD = 0.6
+
+for i, (pid, name, dob, existing_wid, wiki_url, nation) in enumerate(players):
+    dob_str = str(dob) if dob else None
+
+    if VERBOSE or args.player:
+        print(f"\n[{i+1}/{len(players)}] {name} (id={pid}, dob={dob_str})")
+    elif (i + 1) % 50 == 0:
+        print(f"  {i+1}/{len(players)} processed ({matched} matched)...", flush=True)
+
+    # Search via SPARQL first
+    candidates = sparql_search(name, dob_str)
+
+    # Fallback to wbsearchentities if no SPARQL results
+    if not candidates:
+        candidates = wbsearchentities_search(name)
+        # Fetch DOBs for wbsearch candidates to enable scoring
+        for c in candidates:
+            if not c["dob"]:
+                c["dob"] = get_entity_dob(c["qid"])
+
+    if not candidates:
+        if VERBOSE or args.player:
+            print(f"  No candidates found")
+        failed += 1
+        continue
+
+    # Score all candidates
+    scored = [(score_match(name, dob_str, c), c) for c in candidates]
+    scored.sort(key=lambda x: -x[0])
+
+    best_score, best = scored[0]
+
+    if VERBOSE or args.player:
+        for s, c in scored[:3]:
+            print(f"  {c['qid']} ({s:.2f}): {c['label']} — {c.get('dob', '?')} — {c.get('description', '')}")
+
+    if best_score < CONFIDENCE_THRESHOLD:
+        if VERBOSE or args.player:
+            print(f"  Best score {best_score:.2f} below threshold {CONFIDENCE_THRESHOLD}")
+        low_confidence += 1
+        continue
+
+    # Check for ambiguity (two candidates with similar scores)
+    if len(scored) > 1 and scored[1][0] >= best_score - 0.1 and scored[1][1]["qid"] != best["qid"]:
+        if VERBOSE or args.player:
+            print(f"  Ambiguous: top 2 within 0.1 ({best_score:.2f} vs {scored[1][0]:.2f})")
+        low_confidence += 1
+        continue
+
+    matched += 1
+    updates.append((best["qid"], pid))
+
+    if VERBOSE or args.player:
+        print(f"  → {best['qid']} ({best_score:.2f})")
+
+    # Rate-limit: ~2 requests per second to be polite to Wikidata
+    if not args.player:
+        time.sleep(0.5)
+
+# ── Write results ────────────────────────────────────────────────────────────
+
+print(f"\n── Results ──")
+print(f"  Matched: {matched}")
+print(f"  Low confidence / ambiguous: {low_confidence}")
+print(f"  No candidates: {failed}")
+print(f"  Total processed: {len(players)}")
+
+if updates:
     if DRY_RUN:
-        print("  (dry-run — no data was written)")
-
-
-# ── PHASE 3: Cross-link external IDs ─────────────────────────────────────────
-
-# Wikidata property → our source name in player_id_links
-EXTERNAL_ID_PROPERTIES = {
-    "P2369": "transfermarkt",   # Transfermarkt player ID
-    "P7545": "fbref",           # FBRef player ID
-    "P2163": "soccerway",       # Soccerway player ID
-}
-
-
-def run_phase3():
-    """Extract external IDs from Wikidata and insert into player_id_links."""
-    print("\n══ Phase 3: Cross-link external IDs ══")
-
-    # Players with wikidata_id
-    if PLAYER_ID:
-        cur.execute("""
-            SELECT id, name, wikidata_id FROM people
-            WHERE id = %s AND wikidata_id IS NOT NULL
-        """, (PLAYER_ID,))
+        print(f"\n  [dry-run] Would update {len(updates)} wikidata_ids:")
+        for wid, pid in updates[:20]:
+            cur.execute("SELECT name FROM people WHERE id = %s", (pid,))
+            row = cur.fetchone()
+            print(f"    {row[0] if row else '?'} (id={pid}) → {wid}")
+        if len(updates) > 20:
+            print(f"    ... and {len(updates) - 20} more")
     else:
-        cur.execute("""
-            SELECT id, name, wikidata_id FROM people
-            WHERE wikidata_id IS NOT NULL
-        """)
-    players = cur.fetchall()
-    print(f"  {len(players)} players with wikidata_id")
-
-    if not players:
-        print("  Nothing to link.")
-        return
-
-    # Load existing links to skip
-    cur.execute("SELECT source, external_id FROM player_id_links")
-    existing_links = {(r[0], r[1]) for r in cur.fetchall()}
-    print(f"  {len(existing_links)} existing links")
-
-    # Build property clauses
-    prop_ids = list(EXTERNAL_ID_PROPERTIES.keys())
-    optional_clauses = "\n".join(
-        f"  OPTIONAL {{ ?player wdt:{pid} ?id_{pid} . }}"
-        for pid in prop_ids
-    )
-    select_vars = " ".join(f"?id_{pid}" for pid in prop_ids)
-
-    inserted = 0
-    skipped = 0
-    errors = 0
-
-    for i in range(0, len(players), BATCH_SIZE):
-        batch = players[i:i + BATCH_SIZE]
-        qids = [p[2] for p in batch]
-        qid_to_player = {p[2]: (p[0], p[1]) for p in batch}
-
-        values_clause = " ".join(f"wd:{qid}" for qid in qids)
-        query = f"""
-        SELECT ?player {select_vars} WHERE {{
-          VALUES ?player {{ {values_clause} }}
-{optional_clauses}
-        }}
-        """
-
-        results = sparql_query(query)
-        if not results:
-            errors += len(batch)
-            if i + BATCH_SIZE < len(players):
-                time.sleep(REQUEST_DELAY)
-            continue
-
-        for row in results:
-            qid = extract_qid(extract_value(row, "player") or "")
-            if qid not in qid_to_player:
-                continue
-            pid, name = qid_to_player[qid]
-
-            for prop_id, source_name in EXTERNAL_ID_PROPERTIES.items():
-                ext_id = extract_value(row, f"id_{prop_id}")
-                if not ext_id:
-                    continue
-
-                if (source_name, ext_id) in existing_links:
-                    skipped += 1
-                    continue
-
-                if DRY_RUN:
-                    print(f"  [dry-run] {name}: {source_name} = {ext_id}")
-                else:
-                    cur.execute("""
-                        INSERT INTO player_id_links
-                            (person_id, source, external_id, external_name, match_method, confidence)
-                        VALUES (%s, %s, %s, %s, 'wikidata', 1.0)
-                        ON CONFLICT (source, external_id) DO NOTHING
-                    """, (pid, source_name, ext_id, name))
-                inserted += 1
-                existing_links.add((source_name, ext_id))
-
-        if i + BATCH_SIZE < len(players):
-            time.sleep(REQUEST_DELAY)
-
-    print(f"  Inserted: {inserted} | Skipped (existing): {skipped} | Errors: {errors}")
-    if DRY_RUN:
-        print("  (dry-run — no data was written)")
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-phases = [1, 2, 3] if PHASE is None else [PHASE]
-
-for phase in phases:
-    if phase == 1:
-        run_phase1()
-    elif phase == 2:
-        run_phase2()
-    elif phase == 3:
-        run_phase3()
-
-# Summary
-cur.execute("""
-    SELECT source, count(*), count(DISTINCT person_id)
-    FROM player_id_links
-    GROUP BY source ORDER BY source
-""")
-print("\n── Link summary ──")
-for source, count, people_count in cur.fetchall():
-    print(f"  {source}: {count} links → {people_count} distinct people")
-
-cur.execute("""
-    SELECT
-        count(*) AS total,
-        count(wikidata_id) AS with_qid,
-        count(dob) AS with_dob,
-        count(height_cm) AS with_height,
-        count(preferred_foot) AS with_foot
-    FROM people
-""")
-row = cur.fetchone()
-print(f"\n── People coverage ──")
-print(f"  Total: {row[0]} | Wikidata QID: {row[1]} | DOB: {row[2]} | Height: {row[3]} | Foot: {row[4]}")
+        updated = 0
+        for wid, pid in updates:
+            cur.execute(
+                "UPDATE people SET wikidata_id = %s, updated_at = now() WHERE id = %s",
+                (wid, pid)
+            )
+            updated += 1
+        print(f"\n  Updated {updated} wikidata_ids in people table")
+else:
+    print("\n  No updates to apply.")
 
 if DRY_RUN:
     print("\n(dry-run — no data was written)")

@@ -32,9 +32,10 @@ chief-scout/
 
 ## Phase 2 — Scouting Interface [IN PROGRESS]
 - [x] **B1: App shell** — Next.js scaffold, player list with filters, detail page (`prototypes/INDEX.md`)
+- [x] **B3: Wire `player_intelligence_card` view end-to-end** — server components, Supabase queries, all zones populated
+- [x] **C1: `<PersonalityBadge>` + `<ArchetypeShape>` hero components** — football personality matrix (A/I, N/X, L/S, C/P), dimension bars, archetype model fit
+- [x] **C3: `<PlayerIdentityPanel>` composite** — WHO + HOW paired in reusable layout
 - [ ] B2: Design token refinement (Inter/JetBrains Mono fonts, spacing)
-- [ ] B3: Wire `player_intelligence_card` view end-to-end
-- [ ] C1: `<PersonalityBadge>` + `<ArchetypeShape>` hero components
 - [ ] E1: Attribute detail drill-down with progressive disclosure
 - [ ] Build web dashboard from Dashboard.md spec
 - [ ] Scouting radar: statistical alert system (see Scripts.md)

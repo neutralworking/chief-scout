@@ -70,10 +70,12 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
 | `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
 | `/prototype-tracker` | Prototype Tracker | Log new prototypes, update status, review progress |
+| `/devops` | DevOps Engineer | Secrets management, service access, migrations, CI/CD, health checks |
 
 **Workflow examples**:
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down
 - Football: `/dof` for transfer priorities → `/scout` for player data → `/supabase` to query
+- Infrastructure: `/devops` to check credentials → `/pipeline` to run scripts → `/supabase` to verify
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)

@@ -18,11 +18,11 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
 
   // Fetch club info and players in parallel
   const [clubResult, playersResult] = await Promise.all([
-    supabaseServer.from("clubs").select("id, clubname, Nation, Division").eq("id", clubId).single(),
+    supabaseServer.from("clubs").select("id, name, league_tier, league_name, stadium, stadium_capacity, founded_year, short_name, nations(name)").eq("id", clubId).single(),
     supabaseServer
       .from("player_intelligence_card")
       .select("person_id, name, dob, position, level, peak, archetype, pursuit_status, personality_type, market_value_tier, true_mvt")
-      .eq("club", "") // placeholder — we need to join via club name
+      .eq("club", "__placeholder__")
       .limit(0),
   ]);
 
@@ -32,10 +32,19 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   }
 
   // Query players by club name (the view resolves club names)
+  const clubName = (club as any).name;
+  const nationName = (club as any).nations?.name ?? null;
+  const leagueTier = (club as any).league_tier;
+  const leagueName = (club as any).league_name;
+  const stadium = (club as any).stadium;
+  const stadiumCapacity = (club as any).stadium_capacity;
+  const foundedYear = (club as any).founded_year;
+  const shortName = (club as any).short_name;
+
   const { data: playersData } = await supabaseServer
     .from("player_intelligence_card")
     .select("person_id, name, dob, position, level, peak, archetype, pursuit_status, personality_type, market_value_tier, true_mvt")
-    .eq("club", club.clubname)
+    .eq("club", clubName)
     .order("level", { ascending: false });
 
   const players = (playersData ?? []) as PlayerCardType[];
@@ -73,10 +82,20 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
       {/* Header */}
       <div className="mb-6">
         <Link href="/clubs" className="text-xs text-[var(--accent-personality)] hover:underline mb-2 inline-block">&larr; All Clubs</Link>
-        <h1 className="text-2xl font-bold tracking-tight">{club.clubname}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {clubName}
+          {shortName && shortName !== clubName && (
+            <span className="text-base font-normal text-[var(--text-muted)] ml-2">({shortName})</span>
+          )}
+        </h1>
         <p className="text-sm text-[var(--text-secondary)]">
-          {[club.Nation, club.Division].filter(Boolean).join(" · ")} · {players.length} players
+          {[nationName, leagueName || (leagueTier ? `Tier ${leagueTier}` : null), foundedYear ? `Est. ${foundedYear}` : null].filter(Boolean).join(" · ")} · {players.length} players
         </p>
+        {stadium && (
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            {stadium}{stadiumCapacity ? ` (${stadiumCapacity.toLocaleString()} capacity)` : ""}
+          </p>
+        )}
       </div>
 
       {/* Row 1: Key metrics */}

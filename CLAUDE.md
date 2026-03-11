@@ -1,10 +1,10 @@
 # Chief Scout — Project Instructions
 
 ## Stack
-- **App**: Next.js (Turbopack) in `apps/player-editor/`
+- **App**: Next.js (Turbopack) in `apps/player-editor/`, deployed on Vercel
 - **DB**: Supabase (project ref: `fnvlemkbhohyouhjebwf`, region: EU Frankfurt)
-- **Pipeline**: Python scripts in `pipeline/`
-- **Skills**: Custom commands in `.claude/commands/` (see below)
+- **Pipeline**: Python scripts in `pipeline/` (24 numbered scripts)
+- **Skills**: Custom commands in `.claude/commands/` (18 slash commands)
 
 ## Database Schema (normalized 2026-03-09)
 The old monolithic `players` table has been split. A **`players` view** exists for backward compatibility (reads only).
@@ -85,11 +85,12 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/debugger` | Debugger | Error investigation, root cause analysis, fixes |
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
 | `/data-analyst` | Data Analyst | External data source expertise (StatsBomb, Understat, FBRef, Opta, Wikidata), metric interpretation, cross-source validation |
-| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-20 |
+| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-24 |
 | `/prototype-tracker` | Prototype Tracker | Log new prototypes, update status, review progress |
 | `/devops` | DevOps Engineer | Secrets management, service access, migrations, CI/CD, health checks |
 | `/db-migrate` | Migration Runner | Table cleanup, SQL migrations, before/after size reporting |
 | `/git-clean` | Git Housekeeper | Branch cleanup, stale refs, secrets audit, repo hygiene |
+| `/pr` | PR Creator | Create/update GitHub PRs via API (works in sandboxed environments) |
 
 **Workflow examples**:
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down

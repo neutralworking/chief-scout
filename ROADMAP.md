@@ -6,9 +6,9 @@ A football scouting and player intelligence platform. Data pipeline ingests from
 ## Architecture
 ```
 chief-scout/
-├── pipeline/                ← data pipeline (15 numbered scripts)
-├── apps/player-editor/      ← Next.js player intelligence UI
-├── prototypes/              ← prototype log + tracking (INDEX.md)
+├── pipeline/                ← data pipeline (24 numbered scripts)
+├── apps/player-editor/      ← Next.js player intelligence UI (deployed on Vercel)
+├── .claude/commands/        ← Claude Code skills (18 slash commands)
 ├── imports/                 ← CSV data (Real Players Active, clubs)
 ├── transfer_availability/   ← submodule: player archetype + transfer model
 ├── docs/
@@ -44,10 +44,17 @@ Current: **23 confirmed full profiles.** Target: **200+ by end of March.**
 - [x] Player matching across data sources (script 10)
 - [x] Stat metrics computation (script 13)
 - [x] Wikidata enrichment + external ID cross-linking (script 15)
+- [x] Club ingestion from CSV (script 16)
+- [x] Wikidata club enrichment — league, stadium, capacity, founded year, logo (script 17)
+- [x] Wikidata player-club linking via P54 (script 18)
+- [x] Deep Wikidata enrichment — citizenship, career history, position, image, Transfermarkt ID (script 19)
+- [x] FBRef → attribute grades with positional percentiles (script 22)
+- [x] Career trajectory metrics — loyalty/mobility scores, trajectory labels (script 23)
+- [x] News sentiment aggregation — buzz/sentiment scores, trend windows (script 24)
 - [ ] Connect `supabase-fbref-scraper` output as additional data source
 
-## Phase 2 — Scouting Interface [PARTIAL — needs maintenance]
-Built but prototypes are outdated against current schema. Detail pages may not render in production.
+## Phase 2 — Scouting Interface [DONE]
+Full-width responsive UI with player/club/league pages, collapsible mobile sidebar.
 
 - [x] App shell — Next.js scaffold, player list with filters, detail page
 - [x] Wire `player_intelligence_card` view end-to-end
@@ -56,10 +63,13 @@ Built but prototypes are outdated against current schema. Detail pages may not r
 - [x] `<KeyMomentsList>` + `<NewsModal>`
 - [x] Player list refinements — debounced search, tier filter, peak sort
 - [x] QA pass — accessibility, responsive grids, input validation
-- [ ] **Admin panel (`/admin`)** — NOT BUILT. Import, pipeline status, data health
-- [ ] **News page (`/news`)** — NOT BUILT. Sidebar links to 404
-- [ ] **Formations page** — References missing tables (`formations`, `formation_slots`)
-- [ ] **Production deployment** — No vercel.json, env config may be incomplete
+- [x] Full-width layout, collapsible mobile sidebar
+- [x] Overhauled player detail page with `<PlayerStats>`
+- [x] Club detail pages with squad view
+- [x] League pages with top-5 tiering
+- [x] Production deployment on Vercel
+- [ ] **News page (`/news`)** — sidebar links to a page that doesn't exist yet
+- [ ] **Formations page** — references missing tables (`formations`, `formation_slots`)
 - [ ] Design token refinement (Inter/JetBrains Mono fonts, spacing)
 - [ ] Attribute detail drill-down with progressive disclosure
 - [ ] Scouting radar: statistical alert system
@@ -73,12 +83,13 @@ Parked until data density justifies it.
 - [ ] Chief Scout role as NPC in DoF game
 
 ## Phase 4 — News Layer [PARTIAL]
-Pipeline works. UI integration exists but news page missing, alerts not built.
+Pipeline works, sentiment aggregated, player tags in place. UI page still missing.
 
 - [x] Create `news_stories` + `news_player_tags` tables (migration 003 + 005)
 - [x] `12_news_ingest.py` — RSS fetch + Gemini Flash tagging pipeline
 - [x] Player name matching against `people` table (script 10)
 - [x] Scout Pad integration — News tab on player card
+- [x] `24_news_sentiment.py` — sentiment/buzz scores, story type breakdown, trend windows
 - [ ] `/news` page — standalone news feed view
 - [ ] News-driven alerts — surface breaking stories on player list
 - [ ] Director integration — transfer rumours as inbox events
@@ -92,16 +103,46 @@ Seed script supports 50 profiles but only 23 confirmed in production DB.
 - [ ] Scale beyond 50 via automated profile generation from external data
 - [ ] Target: 200+ full profiles
 
-## Phase 6 — Admin Panel & Operational Tooling [NOT STARTED]
-The single biggest bottleneck. Every data operation currently requires terminal access.
+## Phase 6 — Admin Panel & Operational Tooling [DONE]
+Browser-based pipeline management at `/admin`.
 
-- [ ] `/admin` route with tabbed UI
-- [ ] Import tab — FBRef CSV upload, client-side parse, upsert to Supabase
-- [ ] Pipeline tab — table row counts, sync timestamps, freshness indicators
-- [ ] Health tab — coverage metrics, trigger player matching, data quality checks
-- [ ] API routes: `/api/admin/fbref-import`, `/api/admin/pipeline`, `/api/admin/health`, `/api/admin/match`
+- [x] `/admin` route with tabbed UI
+- [x] Import tab — FBRef CSV upload, client-side parse, upsert to Supabase
+- [x] Pipeline tab — table row counts, ID link source breakdown
+- [x] Health tab — north star (full profiles), coverage bars per table
+- [x] Player quick-edit and search from admin
+- [x] API routes: `/api/admin/fbref-import`, `/api/admin/pipeline`, `/api/admin/health`, `/api/admin/player-search`, `/api/admin/player-update`
+
+## Phase 7 — Football Choices [DONE]
+PWA-ready comparison game at `/choices`.
+
+- [x] Question/vote game loop — pick between 2-5 players per question
+- [x] 8 categories: GOAT Debates, Best in Position, Era Wars, Transfer Picks, Tactical, Clutch, Style, Hypothetical
+- [x] Footballing Identity profile from vote patterns
+- [x] All-Time XI squad builder with formation picker and positional candidate search
+- [x] Anonymous users via localStorage UUID → `fc_users`
+- [x] PWA: `manifest.json` + `sw.js` for add-to-home-screen, offline caching
+- [x] Seed scripts: `20_seed_choices.py`, `21_seed_alltime_xi.py`
+- [x] API routes: choices, vote, categories, user, candidates, squad
+- [x] Migrations: 015 (Football Choices), 016 (All-Time XI)
+
+## Phase 8 — Claude Code Skills [DONE]
+18 slash commands for fast iteration across all domains.
+
+- [x] Business: `/ceo`, `/marketing`, `/dof`
+- [x] Football: `/scout`, `/data-analyst`
+- [x] Infrastructure: `/devops`, `/pipeline`, `/supabase`, `/db-migrate`
+- [x] Development: `/project-manager`, `/design-manager`, `/qa-manager`, `/debugger`
+- [x] Operations: `/pr`, `/git-clean`, `/prototype-tracker`
+- [x] Sprint: `/sprint-data-dashboard`
 
 ---
+
+## What's Next
+1. **Data push** — Run migrations 013-016, execute pipeline 16-24, confirm 50 profiles, scale to 200+
+2. **`/news` page** — standalone news feed using existing `news_stories` + `news_sentiment_agg` data
+3. **User accounts** — replace localStorage UUIDs with Supabase Auth
+4. **Monetization model** — free tier (Choices, limited views) → pro tier (full scouting, admin, API)
 
 ## Connects to
 - `director/` — chief scout provides player data + scouting reports to the game

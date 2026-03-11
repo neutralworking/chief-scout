@@ -119,7 +119,7 @@ export default async function PlayerDetailPage({
   const pursuitColor = PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "";
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <Link
         href="/players"
         className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-6 inline-block"
@@ -196,50 +196,59 @@ export default async function PlayerDetailPage({
         />
       </div>
 
-      {/* Zone C: Key Moments */}
-      <KeyMomentsList moments={moments} />
+      {/* Two-column layout on wide screens */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-4">
+        {/* Left column: Moments + Attributes */}
+        <div>
+          {/* Zone C: Key Moments */}
+          <KeyMomentsList moments={moments} />
 
-      {/* Zone D: Market Position */}
-      {(player.market_value_tier || player.true_mvt) && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Market Position</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            {player.market_value_tier && (
-              <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">MVT</span><span className="font-mono font-bold">{player.market_value_tier}</span></div>
-            )}
-            {player.true_mvt && (
-              <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">True MVT</span><span className="font-mono font-bold">{player.true_mvt}</span></div>
-            )}
-            {player.market_premium && (
-              <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">Premium</span><span className="font-mono font-bold">{player.market_premium}</span></div>
-            )}
-            {player.scarcity_score != null && (
-              <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">Scarcity</span><span className="font-mono font-bold">{player.scarcity_score}</span></div>
-            )}
-          </div>
-          {(player.transfer_fee_eur != null || player.hg != null) && (
-            <div className="mt-3 flex gap-6 text-xs text-[var(--text-secondary)]">
-              {player.transfer_fee_eur != null && (
-                <div><span className="text-[var(--text-muted)]">Fee: </span><span className="font-mono">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span></div>
-              )}
-              {player.hg && (
-                <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 px-1.5 py-0.5 rounded">HG</span>
+          {/* Zone E: Attribute Grades — Progressive Disclosure */}
+          <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
+        </div>
+
+        {/* Right column: Market + Scout Pad */}
+        <div>
+          {/* Zone D: Market Position */}
+          {(player.market_value_tier || player.true_mvt) && (
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
+              <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Market Position</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {player.market_value_tier && (
+                  <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">MVT</span><span className="font-mono font-bold">{player.market_value_tier}</span></div>
+                )}
+                {player.true_mvt && (
+                  <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">True MVT</span><span className="font-mono font-bold">{player.true_mvt}</span></div>
+                )}
+                {player.market_premium && (
+                  <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">Premium</span><span className="font-mono font-bold">{player.market_premium}</span></div>
+                )}
+                {player.scarcity_score != null && (
+                  <div><span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide block">Scarcity</span><span className="font-mono font-bold">{player.scarcity_score}</span></div>
+                )}
+              </div>
+              {(player.transfer_fee_eur != null || player.hg != null) && (
+                <div className="mt-3 flex gap-6 text-xs text-[var(--text-secondary)]">
+                  {player.transfer_fee_eur != null && (
+                    <div><span className="text-[var(--text-muted)]">Fee: </span><span className="font-mono">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span></div>
+                  )}
+                  {player.hg && (
+                    <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 px-1.5 py-0.5 rounded">HG</span>
+                  )}
+                </div>
               )}
             </div>
           )}
+
+          {/* Zone F: Scout Pad (tabbed) */}
+          <ScoutPad
+            scoutingNotes={player.scouting_notes}
+            squadRole={player.squad_role}
+            loanStatus={player.loan_status}
+            news={news}
+          />
         </div>
-      )}
-
-      {/* Zone E: Attribute Grades — Progressive Disclosure */}
-      <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
-
-      {/* Zone F: Scout Pad (tabbed) */}
-      <ScoutPad
-        scoutingNotes={player.scouting_notes}
-        squadRole={player.squad_role}
-        loanStatus={player.loan_status}
-        news={news}
-      />
+      </div>
     </div>
   );
 }

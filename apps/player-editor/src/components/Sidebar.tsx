@@ -128,7 +128,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-border-subtle">
         <p className="text-[10px] text-text-muted">
-          23 profiles · Last updated today
+          v0.1 · Chief Scout
         </p>
       </div>
     </aside>

@@ -1,6 +1,6 @@
 # /pr — Create a Pull Request
 
-You create pull requests from the current branch. You handle both GitHub-connected and sandboxed environments.
+You create pull requests from the current branch.
 
 ## Arguments
 `$ARGUMENTS` — optional: PR title override, or "draft" for draft PR.
@@ -9,16 +9,9 @@ You create pull requests from the current branch. You handle both GitHub-connect
 
 ### 1. Gather context
 ```bash
-# Current branch
 git branch --show-current
-
-# Base branch (usually main)
 git log --oneline --reverse origin/main..HEAD
-
-# Full diff stats
 git diff --stat origin/main..HEAD
-
-# Ensure branch is pushed
 git push -u origin $(git branch --show-current)
 ```
 
@@ -29,37 +22,57 @@ From the commit history and diff stats, generate:
 - **New files/features**: table if there are new scripts, components, or migrations
 - **Test plan**: checklist of things to verify
 
-### 3. Create the PR
-
-**Try `gh` first:**
-```bash
-gh pr create --title "<title>" --base main --head <branch> --body "<body>"
-```
-
-**If `gh` fails** (no auth, no network, sandbox), use the **Supabase REST API fallback**:
-
-The git remote URL contains the repo info. Parse it, then use the GitHub API directly:
+### 3. Extract repo owner/name
+Parse from the git remote URL. The remote may be a local proxy like:
+`http://local_proxy@127.0.0.1:PORT/git/OWNER/REPO`
 
 ```bash
-# Extract owner/repo from remote
 REMOTE_URL=$(git remote get-url origin)
-
-# Use curl with a GitHub token if available
-# If no token, output the ready-to-paste gh command for the user to run locally
+# Extract owner/repo — handles both github.com and proxy URLs
+OWNER_REPO=$(echo "$REMOTE_URL" | grep -oP '(?:github\.com[:/]|/git/)(\K[^/]+/[^/.]+)')
 ```
 
-**If neither works**, output a ready-to-run command block:
-1. The full `gh pr create` command with title and body (using heredoc for the body)
-2. Tell the user to run it from a machine with `gh` auth
+### 4. Create or update the PR via GitHub API
+Always use `curl` to `api.github.com` with `$GH_TOKEN`. The `gh` CLI does NOT work in sandbox environments because it doesn't recognize the local proxy as a GitHub host. **Do not attempt `gh pr create` — go straight to curl.**
 
-### 4. PR body format
+**Check for existing PR first:**
+```bash
+curl -s -H "Authorization: token $GH_TOKEN" \
+  "https://api.github.com/repos/$OWNER_REPO/pulls?head=OWNER:BRANCH&state=open"
+```
+
+**If PR exists → PATCH to update title/body:**
+```bash
+curl -s -X PATCH \
+  -H "Authorization: token $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$OWNER_REPO/pulls/$PR_NUMBER" \
+  -d '{"title":"...","body":"..."}'
+```
+
+**If no PR exists → POST to create:**
+```bash
+curl -s -X POST \
+  -H "Authorization: token $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$OWNER_REPO/pulls" \
+  -d '{"title":"...","head":"BRANCH","base":"main","body":"...","draft":false}'
+```
+
+For draft PRs, set `"draft": true`.
+
+**Parse and display the result:**
+```bash
+| python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('html_url') or d)"
+```
+
+### 5. PR body format
 Always use this structure:
 
 ```markdown
 ## Summary
 - bullet 1
 - bullet 2
-- bullet 3
 
 ## Changes
 | Area | What changed |
@@ -71,7 +84,6 @@ Always use this structure:
 ## Test plan
 - [ ] step 1
 - [ ] step 2
-- [ ] step 3
 
 <session-url>
 ```
@@ -81,5 +93,8 @@ Always use this structure:
 - If push fails, retry up to 4 times with exponential backoff (2s, 4s, 8s, 16s)
 - Never create a PR if there are no commits ahead of main
 - Include the Claude session URL at the bottom of the PR body
-- If `$ARGUMENTS` contains "draft", create as draft PR (`--draft` flag)
+- If `$ARGUMENTS` contains "draft", create as draft PR
 - Base branch is always `main` unless the user specifies otherwise
+- **Always use curl + GH_TOKEN, never gh CLI** — the sandbox proxy breaks gh
+- Check for existing PR before creating — update if one exists
+- Escape JSON body properly (newlines as `\n`, quotes as `\"`)

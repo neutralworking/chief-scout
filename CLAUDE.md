@@ -53,6 +53,8 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `19_wikidata_deep_enrich.py` → Deep Wikidata enrichment: P27 (citizenship), P54 (career history), P413 (position), P18 (image), P2446 (Transfermarkt ID), P19 (birthplace). Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--phase identity|career`, `--batch-size`. Requires migration `014_wikidata_deep_enrich.sql`.
 - `20_seed_choices.py` → Seed Football Choices game questions and options. Flags: `--dry-run`, `--force`. Requires migration `015_football_choices.sql`.
 - `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
+- `23_career_metrics.py` → Career trajectory metrics from `player_career_history` → `career_metrics`. Computes loyalty/mobility scores (1-20), trajectory labels (rising/peak/declining/journeyman/one-club/newcomer), tenure stats. Flags: `--player`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
+- `24_news_sentiment.py` → News sentiment aggregation from `news_player_tags` → `news_sentiment_agg`. Computes sentiment/buzz scores (1-20), story type breakdown, 7d/30d trend windows. Flags: `--player`, `--days`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -65,6 +67,8 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `player_nationalities` | Wikidata P27 | Dual/multiple citizenships per player (migration 014) |
 | `player_career_history` | Wikidata P54 | Full club career with dates, loan flags, jersey numbers (migration 014) |
 | `fc_users/questions/options/votes` | Football Choices | Tinder-style comparison game + user footballing identity (migration 015) |
+| `career_metrics` | Script 23 | Per-player career trajectory: loyalty/mobility scores, tenure stats, trajectory label (migration 016) |
+| `news_sentiment_agg` | Script 24 | Per-player news sentiment: buzz/sentiment scores, story types, trend windows (migration 016) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.

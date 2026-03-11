@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Category {
   id: number;
@@ -43,17 +44,8 @@ interface VoteResult {
 
 type GameState = "menu" | "playing" | "results" | "profile";
 
-function getUserId(): string {
-  if (typeof window === "undefined") return "";
-  let uid = localStorage.getItem("fc_user_id");
-  if (!uid) {
-    uid = crypto.randomUUID();
-    localStorage.setItem("fc_user_id", uid);
-  }
-  return uid;
-}
-
 export function ChoicesGame({ categories }: { categories: Category[] }) {
+  const { fcUserId } = useAuth();
   const [gameState, setGameState] = useState<GameState>("menu");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
@@ -64,10 +56,8 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
   const timerRef = useRef<number>(0);
-  const userId = useRef("");
 
   useEffect(() => {
-    userId.current = getUserId();
     const stored = localStorage.getItem("fc_total_answered");
     if (stored) setTotalAnswered(parseInt(stored, 10));
   }, []);
@@ -80,7 +70,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
 
     try {
       const params = new URLSearchParams();
-      if (userId.current) params.set("user_id", userId.current);
+      if (fcUserId) params.set("user_id", fcUserId);
       if (category) params.set("category", category);
       params.set("count", "1");
 
@@ -111,7 +101,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: userId.current,
+          user_id: fcUserId,
           question_id: currentQuestion.id,
           option_id: optionId,
           time_ms: timeMs,

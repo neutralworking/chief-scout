@@ -457,8 +457,16 @@ for i in range(0, len(players), BATCH_SIZE):
 
             for idx, entry in enumerate(career):
                 club_id = match_club(entry["club_qid"], entry["club_label"])
-                start_date = entry["start"] if entry["start"] else None
-                end_date = entry["end"] if entry["end"] else None
+                def safe_date(val):
+                    if not val or not isinstance(val, str):
+                        return None
+                    # Wikidata sometimes returns URLs or garbage instead of dates
+                    if not val[:4].isdigit():
+                        return None
+                    return val
+
+                start_date = safe_date(entry["start"])
+                end_date = safe_date(entry["end"])
 
                 if DRY_RUN:
                     if VERBOSE:

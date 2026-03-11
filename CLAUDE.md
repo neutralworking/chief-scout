@@ -98,7 +98,7 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)
-Browser-based pipeline management at `apps/player-editor/src/app/admin/page.tsx`.
+Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
 
 | Tab | Purpose | API Route |
 |---|---|---|
@@ -107,7 +107,7 @@ Browser-based pipeline management at `apps/player-editor/src/app/admin/page.tsx`
 | **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
 
 ## Football Choices (`/choices`)
-PWA-ready comparison game at `apps/player-editor/src/app/choices/page.tsx`.
+PWA-ready comparison game at `apps/player-editor/app/choices/page.tsx`.
 
 - Users pick between 2-5 player options per question
 - Builds a "Footballing Identity" profile from vote patterns

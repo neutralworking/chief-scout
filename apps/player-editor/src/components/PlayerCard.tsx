@@ -85,10 +85,11 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           )}
         </div>
 
-        {/* Row 3: Level/Peak bars */}
+        {/* Row 3: Level/Peak/Overall bars */}
         <div className="space-y-1 mb-3">
           <LevelBar label="Lvl" value={player.level} />
           <LevelBar label="Peak" value={player.peak} />
+          <LevelBar label="OVR" value={player.overall} />
         </div>
 
         {/* Row 4: Personality + Archetype + Tier */}
@@ -105,11 +106,18 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
               </span>
             )}
           </div>
-          {player.profile_tier === 1 && (
-            <span className="text-[9px] font-bold tracking-widest uppercase text-[var(--accent-personality)] border border-[var(--accent-personality)]/30 px-1.5 py-0.5 rounded">
-              Scout Assessed
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {player.market_value_tier && (
+              <span className="text-[9px] font-mono font-bold text-[var(--text-secondary)] border border-[var(--border-subtle)] px-1.5 py-0.5 rounded">
+                {player.market_value_tier}
+              </span>
+            )}
+            {player.profile_tier === 1 && (
+              <span className="text-[9px] font-bold tracking-widest uppercase text-[var(--accent-personality)] border border-[var(--accent-personality)]/30 px-1.5 py-0.5 rounded">
+                Scout Assessed
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </Link>

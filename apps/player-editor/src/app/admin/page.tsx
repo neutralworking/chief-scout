@@ -11,6 +11,16 @@ async function getAdminData() {
     fullProfilesResult,
     fbrefLinkedResult,
     trackedResult,
+    // Coverage
+    profilesResult,
+    personalityResult,
+    marketResult,
+    statusResult,
+    attributesResult,
+    wikidataResult,
+    newsStoriesResult,
+    newsTagsResult,
+    // External Data Sources
     sbCompResult,
     sbMatchResult,
     sbEventResult,
@@ -29,6 +39,15 @@ async function getAdminData() {
       .from("player_intelligence_card")
       .select("person_id, position")
       .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]),
+    // Coverage — how many people have each table populated
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }),
+    supabaseServer.from("player_personality").select("person_id", { count: "exact", head: true }),
+    supabaseServer.from("player_market").select("person_id", { count: "exact", head: true }),
+    supabaseServer.from("player_status").select("person_id", { count: "exact", head: true }),
+    supabaseServer.from("attribute_grades").select("player_id", { count: "exact", head: true }),
+    supabaseServer.from("people").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
+    supabaseServer.from("news_stories").select("id", { count: "exact", head: true }),
+    supabaseServer.from("news_player_tags").select("id", { count: "exact", head: true }),
     // External Data Sources — StatsBomb
     supabaseServer.from("sb_competitions").select("id", { count: "exact", head: true }),
     supabaseServer.from("sb_matches").select("id", { count: "exact", head: true }),
@@ -50,13 +69,26 @@ async function getAdminData() {
     positionCounts[pos] = trackedPlayers.filter((p) => p.position === pos).length;
   }
 
+  const totalPlayers = totalPeopleResult.count ?? 0;
+
   return {
     stats: {
-      totalPlayers: totalPeopleResult.count ?? 0,
+      totalPlayers,
       tier1Profiles: tier1Result.count ?? 0,
       fullProfiles: fullProfilesResult.count ?? 0,
       fbrefLinked: fbrefLinkedResult.count ?? 0,
       tracked: trackedPlayers.length,
+    },
+    coverage: {
+      total: totalPlayers,
+      profiles: profilesResult.count ?? 0,
+      personality: personalityResult.count ?? 0,
+      market: marketResult.count ?? 0,
+      status: statusResult.count ?? 0,
+      attributes: attributesResult.count ?? 0,
+      wikidata: wikidataResult.count ?? 0,
+      newsStories: newsStoriesResult.count ?? 0,
+      newsTags: newsTagsResult.count ?? 0,
     },
     external: {
       statsbomb: {
@@ -95,7 +127,7 @@ export default async function AdminPage() {
     );
   }
 
-  const { stats, external, positionCounts } = data;
+  const { stats, coverage, external, positionCounts } = data;
   const maxDepth = Math.max(...Object.values(positionCounts), 1);
 
   return (
@@ -121,6 +153,51 @@ export default async function AdminPage() {
               <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Data Coverage */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+          Data Coverage
+        </h2>
+        <div className="space-y-3">
+          {[
+            { label: "Profiles", value: coverage.profiles },
+            { label: "Personality", value: coverage.personality },
+            { label: "Market Data", value: coverage.market },
+            { label: "Status", value: coverage.status },
+            { label: "Wikidata Enriched", value: coverage.wikidata },
+          ].map(({ label, value }) => {
+            const pct = coverage.total > 0 ? Math.round((value / coverage.total) * 100) : 0;
+            return (
+              <div key={label}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-[var(--text-secondary)]">{label}</span>
+                  <span className="font-mono text-[var(--text-primary)]">{value.toLocaleString()} / {coverage.total.toLocaleString()} ({pct}%)</span>
+                </div>
+                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: pct >= 80 ? "var(--accent-tactical)" : pct >= 40 ? "var(--accent-physical, #f59e0b)" : "var(--sentiment-negative, #ef4444)",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-[var(--text-secondary)] mb-1">Attribute Grades (rows)</p>
+            <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.attributes.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[var(--text-secondary)] mb-1">News Stories</p>
+            <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.newsStories.toLocaleString()}</p>
+          </div>
         </div>
       </div>
 

@@ -75,9 +75,8 @@ function PlayersContent() {
         .select(
           "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
         )
-        .not("level", "is", null)
-        .order("level", { ascending: false })
-        .limit(2000);
+        .order("level", { ascending: false, nullsFirst: false })
+        .limit(10000);
 
       if (fetchError) {
         setError(`Supabase error: ${fetchError.message}. Check RLS policies (run migration 009).`);
@@ -114,7 +113,7 @@ function PlayersContent() {
 
       <PlayerFilters />
 
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {filtered.map((player) => (
           <PlayerCard key={player.person_id} player={player} />
         ))}

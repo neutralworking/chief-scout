@@ -32,7 +32,7 @@ const TIER_NATIONS = new Set(LEAGUE_TIERS.flatMap((t) => t.nations));
 
 interface LeagueGroup {
   nation: string;
-  clubs: { id: number; clubname: string; playerCount: number }[];
+  clubs: { id: number; name: string; leagueName: string | null; playerCount: number }[];
   totalPlayers: number;
 }
 
@@ -59,17 +59,19 @@ export default async function LeaguesPage() {
   const clubIds = [...clubCounts.keys()];
   const { data: clubs } = await supabaseServer
     .from("clubs")
-    .select("id, clubname, Nation")
+    .select("id, name, league_name, nations(name)")
     .in("id", clubIds.slice(0, 2000));
 
   // Group by nation
-  const nationMap = new Map<string, { id: number; clubname: string; playerCount: number }[]>();
-  for (const club of clubs ?? []) {
-    const nation = club.Nation || "Unknown";
+  const nationMap = new Map<string, { id: number; name: string; leagueName: string | null; playerCount: number }[]>();
+  for (const rawClub of clubs ?? []) {
+    const club = rawClub as any;
+    const nation = club.nations?.name || "Unknown";
     if (!nationMap.has(nation)) nationMap.set(nation, []);
     nationMap.get(nation)!.push({
       id: club.id,
-      clubname: club.clubname,
+      name: club.name,
+      leagueName: club.league_name ?? null,
       playerCount: clubCounts.get(club.id) ?? 0,
     });
   }
@@ -150,7 +152,7 @@ function LeagueCard({ league }: { league: LeagueGroup }) {
             href={`/clubs/${club.id}`}
             className="flex items-center justify-between px-3 py-2 rounded bg-[var(--bg-elevated)]/50 hover:bg-[var(--bg-elevated)] transition-colors"
           >
-            <span className="text-xs text-[var(--text-secondary)] truncate">{club.clubname}</span>
+            <span className="text-xs text-[var(--text-secondary)] truncate">{club.name}</span>
             <span className="text-xs font-mono text-[var(--text-muted)] ml-2 shrink-0">
               {club.playerCount}
             </span>

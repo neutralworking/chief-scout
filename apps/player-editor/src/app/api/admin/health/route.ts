@@ -55,6 +55,37 @@ export async function GET() {
     ? new Set(fbrefLinks.map((r) => r.person_id)).size
     : 0;
 
+  // Club coverage
+  const { count: totalClubs } = await supabaseServer
+    .from("clubs")
+    .select("*", { count: "exact", head: true });
+
+  const { data: clubsWithNation } = await supabaseServer
+    .from("clubs")
+    .select("id")
+    .not("nation_id", "is", null);
+  const withNation = clubsWithNation?.length ?? 0;
+
+  const { data: clubsWithLeague } = await supabaseServer
+    .from("clubs")
+    .select("id")
+    .not("league_name", "is", null);
+  const withLeague = clubsWithLeague?.length ?? 0;
+
+  const { data: clubsWithWikidata } = await supabaseServer
+    .from("clubs")
+    .select("id")
+    .not("wikidata_id", "is", null);
+  const clubsEnriched = clubsWithWikidata?.length ?? 0;
+
+  const { data: clubsWithPlayers } = await supabaseServer
+    .from("people")
+    .select("club_id")
+    .not("club_id", "is", null);
+  const clubIdsWithPlayers = clubsWithPlayers
+    ? new Set(clubsWithPlayers.map((r) => r.club_id)).size
+    : 0;
+
   // Full profiles: people who have ALL of profiles + personality + market + status + attributes
   const { data: profileIds } = await supabaseServer
     .from("player_profiles")
@@ -98,6 +129,13 @@ export async function GET() {
       wikidata: withWikidata,
       fbref: withFbref,
       fullProfiles,
+    },
+    clubs: {
+      total: totalClubs ?? 0,
+      withNation,
+      withLeague,
+      withWikidata: clubsEnriched,
+      withPlayers: clubIdsWithPlayers,
     },
   });
 }

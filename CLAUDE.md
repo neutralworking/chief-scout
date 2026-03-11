@@ -83,10 +83,16 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Infrastructure: `/devops` to check credentials → `/pipeline` to run scripts → `/supabase` to verify
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
-## Admin Panel (`/admin`) — NOT YET BUILT
-Planned browser-based pipeline management. See Phase 6 in ROADMAP.md.
+## Admin Panel (`/admin`)
+Browser-based pipeline management at `apps/player-editor/src/app/admin/page.tsx`.
 
-Target API routes: `/api/admin/fbref-import`, `/api/admin/pipeline`, `/api/admin/health`, `/api/admin/match`.
+| Tab | Purpose | API Route |
+|---|---|---|
+| **Pipeline** | Table row counts, ID link source breakdown | `GET /api/admin/pipeline` |
+| **Data Health** | North star (full profiles), coverage bars per table | `GET /api/admin/health` |
+| **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
+
+CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Supports Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Eredivisie, Primeira Liga.
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

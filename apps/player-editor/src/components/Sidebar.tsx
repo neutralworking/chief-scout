@@ -21,6 +21,10 @@ const NAV_ITEMS = [
     label: "News Feed",
     href: "/news",
   },
+  {
+    label: "Admin",
+    href: "/admin",
+  },
 ];
 
 const POSITION_SHORTCUTS = [

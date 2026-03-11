@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { getFeatureFlags } from "@/lib/features";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", exact: true },
@@ -22,6 +23,19 @@ export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
+  const [shortlistsEnabled, setShortlistsEnabled] = useState(false);
+
+  // Load feature flags from localStorage preferences
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("fc_preferences");
+      if (stored) {
+        const prefs = JSON.parse(stored);
+        const flags = getFeatureFlags(prefs);
+        setShortlistsEnabled(flags.shortlists);
+      }
+    } catch { /* ignore parse errors */ }
+  }, []);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -125,25 +139,27 @@ export function Sidebar() {
             </div>
           </div>
 
-          {/* Pursuit shortcuts */}
-          <div className="mt-4 px-6">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-2">
-              By Pursuit
-            </p>
-            <div className="flex flex-col gap-0.5">
-              {["Priority", "Interested", "Scout Further", "Watch"].map(
-                (status) => (
-                  <Link
-                    key={status}
-                    href={`/players?pursuit=${encodeURIComponent(status)}`}
-                    className="text-xs px-2 py-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
-                  >
-                    {status}
-                  </Link>
-                )
-              )}
+          {/* Pursuit shortcuts — pro feature, requires shortlists enabled */}
+          {shortlistsEnabled && (
+            <div className="mt-4 px-6">
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-2">
+                By Pursuit
+              </p>
+              <div className="flex flex-col gap-0.5">
+                {["Priority", "Interested", "Scout Further", "Watch"].map(
+                  (status) => (
+                    <Link
+                      key={status}
+                      href={`/players?pursuit=${encodeURIComponent(status)}`}
+                      className="text-xs px-2 py-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
+                    >
+                      {status}
+                    </Link>
+                  )
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </nav>
 
         {/* Auth section */}

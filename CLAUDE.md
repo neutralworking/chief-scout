@@ -44,6 +44,9 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
 - `11_fbref_ingest.py` → FBRef season stats → `fbref_players/fbref_player_season_stats`. Flags: `--comp`, `--season`, `--seasons-back`, `--dry-run`, `--force`
 - `12_news_ingest.py` → RSS + Gemini Flash → `news_stories/news_player_tags`. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`, `--force`
+- `13_stat_metrics.py` → Computed stat metrics from external data
+- `14_seed_profiles.py` → Seed full player profiles (50 curated players with all 6 tables)
+- `15_wikidata_enrich.py` → Wikidata SPARQL → backfill DOB/height/foot + cross-link IDs. Flags: `--phase 1|2|3`, `--player`, `--force`, `--batch-size`
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -68,7 +71,7 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/supabase` | DB Specialist | Queries, mutations, migrations, RLS debugging |
 | `/debugger` | Debugger | Error investigation, root cause analysis, fixes |
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
-| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
+| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-15 |
 | `/prototype-tracker` | Prototype Tracker | Log new prototypes, update status, review progress |
 | `/devops` | DevOps Engineer | Secrets management, service access, migrations, CI/CD, health checks |
 | `/db-migrate` | Migration Runner | Table cleanup, SQL migrations, before/after size reporting |
@@ -80,16 +83,10 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Infrastructure: `/devops` to check credentials → `/pipeline` to run scripts → `/supabase` to verify
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
-## Admin Panel (`/admin`)
-Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
+## Admin Panel (`/admin`) — NOT YET BUILT
+Planned browser-based pipeline management. See Phase 6 in ROADMAP.md.
 
-| Tab | Purpose | API Route |
-|---|---|---|
-| **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
-| **Pipeline** | Table row counts, sync timestamps, freshness indicators, FBRef sync log | `GET /api/admin/pipeline` |
-| **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
-
-CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Player matching uses normalized exact name matching (no fuzzy).
+Target API routes: `/api/admin/fbref-import`, `/api/admin/pipeline`, `/api/admin/health`, `/api/admin/match`.
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

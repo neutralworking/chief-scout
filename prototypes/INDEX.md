@@ -11,7 +11,8 @@ Tracks each UI prototype built during development. Updated by `/prototype-tracke
 | **Date** | 2026-03-10 |
 | **Branch** | `claude/ceo-assessment-0Q7EL` |
 | **Commit** | `1150c0e` |
-| **Status** | Shipped |
+| **Status** | Needs maintenance |
+| **Note** | Schema has changed since build. Production env may not render. Sidebar links to `/news` which doesn't exist. |
 | **Spec** | `docs/plans/player-intelligence-card-spec.md` |
 | **DoF Input** | Filters built alongside list from day one (not deferred) |
 
@@ -71,7 +72,8 @@ Default sort follows DoF priority: pursuit status > position > level desc.
 | **Date** | 2026-03-11 |
 | **Branch** | `claude/daily-planning-session-Nzxg6` |
 | **Commit** | `870435b` |
-| **Status** | Shipped |
+| **Status** | Needs maintenance |
+| **Note** | Depends on `player_intelligence_card` view + service key. Not confirmed working in production. |
 
 Server components with direct Supabase queries. All detail page zones populated from the `player_intelligence_card` view. Attribute grades fetched separately. Key moments from `news_stories`.
 
@@ -84,7 +86,8 @@ Server components with direct Supabase queries. All detail page zones populated 
 | **Date** | 2026-03-11 |
 | **Branch** | `claude/daily-planning-session-Nzxg6` |
 | **Commit** | `187f9aa` → `feb8f46` (personality matrix fix) |
-| **Status** | Shipped |
+| **Status** | Needs maintenance |
+| **Note** | Migration `010_fix_personality_codes.sql` still pending. DB views output MBTI letters not football codes. |
 
 ### Components built
 

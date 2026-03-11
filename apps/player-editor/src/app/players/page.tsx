@@ -61,6 +61,7 @@ function PlayersContent() {
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "pursuit";
   const tier = searchParams.get("tier") ?? "";
+  const fullOnly = searchParams.get("full") === "1";
 
   useEffect(() => {
     async function load() {
@@ -90,9 +91,10 @@ function PlayersContent() {
     if (position) result = result.filter((p) => p.position === position);
     if (pursuit) result = result.filter((p) => p.pursuit_status === pursuit);
     if (tier) { const t = parseInt(tier, 10); if (!isNaN(t)) result = result.filter((p) => p.profile_tier === t); }
+    if (fullOnly) result = result.filter((p) => p.archetype != null && p.personality_type != null && p.level != null);
     if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
     return sortPlayers(result, sort);
-  }, [allPlayers, position, pursuit, tier, q, sort]);
+  }, [allPlayers, position, pursuit, tier, fullOnly, q, sort]);
 
   return (
     <div>
@@ -103,6 +105,7 @@ function PlayersContent() {
           {position ? ` · ${position}` : ""}
           {pursuit ? ` · ${pursuit}` : ""}
           {tier ? ` · Tier ${tier}` : ""}
+          {fullOnly ? " · Full profiles" : ""}
         </p>
       </div>
 

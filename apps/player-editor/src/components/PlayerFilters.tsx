@@ -15,8 +15,9 @@ export function PlayerFilters() {
   const currentSearch = searchParams.get("q") ?? "";
   const currentSort = searchParams.get("sort") ?? "pursuit";
   const currentTier = searchParams.get("tier") ?? "";
+  const fullOnly = searchParams.get("full") === "1";
 
-  const hasFilters = !!(currentPosition || currentPursuit || currentSearch || currentTier);
+  const hasFilters = !!(currentPosition || currentPursuit || currentSearch || currentTier || fullOnly);
 
   const updateParam = useCallback(
     (key: string, value: string) => {
@@ -110,6 +111,18 @@ export function PlayerFilters() {
           <option value="1">Tier 1 — Scout Assessed</option>
           <option value="2">Tier 2 — Profiled</option>
         </select>
+
+        {/* Full profiles toggle */}
+        <button
+          onClick={() => updateParam("full", fullOnly ? "" : "1")}
+          className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+            fullOnly
+              ? "bg-[var(--accent-personality)]/15 border-[var(--accent-personality)]/40 text-[var(--accent-personality)]"
+              : "bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+          }`}
+        >
+          Full Profiles
+        </button>
 
         {/* Sort */}
         <select

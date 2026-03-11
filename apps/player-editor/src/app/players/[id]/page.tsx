@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, PURSUIT_COLORS, POSITION_COLORS } from "@/lib/types";
 import { PlayerIdentityPanel } from "@/components/PlayerIdentityPanel";
+import { CompoundMetrics } from "@/components/CompoundMetrics";
 
 interface IntelligenceCard {
   person_id: number;
@@ -62,20 +63,6 @@ interface AttributeGrade {
   stat_score: number | null;
 }
 
-// Group attributes by compound category
-const ATTRIBUTE_CATEGORIES: Record<string, string[]> = {
-  Mental: ["composure", "concentration", "decision_making", "leadership", "vision", "work_rate", "anticipation", "positioning"],
-  Physical: ["acceleration", "agility", "balance", "pace", "stamina", "strength", "jumping"],
-  Tactical: ["defensive_awareness", "off_the_ball", "pressing", "tactical_discipline"],
-  Technical: ["crossing", "dribbling", "finishing", "first_touch", "heading", "long_shots", "passing", "set_pieces", "tackling", "technique"],
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Mental: "var(--accent-mental)",
-  Physical: "var(--accent-physical)",
-  Tactical: "var(--accent-tactical)",
-  Technical: "var(--accent-technical)",
-};
 
 const SENTIMENT_COLORS: Record<string, string> = {
   positive: "var(--sentiment-positive)",
@@ -83,23 +70,6 @@ const SENTIMENT_COLORS: Record<string, string> = {
   neutral: "var(--sentiment-neutral)",
 };
 
-function AttributeBar({ label, value, color }: { label: string; value: number; color: string }) {
-  const pct = Math.min(Math.max(value, 0), 100);
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-[11px] text-[var(--text-secondary)] w-28 capitalize truncate">
-        {label.replace(/_/g, " ")}
-      </span>
-      <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full opacity-70"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
-      </div>
-      <span className="text-xs font-mono w-6 text-right text-[var(--text-secondary)]">{value}</span>
-    </div>
-  );
-}
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -143,12 +113,6 @@ export default async function PlayerDetailPage({
 
   const moments = (momentsResult.data ?? []) as unknown as KeyMoment[];
   const grades = (gradesResult.data ?? []) as AttributeGrade[];
-
-  // Build attribute map for Zone E
-  const attrMap = new Map<string, AttributeGrade>();
-  for (const g of grades) {
-    attrMap.set(g.attribute, g);
-  }
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -318,41 +282,8 @@ export default async function PlayerDetailPage({
         </div>
       )}
 
-      {/* Zone E: Attribute Grades */}
-      {grades.length > 0 && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Attribute Grades</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.entries(ATTRIBUTE_CATEGORIES).map(([category, attrs]) => {
-              const categoryGrades = attrs
-                .map((a) => attrMap.get(a))
-                .filter((g): g is AttributeGrade => g != null);
-              if (categoryGrades.length === 0) return null;
-              const color = CATEGORY_COLORS[category] ?? "var(--text-secondary)";
-              return (
-                <div key={category}>
-                  <h4
-                    className="text-[10px] font-semibold tracking-widest uppercase mb-2"
-                    style={{ color }}
-                  >
-                    {category}
-                  </h4>
-                  <div className="space-y-1">
-                    {categoryGrades.map((g) => (
-                      <AttributeBar
-                        key={g.attribute}
-                        label={g.attribute}
-                        value={g.scout_grade ?? g.stat_score ?? 0}
-                        color={color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Zone E: Attribute Grades — Progressive Disclosure */}
+      <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
 
       {/* Zone F: Scouting Notes + Status */}
       {(player.scouting_notes || player.squad_role || player.loan_status) && (

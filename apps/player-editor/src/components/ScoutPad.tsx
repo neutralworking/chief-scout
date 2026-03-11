@@ -62,10 +62,12 @@ export function ScoutPad({ scoutingNotes, squadRole, loanStatus, news }: ScoutPa
     <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
       {/* Tab bar */}
       {tabs.length > 1 && (
-        <div className="flex gap-4 mb-4 border-b border-[var(--border-subtle)] -mx-6 px-6">
+        <div className="flex gap-4 mb-4 border-b border-[var(--border-subtle)] -mx-6 px-6" role="tablist">
           {tabs.map((tab) => (
             <button
               key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`pb-2 text-[11px] font-semibold tracking-widest uppercase transition-colors relative ${
                 activeTab === tab.key
@@ -134,10 +136,10 @@ export function ScoutPad({ scoutingNotes, squadRole, loanStatus, news }: ScoutPa
               {news.map((story) => (
                 <a
                   key={story.id}
-                  href={story.url ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex gap-3 items-start px-2 py-2.5 -mx-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)] cursor-pointer block"
+                  href={story.url || undefined}
+                  target={story.url ? "_blank" : undefined}
+                  rel={story.url ? "noopener noreferrer" : undefined}
+                  className="flex gap-3 items-start px-2 py-2.5 -mx-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)] cursor-pointer"
                 >
                   {/* Sentiment dot */}
                   <div

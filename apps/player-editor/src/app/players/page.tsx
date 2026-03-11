@@ -89,7 +89,7 @@ function PlayersContent() {
     let result = allPlayers;
     if (position) result = result.filter((p) => p.position === position);
     if (pursuit) result = result.filter((p) => p.pursuit_status === pursuit);
-    if (tier) result = result.filter((p) => p.profile_tier === parseInt(tier, 10));
+    if (tier) { const t = parseInt(tier, 10); if (!isNaN(t)) result = result.filter((p) => p.profile_tier === t); }
     if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
     return sortPlayers(result, sort);
   }, [allPlayers, position, pursuit, tier, q, sort]);

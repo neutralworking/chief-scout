@@ -61,6 +61,9 @@ export function NewsModal({ moment, onClose }: NewsModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={headline}
     >
       <div
         className="relative w-full max-w-[560px] rounded-2xl p-6"
@@ -73,6 +76,7 @@ export function NewsModal({ moment, onClose }: NewsModalProps) {
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
         >
           &times;

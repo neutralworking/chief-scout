@@ -1,0 +1,29 @@
+{
+  "project": "chief-scout",
+  "title": "Chief Scout",
+  "subtitle": "Player Intelligence Platform",
+  "updated": "2026-03-10",
+  "status": "In Development",
+  "phase": "Phase 2 — Scouting Interface",
+  "url": "/chief-scout/players",
+  "prototypes": [
+    {
+      "id": "B1",
+      "name": "App Shell + Player List with Filters",
+      "status": "Shipped",
+      "date": "2026-03-10",
+      "summary": "Next.js scaffold with dark theme, player card grid, search/filter (position, pursuit, sort), player detail page with personality + archetype + market zones.",
+      "routes": ["/players", "/player?id="],
+      "components": 3,
+      "zones_built": 4,
+      "zones_total": 6,
+      "next": ["B3: Wire Supabase view end-to-end", "C1: Personality + Archetype hero components", "E1: Attribute drill-down"]
+    }
+  ],
+  "stack": {
+    "framework": "Next.js 16 (Static Export)",
+    "styling": "Tailwind CSS",
+    "data": "Supabase (client-side, anon key)",
+    "hosting": "GitHub Pages"
+  }
+}

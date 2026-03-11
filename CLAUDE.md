@@ -44,6 +44,17 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
 - `11_fbref_ingest.py` → FBRef season stats → `fbref_players/fbref_player_season_stats`. Flags: `--comp`, `--season`, `--seasons-back`, `--dry-run`, `--force`
 - `12_news_ingest.py` → RSS + Gemini Flash → `news_stories/news_player_tags`. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`, `--force`
+- `13_stat_metrics.py` → Computed stat metrics from external data
+- `14_seed_profiles.py` → Seed full player profiles (50 curated players with all 6 tables)
+- `15_wikidata_enrich.py` → Wikidata SPARQL → backfill DOB/height/foot + cross-link IDs. Flags: `--phase 1|2|3`, `--player`, `--force`, `--batch-size`
+- `16_club_ingest.py` → Parse `imports/clubs.csv` → `clubs` + `nations` tables. Flags: `--dry-run`, `--force`, `--parse-only`
+- `17_wikidata_clubs.py` → Wikidata SPARQL → enrich clubs with league, stadium, capacity, founded year, logo. Flags: `--dry-run`, `--force`, `--club`, `--limit`, `--batch-sparql`, `--verbose`. Requires migration `013_club_wikidata_columns.sql`.
+- `18_wikidata_player_clubs.py` → Batch-update player clubs from Wikidata P54. Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--batch-sparql`, `--verbose`.
+- `19_wikidata_deep_enrich.py` → Deep Wikidata enrichment: P27 (citizenship), P54 (career history), P413 (position), P18 (image), P2446 (Transfermarkt ID), P19 (birthplace). Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--phase identity|career`, `--batch-size`. Requires migration `014_wikidata_deep_enrich.sql`.
+- `20_seed_choices.py` → Seed Football Choices game questions and options. Flags: `--dry-run`, `--force`. Requires migration `015_football_choices.sql`.
+- `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
+- `23_career_metrics.py` → Career trajectory metrics from `player_career_history` → `career_metrics`. Computes loyalty/mobility scores (1-20), trajectory labels (rising/peak/declining/journeyman/one-club/newcomer), tenure stats. Flags: `--player`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
+- `24_news_sentiment.py` → News sentiment aggregation from `news_player_tags` → `news_sentiment_agg`. Computes sentiment/buzz scores (1-20), story type breakdown, 7d/30d trend windows. Flags: `--player`, `--days`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -53,6 +64,11 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging (migration 003 + 005) |
 | `fbref_players` + `fbref_player_season_stats` | FBRef | Season stats (35+ cols: xG, passing, defense, possession, GK) (migration 004) |
 | `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref) |
+| `player_nationalities` | Wikidata P27 | Dual/multiple citizenships per player (migration 014) |
+| `player_career_history` | Wikidata P54 | Full club career with dates, loan flags, jersey numbers (migration 014) |
+| `fc_users/questions/options/votes` | Football Choices | Tinder-style comparison game + user footballing identity (migration 015) |
+| `career_metrics` | Script 23 | Per-player career trajectory: loyalty/mobility scores, tenure stats, trajectory label (migration 016) |
+| `news_sentiment_agg` | Script 24 | Per-player news sentiment: buzz/sentiment scores, story types, trend windows (migration 016) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.
@@ -68,21 +84,38 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 | `/supabase` | DB Specialist | Queries, mutations, migrations, RLS debugging |
 | `/debugger` | Debugger | Error investigation, root cause analysis, fixes |
 | `/scout` | Chief Scout | Player assessments, comparisons, searches, data updates |
-| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-09 |
+| `/data-analyst` | Data Analyst | External data source expertise (StatsBomb, Understat, FBRef, Opta, Wikidata), metric interpretation, cross-source validation |
+| `/pipeline` | Pipeline Engineer | Run/debug/extend pipeline scripts 01-20 |
+| `/prototype-tracker` | Prototype Tracker | Log new prototypes, update status, review progress |
+| `/devops` | DevOps Engineer | Secrets management, service access, migrations, CI/CD, health checks |
+| `/db-migrate` | Migration Runner | Table cleanup, SQL migrations, before/after size reporting |
+| `/git-clean` | Git Housekeeper | Branch cleanup, stale refs, secrets audit, repo hygiene |
 
 **Workflow examples**:
 - Business: `/ceo` for strategy → `/marketing` for go-to-market → `/project-manager` to break down
 - Football: `/dof` for transfer priorities → `/scout` for player data → `/supabase` to query
+- Infrastructure: `/devops` to check credentials → `/pipeline` to run scripts → `/supabase` to verify
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)
-Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
+Browser-based pipeline management at `apps/player-editor/src/app/admin/page.tsx`.
 
 | Tab | Purpose | API Route |
 |---|---|---|
 | **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
 | **Pipeline** | Table row counts, sync timestamps, freshness indicators, FBRef sync log | `GET /api/admin/pipeline` |
 | **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
+
+## Football Choices (`/choices`)
+PWA-ready comparison game at `apps/player-editor/src/app/choices/page.tsx`.
+
+- Users pick between 2-5 player options per question
+- Builds a "Footballing Identity" profile from vote patterns
+- Categories: GOAT Debates, Best in Position, Era Wars, Transfer Picks, Tactical, Clutch, Style, Hypothetical
+- Anonymous users via localStorage UUID → `fc_users`
+- API routes: `GET /api/choices` (next question), `POST /api/choices/vote`, `GET /api/choices/categories`, `GET /api/choices/user`
+- PWA: `manifest.json` + `sw.js` for add-to-home-screen, offline caching
+- Seed questions: `python 20_seed_choices.py`
 
 CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Player matching uses normalized exact name matching (no fuzzy).
 

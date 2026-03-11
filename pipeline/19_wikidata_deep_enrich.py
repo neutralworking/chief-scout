@@ -88,6 +88,20 @@ def normalize(name: str) -> str:
     return name.lower().strip()
 
 
+def safe_date(date_str: str | None) -> str | None:
+    """Validate and return a date string, or None if invalid/out of range."""
+    if not date_str:
+        return None
+    try:
+        dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+        # Reject dates before 1850 or in the future
+        if dt.year < 1850 or dt > datetime.now():
+            return None
+        return date_str[:10]
+    except (ValueError, TypeError):
+        return None
+
+
 def sparql_query(query: str, retries: int = 2) -> list[dict]:
     """Execute a SPARQL query with retry on rate-limit."""
     for attempt in range(retries + 1):
@@ -305,8 +319,8 @@ def phase_career(qid_map: dict):
         t_uri = row["team"]["value"]
         t_qid = t_uri.split("/")[-1]
         t_label = row.get("teamLabel", {}).get("value", "")
-        start = row.get("start", {}).get("value", "")[:10] if "start" in row else None
-        end = row.get("end", {}).get("value", "")[:10] if "end" in row else None
+        start = safe_date(row.get("start", {}).get("value", "")) if "start" in row else None
+        end = safe_date(row.get("end", {}).get("value", "")) if "end" in row else None
         jersey = row.get("jersey", {}).get("value") if "jersey" in row else None
         loan_label = row.get("loanLabel", {}).get("value", "") if "loanLabel" in row else ""
         is_loan = "loan" in loan_label.lower() if loan_label else False

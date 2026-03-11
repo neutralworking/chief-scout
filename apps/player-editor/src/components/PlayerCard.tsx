@@ -5,6 +5,7 @@ import {
   PURSUIT_COLORS,
   POSITION_COLORS,
 } from "@/lib/types";
+import { PersonalityBadge } from "@/components/PersonalityBadge";
 
 function LevelBar({
   label,
@@ -90,25 +91,23 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           <LevelBar label="Peak" value={player.peak} />
         </div>
 
-        {/* Row 4: Archetype + Tier */}
+        {/* Row 4: Personality + Archetype + Tier */}
         <div className="flex items-center justify-between">
-          {player.archetype ? (
-            <span className="text-xs font-medium text-[var(--accent-tactical)]">
-              {player.archetype}
-            </span>
-          ) : (
-            <span className="text-xs text-[var(--text-muted)]">
-              No archetype
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            <PersonalityBadge personalityType={player.personality_type} size="compact" />
+            {player.archetype ? (
+              <span className="text-xs font-medium text-[var(--accent-tactical)]">
+                {player.archetype}
+              </span>
+            ) : (
+              <span className="text-xs text-[var(--text-muted)]">
+                No archetype
+              </span>
+            )}
+          </div>
           {player.profile_tier === 1 && (
             <span className="text-[9px] font-bold tracking-widest uppercase text-[var(--accent-personality)] border border-[var(--accent-personality)]/30 px-1.5 py-0.5 rounded">
               Scout Assessed
-            </span>
-          )}
-          {player.personality_type && (
-            <span className="text-xs font-mono font-bold tracking-widest text-[var(--accent-personality)]">
-              {player.personality_type}
             </span>
           )}
         </div>

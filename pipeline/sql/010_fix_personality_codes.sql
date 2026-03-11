@@ -7,6 +7,9 @@
 --
 -- Run in Supabase SQL Editor (Dashboard → SQL Editor).
 
+-- ── Fix column name: normalization renamed the FK constraint but not the column ──
+ALTER TABLE player_personality RENAME COLUMN player_id TO person_id;
+
 -- ── Update player_intelligence_card view ─────────────────────────────────────
 
 CREATE OR REPLACE VIEW player_intelligence_card AS

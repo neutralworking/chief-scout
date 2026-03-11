@@ -4,6 +4,10 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, PURSUIT_COLORS, POSITION_COLORS } from "@/lib/types";
 import { PlayerIdentityPanel } from "@/components/PlayerIdentityPanel";
 import { CompoundMetrics } from "@/components/CompoundMetrics";
+import { KeyMomentsList } from "@/components/KeyMomentsList";
+import type { KeyMoment } from "@/components/KeyMomentsList";
+import { ScoutPad } from "@/components/ScoutPad";
+import type { NewsStory } from "@/components/ScoutPad";
 
 interface IntelligenceCard {
   person_id: number;
@@ -41,41 +45,12 @@ interface IntelligenceCard {
   coachability: number | null;
 }
 
-interface KeyMoment {
-  id: number;
-  title: string;
-  description: string | null;
-  moment_date: string | null;
-  moment_type: string | null;
-  sentiment: string | null;
-  source_url: string | null;
-  news_story: {
-    title: string;
-    url: string | null;
-    summary: string | null;
-    published_at: string | null;
-  } | null;
-}
-
 interface AttributeGrade {
   attribute: string;
   scout_grade: number | null;
   stat_score: number | null;
 }
 
-
-const SENTIMENT_COLORS: Record<string, string> = {
-  positive: "var(--sentiment-positive)",
-  negative: "var(--sentiment-negative)",
-  neutral: "var(--sentiment-neutral)",
-};
-
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
 
 export default async function PlayerDetailPage({
   params,
@@ -90,7 +65,7 @@ export default async function PlayerDetailPage({
   }
 
   // Fetch all data in parallel
-  const [playerResult, momentsResult, gradesResult] = await Promise.all([
+  const [playerResult, momentsResult, gradesResult, newsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -106,13 +81,38 @@ export default async function PlayerDetailPage({
       .from("attribute_grades")
       .select("attribute, scout_grade, stat_score")
       .eq("player_id", playerId),
+    supabaseServer
+      .from("news_player_tags")
+      .select("story_type, confidence, sentiment, news_stories(id, headline, summary, source, url, published_at, story_type)")
+      .eq("player_id", playerId)
+      .order("news_stories(published_at)", { ascending: false })
+      .limit(20),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
   if (!player) notFound();
 
-  const moments = (momentsResult.data ?? []) as unknown as KeyMoment[];
+  const moments = (momentsResult.data ?? []).map((m: Record<string, unknown>) => ({
+    ...m,
+    news_story: Array.isArray(m.news_stories) ? m.news_stories[0] ?? null : m.news_stories ?? null,
+  })) as KeyMoment[];
   const grades = (gradesResult.data ?? []) as AttributeGrade[];
+  const news: NewsStory[] = [];
+  for (const t of (newsResult.data ?? []) as Record<string, unknown>[]) {
+    const story = t.news_stories as Record<string, unknown> | null;
+    if (!story) continue;
+    news.push({
+      id: story.id as string,
+      headline: story.headline as string,
+      summary: (story.summary as string | undefined) ?? null,
+      source: (story.source as string | undefined) ?? null,
+      url: (story.url as string | undefined) ?? null,
+      published_at: (story.published_at as string | undefined) ?? null,
+      story_type: (t.story_type as string | undefined) ?? (story.story_type as string | undefined) ?? null,
+      sentiment: (t.sentiment as string | undefined) ?? null,
+      confidence: (t.confidence as number | undefined) ?? null,
+    });
+  }
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -197,59 +197,7 @@ export default async function PlayerDetailPage({
       </div>
 
       {/* Zone C: Key Moments */}
-      {moments.length > 0 && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Key Moments</h3>
-          <div className="space-y-3">
-            {moments.map((m) => (
-              <div key={m.id} className="flex gap-3 items-start">
-                <div
-                  className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                  style={{ backgroundColor: SENTIMENT_COLORS[m.sentiment ?? "neutral"] ?? "var(--text-muted)" }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{m.title}</span>
-                    {m.moment_type && (
-                      <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">
-                        {m.moment_type}
-                      </span>
-                    )}
-                  </div>
-                  {m.description && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">{m.description}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-1">
-                    {m.moment_date && (
-                      <span className="text-[10px] text-[var(--text-muted)]">{formatDate(m.moment_date)}</span>
-                    )}
-                    {m.news_story && m.news_story.url && (
-                      <a
-                        href={m.news_story.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-[var(--accent-personality)] hover:underline"
-                      >
-                        Source
-                      </a>
-                    )}
-                    {!m.news_story && m.source_url && (
-                      <a
-                        href={m.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-[var(--accent-personality)] hover:underline"
-                      >
-                        Source
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <KeyMomentsList moments={moments} />
 
       {/* Zone D: Market Position */}
       {(player.market_value_tier || player.true_mvt) && (
@@ -285,25 +233,13 @@ export default async function PlayerDetailPage({
       {/* Zone E: Attribute Grades — Progressive Disclosure */}
       <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
 
-      {/* Zone F: Scouting Notes + Status */}
-      {(player.scouting_notes || player.squad_role || player.loan_status) && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">Scouting Notes</h3>
-          {(player.squad_role || player.loan_status) && (
-            <div className="flex gap-4 mb-3 text-xs text-[var(--text-secondary)]">
-              {player.squad_role && (
-                <div><span className="text-[var(--text-muted)]">Squad Role: </span><span className="font-medium">{player.squad_role}</span></div>
-              )}
-              {player.loan_status && (
-                <div><span className="text-[var(--text-muted)]">Loan: </span><span className="font-medium">{player.loan_status}</span></div>
-              )}
-            </div>
-          )}
-          {player.scouting_notes && (
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">{player.scouting_notes}</p>
-          )}
-        </div>
-      )}
+      {/* Zone F: Scout Pad (tabbed) */}
+      <ScoutPad
+        scoutingNotes={player.scouting_notes}
+        squadRole={player.squad_role}
+        loanStatus={player.loan_status}
+        news={news}
+      />
     </div>
   );
 }

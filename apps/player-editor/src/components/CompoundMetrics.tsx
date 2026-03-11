@@ -267,7 +267,7 @@ export function CompoundMetrics({ attributeGrades }: CompoundMetricsProps) {
 
       {/* Collapsed: category gauges */}
       {!expanded && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {compounds.map(([compound, models]) => {
             const allAttrs = models.flatMap((m) => MODEL_ATTRIBUTES[m] ?? []);
             const score = avgScore(attributeGrades, allAttrs);

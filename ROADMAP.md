@@ -6,7 +6,7 @@ A football scouting and management platform. The `transfer_availability` submodu
 ## Architecture
 ```
 chief-scout/
-├── pipeline/                ← data pipeline (7 numbered scripts)
+├── pipeline/                ← data pipeline (14 numbered scripts)
 ├── apps/player-editor/      ← Next.js player intelligence UI
 ├── prototypes/              ← prototype log + tracking (INDEX.md)
 ├── imports/                 ← CSV data (Real Players Active, clubs)
@@ -28,13 +28,18 @@ chief-scout/
 - [x] Add DoF decision columns
 - [x] Centralise credentials via `.env` + `config.py`
 - [x] Number pipeline scripts, add Makefile automation
+- [x] External data ingestion: StatsBomb, Understat, FBRef, News (scripts 08-12)
+- [x] Player matching across data sources (script 10)
 - [ ] Connect `supabase-fbref-scraper` output as additional data source
 
-## Phase 2 — Scouting Interface [IN PROGRESS]
-- [x] **B1: App shell** — Next.js scaffold, player list with filters, detail page (`prototypes/INDEX.md`)
+## Phase 2 — Scouting Interface [DONE]
+- [x] **B1: App shell** — Next.js scaffold, player list with filters, detail page
 - [x] **B3: Wire `player_intelligence_card` view end-to-end** — server components, Supabase queries, all zones populated
-- [x] **C1: `<PersonalityBadge>` + `<ArchetypeShape>` hero components** — football personality matrix (A/I, N/X, L/S, C/P), dimension bars, archetype model fit
+- [x] **C1: `<PersonalityBadge>` + `<ArchetypeShape>` hero components** — football personality matrix, dimension bars, archetype model fit
 - [x] **C3: `<PlayerIdentityPanel>` composite** — WHO + HOW paired in reusable layout
+- [x] **D3: `<KeyMomentsList>` + `<NewsModal>`** — sentiment dots, type badges, click-to-expand modal with story summary
+- [x] **E3-E4: Player list refinements** — debounced search (/ shortcut), tier filter, peak sort, clear filters
+- [x] **F1-F3: QA pass** — accessibility (ARIA roles on modal/tabs), responsive grids, input validation
 - [ ] B2: Design token refinement (Inter/JetBrains Mono fonts, spacing)
 - [ ] E1: Attribute detail drill-down with progressive disclosure
 - [ ] Build web dashboard from Dashboard.md spec
@@ -47,13 +52,18 @@ chief-scout/
 - [ ] Inbox event generator: scouting reports as game messages
 - [ ] Chief Scout role as NPC in DoF game
 
-## Phase 4 — News Layer
-- [ ] Create `news_stories` + `news_player_tags` Supabase tables (schema in `docs/design/news-layer.md`)
-- [ ] `08_news_ingest.py` — RSS fetch (BBC Sport, Sky Sports, Guardian) → deduplicate → insert
-- [ ] Gemini Flash tagging — extract player names + story type from headlines
-- [ ] Player name matching — fuzzy match against `players` table
-- [ ] Scout Pad integration — News tab on player card
+## Phase 4 — News Layer [IN PROGRESS]
+- [x] Create `news_stories` + `news_player_tags` Supabase tables (migration 003 + 005)
+- [x] `12_news_ingest.py` — RSS fetch + Gemini Flash tagging pipeline
+- [x] Player name matching against `people` table (script 10)
+- [x] **Scout Pad integration** — News tab on player card with tabbed UI, sentiment dots, story type badges
 - [ ] Director integration — transfer rumours as inbox events
+- [ ] News-driven alerts — surface breaking stories on player list
+
+## Phase 5 — Coverage Scaling [DONE]
+- [x] Scale player profiles from 23 → 50 (seed script 14)
+- [x] Fill positional gaps: CD (1→6), WD (3→8), CM (3→7), DM (3→5)
+- [x] Full position coverage: GK:4, CD:6, WD:8, DM:5, CM:7, WM:2, AM:2, WF:9, CF:7
 
 ## Connects to
 - `director/` — chief scout provides player data + scouting reports to the game

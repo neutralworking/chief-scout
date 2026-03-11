@@ -30,6 +30,12 @@ async function getAdminData() {
     fbrefPlayersResult,
     fbrefStatsResult,
     fbrefLinksResult,
+    // Club coverage
+    clubsTotalResult,
+    clubsWithNationResult,
+    clubsWithLeagueResult,
+    clubsWithWikidataResult,
+    clubsWithStadiumResult,
   ] = await Promise.all([
     // Quick Stats
     supabaseServer.from("people").select("id", { count: "exact", head: true }),
@@ -60,6 +66,12 @@ async function getAdminData() {
     supabaseServer.from("fbref_players").select("id", { count: "exact", head: true }),
     supabaseServer.from("fbref_player_season_stats").select("id", { count: "exact", head: true }),
     supabaseServer.from("player_id_links").select("id", { count: "exact", head: true }).eq("source", "fbref"),
+    // Club coverage
+    supabaseServer.from("clubs").select("id", { count: "exact", head: true }),
+    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("nation_id", "is", null),
+    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("league_name", "is", null),
+    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
+    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("stadium", "is", null),
   ]);
 
   const trackedPlayers = (trackedResult.data ?? []) as Pick<PlayerCardType, "person_id" | "position">[];
@@ -108,6 +120,13 @@ async function getAdminData() {
       },
     },
     positionCounts,
+    clubs: {
+      total: clubsTotalResult.count ?? 0,
+      withNation: clubsWithNationResult.count ?? 0,
+      withLeague: clubsWithLeagueResult.count ?? 0,
+      withWikidata: clubsWithWikidataResult.count ?? 0,
+      withStadium: clubsWithStadiumResult.count ?? 0,
+    },
   };
 }
 
@@ -128,7 +147,7 @@ export default async function AdminPage() {
     );
   }
 
-  const { stats, coverage, external, positionCounts } = data;
+  const { stats, coverage, external, positionCounts, clubs } = data;
   const maxDepth = Math.max(...Object.values(positionCounts), 1);
 
   return (
@@ -262,6 +281,54 @@ export default async function AdminPage() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Club Coverage */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+          Club Coverage
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-5">
+          {[
+            { label: "Total Clubs", value: clubs.total },
+            { label: "With Nation", value: clubs.withNation },
+            { label: "With League", value: clubs.withLeague },
+            { label: "Wikidata Enriched", value: clubs.withWikidata },
+            { label: "With Stadium", value: clubs.withStadium },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
+              <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+        <div className="space-y-3">
+          {[
+            { label: "Nation Linked", value: clubs.withNation, total: clubs.total },
+            { label: "League Assigned", value: clubs.withLeague, total: clubs.total },
+            { label: "Wikidata Enriched", value: clubs.withWikidata, total: clubs.total },
+            { label: "Stadium Data", value: clubs.withStadium, total: clubs.total },
+          ].map(({ label, value, total }) => {
+            const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+            return (
+              <div key={label}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-[var(--text-secondary)]">{label}</span>
+                  <span className="font-mono text-[var(--text-primary)]">{value.toLocaleString()} / {total.toLocaleString()} ({pct}%)</span>
+                </div>
+                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: pct >= 80 ? "var(--accent-tactical)" : pct >= 40 ? "var(--accent-physical, #f59e0b)" : "var(--sentiment-negative, #ef4444)",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

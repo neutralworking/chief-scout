@@ -106,7 +106,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 70, "sn": 30, "tf": 35, "jp": 65,
+            "ei": 70, "sn": 30, "tf": 35, "jp": 40,
             "competitiveness": 8, "coachability": 9,
         },
         "market": {
@@ -163,7 +163,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 40, "sn": 30, "tf": 55, "jp": 45,
+            "ei": 40, "sn": 55, "tf": 55, "jp": 35,
             "competitiveness": 9, "coachability": 8,
         },
         "market": {
@@ -221,7 +221,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 72, "sn": 40, "tf": 30, "jp": 75,
+            "ei": 72, "sn": 55, "tf": 40, "jp": 75,
             "competitiveness": 9, "coachability": 9,
         },
         "market": {
@@ -395,7 +395,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 35, "sn": 60, "tf": 55, "jp": 60,
+            "ei": 35, "sn": 60, "tf": 40, "jp": 60,
             "competitiveness": 8, "coachability": 6,
         },
         "market": {
@@ -453,7 +453,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 35, "sn": 55, "tf": 60, "jp": 70,
+            "ei": 55, "sn": 55, "tf": 55, "jp": 70,
             "competitiveness": 9, "coachability": 6,
         },
         "market": {
@@ -745,7 +745,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 45, "sn": 35, "tf": 45, "jp": 55,
+            "ei": 45, "sn": 35, "tf": 55, "jp": 55,
             "competitiveness": 7, "coachability": 7,
         },
         "market": {
@@ -861,7 +861,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 55, "sn": 30, "tf": 40, "jp": 55,
+            "ei": 45, "sn": 30, "tf": 55, "jp": 40,
             "competitiveness": 7, "coachability": 8,
         },
         "market": {
@@ -919,7 +919,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 72, "sn": 25, "tf": 35, "jp": 65,
+            "ei": 72, "sn": 25, "tf": 35, "jp": 42,
             "competitiveness": 8, "coachability": 9,
         },
         "market": {
@@ -977,7 +977,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 65, "sn": 25, "tf": 35, "jp": 60,
+            "ei": 65, "sn": 55, "tf": 55, "jp": 35,
             "competitiveness": 8, "coachability": 9,
         },
         "market": {
@@ -1269,7 +1269,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 72, "sn": 30, "tf": 35, "jp": 68,
+            "ei": 72, "sn": 55, "tf": 55, "jp": 68,
             "competitiveness": 8, "coachability": 8,
         },
         "market": {
@@ -1389,7 +1389,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 68, "sn": 30, "tf": 40, "jp": 70,
+            "ei": 68, "sn": 30, "tf": 55, "jp": 38,
             "competitiveness": 8, "coachability": 9,
         },
         "market": {
@@ -1446,7 +1446,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 45, "sn": 35, "tf": 60, "jp": 75,
+            "ei": 55, "sn": 35, "tf": 60, "jp": 75,
             "competitiveness": 9, "coachability": 7,
         },
         "market": {
@@ -1503,7 +1503,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 65, "sn": 30, "tf": 35, "jp": 55,
+            "ei": 65, "sn": 55, "tf": 40, "jp": 38,
             "competitiveness": 7, "coachability": 8,
         },
         "market": {
@@ -1560,7 +1560,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 55, "sn": 40, "tf": 45, "jp": 70,
+            "ei": 45, "sn": 40, "tf": 45, "jp": 70,
             "competitiveness": 8, "coachability": 8,
         },
         "market": {
@@ -1617,7 +1617,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 40, "sn": 35, "tf": 50, "jp": 65,
+            "ei": 40, "sn": 35, "tf": 40, "jp": 65,
             "competitiveness": 8, "coachability": 8,
         },
         "market": {
@@ -1674,7 +1674,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 35, "sn": 50, "tf": 55, "jp": 60,
+            "ei": 35, "sn": 50, "tf": 40, "jp": 35,
             "competitiveness": 7, "coachability": 7,
         },
         "market": {
@@ -1730,7 +1730,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 40, "sn": 55, "tf": 60, "jp": 55,
+            "ei": 40, "sn": 55, "tf": 40, "jp": 55,
             "competitiveness": 8, "coachability": 6,
         },
         "market": {
@@ -1843,7 +1843,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 70, "sn": 30, "tf": 35, "jp": 55,
+            "ei": 70, "sn": 55, "tf": 30, "jp": 68,
             "competitiveness": 7, "coachability": 7,
         },
         "market": {
@@ -1900,7 +1900,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 40, "sn": 50, "tf": 55, "jp": 65,
+            "ei": 52, "sn": 55, "tf": 40, "jp": 65,
             "competitiveness": 8, "coachability": 7,
         },
         "market": {
@@ -1956,7 +1956,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 60, "sn": 30, "tf": 40, "jp": 68,
+            "ei": 60, "sn": 30, "tf": 55, "jp": 68,
             "competitiveness": 8, "coachability": 8,
         },
         "market": {
@@ -2013,7 +2013,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 72, "sn": 22, "tf": 30, "jp": 50,
+            "ei": 72, "sn": 22, "tf": 55, "jp": 35,
             "competitiveness": 7, "coachability": 9,
         },
         "market": {
@@ -2184,7 +2184,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 45, "sn": 40, "tf": 50, "jp": 72,
+            "ei": 55, "sn": 55, "tf": 50, "jp": 72,
             "competitiveness": 9, "coachability": 7,
         },
         "market": {
@@ -2240,7 +2240,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 68, "sn": 25, "tf": 35, "jp": 55,
+            "ei": 68, "sn": 25, "tf": 55, "jp": 55,
             "competitiveness": 7, "coachability": 8,
         },
         "market": {
@@ -2297,7 +2297,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 55, "sn": 30, "tf": 40, "jp": 50,
+            "ei": 42, "sn": 55, "tf": 35, "jp": 38,
             "competitiveness": 7, "coachability": 9,
         },
         "market": {
@@ -2354,7 +2354,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 50, "sn": 35, "tf": 35, "jp": 70,
+            "ei": 40, "sn": 55, "tf": 35, "jp": 35,
             "competitiveness": 9, "coachability": 9,
         },
         "market": {
@@ -2525,7 +2525,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 55, "sn": 35, "tf": 45, "jp": 60,
+            "ei": 55, "sn": 55, "tf": 55, "jp": 35,
             "competitiveness": 8, "coachability": 8,
         },
         "market": {
@@ -2581,7 +2581,7 @@ PLAYERS = [
             "profile_tier": 2,
         },
         "personality": {
-            "ei": 45, "sn": 40, "tf": 55, "jp": 55,
+            "ei": 55, "sn": 55, "tf": 55, "jp": 38,
             "competitiveness": 7, "coachability": 7,
         },
         "market": {
@@ -2809,7 +2809,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 65, "sn": 25, "tf": 35, "jp": 68,
+            "ei": 65, "sn": 25, "tf": 55, "jp": 35,
             "competitiveness": 9, "coachability": 9,
         },
         "market": {
@@ -2866,7 +2866,7 @@ PLAYERS = [
             "profile_tier": 1,
         },
         "personality": {
-            "ei": 55, "sn": 30, "tf": 40, "jp": 55,
+            "ei": 40, "sn": 55, "tf": 60, "jp": 35,
             "competitiveness": 7, "coachability": 9,
         },
         "market": {

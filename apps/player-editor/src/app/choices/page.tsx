@@ -1,5 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ChoicesGame } from "@/components/ChoicesGame";
+import { AllTimeXI } from "@/components/AllTimeXI";
+import { ChoicesShell } from "@/components/ChoicesShell";
 import Link from "next/link";
 
 interface Category {
@@ -13,7 +15,7 @@ interface Category {
 
 export const metadata = {
   title: "Football Choices — Chief Scout",
-  description: "Pick your favourites. Build your footballing identity.",
+  description: "Build your All-Time XI. See how your picks compare.",
 };
 
 export default async function ChoicesPage() {
@@ -36,14 +38,14 @@ export default async function ChoicesPage() {
         &larr; Back to Dashboard
       </Link>
 
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Football Choices</h1>
         <p className="text-sm text-[var(--text-secondary)]">
-          Pick your favourites. Build your footballing identity.
+          Build your All-Time XI. See how your picks compare.
         </p>
       </div>
 
-      <ChoicesGame categories={categories} />
+      <ChoicesShell categories={categories} />
     </div>
   );
 }

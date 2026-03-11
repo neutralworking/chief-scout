@@ -31,8 +31,8 @@ export function PlayerIdentityPanel({
 }: PlayerIdentityPanelProps) {
   const gridClass =
     layout === "horizontal"
-      ? "grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[320px]"
-      : "flex flex-col gap-4";
+      ? "grid grid-cols-1 md:grid-cols-2 gap-3"
+      : "flex flex-col gap-3";
 
   return (
     <div
@@ -42,8 +42,8 @@ export function PlayerIdentityPanel({
           "linear-gradient(135deg, rgba(232,197,71,0.05) 0%, transparent 60%)",
       }}
     >
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4">
+        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
           Personality — WHO
         </h3>
         <PersonalityBadge
@@ -58,8 +58,8 @@ export function PlayerIdentityPanel({
         />
       </div>
 
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4">
+        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
           Archetype — HOW
         </h3>
         <ArchetypeShape

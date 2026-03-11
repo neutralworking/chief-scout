@@ -101,7 +101,7 @@ export function ScoutPad({ scoutingNotes, squadRole, loanStatus, news }: ScoutPa
 
       {/* Notes tab */}
       {activeTab === "notes" && hasNotes && (
-        <div>
+        <div className="max-h-80 overflow-y-auto">
           {(squadRole || loanStatus) && (
             <div className="flex gap-4 mb-3 text-xs text-[var(--text-secondary)]">
               {squadRole && (

@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: "Leagues", href: "/leagues" },
   { label: "Formations", href: "/formations" },
   { label: "News Feed", href: "/news" },
+  { label: "Choices", href: "/choices" },
   { label: "Admin", href: "/admin" },
 ];
 

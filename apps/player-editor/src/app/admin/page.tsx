@@ -1,6 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
+import { AdminActions } from "@/components/AdminActions";
 
 async function getAdminData() {
   if (!supabaseServer) return null;
@@ -134,6 +135,11 @@ export default async function AdminPage() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-1">Admin</h1>
       <p className="text-sm text-[var(--text-secondary)] mb-6">Pipeline & Data Health</p>
+
+      {/* Admin Actions — Client Component */}
+      <div className="mb-6">
+        <AdminActions />
+      </div>
 
       {/* Quick Stats */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">

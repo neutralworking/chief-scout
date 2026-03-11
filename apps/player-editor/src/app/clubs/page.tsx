@@ -25,7 +25,7 @@ export default async function ClubsPage() {
   }
 
   // Get club details for clubs that have players
-  const clubIds = [...clubCounts.keys()].slice(0, 500);
+  const clubIds = [...clubCounts.keys()].slice(0, 2000);
   const { data: clubs } = await supabaseServer
     .from("clubs")
     .select("id, clubname, Nation")
@@ -42,7 +42,7 @@ export default async function ClubsPage() {
       <h1 className="text-2xl font-bold tracking-tight mb-1">Clubs</h1>
       <p className="text-xs text-[var(--text-secondary)] mb-6">{clubRows.length} clubs with players in database</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
         {clubRows.map((club) => (
           <Link
             key={club.id}

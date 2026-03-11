@@ -48,7 +48,7 @@ metrics:
 wikidata:
 	cd $(PIPELINE) && $(PYTHON) 15_wikidata_enrich.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news metrics wikidata
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

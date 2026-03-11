@@ -18,7 +18,7 @@ async function getDashboardData() {
       .from("news_stories")
       .select("id, title, url, published_at, summary")
       .order("published_at", { ascending: false })
-      .limit(3),
+      .limit(5),
   ]);
 
   const players = (playersResult.data ?? []) as PlayerCardType[];
@@ -37,17 +37,10 @@ async function getDashboardData() {
   }
 
   // Quick stats
-  const totalResult = await supabaseServer
-    .from("people")
-    .select("id", { count: "exact", head: true });
-  const tier1Result = await supabaseServer
-    .from("player_profiles")
-    .select("person_id", { count: "exact", head: true })
-    .eq("profile_tier", 1);
-  const fbrefResult = await supabaseServer
-    .from("player_id_links")
-    .select("person_id", { count: "exact", head: true })
-    .eq("source", "fbref");
+  const [totalResult, fullProfilesResult] = await Promise.all([
+    supabaseServer.from("people").select("id", { count: "exact", head: true }),
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
+  ]);
 
   return {
     pipeline,
@@ -55,8 +48,7 @@ async function getDashboardData() {
     news,
     stats: {
       total: totalResult.count ?? 0,
-      tier1: tier1Result.count ?? 0,
-      fbref: fbrefResult.count ?? 0,
+      fullProfiles: fullProfilesResult.count ?? 0,
       priority: pipeline["Priority"]?.length ?? 0,
       tracked: players.length,
     },
@@ -74,7 +66,7 @@ export default async function DashboardPage() {
 
   if (!data) {
     return (
-      <div className="max-w-5xl">
+      <div>
         <h1 className="text-2xl font-bold tracking-tight mb-4">Dashboard</h1>
         <p className="text-sm text-[var(--text-secondary)]">Supabase not configured.</p>
       </div>
@@ -85,78 +77,93 @@ export default async function DashboardPage() {
   const maxDepth = Math.max(...Object.values(positionCounts), 1);
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <h1 className="text-2xl font-bold tracking-tight mb-6">Dashboard</h1>
 
-      {/* W1: Pursuit Pipeline */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
-        <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
-          Pursuit Pipeline
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {PIPELINE_STATUSES.map((status) => {
-            const players = pipeline[status] ?? [];
-            const pursuitColor = PURSUIT_COLORS[status] ?? "";
-            return (
-              <div key={status}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}>
-                    {status}
-                  </span>
-                  <span className="text-xs text-[var(--text-muted)]">{players.length}</span>
-                </div>
-                <div className="space-y-1.5">
-                  {players.slice(0, 5).map((p) => {
-                    const posColor = POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60";
-                    return (
-                      <Link
-                        key={p.person_id}
-                        href={`/players/${p.person_id}`}
-                        className="flex items-center gap-2 p-2 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors group"
-                      >
-                        <span className={`text-[9px] font-bold tracking-wider px-1 py-0.5 rounded ${posColor} text-white`}>
-                          {p.position ?? "–"}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-white">
-                            {p.name}
-                          </div>
-                          <div className="text-[10px] text-[var(--text-muted)] truncate">
-                            {p.club}{p.archetype ? ` · ${p.archetype}` : ""}
-                          </div>
-                        </div>
-                        {p.level != null && (
-                          <span className="text-xs font-mono text-[var(--text-secondary)]">{p.level}</span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                  {players.length === 0 && (
-                    <p className="text-xs text-[var(--text-muted)] py-2">No players</p>
-                  )}
-                  {players.length > 5 && (
-                    <Link
-                      href={`/players?pursuit=${encodeURIComponent(status)}`}
-                      className="text-[10px] text-[var(--accent-personality)] hover:underline block pt-1"
-                    >
-                      View all {players.length} &rarr;
-                    </Link>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* Row 1: Key metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Database", value: stats.total.toLocaleString() },
+          { label: "Full Profiles", value: stats.fullProfiles.toLocaleString() },
+          { label: "Tracked", value: stats.tracked.toString() },
+          { label: "Priority", value: stats.priority.toString() },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mb-1">{label}</p>
+            <p className="text-2xl font-mono font-bold text-[var(--text-primary)]">{value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Row 2: Position Depth + Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        {/* W2: Position Depth */}
-        <div className="md:col-span-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
+      {/* Row 2: Scouting Targets + Position Depth */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        {/* Scouting Targets — 2 cols */}
+        <div className="lg:col-span-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+            Scouting Targets
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PIPELINE_STATUSES.map((status) => {
+              const players = pipeline[status] ?? [];
+              const pursuitColor = PURSUIT_COLORS[status] ?? "";
+              return (
+                <div key={status}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-[10px] font-bold tracking-wide px-2 py-0.5 rounded ${pursuitColor}`}>
+                      {status}
+                    </span>
+                    <span className="text-sm font-mono text-[var(--text-secondary)]">{players.length}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {players.slice(0, 5).map((p) => {
+                      const posColor = POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60";
+                      return (
+                        <Link
+                          key={p.person_id}
+                          href={`/players/${p.person_id}`}
+                          className="flex items-center gap-2 p-2 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors group"
+                        >
+                          <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
+                            {p.position ?? "–"}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-white">
+                              {p.name}
+                            </p>
+                            <p className="text-xs text-[var(--text-secondary)] truncate">
+                              {p.club}{p.archetype ? ` · ${p.archetype}` : ""}
+                            </p>
+                          </div>
+                          {p.level != null && (
+                            <span className="text-sm font-mono text-[var(--text-secondary)]">{p.level}</span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                    {players.length === 0 && (
+                      <p className="text-sm text-[var(--text-muted)] py-2">No players</p>
+                    )}
+                    {players.length > 5 && (
+                      <Link
+                        href={`/players?pursuit=${encodeURIComponent(status)}`}
+                        className="text-xs text-[var(--accent-personality)] hover:underline block pt-1"
+                      >
+                        View all {players.length} &rarr;
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Position Depth */}
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
             Position Depth
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {POSITIONS.map((pos) => {
               const count = positionCounts[pos] ?? 0;
               const pct = (count / maxDepth) * 100;
@@ -177,55 +184,34 @@ export default async function DashboardPage() {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className={`text-xs font-mono w-8 text-right ${isWeak ? "text-[var(--sentiment-negative)]" : "text-[var(--text-secondary)]"}`}>
+                  <span className={`text-sm font-mono w-8 text-right ${isWeak ? "text-[var(--sentiment-negative)]" : "text-[var(--text-secondary)]"}`}>
                     {count}
                   </span>
                   {isWeak && (
-                    <span className="text-[9px] text-[var(--sentiment-negative)]">gap</span>
+                    <span className="text-[10px] font-medium text-[var(--sentiment-negative)]">gap</span>
                   )}
                 </Link>
               );
             })}
           </div>
         </div>
-
-        {/* W3: Quick Stats */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-          <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
-            Quick Stats
-          </h2>
-          <div className="space-y-3">
-            {[
-              { label: "Total Players", value: stats.total },
-              { label: "Tracked", value: stats.tracked },
-              { label: "Priority", value: stats.priority },
-              { label: "Tier 1 Profiles", value: stats.tier1 },
-              { label: "FBRef Linked", value: stats.fbref },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-xs text-[var(--text-secondary)]">{label}</span>
-                <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
-      {/* W4: Recent News */}
+      {/* Row 3: Recent News */}
       {news.length > 0 && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
               Recent News
             </h2>
-            <Link href="/news" className="text-[10px] text-[var(--accent-personality)] hover:underline">
+            <Link href="/news" className="text-xs text-[var(--accent-personality)] hover:underline">
               All news &rarr;
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {news.map((story) => (
               <div key={story.id} className="flex items-start gap-3">
-                <span className="text-[10px] text-[var(--text-muted)] w-12 shrink-0 pt-0.5">
+                <span className="text-xs text-[var(--text-muted)] w-14 shrink-0 pt-0.5">
                   {formatDate(story.published_at)}
                 </span>
                 <div className="min-w-0">

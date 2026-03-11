@@ -59,7 +59,7 @@ function PlayersContent() {
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "pursuit";
+  const sort = searchParams.get("sort") ?? "level";
   const tier = searchParams.get("tier") ?? "";
   const fullOnly = searchParams.get("full") === "1";
 
@@ -74,7 +74,10 @@ function PlayersContent() {
         .from("player_intelligence_card")
         .select(
           "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
-        );
+        )
+        .not("level", "is", null)
+        .order("level", { ascending: false })
+        .limit(2000);
 
       if (fetchError) {
         setError(`Supabase error: ${fetchError.message}. Check RLS policies (run migration 009).`);

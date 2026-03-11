@@ -13,7 +13,7 @@ export function PlayerFilters() {
   const currentPosition = searchParams.get("position") ?? "";
   const currentPursuit = searchParams.get("pursuit") ?? "";
   const currentSearch = searchParams.get("q") ?? "";
-  const currentSort = searchParams.get("sort") ?? "pursuit";
+  const currentSort = searchParams.get("sort") ?? "level";
   const currentTier = searchParams.get("tier") ?? "";
   const fullOnly = searchParams.get("full") === "1";
 

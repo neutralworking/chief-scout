@@ -14,6 +14,14 @@ const NAV_ITEMS = [
     href: "/players",
   },
   {
+    label: "Clubs",
+    href: "/clubs",
+  },
+  {
+    label: "Leagues",
+    href: "/leagues",
+  },
+  {
     label: "Formations",
     href: "/formations",
   },

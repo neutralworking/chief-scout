@@ -1,499 +1,223 @@
-"use client";
+import { supabaseServer } from "@/lib/supabase-server";
+import { POSITIONS, POSITION_COLORS } from "@/lib/types";
+import type { PlayerCard as PlayerCardType } from "@/lib/types";
 
-import { useCallback, useEffect, useState } from "react";
+async function getAdminData() {
+  if (!supabaseServer) return null;
 
-// ── Types ────────────────────────────────────────────────────────────────────
+  const [
+    totalPeopleResult,
+    tier1Result,
+    fullProfilesResult,
+    fbrefLinkedResult,
+    trackedResult,
+    sbCompResult,
+    sbMatchResult,
+    sbEventResult,
+    usMatchResult,
+    usStatsResult,
+    fbrefPlayersResult,
+    fbrefStatsResult,
+    fbrefLinksResult,
+  ] = await Promise.all([
+    // Quick Stats
+    supabaseServer.from("people").select("id", { count: "exact", head: true }),
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).eq("profile_tier", 1),
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
+    supabaseServer.from("player_id_links").select("id", { count: "exact", head: true }).eq("source", "fbref"),
+    supabaseServer
+      .from("player_intelligence_card")
+      .select("person_id, position")
+      .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]),
+    // External Data Sources — StatsBomb
+    supabaseServer.from("sb_competitions").select("id", { count: "exact", head: true }),
+    supabaseServer.from("sb_matches").select("id", { count: "exact", head: true }),
+    supabaseServer.from("sb_events").select("id", { count: "exact", head: true }),
+    // External Data Sources — Understat
+    supabaseServer.from("understat_matches").select("id", { count: "exact", head: true }),
+    supabaseServer.from("understat_player_match_stats").select("id", { count: "exact", head: true }),
+    // External Data Sources — FBRef
+    supabaseServer.from("fbref_players").select("id", { count: "exact", head: true }),
+    supabaseServer.from("fbref_player_season_stats").select("id", { count: "exact", head: true }),
+    supabaseServer.from("player_id_links").select("id", { count: "exact", head: true }).eq("source", "fbref"),
+  ]);
 
-interface PipelineData {
-  counts: Record<string, { label: string; count: number | null }>;
-  sourceCounts: Record<string, number>;
-}
+  const trackedPlayers = (trackedResult.data ?? []) as Pick<PlayerCardType, "person_id" | "position">[];
 
-interface HealthData {
-  totalPeople: number;
-  coverage: {
-    profiles: number;
-    personality: number;
-    market: number;
-    status: number;
-    attributes: number;
-    wikidata: number;
-    fbref: number;
-    fullProfiles: number;
+  // Position depth from tracked players
+  const positionCounts: Record<string, number> = {};
+  for (const pos of POSITIONS) {
+    positionCounts[pos] = trackedPlayers.filter((p) => p.position === pos).length;
+  }
+
+  return {
+    stats: {
+      totalPlayers: totalPeopleResult.count ?? 0,
+      tier1Profiles: tier1Result.count ?? 0,
+      fullProfiles: fullProfilesResult.count ?? 0,
+      fbrefLinked: fbrefLinkedResult.count ?? 0,
+      tracked: trackedPlayers.length,
+    },
+    external: {
+      statsbomb: {
+        competitions: sbCompResult.count ?? 0,
+        matches: sbMatchResult.count ?? 0,
+        events: sbEventResult.count ?? 0,
+      },
+      understat: {
+        matches: usMatchResult.count ?? 0,
+        playerStats: usStatsResult.count ?? 0,
+      },
+      fbref: {
+        players: fbrefPlayersResult.count ?? 0,
+        seasonStats: fbrefStatsResult.count ?? 0,
+        links: fbrefLinksResult.count ?? 0,
+      },
+    },
+    positionCounts,
   };
 }
 
-type Tab = "pipeline" | "health" | "import";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
+function fmt(n: number): string {
+  return n === 0 ? "\u2013" : n.toLocaleString();
 }
 
-function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.trim().split("\n");
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
-  return lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim());
-    const row: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      row[h] = values[i] ?? "";
-    });
-    return row;
-  });
-}
+export default async function AdminPage() {
+  const data = await getAdminData();
 
-function numOrNull(v: string | undefined): number | null {
-  if (!v || v === "") return null;
-  const n = parseFloat(v);
-  return isNaN(n) ? null : n;
-}
-
-// ── Components ───────────────────────────────────────────────────────────────
-
-function CoverageBar({
-  label,
-  value,
-  total,
-}: {
-  label: string;
-  value: number;
-  total: number;
-}) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-  return (
-    <div className="mb-3">
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-text-secondary">{label}</span>
-        <span className="text-text-primary font-mono">
-          {value}/{total} ({pct}%)
-        </span>
+  if (!data) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">Admin</h1>
+        <p className="text-sm text-[var(--text-secondary)] mb-6">Pipeline & Data Health</p>
+        <p className="text-sm text-[var(--text-secondary)]">Supabase not configured.</p>
       </div>
-      <div className="h-2 bg-bg-elevated rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${pct}%`,
-            backgroundColor:
-              pct >= 80
-                ? "var(--accent-tactical)"
-                : pct >= 40
-                  ? "var(--accent-physical)"
-                  : "var(--pursuit-priority)",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+    );
+  }
 
-// ── Pipeline Tab ─────────────────────────────────────────────────────────────
-
-function PipelineTab() {
-  const [data, setData] = useState<PipelineData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/pipeline")
-      .then((r) => {
-        if (!r.ok) throw new Error(`${r.status}`);
-        return r.json();
-      })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <p className="text-text-secondary">Loading pipeline data...</p>;
-  if (error) return <p className="text-pursuit-priority">Error: {error}</p>;
-  if (!data) return null;
-
-  const coreOrder = ["people", "player_profiles", "player_personality", "player_market", "player_status", "attribute_grades"];
-  const linkOrder = ["player_id_links", "fbref_players", "fbref_player_season_stats"];
-  const externalOrder = ["news_stories", "news_player_tags", "sb_events", "sb_lineups", "understat_player_match_stats"];
-
-  const renderGroup = (title: string, keys: string[]) => (
-    <div className="mb-6">
-      <h3 className="text-xs font-semibold tracking-widest uppercase text-text-muted mb-3">
-        {title}
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {keys.map((key) => {
-          const item = data.counts[key];
-          if (!item) return null;
-          return (
-            <div
-              key={key}
-              className="p-3 rounded-lg border border-[var(--border-subtle)] bg-bg-surface"
-            >
-              <p className="text-xs text-text-secondary">{item.label}</p>
-              <p className="text-xl font-mono text-text-primary mt-1">
-                {item.count !== null ? item.count.toLocaleString() : "?"}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const { stats, external, positionCounts } = data;
+  const maxDepth = Math.max(...Object.values(positionCounts), 1);
 
   return (
     <div>
-      {renderGroup("Core Player Data", coreOrder)}
-      {renderGroup("ID Links & FBRef", linkOrder)}
-      {renderGroup("External Data", externalOrder)}
+      <h1 className="text-2xl font-bold tracking-tight mb-1">Admin</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">Pipeline & Data Health</p>
 
-      {Object.keys(data.sourceCounts).length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xs font-semibold tracking-widest uppercase text-text-muted mb-3">
-            ID Links by Source
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(data.sourceCounts)
-              .sort(([, a], [, b]) => b - a)
-              .map(([source, count]) => (
-                <div
-                  key={source}
-                  className="p-3 rounded-lg border border-[var(--border-subtle)] bg-bg-surface"
-                >
-                  <p className="text-xs text-text-secondary">{source}</p>
-                  <p className="text-lg font-mono text-text-primary mt-1">
-                    {count.toLocaleString()}
-                  </p>
+      {/* Quick Stats */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+          Quick Stats
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          {[
+            { label: "Total Players", value: stats.totalPlayers },
+            { label: "Tier 1 Profiles", value: stats.tier1Profiles },
+            { label: "Full Profiles", value: stats.fullProfiles },
+            { label: "FBRef Linked", value: stats.fbrefLinked },
+            { label: "Tracked", value: stats.tracked },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
+              <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* External Data Sources */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+          External Data Sources
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* StatsBomb */}
+          <div className="border-l-4 border-blue-500 pl-4">
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">StatsBomb</p>
+            <div className="space-y-2">
+              {[
+                { label: "Competitions", value: external.statsbomb.competitions },
+                { label: "Matches", value: external.statsbomb.matches },
+                { label: "Events", value: external.statsbomb.events },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Understat */}
+          <div className="border-l-4 border-green-500 pl-4">
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">Understat</p>
+            <div className="space-y-2">
+              {[
+                { label: "Matches", value: external.understat.matches },
+                { label: "Player Match Stats", value: external.understat.playerStats },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FBRef */}
+          <div className="border-l-4 border-amber-500 pl-4">
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">FBRef</p>
+            <div className="space-y-2">
+              {[
+                { label: "Players", value: external.fbref.players },
+                { label: "Season Stats", value: external.fbref.seasonStats },
+                { label: "Linked to People", value: external.fbref.links },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-// ── Health Tab ───────────────────────────────────────────────────────────────
-
-function HealthTab() {
-  const [data, setData] = useState<HealthData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/health")
-      .then((r) => {
-        if (!r.ok) throw new Error(`${r.status}`);
-        return r.json();
-      })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <p className="text-text-secondary">Loading health data...</p>;
-  if (error) return <p className="text-pursuit-priority">Error: {error}</p>;
-  if (!data) return null;
-
-  const { totalPeople, coverage } = data;
-
-  return (
-    <div>
-      {/* North star */}
-      <div className="mb-8 p-6 rounded-lg border-2 border-[var(--accent-personality)] bg-bg-surface">
-        <p className="text-xs font-semibold tracking-widest uppercase text-accent-personality mb-1">
-          North Star — Full Profiles
-        </p>
-        <p className="text-4xl font-mono text-text-primary">
-          {coverage.fullProfiles}
-          <span className="text-lg text-text-muted ml-2">/ {totalPeople} people</span>
-        </p>
-        <p className="text-sm text-text-secondary mt-1">
-          Players with profile + personality + market + status + attributes
-        </p>
       </div>
 
-      {/* Coverage bars */}
-      <div className="p-4 rounded-lg border border-[var(--border-subtle)] bg-bg-surface">
-        <h3 className="text-xs font-semibold tracking-widest uppercase text-text-muted mb-4">
-          Coverage Breakdown
-        </h3>
-        <CoverageBar label="Profiles" value={coverage.profiles} total={totalPeople} />
-        <CoverageBar label="Personality" value={coverage.personality} total={totalPeople} />
-        <CoverageBar label="Market Data" value={coverage.market} total={totalPeople} />
-        <CoverageBar label="Status" value={coverage.status} total={totalPeople} />
-        <CoverageBar label="Attribute Grades" value={coverage.attributes} total={totalPeople} />
-        <CoverageBar label="Wikidata ID" value={coverage.wikidata} total={totalPeople} />
-        <CoverageBar label="FBRef Linked" value={coverage.fbref} total={totalPeople} />
-      </div>
-    </div>
-  );
-}
-
-// ── Import Tab ───────────────────────────────────────────────────────────────
-
-function ImportTab() {
-  const [file, setFile] = useState<File | null>(null);
-  const [season, setSeason] = useState("2025-2026");
-  const [compId, setCompId] = useState("9");
-  const [preview, setPreview] = useState<Record<string, string>[] | null>(null);
-  const [status, setStatus] = useState<{
-    type: "idle" | "parsing" | "uploading" | "success" | "error";
-    message: string;
-  }>({ type: "idle", message: "" });
-
-  const handleFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
-      setFile(f);
-      setStatus({ type: "parsing", message: "Parsing CSV..." });
-
-      const text = await f.text();
-      const rows = parseCSV(text);
-      setPreview(rows.slice(0, 5));
-      setStatus({
-        type: "idle",
-        message: `Parsed ${rows.length} rows. Review preview then click Import.`,
-      });
-    },
-    []
-  );
-
-  const handleImport = useCallback(async () => {
-    if (!file) return;
-    setStatus({ type: "uploading", message: "Uploading..." });
-
-    const text = await file.text();
-    const rows = parseCSV(text);
-
-    const players = rows.map((r) => {
-      const nameSlug = slugify(r.player || r.name || "");
-      const teamSlug = slugify(r.squad || r.team || "");
-      const fbrefId =
-        r.fbref_id || `csv_${compId}_${season}_${teamSlug}_${nameSlug}`;
-
-      return {
-        fbref_id: fbrefId,
-        name: r.player || r.name || "",
-        nation: r.nation || r.nationality || null,
-        position: r.pos || r.position || null,
-        team: r.squad || r.team || null,
-        comp_id: compId,
-        season: season,
-        age: numOrNull(r.age),
-        born: numOrNull(r.born),
-        minutes: numOrNull(r.min || r.minutes),
-        goals: numOrNull(r.gls || r.goals),
-        assists: numOrNull(r.ast || r.assists),
-        xg: numOrNull(r.xg),
-        xag: numOrNull(r.xag),
-        npxg: numOrNull(r.npxg),
-        progressive_carries: numOrNull(r.prgc || r.progressive_carries),
-        progressive_passes: numOrNull(r.prgp || r.progressive_passes),
-        progressive_passes_received: numOrNull(
-          r.prgr || r.progressive_passes_received
-        ),
-      };
-    });
-
-    try {
-      const resp = await fetch("/api/admin/fbref-import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ players, season, comp_id: compId }),
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || `HTTP ${resp.status}`);
-      }
-
-      const result = await resp.json();
-      setStatus({
-        type: "success",
-        message: `Imported ${result.imported} players for ${result.season} (comp ${result.comp_id}).`,
-      });
-    } catch (e) {
-      setStatus({
-        type: "error",
-        message: `Import failed: ${e instanceof Error ? e.message : String(e)}`,
-      });
-    }
-  }, [file, season, compId]);
-
-  const COMP_OPTIONS = [
-    { value: "9", label: "Premier League" },
-    { value: "12", label: "La Liga" },
-    { value: "20", label: "Bundesliga" },
-    { value: "11", label: "Serie A" },
-    { value: "13", label: "Ligue 1" },
-    { value: "22", label: "Eredivisie" },
-    { value: "32", label: "Primeira Liga" },
-  ];
-
-  return (
-    <div>
-      <p className="text-sm text-text-secondary mb-4">
-        Upload a FBRef CSV export. The file is parsed client-side, then upserted
-        to <code className="text-accent-technical">fbref_players</code> and{" "}
-        <code className="text-accent-technical">
-          fbref_player_season_stats
-        </code>
-        .
-      </p>
-
-      {/* Config */}
-      <div className="flex gap-4 mb-4">
-        <div>
-          <label className="block text-xs text-text-muted mb-1">Season</label>
-          <input
-            type="text"
-            value={season}
-            onChange={(e) => setSeason(e.target.value)}
-            className="px-3 py-1.5 rounded bg-bg-elevated border border-[var(--border-subtle)] text-text-primary text-sm font-mono w-32"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-text-muted mb-1">
-            Competition
-          </label>
-          <select
-            value={compId}
-            onChange={(e) => setCompId(e.target.value)}
-            className="px-3 py-1.5 rounded bg-bg-elevated border border-[var(--border-subtle)] text-text-primary text-sm"
-          >
-            {COMP_OPTIONS.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+      {/* Position Depth */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
+          Position Depth
+        </h2>
+        <div className="space-y-2.5">
+          {POSITIONS.map((pos) => {
+            const count = positionCounts[pos] ?? 0;
+            const pct = (count / maxDepth) * 100;
+            const posColor = POSITION_COLORS[pos] ?? "bg-zinc-700/60";
+            const isWeak = count < 2;
+            return (
+              <div
+                key={pos}
+                className="flex items-center gap-3 -mx-2 px-2 py-0.5 rounded"
+              >
+                <span className={`text-[10px] font-bold tracking-wider w-7 text-center px-1 py-0.5 rounded ${posColor} text-white`}>
+                  {pos}
+                </span>
+                <div className="flex-1 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${isWeak ? "bg-[var(--sentiment-negative)]/70" : "bg-[var(--text-primary)]/40"}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <span className={`text-sm font-mono w-8 text-right ${isWeak ? "text-[var(--sentiment-negative)]" : "text-[var(--text-secondary)]"}`}>
+                  {count}
+                </span>
+                {isWeak && (
+                  <span className="text-[10px] font-medium text-[var(--sentiment-negative)]">gap</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      {/* File input */}
-      <div className="mb-4">
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFile}
-          className="block w-full text-sm text-text-secondary
-            file:mr-4 file:py-2 file:px-4 file:rounded file:border-0
-            file:text-sm file:font-semibold file:bg-bg-elevated
-            file:text-text-primary hover:file:bg-bg-surface
-            file:cursor-pointer file:transition-colors"
-        />
-      </div>
-
-      {/* Preview */}
-      {preview && preview.length > 0 && (
-        <div className="mb-4 overflow-x-auto">
-          <p className="text-xs text-text-muted mb-2">
-            Preview (first 5 rows):
-          </p>
-          <table className="text-xs w-full">
-            <thead>
-              <tr className="border-b border-[var(--border-subtle)]">
-                {Object.keys(preview[0]).map((h) => (
-                  <th
-                    key={h}
-                    className="px-2 py-1 text-left text-text-muted font-mono"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {preview.map((row, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-[var(--border-subtle)]/50"
-                >
-                  {Object.values(row).map((v, j) => (
-                    <td key={j} className="px-2 py-1 text-text-secondary">
-                      {v}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Import button */}
-      <button
-        onClick={handleImport}
-        disabled={!file || status.type === "uploading"}
-        className="px-4 py-2 rounded bg-accent-tactical text-bg-base text-sm font-semibold
-          disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition-all"
-      >
-        {status.type === "uploading" ? "Importing..." : "Import to Supabase"}
-      </button>
-
-      {/* Status */}
-      {status.message && (
-        <p
-          className={`mt-3 text-sm ${
-            status.type === "error"
-              ? "text-pursuit-priority"
-              : status.type === "success"
-                ? "text-accent-tactical"
-                : "text-text-secondary"
-          }`}
-        >
-          {status.message}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ── Admin Page ───────────────────────────────────────────────────────────────
-
-export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>("pipeline");
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "pipeline", label: "Pipeline" },
-    { key: "health", label: "Data Health" },
-    { key: "import", label: "Import" },
-  ];
-
-  return (
-    <div className="max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-text-primary">Admin</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          Pipeline status, data health, and CSV import
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-[var(--border-subtle)]">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t.key
-                ? "text-text-primary border-accent-personality"
-                : "text-text-secondary border-transparent hover:text-text-primary"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
-      {tab === "pipeline" && <PipelineTab />}
-      {tab === "health" && <HealthTab />}
-      {tab === "import" && <ImportTab />}
     </div>
   );
 }

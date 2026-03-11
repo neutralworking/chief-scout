@@ -2907,22 +2907,29 @@ PLAYERS = [
 
 # ── SQL templates ────────────────────────────────────────────────────────────
 
-SQL_UPSERT_PERSON = """
-INSERT INTO people (name, dob, height_cm, preferred_foot, nation_id, club_id, active)
+SQL_FIND_PERSON = "SELECT id FROM people WHERE name = %(name)s LIMIT 1;"
+
+SQL_INSERT_PERSON = """
+INSERT INTO people (id, name, date_of_birth, height_cm, preferred_foot, nation_id, club_id, active)
 VALUES (
+  (SELECT COALESCE(MAX(id), 0) + 1 FROM people),
   %(name)s, %(dob)s, %(height_cm)s, %(preferred_foot)s,
   (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
-  (SELECT id FROM clubs  WHERE name = %(club)s   LIMIT 1),
+  (SELECT id FROM clubs  WHERE clubname = %(club)s   LIMIT 1),
   true
 )
-ON CONFLICT (name) DO UPDATE SET
-  dob            = EXCLUDED.dob,
-  height_cm      = EXCLUDED.height_cm,
-  preferred_foot = EXCLUDED.preferred_foot,
-  nation_id      = EXCLUDED.nation_id,
-  club_id        = EXCLUDED.club_id,
-  updated_at     = now()
 RETURNING id;
+"""
+
+SQL_UPDATE_PERSON = """
+UPDATE people SET
+  date_of_birth  = %(dob)s,
+  height_cm      = %(height_cm)s,
+  preferred_foot = %(preferred_foot)s,
+  nation_id      = (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
+  club_id        = (SELECT id FROM clubs  WHERE clubname = %(club)s   LIMIT 1),
+  updated_at     = now()
+WHERE id = %(id)s;
 """
 
 SQL_UPSERT_PROFILE = """
@@ -2998,11 +3005,17 @@ def seed_player(cur, player: dict) -> None:
     """Insert or update a single player across all tables."""
     name = player["person"]["name"]
 
-    # 1. people
-    cur.execute(SQL_UPSERT_PERSON, player["person"])
+    # 1. people — find existing or insert new
+    cur.execute(SQL_FIND_PERSON, {"name": name})
     row = cur.fetchone()
-    person_id = row[0]
-    print(f"  people: {name} → id={person_id}")
+    if row:
+        person_id = row[0]
+        cur.execute(SQL_UPDATE_PERSON, {**player["person"], "id": person_id})
+        print(f"  people: {name} → id={person_id} (updated)")
+    else:
+        cur.execute(SQL_INSERT_PERSON, player["person"])
+        person_id = cur.fetchone()[0]
+        print(f"  people: {name} → id={person_id} (inserted)")
 
     # 2. player_profiles
     profile = {**player["profile"], "person_id": person_id}

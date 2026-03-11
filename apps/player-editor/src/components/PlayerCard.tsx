@@ -41,7 +41,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const pursuitColor =
     PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "bg-[var(--text-muted)]";
-  const theme = getCardTheme(player.archetype);
+  const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
 
   return (
@@ -100,7 +100,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           <div className="flex items-center gap-3">
             <PersonalityBadge personalityType={player.personality_type} size="compact" />
             {player.archetype ? (
-              <span className={`text-xs font-medium ${styles.archetypeText}`}>
+              <span className="text-xs font-medium text-[var(--accent-tactical)]">
                 {player.archetype}
               </span>
             ) : (

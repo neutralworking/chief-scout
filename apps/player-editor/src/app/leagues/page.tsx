@@ -46,11 +46,10 @@ export default async function LeaguesPage() {
     );
   }
 
-  // Fetch ALL clubs with their nations — don't limit to clubs with players
+  // Fetch ALL clubs with their nations
   const { data: clubs } = await supabaseServer
     .from("clubs")
     .select("id, name, league_name, nation_id, nations(name)")
-    .not("nation_id", "is", null)
     .order("name");
 
   // Also get player counts per club for display
@@ -64,11 +63,11 @@ export default async function LeaguesPage() {
     clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
   }
 
-  // Group by nation
+  // Group by nation (or league_name as fallback, or "Unassigned")
   const nationMap = new Map<string, { id: number; name: string; leagueName: string | null; playerCount: number }[]>();
   for (const rawClub of clubs ?? []) {
     const club = rawClub as any;
-    const nation = club.nations?.name || "Unknown";
+    const nation = club.nations?.name || (club.league_name ? `League: ${club.league_name}` : "Unassigned");
     if (!nationMap.has(nation)) nationMap.set(nation, []);
     nationMap.get(nation)!.push({
       id: club.id,

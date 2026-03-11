@@ -5,14 +5,21 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   {
+    label: "Dashboard",
+    href: "/",
+    exact: true,
+  },
+  {
     label: "Players",
     href: "/players",
-    icon: "👤",
+  },
+  {
+    label: "Formations",
+    href: "/formations",
   },
   {
     label: "News Feed",
     href: "/news",
-    icon: "📰",
   },
 ];
 
@@ -48,19 +55,21 @@ export function Sidebar() {
       {/* Main nav */}
       <nav className="flex-1 py-4 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+          const exact = "exact" in item && item.exact;
+          const active = exact
+            ? pathname === item.href
+            : pathname === item.href || pathname?.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-6 py-2.5 text-sm transition-colors ${
+              className={`flex items-center px-6 py-2.5 text-sm transition-colors ${
                 active
                   ? "text-text-primary bg-bg-elevated border-r-2 border-accent-personality"
                   : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated/50"
               }`}
             >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
+              {item.label}
             </Link>
           );
         })}

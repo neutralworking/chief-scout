@@ -26,6 +26,8 @@ function sortPlayers(players: PlayerCardType[], sortKey: string): PlayerCardType
   switch (sortKey) {
     case "level":
       return sorted.sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
+    case "peak":
+      return sorted.sort((a, b) => (b.peak ?? 0) - (a.peak ?? 0));
     case "name":
       return sorted.sort((a, b) => a.name.localeCompare(b.name));
     case "position":
@@ -58,6 +60,7 @@ function PlayersContent() {
   const pursuit = searchParams.get("pursuit") ?? "";
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "pursuit";
+  const tier = searchParams.get("tier") ?? "";
 
   useEffect(() => {
     async function load() {
@@ -86,9 +89,10 @@ function PlayersContent() {
     let result = allPlayers;
     if (position) result = result.filter((p) => p.position === position);
     if (pursuit) result = result.filter((p) => p.pursuit_status === pursuit);
+    if (tier) result = result.filter((p) => p.profile_tier === parseInt(tier, 10));
     if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
     return sortPlayers(result, sort);
-  }, [allPlayers, position, pursuit, q, sort]);
+  }, [allPlayers, position, pursuit, tier, q, sort]);
 
   return (
     <div>
@@ -98,6 +102,7 @@ function PlayersContent() {
           {loading ? "Loading..." : `${filtered.length} player${filtered.length !== 1 ? "s" : ""}`}
           {position ? ` · ${position}` : ""}
           {pursuit ? ` · ${pursuit}` : ""}
+          {tier ? ` · Tier ${tier}` : ""}
         </p>
       </div>
 

@@ -36,18 +36,29 @@ async function getDashboardData() {
     positionCounts[pos] = players.filter((p) => p.position === pos).length;
   }
 
-  // Quick stats
-  const totalResult = await supabaseServer
-    .from("people")
-    .select("id", { count: "exact", head: true });
-  const tier1Result = await supabaseServer
-    .from("player_profiles")
-    .select("person_id", { count: "exact", head: true })
-    .eq("profile_tier", 1);
-  const fbrefResult = await supabaseServer
-    .from("player_id_links")
-    .select("person_id", { count: "exact", head: true })
-    .eq("source", "fbref");
+  // Quick stats + external data source counts
+  const [
+    totalResult, tier1Result, fbrefLinkedResult, fullProfilesResult,
+    sbCompResult, sbMatchResult, sbEventResult,
+    usMatchResult, usStatsResult,
+    fbrefPlayersResult, fbrefStatsResult, fbrefLinksResult,
+  ] = await Promise.all([
+    supabaseServer.from("people").select("id", { count: "exact", head: true }),
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).eq("profile_tier", 1),
+    supabaseServer.from("player_id_links").select("person_id", { count: "exact", head: true }).eq("source", "fbref"),
+    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
+    // StatsBomb
+    supabaseServer.from("sb_competitions").select("id", { count: "exact", head: true }),
+    supabaseServer.from("sb_matches").select("id", { count: "exact", head: true }),
+    supabaseServer.from("sb_events").select("id", { count: "exact", head: true }),
+    // Understat
+    supabaseServer.from("understat_matches").select("id", { count: "exact", head: true }),
+    supabaseServer.from("understat_player_match_stats").select("id", { count: "exact", head: true }),
+    // FBRef
+    supabaseServer.from("fbref_players").select("id", { count: "exact", head: true }),
+    supabaseServer.from("fbref_player_season_stats").select("id", { count: "exact", head: true }),
+    supabaseServer.from("player_id_links").select("person_id", { count: "exact", head: true }).eq("source", "fbref"),
+  ]);
 
   return {
     pipeline,
@@ -56,9 +67,26 @@ async function getDashboardData() {
     stats: {
       total: totalResult.count ?? 0,
       tier1: tier1Result.count ?? 0,
-      fbref: fbrefResult.count ?? 0,
+      fbref: fbrefLinkedResult.count ?? 0,
+      fullProfiles: fullProfilesResult.count ?? 0,
       priority: pipeline["Priority"]?.length ?? 0,
       tracked: players.length,
+    },
+    dataSources: {
+      statsbomb: {
+        competitions: sbCompResult.count ?? 0,
+        matches: sbMatchResult.count ?? 0,
+        events: sbEventResult.count ?? 0,
+      },
+      understat: {
+        matches: usMatchResult.count ?? 0,
+        playerStats: usStatsResult.count ?? 0,
+      },
+      fbref: {
+        players: fbrefPlayersResult.count ?? 0,
+        seasonStats: fbrefStatsResult.count ?? 0,
+        linked: fbrefLinksResult.count ?? 0,
+      },
     },
   };
 }
@@ -81,8 +109,9 @@ export default async function DashboardPage() {
     );
   }
 
-  const { pipeline, positionCounts, news, stats } = data;
+  const { pipeline, positionCounts, news, stats, dataSources } = data;
   const maxDepth = Math.max(...Object.values(positionCounts), 1);
+  const fmt = (n: number) => (n === 0 ? "–" : n.toLocaleString());
 
   return (
     <div className="max-w-5xl">
@@ -200,6 +229,7 @@ export default async function DashboardPage() {
               { label: "Tracked", value: stats.tracked },
               { label: "Priority", value: stats.priority },
               { label: "Tier 1 Profiles", value: stats.tier1 },
+              { label: "Full Profiles", value: stats.fullProfiles },
               { label: "FBRef Linked", value: stats.fbref },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between">
@@ -211,7 +241,63 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* W4: Recent News */}
+      {/* W4: External Data Sources */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
+        <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
+          External Data Sources
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* StatsBomb */}
+          <div className="border-l-2 border-blue-500 pl-4">
+            <h3 className="text-[9px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">StatsBomb</h3>
+            <div className="space-y-2">
+              {[
+                { label: "Competitions", value: dataSources.statsbomb.competitions },
+                { label: "Matches", value: dataSources.statsbomb.matches },
+                { label: "Events", value: dataSources.statsbomb.events },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Understat */}
+          <div className="border-l-2 border-green-500 pl-4">
+            <h3 className="text-[9px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">Understat</h3>
+            <div className="space-y-2">
+              {[
+                { label: "Matches", value: dataSources.understat.matches },
+                { label: "Player Stats", value: dataSources.understat.playerStats },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* FBRef */}
+          <div className="border-l-2 border-amber-500 pl-4">
+            <h3 className="text-[9px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">FBRef</h3>
+            <div className="space-y-2">
+              {[
+                { label: "Players", value: dataSources.fbref.players },
+                { label: "Season Stats", value: dataSources.fbref.seasonStats },
+                { label: "Linked", value: dataSources.fbref.linked },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* W5: Recent News */}
       {news.length > 0 && (
         <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-4">
           <div className="flex items-center justify-between mb-4">

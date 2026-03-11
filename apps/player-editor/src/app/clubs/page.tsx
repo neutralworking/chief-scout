@@ -5,6 +5,7 @@ interface ClubRow {
   id: number;
   name: string;
   nation: string | null;
+  league_name: string | null;
   player_count: number;
 }
 
@@ -28,7 +29,7 @@ export default async function ClubsPage() {
   const clubIds = [...clubCounts.keys()].slice(0, 2000);
   const { data: clubs } = await supabaseServer
     .from("clubs")
-    .select("id, name, nations(name)")
+    .select("id, name, league_name, nations(name)")
     .in("id", clubIds)
     .order("name");
 
@@ -36,6 +37,7 @@ export default async function ClubsPage() {
     id: c.id,
     name: c.name,
     nation: c.nations?.name ?? null,
+    league_name: c.league_name ?? null,
     player_count: clubCounts.get(c.id) ?? 0,
   })).sort((a, b) => b.player_count - a.player_count);
 
@@ -54,9 +56,12 @@ export default async function ClubsPage() {
             <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-white truncate">
               {club.name}
             </p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               {club.nation && (
                 <span className="text-xs text-[var(--text-secondary)]">{club.nation}</span>
+              )}
+              {club.league_name && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">{club.league_name}</span>
               )}
               <span className="text-xs font-mono text-[var(--text-muted)]">{club.player_count} players</span>
             </div>

@@ -52,6 +52,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `18_wikidata_player_clubs.py` → Batch-update player clubs from Wikidata P54. Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--batch-sparql`, `--verbose`.
 - `19_wikidata_deep_enrich.py` → Deep Wikidata enrichment: P27 (citizenship), P54 (career history), P413 (position), P18 (image), P2446 (Transfermarkt ID), P19 (birthplace). Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--phase identity|career`, `--batch-size`. Requires migration `014_wikidata_deep_enrich.sql`.
 - `20_seed_choices.py` → Seed Football Choices game questions and options. Flags: `--dry-run`, `--force`. Requires migration `015_football_choices.sql`.
+- `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |

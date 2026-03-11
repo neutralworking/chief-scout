@@ -186,6 +186,61 @@ These are free-form or enum fields, not categorical tags:
 
 ---
 
+## System 4: Tactical Roles (WHERE)
+
+Tactical roles describe **where and how a player functions within a formation**. Unlike positions (which are broad zones), roles are specific jobs within a system. A CM can be a Mezzala, Box-to-Box, or Deep Playmaker — the role determines what the formation asks of them.
+
+### Role ↔ Archetype Affinity
+
+Each role has a **primary** and **secondary** archetype affinity. Players whose archetype matches the role's affinity are naturally suited to it. This is computed, not assigned.
+
+| Position | Role | Description | Primary | Secondary |
+|----------|------|-------------|---------|-----------|
+| GK | Sweeper Keeper | High line, distribution, commands area | GK | Passer |
+| GK | Shot Stopper | Traditional, reflexes, positioning | GK | Cover |
+| CD | Ball-Playing CB | Builds from the back, progressive passing | Cover | Passer |
+| CD | Stopper | Front-foot, aggressive, wins duels | Destroyer | Powerhouse |
+| CD | Sweeper | Last man, reads danger, covers space | Cover | Controller |
+| WD | Inverted Full-Back | Tucks inside in possession, creates overloads | Controller | Passer |
+| WD | Overlapping Full-Back | Wide + high, delivers crosses | Sprinter | Engine |
+| WD | Wing-Back | Full width, both phases, tireless | Engine | Dribbler |
+| DM | Regista | Deep playmaker, dictates tempo from deep | Controller | Passer |
+| DM | Anchor | Shields back four, positional discipline | Cover | Destroyer |
+| DM | Ball-Winner | Aggressive pressing, disrupts play | Destroyer | Engine |
+| CM | Mezzala | Half-space runner, arrives in box | Dribbler | Engine |
+| CM | Box-to-Box | Covers both ends, energy + tackles | Engine | Destroyer |
+| CM | Deep Playmaker | Receives deep, orchestrates | Controller | Passer |
+| WM | Wide Playmaker | Drifts inside, creates from half-spaces | Creator | Passer |
+| WM | Traditional Winger | Hugs touchline, crosses, direct | Sprinter | Passer |
+| AM | Trequartista | Free-roaming 10, unpredictable | Creator | Dribbler |
+| AM | Advanced Playmaker | Links midfield to attack, final third control | Controller | Creator |
+| AM | Shadow Striker | Late runs into box, second striker movement | Sprinter | Striker |
+| WF | Inside Forward | Cuts inside on opposite foot, shoots | Striker | Dribbler |
+| WF | Inverted Winger | Creates from inside, vision + technique | Creator | Dribbler |
+| WF | Wide Forward | Stretches defense, pace in behind | Sprinter | Striker |
+| CF | Target Man | Holds up play, aerial dominance | Target | Powerhouse |
+| CF | Poacher | Box presence, clinical finishing | Striker | Sprinter |
+| CF | False 9 | Drops deep, links play, creates space | Creator | Controller |
+| CF | Complete Forward | Does everything, all-round threat | Engine | Striker |
+
+### Role Fit Scoring
+
+A player's **role fit** is computed from their archetype model scores:
+
+```
+role_fit = (primary_model_score × 0.6) + (secondary_model_score × 0.4)
+```
+
+Normalized to 0-100. A score ≥ 70 = strong fit, 50-69 = adequate, < 50 = poor fit.
+
+### Naming Conventions
+
+- Roles are always **Title Case** — Regista, Ball-Playing CB, Inside Forward
+- Roles are distinct from positions — a position is WHERE on the pitch, a role is WHAT you do there
+- Roles belong to formations, not to players — a player has archetypes, a formation slot has a role
+
+---
+
 ## System Interactions
 
 ### Personality × Archetype

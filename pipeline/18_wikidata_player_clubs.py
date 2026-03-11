@@ -12,6 +12,7 @@ Usage:
     python 18_wikidata_player_clubs.py --player 42       # single player
     python 18_wikidata_player_clubs.py --force            # re-check even if club_id set
     python 18_wikidata_player_clubs.py --limit 100       # cap batch size
+    python 18_wikidata_player_clubs.py --create-missing   # auto-create unmatched clubs
 """
 import argparse
 import sys
@@ -34,6 +35,8 @@ parser.add_argument("--league", type=str, default=None,
 parser.add_argument("--limit", type=int, default=None, help="Max players to process")
 parser.add_argument("--verbose", action="store_true", help="Show detailed info")
 parser.add_argument("--batch-sparql", type=int, default=25, help="Players per SPARQL batch")
+parser.add_argument("--create-missing", action="store_true",
+                    help="Auto-create clubs not in our table (from Wikidata data)")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
@@ -78,19 +81,70 @@ def normalize(name: str) -> str:
     return name.lower().strip()
 
 
+# Common club name aliases and abbreviations
+CLUB_ALIASES: dict[str, str] = {
+    "fc barcelona": "barcelona",
+    "futbol club barcelona": "barcelona",
+    "real madrid cf": "real madrid",
+    "real madrid c.f.": "real madrid",
+    "manchester united fc": "manchester united",
+    "manchester united f.c.": "manchester united",
+    "manchester city fc": "manchester city",
+    "manchester city f.c.": "manchester city",
+    "arsenal fc": "arsenal",
+    "arsenal f.c.": "arsenal",
+    "chelsea fc": "chelsea",
+    "chelsea f.c.": "chelsea",
+    "liverpool fc": "liverpool",
+    "liverpool f.c.": "liverpool",
+    "tottenham hotspur fc": "tottenham hotspur",
+    "tottenham hotspur f.c.": "tottenham hotspur",
+    "paris saint-germain fc": "paris saint-germain",
+    "paris saint-germain f.c.": "paris saint-germain",
+    "fc bayern munich": "bayern munich",
+    "fc bayern munchen": "bayern munich",
+    "borussia dortmund": "borussia dortmund",
+    "bvb": "borussia dortmund",
+    "juventus fc": "juventus",
+    "juventus f.c.": "juventus",
+    "ac milan": "milan",
+    "inter milan": "internazionale",
+    "fc internazionale milano": "internazionale",
+    "ssc napoli": "napoli",
+    "s.s.c. napoli": "napoli",
+    "atletico de madrid": "atletico madrid",
+    "club atletico de madrid": "atletico madrid",
+}
+
+
+def normalize_club_name(name: str) -> str:
+    """Normalize club name with alias resolution."""
+    norm = normalize(name)
+    # Strip common suffixes
+    for suffix in [" fc", " f.c.", " cf", " c.f.", " sc", " s.c."]:
+        if norm.endswith(suffix):
+            norm = norm[:-len(suffix)].strip()
+    # Check alias table
+    return CLUB_ALIASES.get(norm, norm)
+
+
 # ── Load clubs lookup ─────────────────────────────────────────────────────────
 
 cur.execute("SELECT id, name, wikidata_id FROM clubs")
 club_rows = cur.fetchall()
 
 # Build multiple indexes for matching
-clubs_by_wikidata = {}  # wikidata_id → club_id
-clubs_by_name_norm = {}  # normalized name → club_id
-clubs_by_id = {}  # club_id → name
+clubs_by_wikidata: dict[str, int] = {}   # wikidata_id → club_id
+clubs_by_name_norm: dict[str, int] = {}  # normalized name → club_id
+clubs_by_alias: dict[str, int] = {}      # alias-resolved name → club_id
+clubs_by_id: dict[int, str] = {}         # club_id → name
 
 for cid, cname, cwikidata in club_rows:
     clubs_by_id[cid] = cname
-    clubs_by_name_norm[normalize(cname)] = cid
+    norm = normalize(cname)
+    clubs_by_name_norm[norm] = cid
+    alias = normalize_club_name(cname)
+    clubs_by_alias[alias] = cid
     if cwikidata:
         clubs_by_wikidata[cwikidata] = cid
 
@@ -113,8 +167,8 @@ elif args.league:
         LEFT JOIN clubs c ON c.id = p.club_id
         WHERE p.wikidata_id IS NOT NULL
           AND p.active = true
-          AND (c.league_name ILIKE %s OR %s = true)
-    """, (f"%{league_name}%", FORCE and not args.league))
+          AND (c.league_name ILIKE %s OR p.club_id IS NULL)
+    """, (f"%{league_name}%",))
 else:
     where = "p.wikidata_id IS NOT NULL AND p.active = true"
     if not FORCE:
@@ -178,7 +232,6 @@ def batch_get_clubs(qids: list[str]) -> dict[str, dict]:
         return {}
 
     # Process results: pick the most recent club for each player
-    # (no end date = current, otherwise latest start date)
     player_clubs: dict[str, list] = {}
     for row in data.get("results", {}).get("bindings", []):
         p_uri = row["player"]["value"]
@@ -217,19 +270,29 @@ def batch_get_clubs(qids: list[str]) -> dict[str, dict]:
 
 def match_club(club_qid: str, club_label: str) -> int | None:
     """Try to match a Wikidata club to our clubs table."""
-    # 1. Match by wikidata_id
+    # 1. Match by wikidata_id (highest confidence)
     if club_qid in clubs_by_wikidata:
         return clubs_by_wikidata[club_qid]
 
-    # 2. Match by normalized name
+    # 2. Match by exact normalized name
     norm = normalize(club_label)
     if norm in clubs_by_name_norm:
         return clubs_by_name_norm[norm]
 
-    # 3. Partial match (club_label contains or is contained in a club name)
+    # 3. Match by alias-resolved name
+    alias = normalize_club_name(club_label)
+    if alias in clubs_by_alias:
+        return clubs_by_alias[alias]
+
+    # 4. Partial match — but be smarter about it
+    # Only match if the candidate is a significant substring (>= 5 chars)
+    # and isn't just a common word like "fc" or "united"
+    min_match_len = 5
     for cname_norm, cid in clubs_by_name_norm.items():
-        if norm in cname_norm or cname_norm in norm:
-            return cid
+        if len(norm) >= min_match_len and len(cname_norm) >= min_match_len:
+            # Check if the Wikidata name is contained in our club name or vice versa
+            if norm in cname_norm or cname_norm in norm:
+                return cid
 
     return None
 
@@ -240,6 +303,8 @@ updated = 0
 not_found = 0
 no_change = 0
 club_missing = 0
+clubs_created = 0
+missing_clubs: dict[str, str] = {}  # qid → label for reporting
 
 for i in range(0, len(players), BATCH_SIZE):
     batch = players[i:i + BATCH_SIZE]
@@ -275,10 +340,27 @@ for i in range(0, len(players), BATCH_SIZE):
         club_id = match_club(wd_club["club_qid"], wd_club["club_label"])
 
         if club_id is None:
+            # Track missing clubs for report
+            missing_clubs[wd_club["club_qid"]] = wd_club["club_label"]
             club_missing += 1
-            if VERBOSE:
-                print(f"    {pname}: Wikidata says '{wd_club['club_label']}' but not in our clubs table")
-            continue
+
+            # Auto-create if flag is set
+            if args.create_missing and not DRY_RUN:
+                cur.execute(
+                    "INSERT INTO clubs (name, wikidata_id) VALUES (%s, %s) RETURNING id",
+                    (wd_club["club_label"], wd_club["club_qid"]),
+                )
+                new_id = cur.fetchone()[0]
+                clubs_by_wikidata[wd_club["club_qid"]] = new_id
+                clubs_by_name_norm[normalize(wd_club["club_label"])] = new_id
+                clubs_by_id[new_id] = wd_club["club_label"]
+                club_id = new_id
+                clubs_created += 1
+                print(f"    CREATED club: {wd_club['club_label']} (id={new_id})")
+            else:
+                if VERBOSE:
+                    print(f"    {pname}: Wikidata says '{wd_club['club_label']}' but not in our clubs table")
+                continue
 
         if club_id == player_info["current_club_id"]:
             no_change += 1
@@ -298,12 +380,22 @@ for i in range(0, len(players), BATCH_SIZE):
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 print(f"\n── Summary ──")
-print(f"  Updated:       {updated}")
-print(f"  No change:     {no_change}")
-print(f"  No WD data:    {not_found}")
+print(f"  Updated:        {updated}")
+print(f"  No change:      {no_change}")
+print(f"  No WD data:     {not_found}")
 print(f"  Club not in DB: {club_missing}")
+if clubs_created:
+    print(f"  Clubs created:  {clubs_created}")
 if DRY_RUN:
     print("  (dry-run — no data was written)")
+
+# Report missing clubs
+if missing_clubs:
+    print(f"\n── Missing clubs ({len(missing_clubs)}) ──")
+    for cqid, clabel in sorted(missing_clubs.items(), key=lambda x: x[1]):
+        print(f"  {clabel} ({cqid})")
+    if not args.create_missing:
+        print("  Tip: use --create-missing to auto-create these clubs")
 
 cur.close()
 conn.close()

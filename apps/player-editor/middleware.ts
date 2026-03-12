@@ -3,8 +3,18 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/", "/login", "/pricing", "/api", "/players", "/clubs", "/leagues", "/formations", "/news", "/choices", "/admin", "/squad", "/rankings", "/scout-pad", "/_next", "/favicon.ico"];
 
+/** Routes only available on staging — blocked in production */
+const STAGING_ONLY_ROUTES = ["/admin", "/editor", "/scout-pad", "/squad"];
+
+const isProd = process.env.NEXT_PUBLIC_APP_ENV === "production";
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Block internal tools on production
+  if (isProd && STAGING_ONLY_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   // Allow public paths through without auth check
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {

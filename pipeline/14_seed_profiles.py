@@ -1,7 +1,7 @@
 """
-14_seed_profiles.py — Seed all 70 Chief Scout player profiles into Supabase.
+14_seed_profiles.py — Seed all 90 Chief Scout player profiles into Supabase.
 
-Codifies 70 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
+Codifies 90 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
 Inserts into: people, player_profiles, player_personality, player_market,
               player_status, attribute_grades.
 
@@ -3112,6 +3112,268 @@ PLAYERS = [
         },
         "profile": {"position": "WF", "level": 89},
     },
+
+    # ─── 71. Dani Olmo ────────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Dani Olmo",
+            "dob": "1998-05-07",
+            "height_cm": 179,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Barcelona",
+        },
+        "profile": {"position": "AM", "level": 87},
+    },
+
+    # ─── 72. Antoine Griezmann ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Antoine Griezmann",
+            "dob": "1991-03-21",
+            "height_cm": 176,
+            "preferred_foot": "Left",
+            "nation": "France",
+            "club": "Atlético Madrid",
+        },
+        "profile": {"position": "AM", "level": 88},
+    },
+
+    # ─── 73. Marcus Rashford ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Marcus Rashford",
+            "dob": "1997-10-31",
+            "height_cm": 185,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "WF", "level": 85},
+    },
+
+    # ─── 74. Alejandro Garnacho ───────────────────────────────────────────
+    {
+        "person": {
+            "name": "Alejandro Garnacho",
+            "dob": "2004-07-01",
+            "height_cm": 180,
+            "preferred_foot": "Left",
+            "nation": "Argentina",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "WF", "level": 84},
+    },
+
+    # ─── 75. Nico Williams ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Nico Williams",
+            "dob": "2002-07-12",
+            "height_cm": 181,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Athletic Bilbao",
+        },
+        "profile": {"position": "WF", "level": 86},
+    },
+
+    # ─── 76. Diogo Jota ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Diogo Jota",
+            "dob": "1996-12-04",
+            "height_cm": 178,
+            "preferred_foot": "Right",
+            "nation": "Portugal",
+            "club": "Liverpool",
+            "active": False,
+        },
+        "profile": {"position": "CF", "level": 85},
+    },
+
+    # ─── 77. Kai Havertz ─────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Kai Havertz",
+            "dob": "1999-06-11",
+            "height_cm": 193,
+            "preferred_foot": "Left",
+            "nation": "Germany",
+            "club": "Arsenal",
+        },
+        "profile": {"position": "CF", "level": 88},
+    },
+
+    # ─── 78. Ollie Watkins ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Ollie Watkins",
+            "dob": "1995-12-30",
+            "height_cm": 180,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Aston Villa",
+        },
+        "profile": {"position": "CF", "level": 85},
+    },
+
+    # ─── 79. Lisandro Martínez ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Lisandro Martínez",
+            "dob": "1998-01-18",
+            "height_cm": 175,
+            "preferred_foot": "Left",
+            "nation": "Argentina",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "CD", "level": 85},
+    },
+
+    # ─── 80. Antonio Rüdiger ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Antonio Rüdiger",
+            "dob": "1993-03-03",
+            "height_cm": 190,
+            "preferred_foot": "Right",
+            "nation": "Germany",
+            "club": "Real Madrid",
+        },
+        "profile": {"position": "CD", "level": 87},
+    },
+
+    # ─── 81. Gabriel Magalhães ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Gabriel Magalhães",
+            "dob": "1997-12-19",
+            "height_cm": 190,
+            "preferred_foot": "Left",
+            "nation": "Brazil",
+            "club": "Arsenal",
+        },
+        "profile": {"position": "CD", "level": 89},
+    },
+
+    # ─── 82. Éderson ─────────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Éderson",
+            "dob": "1993-08-17",
+            "height_cm": 188,
+            "preferred_foot": "Left",
+            "nation": "Brazil",
+            "club": "Manchester City",
+        },
+        "profile": {"position": "GK", "level": 84},
+    },
+
+    # ─── 83. André Onana ─────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "André Onana",
+            "dob": "1996-04-02",
+            "height_cm": 190,
+            "preferred_foot": "Right",
+            "nation": "Cameroon",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "GK", "level": 83},
+    },
+
+    # ─── 84. Mike Maignan ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Mike Maignan",
+            "dob": "1995-07-03",
+            "height_cm": 191,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "AC Milan",
+        },
+        "profile": {"position": "GK", "level": 86},
+    },
+
+    # ─── 85. Ryan Gravenberch ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Ryan Gravenberch",
+            "dob": "2002-05-16",
+            "height_cm": 190,
+            "preferred_foot": "Right",
+            "nation": "Netherlands",
+            "club": "Liverpool",
+        },
+        "profile": {"position": "CM", "level": 88},
+    },
+
+    # ─── 86. Warren Zaïre-Emery ──────────────────────────────────────────
+    {
+        "person": {
+            "name": "Warren Zaïre-Emery",
+            "dob": "2006-03-08",
+            "height_cm": 178,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {"position": "CM", "level": 84},
+    },
+
+    # ─── 87. Ibrahima Konaté ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Ibrahima Konaté",
+            "dob": "1999-05-25",
+            "height_cm": 194,
+            "preferred_foot": "Right",
+            "nation": "France",
+            "club": "Liverpool",
+        },
+        "profile": {"position": "CD", "level": 86},
+    },
+
+    # ─── 88. Sandro Tonali ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Sandro Tonali",
+            "dob": "2000-05-08",
+            "height_cm": 181,
+            "preferred_foot": "Right",
+            "nation": "Italy",
+            "club": "Newcastle United",
+        },
+        "profile": {"position": "CM", "level": 88},
+    },
+
+    # ─── 89. Ángel Di María ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Ángel Di María",
+            "dob": "1988-02-14",
+            "height_cm": 180,
+            "preferred_foot": "Left",
+            "nation": "Argentina",
+            "club": "Benfica",
+        },
+        "profile": {"position": "WF", "level": 81},
+    },
+
+    # ─── 90. Dani Carvajal ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Dani Carvajal",
+            "dob": "1992-01-11",
+            "height_cm": 173,
+            "preferred_foot": "Right",
+            "nation": "Spain",
+            "club": "Real Madrid",
+            "active": False,
+        },
+        "profile": {"position": "WD", "level": 87},
+    },
 ]
 
 
@@ -3126,7 +3388,7 @@ VALUES (
   %(name)s, %(dob)s, %(height_cm)s, %(preferred_foot)s,
   (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
   (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
-  true
+  %(active)s
 )
 RETURNING id;
 """
@@ -3138,6 +3400,7 @@ UPDATE people SET
   preferred_foot = %(preferred_foot)s,
   nation_id      = (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
   club_id        = (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
+  active         = %(active)s,
   updated_at     = now()
 WHERE id = %(id)s;
 """
@@ -3216,14 +3479,16 @@ def seed_player(cur, player: dict) -> None:
     name = player["person"]["name"]
 
     # 1. people — find existing or insert new
+    person_data = {**player["person"]}
+    person_data.setdefault("active", True)
     cur.execute(SQL_FIND_PERSON, {"name": name})
     row = cur.fetchone()
     if row:
         person_id = row[0]
-        cur.execute(SQL_UPDATE_PERSON, {**player["person"], "id": person_id})
+        cur.execute(SQL_UPDATE_PERSON, {**person_data, "id": person_id})
         print(f"  people: {name} → id={person_id} (updated)")
     else:
-        cur.execute(SQL_INSERT_PERSON, player["person"])
+        cur.execute(SQL_INSERT_PERSON, person_data)
         person_id = cur.fetchone()[0]
         print(f"  people: {name} → id={person_id} (inserted)")
 

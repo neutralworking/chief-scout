@@ -10,9 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  // Server-side: service key bypasses RLS and row limits
-  // Paginate to handle any PostgREST limits
-  const PAGE_SIZE = 5000;
+  // PostgREST caps at 1000 rows per request regardless of key type
+  const PAGE_SIZE = 1000;
   const all: Record<string, unknown>[] = [];
   let from = 0;
   let hasMore = true;

@@ -304,7 +304,7 @@ export function AllTimeXI() {
               </span>
             </div>
 
-            <div className="relative w-full max-w-md mx-auto aspect-[3/4] bg-gradient-to-b from-emerald-900/30 to-emerald-800/15 rounded-xl border border-emerald-700/20 overflow-hidden">
+            <div className="relative w-full max-w-md mx-auto aspect-[4/5] sm:aspect-[3/4] bg-gradient-to-b from-emerald-900/30 to-emerald-800/15 rounded-xl border border-emerald-700/20 overflow-hidden">
               <div className="absolute inset-x-4 top-[50%] h-px bg-white/8" />
               <div className="absolute left-1/2 top-[50%] w-16 h-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/8" />
               <div className="absolute inset-x-[20%] top-[70%] bottom-0 border border-white/5" />
@@ -343,7 +343,7 @@ export function AllTimeXI() {
             </div>
 
             {/* Action — always visible without scrolling */}
-            <div className="mt-3 flex justify-center">
+            <div className="mt-2 sm:mt-3 flex justify-center">
               {!isComplete ? (
                 <button
                   onClick={nextSlot}
@@ -364,8 +364,8 @@ export function AllTimeXI() {
         )}
       </div>
 
-      {/* Right: Analysis Panel (always visible on desktop) */}
-      <div className="lg:w-64 shrink-0 space-y-3">
+      {/* Right: Analysis Panel (hidden on mobile in pitch view, always visible on desktop) */}
+      <div className="hidden lg:block lg:w-64 shrink-0 space-y-3">
         {/* Squad List — compact */}
         <div className="glass rounded-xl overflow-hidden">
           <div className="px-3 py-2 border-b border-[var(--border-subtle)]">

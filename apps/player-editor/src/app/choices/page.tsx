@@ -33,14 +33,14 @@ export default async function ChoicesPage() {
     <div className="max-w-2xl mx-auto">
       <Link
         href="/"
-        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-4 inline-block"
+        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-2 sm:mb-4 inline-block"
       >
         &larr; Back to Dashboard
       </Link>
 
-      <div className="text-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Football Choices</h1>
-        <p className="text-sm text-[var(--text-secondary)]">
+      <div className="text-center mb-3 sm:mb-6">
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight mb-1">Football Choices</h1>
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
           Build your All-Time XI. See how your picks compare.
         </p>
       </div>

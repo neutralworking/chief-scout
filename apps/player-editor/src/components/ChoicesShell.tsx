@@ -25,7 +25,7 @@ export function ChoicesShell({ categories }: { categories: Category[] }) {
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-1 mb-6">
+      <div className="flex bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-1 mb-3 sm:mb-6">
         {TABS.map((t) => (
           <button
             key={t.id}

@@ -1,7 +1,7 @@
 """
-14_seed_profiles.py — Seed all 90 Chief Scout player profiles into Supabase.
+14_seed_profiles.py — Seed all 98 Chief Scout player profiles into Supabase.
 
-Codifies 90 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
+Codifies 98 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
 Inserts into: people, player_profiles, player_personality, player_market,
               player_status, attribute_grades.
 
@@ -1010,7 +1010,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 90,
+            "level": 91,
             "overall": 88,
             "archetype": "Engine-Cover",
             "blueprint": "Driver",
@@ -2139,7 +2139,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 87,
+            "level": 88,
             "overall": 84,
             "archetype": "Engine-Destroyer",
             "blueprint": "Ball-Winning Midfielder",
@@ -3373,6 +3373,110 @@ PLAYERS = [
             "active": False,
         },
         "profile": {"position": "WD", "level": 87},
+    },
+
+    # ─── 91. Joshua Kimmich ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Joshua Kimmich",
+            "dob": "1995-02-08",
+            "height_cm": 177,
+            "preferred_foot": "Right",
+            "nation": "Germany",
+            "club": "Bayern Munich",
+        },
+        "profile": {"position": "DM", "level": 88},
+    },
+
+    # ─── 92. Amadou Onana ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Amadou Onana",
+            "dob": "2001-08-16",
+            "height_cm": 195,
+            "preferred_foot": "Right",
+            "nation": "Belgium",
+            "club": "Aston Villa",
+        },
+        "profile": {"position": "DM", "level": 87},
+    },
+
+    # ─── 93. Yves Bissouma ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Yves Bissouma",
+            "dob": "1996-08-30",
+            "height_cm": 182,
+            "preferred_foot": "Right",
+            "nation": "Mali",
+            "club": "Tottenham Hotspur",
+        },
+        "profile": {"position": "DM", "level": 85},
+    },
+
+    # ─── 94. Manuel Ugarte ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Manuel Ugarte",
+            "dob": "2001-04-11",
+            "height_cm": 182,
+            "preferred_foot": "Right",
+            "nation": "Uruguay",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "DM", "level": 84},
+    },
+
+    # ─── 95. Edson Álvarez ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Edson Álvarez",
+            "dob": "1997-10-24",
+            "height_cm": 187,
+            "preferred_foot": "Right",
+            "nation": "Mexico",
+            "club": "West Ham United",
+        },
+        "profile": {"position": "DM", "level": 84},
+    },
+
+    # ─── 96. Cheick Doucouré ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Cheick Doucouré",
+            "dob": "2000-01-08",
+            "height_cm": 183,
+            "preferred_foot": "Right",
+            "nation": "Mali",
+            "club": "Crystal Palace",
+        },
+        "profile": {"position": "DM", "level": 85},
+    },
+
+    # ─── 97. Palhinha ────────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "João Palhinha",
+            "dob": "1995-07-09",
+            "height_cm": 190,
+            "preferred_foot": "Right",
+            "nation": "Portugal",
+            "club": "Bayern Munich",
+        },
+        "profile": {"position": "DM", "level": 87},
+    },
+
+    # ─── 98. Enzo Fernández ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Enzo Fernández",
+            "dob": "2001-01-17",
+            "height_cm": 178,
+            "preferred_foot": "Right",
+            "nation": "Argentina",
+            "club": "Chelsea",
+        },
+        "profile": {"position": "DM", "level": 88},
     },
 ]
 

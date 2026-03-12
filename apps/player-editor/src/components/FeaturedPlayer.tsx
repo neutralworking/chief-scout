@@ -65,11 +65,18 @@ function gradeLabel(score: number): { label: string; color: string } {
   return { label: "Weak", color: "text-red-400" };
 }
 
-export function FeaturedPlayer({ player }: { player: FeaturedPlayerData }) {
+const REASON_LABELS: Record<string, { label: string; color: string }> = {
+  dof_pick: { label: "DOF Pick", color: "var(--accent-tactical)" },
+  news_trending: { label: "Trending", color: "var(--accent-physical)" },
+  discovery: { label: "Discovery", color: "var(--accent-personality)" },
+};
+
+export function FeaturedPlayer({ player, reason }: { player: FeaturedPlayerData; reason?: string }) {
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
   const personality = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
+  const reasonInfo = reason ? REASON_LABELS[reason] : null;
 
   const age = player.dob
     ? Math.floor((Date.now() - new Date(player.dob).getTime()) / 31557600000)
@@ -134,6 +141,11 @@ export function FeaturedPlayer({ player }: { player: FeaturedPlayerData }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
+            {reasonInfo && (
+              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
+                {reasonInfo.label}
+              </span>
+            )}
           </div>
           <Link href={`/players/${player.person_id}`} className="group">
             <div className="flex items-center gap-2.5 mb-1.5">

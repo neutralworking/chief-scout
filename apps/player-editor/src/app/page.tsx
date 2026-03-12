@@ -32,12 +32,30 @@ interface NewsStoryWithTags {
   tags: Array<{ player_id: number; name: string; sentiment: string | null }>;
 }
 
+// Deterministic daily rotation
+function dailySeed(): number {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
+
+const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint" as const;
+
 async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
-    // Featured player: get players with sentiment data for swing-based selection
+    // Featured: DOF picks — pursuit targets with profiles
+    supabaseServer
+      .from("player_intelligence_card")
+      .select(FEATURED_COLS + ", pursuit_status")
+      .in("pursuit_status", ["Priority", "Interested"])
+      .not("archetype", "is", null)
+      .order("level", { ascending: false })
+      .limit(20),
+    // Featured player: sentiment data for swing-based selection
     supabaseServer
       .from("news_player_tags")
       .select("player_id, sentiment, people!inner(name)")
@@ -81,66 +99,77 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [sentimentResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
+  const [dofPicksResult, sentimentResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
 
-  // Find featured player based on sentiment swing (most mixed/controversial)
-  const sentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; sentiment: string | null; people: { name: string } }>;
-  const playerSentiments = new Map<number, { name: string; positive: number; negative: number; total: number }>();
-  for (const row of sentimentRows) {
-    const existing = playerSentiments.get(row.player_id) ?? { name: row.people?.name ?? "Unknown", positive: 0, negative: 0, total: 0 };
-    existing.total++;
-    if (row.sentiment === "positive") existing.positive++;
-    if (row.sentiment === "negative") existing.negative++;
-    playerSentiments.set(row.player_id, existing);
-  }
-
-  // Pick player with highest sentiment swing (both positive AND negative mentions)
-  let featuredPersonId: number | null = null;
-  let maxSwing = 0;
-  for (const [pid, s] of playerSentiments) {
-    const swing = Math.min(s.positive, s.negative) * 2 + s.total;
-    if (swing > maxSwing && s.total >= 2) {
-      maxSwing = swing;
-      featuredPersonId = pid;
-    }
-  }
-
-  // Fallback: most mentioned player
-  if (!featuredPersonId && playerSentiments.size > 0) {
-    let maxTotal = 0;
-    for (const [pid, s] of playerSentiments) {
-      if (s.total > maxTotal) { maxTotal = s.total; featuredPersonId = pid; }
-    }
-  }
-
-  // Fetch full profile for featured player
-  let featured: {
+  // --- Featured player: tiered selection ---
+  type FeaturedProfile = {
     person_id: number; name: string; position: string | null; club: string | null;
     nation: string | null; level: number | null; overall: number | null;
     archetype: string | null; personality_type: string | null;
     market_value_tier: string | null; dob: string | null; blueprint: string | null;
-  } | null = null;
+  };
 
-  if (featuredPersonId) {
-    const { data: fp } = await supabaseServer
-      .from("player_intelligence_card")
-      .select("person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint")
-      .eq("person_id", featuredPersonId)
-      .single();
-    if (fp) featured = fp as NonNullable<typeof featured>;
+  let featured: FeaturedProfile | null = null;
+  let featuredReason: FeaturedReason = "discovery";
+
+  // Tier 1: DOF picks — Priority/Interested pursuit targets, daily rotation
+  const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
+  const priorityPicks = dofCandidates.filter((p) => p.pursuit_status === "Priority");
+  const interestedPicks = dofCandidates.filter((p) => p.pursuit_status === "Interested");
+  const dofPool = priorityPicks.length > 0 ? priorityPicks : interestedPicks;
+  if (dofPool.length > 0) {
+    featured = dofPool[dailySeed() % dofPool.length];
+    featuredReason = "dof_pick";
   }
 
-  // Fallback: random full-profile player
+  // Tier 2: News trending — sentiment swing (controversial/talked-about)
+  if (!featured) {
+    const sentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; sentiment: string | null; people: { name: string } }>;
+    const playerSentiments = new Map<number, { positive: number; negative: number; total: number }>();
+    for (const row of sentimentRows) {
+      const existing = playerSentiments.get(row.player_id) ?? { positive: 0, negative: 0, total: 0 };
+      existing.total++;
+      if (row.sentiment === "positive") existing.positive++;
+      if (row.sentiment === "negative") existing.negative++;
+      playerSentiments.set(row.player_id, existing);
+    }
+
+    let bestPid: number | null = null;
+    let maxSwing = 0;
+    for (const [pid, s] of playerSentiments) {
+      const swing = Math.min(s.positive, s.negative) * 2 + s.total;
+      if (swing > maxSwing && s.total >= 2) { maxSwing = swing; bestPid = pid; }
+    }
+    if (!bestPid) {
+      let maxTotal = 0;
+      for (const [pid, s] of playerSentiments) {
+        if (s.total > maxTotal) { maxTotal = s.total; bestPid = pid; }
+      }
+    }
+
+    if (bestPid) {
+      const { data: fp } = await supabaseServer
+        .from("player_intelligence_card")
+        .select(FEATURED_COLS)
+        .eq("person_id", bestPid)
+        .single();
+      if (fp) { featured = fp as FeaturedProfile; featuredReason = "news_trending"; }
+    }
+  }
+
+  // Tier 3: Discovery — random well-profiled player
   if (!featured) {
     const { data: fallbacks } = await supabaseServer
       .from("player_intelligence_card")
-      .select("person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint")
+      .select(FEATURED_COLS)
       .eq("profile_tier", 1)
-      .not("personality_type", "is", null)
       .not("archetype", "is", null)
       .limit(20);
-    const candidates = (fallbacks ?? []) as Array<typeof featured & object>;
-    if (candidates.length > 0) featured = candidates[Math.floor(Math.random() * candidates.length)];
+    const candidates = (fallbacks ?? []) as FeaturedProfile[];
+    if (candidates.length > 0) {
+      featured = candidates[dailySeed() % candidates.length];
+      featuredReason = "discovery";
+    }
   }
 
   // Personality type counts
@@ -228,7 +257,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   let proData = null;
   if (shortlistsEnabled) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(5) as any[];
+    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(6) as any[];
     const pipelinePlayers = (pipelineResult.data ?? []) as PlayerCardType[];
     const pipeline: Record<string, PlayerCardType[]> = {};
     for (const status of PIPELINE_STATUSES) {
@@ -244,7 +273,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     };
   }
 
-  return { featured, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
+  return { featured, featuredReason, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -278,7 +307,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
+  const { featured, featuredReason, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
 
   return (
     <div className="space-y-4">
@@ -287,7 +316,7 @@ export default async function DashboardPage() {
         {/* Featured Player — 3 cols */}
         <div className="lg:col-span-3">
           {featured ? (
-            <FeaturedPlayer player={featured} />
+            <FeaturedPlayer player={featured} reason={featuredReason} />
           ) : (
             <div className="glass rounded-xl p-6">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>

@@ -58,6 +58,7 @@ function PlayersContent() {
 
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
+  const personalities = searchParams.get("personalities") ?? "";
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "level";
   const tier = searchParams.get("tier") ?? "";
@@ -73,7 +74,7 @@ function PlayersContent() {
       const { data, error: fetchError } = await supabase
         .from("player_intelligence_card")
         .select(
-          "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt"
+          "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur"
         )
         .order("level", { ascending: false, nullsFirst: false })
         .limit(10000);
@@ -93,10 +94,14 @@ function PlayersContent() {
     if (position) result = result.filter((p) => p.position === position);
     if (pursuit) result = result.filter((p) => p.pursuit_status === pursuit);
     if (tier) { const t = parseInt(tier, 10); if (!isNaN(t)) result = result.filter((p) => p.profile_tier === t); }
+    if (personalities) {
+      const types = personalities.split(",").map((t) => t.trim());
+      result = result.filter((p) => p.personality_type && types.includes(p.personality_type));
+    }
     if (fullOnly) result = result.filter((p) => p.archetype != null && p.personality_type != null && p.level != null);
     if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
     return sortPlayers(result, sort);
-  }, [allPlayers, position, pursuit, tier, fullOnly, q, sort]);
+  }, [allPlayers, position, pursuit, personalities, tier, fullOnly, q, sort]);
 
   return (
     <div>
@@ -106,6 +111,7 @@ function PlayersContent() {
           {loading ? "Loading..." : `${filtered.length} player${filtered.length !== 1 ? "s" : ""}`}
           {position ? ` · ${position}` : ""}
           {pursuit ? ` · ${pursuit}` : ""}
+          {personalities ? ` · ${personalities}` : ""}
           {tier ? ` · Tier ${tier}` : ""}
           {fullOnly ? " · Full profiles" : ""}
         </p>

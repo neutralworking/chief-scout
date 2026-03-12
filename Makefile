@@ -1,4 +1,4 @@
-.PHONY: setup pipeline dry-run parse insert enrich refine valuation dof push news metrics wikidata clubs wikidata-clubs
+.PHONY: setup pipeline dry-run parse insert enrich refine valuation dof push news metrics wikidata clubs wikidata-clubs transfermarkt
 
 PYTHON ?= python3
 PIPELINE := pipeline
@@ -54,7 +54,10 @@ clubs:
 wikidata-clubs:
 	cd $(PIPELINE) && $(PYTHON) 17_wikidata_clubs.py --batch-sparql
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs
+transfermarkt:
+	cd $(PIPELINE) && $(PYTHON) 25_transfermarkt_ingest.py
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

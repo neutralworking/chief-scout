@@ -18,6 +18,7 @@ export interface PlayerCard {
   pursuit_status: string | null;
   market_value_tier: string | null;
   true_mvt: string | null;
+  market_value_eur: number | null;
 }
 
 export type Position =

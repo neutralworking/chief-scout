@@ -50,7 +50,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
       className="block group"
     >
       <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name + Age */}
+        {/* Row 1: Position badge + Name + CSPER */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <span
@@ -62,13 +62,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
               {player.name}
             </h3>
           </div>
-          {showPursuit && player.pursuit_status && (
-            <span
-              className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded shrink-0 ${pursuitColor}`}
-            >
-              {player.pursuit_status}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <PersonalityBadge personalityType={player.personality_type} size="compact" />
+            {showPursuit && player.pursuit_status && (
+              <span
+                className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
+              >
+                {player.pursuit_status}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Row 2: Club, Nation, Age */}
@@ -95,24 +98,23 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           <LevelBar label="OVR" value={player.overall} />
         </div>
 
-        {/* Row 4: Personality + Archetype + Tier */}
+        {/* Row 4: Archetype + Market Value */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <PersonalityBadge personalityType={player.personality_type} size="compact" />
-            {player.archetype ? (
-              <span className="text-xs font-medium text-[var(--accent-tactical)]">
-                {player.archetype}
-              </span>
-            ) : (
-              <span className="text-xs text-[var(--text-muted)]">
-                No archetype
-              </span>
-            )}
-          </div>
+          {player.archetype ? (
+            <span className="text-xs font-medium text-[var(--accent-tactical)]">
+              {player.archetype}
+            </span>
+          ) : (
+            <span className="text-xs text-[var(--text-muted)]">
+              No archetype
+            </span>
+          )}
           <div className="flex items-center gap-1.5">
-            {player.market_value_tier && (
-              <span className="text-[9px] font-mono font-bold text-[var(--text-secondary)] border border-[var(--border-subtle)] px-1.5 py-0.5 rounded">
-                {player.market_value_tier}
+            {player.market_value_eur != null && (
+              <span className="text-[10px] font-mono font-bold text-[var(--text-secondary)]">
+                &euro;{player.market_value_eur >= 1_000_000
+                  ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
+                  : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
               </span>
             )}
             {player.profile_tier === 1 && (

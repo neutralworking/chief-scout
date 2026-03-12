@@ -40,6 +40,9 @@ interface IntelligenceCard {
   loan_status: string | null;
   transfer_fee_eur: number | null;
   hg: boolean | null;
+  market_value_eur: number | null;
+  highest_market_value_eur: number | null;
+  market_value_date: string | null;
   ei: number | null;
   sn: number | null;
   tf: number | null;
@@ -242,11 +245,31 @@ export default async function PlayerDetailPage({
             ))}
           </div>
           {/* Market info inline */}
-          {(player.transfer_fee_eur != null || player.scarcity_score != null) && (
+          {(player.market_value_eur != null || player.transfer_fee_eur != null || player.scarcity_score != null) && (
             <div className="ml-auto flex items-center gap-4 text-xs">
+              {player.market_value_eur != null && (
+                <div>
+                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Market Value</span>
+                  <span className="font-mono font-bold text-[var(--accent-tactical)]">
+                    &euro;{player.market_value_eur >= 1_000_000
+                      ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
+                      : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
+                  </span>
+                </div>
+              )}
+              {player.highest_market_value_eur != null && player.highest_market_value_eur !== player.market_value_eur && (
+                <div>
+                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Peak Value</span>
+                  <span className="font-mono font-bold">
+                    &euro;{player.highest_market_value_eur >= 1_000_000
+                      ? `${(player.highest_market_value_eur / 1_000_000).toFixed(1)}m`
+                      : `${(player.highest_market_value_eur / 1_000).toFixed(0)}k`}
+                  </span>
+                </div>
+              )}
               {player.transfer_fee_eur != null && (
                 <div>
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Est. Value</span>
+                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Transfer Fee</span>
                   <span className="font-mono font-bold">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
                 </div>
               )}

@@ -2,7 +2,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, technical_score, physical_score, best_role";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur";
 
 export async function GET(req: NextRequest) {
   const supabase = supabaseServer;

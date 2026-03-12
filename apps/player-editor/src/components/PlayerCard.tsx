@@ -15,28 +15,6 @@ const PERSONALITY_NAMES: Record<string, string> = {
   INSC: "Hunter", IXLC: "Provocateur", IXLP: "Playmaker", ANSP: "Professor",
 };
 
-function QuadrantMetric({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string | null;
-  color: string;
-}) {
-  if (!value) return null;
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={`text-[8px] font-bold uppercase tracking-wider ${color} w-[3ch]`}>
-        {label}
-      </span>
-      <span className="text-[10px] text-[var(--text-primary)] truncate">
-        {value}
-      </span>
-    </div>
-  );
-}
-
 export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -98,29 +76,17 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Four quadrant metrics */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3">
-          <QuadrantMetric
-            label="TEC"
-            value={player.technical_score != null ? `${player.technical_score}` : null}
-            color="text-sky-400"
-          />
-          <QuadrantMetric
-            label="PHY"
-            value={player.physical_score != null ? `${player.physical_score}` : null}
-            color="text-amber-400"
-          />
-          <QuadrantMetric
-            label="MEN"
-            value={mentalLabel}
-            color="text-purple-400"
-          />
-          <QuadrantMetric
-            label="TAC"
-            value={player.best_role}
-            color="text-green-400"
-          />
-        </div>
+        {/* Row 3: Personality + Overall */}
+        {(mentalLabel || player.overall != null) && (
+          <div className="flex items-center gap-3 text-[10px] mb-3">
+            {mentalLabel && (
+              <span className="text-purple-400 font-medium">{mentalLabel}</span>
+            )}
+            {player.overall != null && (
+              <span className="text-[var(--text-muted)] font-mono">{player.overall.toFixed(1)} OVR</span>
+            )}
+          </div>
+        )}
 
         {/* Row 4: Market Value + Archetype + CSPER badge */}
         <div className="flex items-center justify-between">

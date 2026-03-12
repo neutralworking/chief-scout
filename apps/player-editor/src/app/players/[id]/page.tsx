@@ -387,7 +387,7 @@ export default async function PlayerDetailPage({
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
           {/* Personality dimensions — compact */}
-          {player.ei != null && (
+          {(player.ei != null || player.personality_type) && (
             <div className="glass rounded-xl p-3 sm:p-4">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality</h3>
               <PersonalityBadge
@@ -398,8 +398,8 @@ export default async function PlayerDetailPage({
                 jp={player.jp}
                 competitiveness={player.competitiveness}
                 coachability={player.coachability}
-                size="compact"
-                showDescription={false}
+                size="hero"
+                showDimensions={player.ei != null}
               />
             </div>
           )}

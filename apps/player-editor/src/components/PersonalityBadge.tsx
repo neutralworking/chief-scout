@@ -12,6 +12,27 @@ const DIMENSION_LABELS = {
   jp: { high: "C", low: "P", name: "Pressure", highLabel: "Competitor", lowLabel: "Composer" },
 } as const;
 
+// Theme icons — SVG paths for compact badge display
+const THEME_ICONS: Record<string, string> = {
+  general: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12", // bars (command structure)
+  showman: "M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z", // star
+  maestro: "M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a2.25 2.25 0 0 0 1.632-2.163Zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 0 1-.99-3.467l2.31-.66A2.25 2.25 0 0 0 9 15.553Z", // music note
+  captain: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z", // shield
+  professor: "M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5", // academic cap
+};
+
+// Map personality code to theme
+function getPersonalityTheme(code: string): string {
+  const themeMap: Record<string, string> = {
+    ANLC: "general", ANSC: "general", INSC: "general",
+    AXLC: "showman", IXSC: "showman", IXLC: "showman",
+    INSP: "maestro", ANLP: "maestro", IXSP: "maestro",
+    INLC: "captain", INLP: "captain", AXSC: "captain",
+    ANSP: "professor", AXSP: "professor", IXLP: "professor", AXLP: "professor",
+  };
+  return themeMap[code] ?? "general";
+}
+
 // Key personality archetypes from the scouting spec
 const PERSONALITY_NAMES: Record<string, { name: string; oneLiner: string }> = {
   // 8 primary archetypes from spec
@@ -139,15 +160,25 @@ export function PersonalityBadge({
     );
   }
 
-  // Compact: code + type name in a bordered box
+  // Compact: icon + personality name as highlight, code secondary
   if (size === "compact") {
+    const theme = getPersonalityTheme(code);
+    const iconPath = THEME_ICONS[theme];
     return (
-      <div className="inline-flex flex-col items-center">
-        <span className="font-mono text-sm font-bold tracking-widest text-[var(--accent-personality)] border border-[var(--accent-personality)]/20 px-2 py-0.5 rounded">
-          {code}
-        </span>
-        {info && (
-          <span className="text-[11px] text-[var(--text-secondary)] mt-0.5">{info.name}</span>
+      <div className="inline-flex items-center gap-1.5">
+        {iconPath && (
+          <svg className="w-3.5 h-3.5 text-[var(--accent-personality)] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d={iconPath} />
+          </svg>
+        )}
+        {info ? (
+          <span className="text-[10px] font-bold text-[var(--accent-personality)] tracking-wide">
+            {info.name.replace("The ", "")}
+          </span>
+        ) : (
+          <span className="text-[10px] font-mono font-bold text-[var(--accent-personality)] tracking-wider">
+            {code}
+          </span>
         )}
       </div>
     );

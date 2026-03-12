@@ -13,7 +13,7 @@ export function PlayerFilters() {
   const currentPosition = searchParams.get("position") ?? "";
   const currentPursuit = searchParams.get("pursuit") ?? "";
   const currentSearch = searchParams.get("q") ?? "";
-  const currentSort = searchParams.get("sort") ?? "level";
+  const currentSort = searchParams.get("sort") ?? "value";
   const currentTier = searchParams.get("tier") ?? "";
   const fullOnly = searchParams.get("full") === "1";
 
@@ -130,6 +130,7 @@ export function PlayerFilters() {
           onChange={(e) => updateParam("sort", e.target.value)}
           className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-personality)] cursor-pointer"
         >
+          <option value="value">Sort: Value (High→Low)</option>
           <option value="pursuit">Sort: Pursuit Status</option>
           <option value="level">Sort: Level (High→Low)</option>
           <option value="peak">Sort: Peak (High→Low)</option>

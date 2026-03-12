@@ -98,31 +98,31 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           <LevelBar label="OVR" value={player.overall} />
         </div>
 
-        {/* Row 4: Archetype + Market Value */}
+        {/* Row 4: Market Value + Archetype + Tier */}
         <div className="flex items-center justify-between">
-          {player.archetype ? (
-            <span className="text-xs font-medium text-[var(--accent-tactical)]">
-              {player.archetype}
-            </span>
-          ) : (
-            <span className="text-xs text-[var(--text-muted)]">
-              No archetype
-            </span>
-          )}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {player.market_value_eur != null && (
-              <span className="text-[10px] font-mono font-bold text-[var(--text-secondary)]">
+              <span className="text-sm font-mono font-bold text-[var(--accent-tactical)]">
                 &euro;{player.market_value_eur >= 1_000_000
                   ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
                   : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
               </span>
             )}
-            {player.profile_tier === 1 && (
-              <span className="text-[9px] font-bold tracking-widest uppercase text-[var(--accent-personality)] border border-[var(--accent-personality)]/30 px-1.5 py-0.5 rounded">
-                Scout Assessed
+            {player.archetype && (
+              <span className="text-[10px] text-[var(--text-secondary)]">
+                {player.archetype}
               </span>
             )}
           </div>
+          <span className={`text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded ${
+            player.profile_tier === 1 && player.archetype
+              ? "text-[var(--accent-personality)] border border-[var(--accent-personality)]/30"
+              : player.level != null
+              ? "text-[var(--text-muted)] border border-[var(--border-subtle)]"
+              : "text-[var(--text-muted)]/50"
+          }`}>
+            {player.profile_tier === 1 && player.archetype ? "Assessed" : player.level != null ? "Analyzed" : "Unknown"}
+          </span>
         </div>
       </div>
     </Link>

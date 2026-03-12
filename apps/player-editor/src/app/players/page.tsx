@@ -24,6 +24,8 @@ const POSITION_ORDER: Record<string, number> = {
 function sortPlayers(players: PlayerCardType[], sortKey: string): PlayerCardType[] {
   const sorted = [...players];
   switch (sortKey) {
+    case "value":
+      return sorted.sort((a, b) => (b.market_value_eur ?? 0) - (a.market_value_eur ?? 0));
     case "level":
       return sorted.sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
     case "peak":
@@ -60,7 +62,7 @@ function PlayersContent() {
   const pursuit = searchParams.get("pursuit") ?? "";
   const personalities = searchParams.get("personalities") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "level";
+  const sort = searchParams.get("sort") ?? "value";
   const tier = searchParams.get("tier") ?? "";
   const fullOnly = searchParams.get("full") === "1";
 
@@ -82,7 +84,7 @@ function PlayersContent() {
       if (fetchError) {
         setError(`Supabase error: ${fetchError.message}. Check RLS policies (run migration 009).`);
       } else if (data) {
-        setAllPlayers(data as PlayerCardType[]);
+        setAllPlayers((data as PlayerCardType[]).filter((p) => p.name && p.name.trim() !== ""));
       }
       setLoading(false);
     }

@@ -71,6 +71,11 @@ export function CompoundMetrics({ attributeGrades }: CompoundMetricsProps) {
 
   if (attributeGrades.length === 0) return null;
 
+  // Hide attributes that look unfilled (all or mostly default value of 10)
+  const values = attributeGrades.map(gradeValue);
+  const defaultCount = values.filter((v) => v === 10).length;
+  if (defaultCount / values.length >= 0.7) return null;
+
   const compounds = Object.entries(COMPOUND_MODELS);
 
   return (

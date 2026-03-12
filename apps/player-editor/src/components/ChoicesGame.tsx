@@ -56,6 +56,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
   const timerRef = useRef<number>(0);
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("fc_total_answered");
@@ -114,6 +115,10 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         const newTotal = totalAnswered + 1;
         setTotalAnswered(newTotal);
         localStorage.setItem("fc_total_answered", String(newTotal));
+        // Auto-scroll to next button so user doesn't have to
+        setTimeout(() => {
+          nextBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 400);
       }
     } catch (err) {
       console.error("Failed to submit vote:", err);
@@ -251,6 +256,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
                 {currentQuestion.total_votes + 1} votes on this question
               </div>
               <button
+                ref={nextBtnRef}
                 onClick={nextQuestion}
                 className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
               >
@@ -322,7 +328,7 @@ function OptionGrid({
               `}
             >
               {/* Player image or initials */}
-              <div className="aspect-[3/4] bg-[var(--bg-elevated)] flex items-center justify-center relative">
+              <div className="aspect-square bg-[var(--bg-elevated)] flex items-center justify-center relative">
                 {opt.image_url ? (
                   <img
                     src={opt.image_url}
@@ -330,7 +336,7 @@ function OptionGrid({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-3xl sm:text-4xl font-bold text-[var(--text-muted)]">
+                  <div className="text-2xl sm:text-3xl font-bold text-[var(--text-muted)]">
                     {opt.label
                       .split(" ")
                       .map((n) => n[0])
@@ -341,9 +347,9 @@ function OptionGrid({
 
                 {/* Vote percentage overlay */}
                 {results && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center pb-3 animate-fadeIn">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center pb-2 animate-fadeIn">
                     <div className="text-center">
-                      <div className={`text-2xl sm:text-3xl font-bold font-mono ${isWinner ? "text-[var(--accent-tactical)]" : "text-white"}`}>
+                      <div className={`text-xl sm:text-2xl font-bold font-mono ${isWinner ? "text-[var(--accent-tactical)]" : "text-white"}`}>
                         {pct}%
                       </div>
                     </div>

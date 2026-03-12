@@ -55,6 +55,8 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
 - `23_career_metrics.py` → Career trajectory metrics from `player_career_history` → `career_metrics`. Computes loyalty/mobility scores (1-20), trajectory labels (rising/peak/declining/journeyman/one-club/newcomer), tenure stats. Flags: `--player`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
 - `24_news_sentiment.py` → News sentiment aggregation from `news_player_tags` → `news_sentiment_agg`. Computes sentiment/buzz scores (1-20), story type breakdown, 7d/30d trend windows. Flags: `--player`, `--days`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
+- `26_key_moments.py` → Career milestones + news moments → `key_moments`. Generates debuts, transfers, long-service awards from `player_career_history`, and high-confidence news-derived moments from `news_player_tags`. Flags: `--player`, `--limit`, `--source career|news|all`, `--dry-run`, `--force`.
+- `27_player_ratings.py` → Composite overall rating from attribute grades → `player_profiles.overall` + compound scores to `attribute_grades` (source='computed'). Position-weighted compound average (Technical/Tactical/Physical/Mental) blended with editorial level/peak. Flags: `--player`, `--limit`, `--dry-run`, `--force`.
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |

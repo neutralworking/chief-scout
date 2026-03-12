@@ -148,7 +148,7 @@ MANUAL_OVERRIDES = {
 
 print("Loading people table...")
 cur.execute("""
-    SELECT p.id, p.name, c.name AS club_name
+    SELECT p.id, p.name, c.clubname AS club_name
     FROM people p
     LEFT JOIN clubs c ON c.id = p.club_id
     WHERE p.name IS NOT NULL

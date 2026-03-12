@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: "Formations", href: "/formations" },
   { label: "News Feed", href: "/news" },
   { label: "Choices", href: "/choices" },
+  { label: "Editor", href: "/editor" },
   { label: "Admin", href: "/admin" },
 ];
 

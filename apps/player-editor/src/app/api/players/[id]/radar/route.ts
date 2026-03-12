@@ -280,5 +280,11 @@ export async function GET(
     levelAnchor,
     sources: Array.from(sourcesSeen),
     realSourceAttrs,
+    rawGrades: grades.map((g: Record<string, unknown>) => ({
+      attribute: g.attribute,
+      scout_grade: g.scout_grade,
+      stat_score: g.stat_score,
+      source: g.source,
+    })),
   });
 }

@@ -17,7 +17,7 @@ export default async function ClubsPage() {
   // Fetch ALL clubs, not just ones with players
   const { data: clubs } = await supabaseServer
     .from("clubs")
-    .select("id, name, league_name, nations(name)")
+    .select("id, clubname, league_name, nations(name)")
     .order("name");
 
   // Get player counts per club
@@ -33,7 +33,7 @@ export default async function ClubsPage() {
 
   const clubRows: ClubRow[] = (clubs ?? []).map((c: any) => ({
     id: c.id,
-    name: c.name,
+    name: c.clubname,
     nation: c.nations?.name ?? null,
     league_name: c.league_name ?? null,
     player_count: clubCounts.get(c.id) ?? 0,

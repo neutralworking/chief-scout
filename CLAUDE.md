@@ -102,16 +102,16 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)
-Browser-based pipeline management at `apps/player-editor/src/app/admin/page.tsx`.
+Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
 
 | Tab | Purpose | API Route |
 |---|---|---|
-| **Pipeline** | Table row counts, ID link source breakdown | `GET /api/admin/pipeline` |
-| **Data Health** | North star (full profiles), coverage bars per table | `GET /api/admin/health` |
 | **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
+| **Pipeline** | Table row counts, sync timestamps, freshness indicators, FBRef sync log | `GET /api/admin/pipeline` |
+| **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
 
 ## Football Choices (`/choices`)
-PWA-ready comparison game at `apps/player-editor/src/app/choices/page.tsx`.
+PWA-ready comparison game at `apps/player-editor/app/choices/page.tsx`.
 
 - Users pick between 2-5 player options per question
 - Builds a "Footballing Identity" profile from vote patterns
@@ -121,7 +121,7 @@ PWA-ready comparison game at `apps/player-editor/src/app/choices/page.tsx`.
 - PWA: `manifest.json` + `sw.js` for add-to-home-screen, offline caching
 - Seed questions: `python 20_seed_choices.py`
 
-CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Supports Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Eredivisie, Primeira Liga.
+CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Player matching uses normalized exact name matching (no fuzzy).
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

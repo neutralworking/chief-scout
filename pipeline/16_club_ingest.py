@@ -200,14 +200,17 @@ def main():
     if nations_to_add:
         print(f"Inserting {len(nations_to_add)} new nations...")
         if not DRY_RUN:
+            cur.execute("SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM nations")
+            next_id = cur.fetchone()["next_id"]
             for n in sorted(nations_to_add):
                 cur.execute(
-                    "INSERT INTO nations (name) VALUES (%s) ON CONFLICT (name) DO NOTHING RETURNING id",
-                    (n,)
+                    "INSERT INTO nations (id, name) VALUES (%s, %s) ON CONFLICT (name) DO NOTHING RETURNING id",
+                    (next_id, n)
                 )
                 result = cur.fetchone()
                 if result:
                     nation_map[n] = result["id"]
+                    next_id += 1
                 else:
                     cur.execute("SELECT id FROM nations WHERE name = %s", (n,))
                     row = cur.fetchone()
@@ -215,12 +218,15 @@ def main():
                         nation_map[n] = row["id"]
 
     # ── Load existing clubs ──────────────────────────────────────────────────
-    cur.execute("SELECT id, name FROM clubs")
-    existing_clubs = {normalise(r["name"]): r["id"] for r in cur.fetchall()}
+    cur.execute("SELECT id, clubname FROM clubs")
+    existing_clubs = {normalise(r["clubname"]): r["id"] for r in cur.fetchall()}
     print(f"Existing clubs in DB: {len(existing_clubs)}")
 
     # ── Upsert clubs ─────────────────────────────────────────────────────────
     inserted = updated = skipped = 0
+
+    cur.execute("SELECT COALESCE(MAX(id), 0) AS max_id FROM clubs")
+    next_club_id = cur.fetchone()["max_id"] + 1
 
     for c in clubs:
         nation_id = nation_map.get(c["nation"]) if c["nation"] else None
@@ -239,9 +245,10 @@ def main():
         else:
             if not DRY_RUN:
                 cur.execute(
-                    "INSERT INTO clubs (name, nation_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                    (c["name"], nation_id)
+                    "INSERT INTO clubs (id, clubname, nation_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                    (next_club_id, c["name"], nation_id)
                 )
+                next_club_id += 1
             inserted += 1
 
     print(f"Inserted: {inserted}, Updated: {updated}, Skipped: {skipped}")

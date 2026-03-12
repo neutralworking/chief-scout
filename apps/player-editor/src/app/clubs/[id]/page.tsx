@@ -19,7 +19,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   // Fetch club info
   const { data: club } = await supabaseServer
     .from("clubs")
-    .select("id, name, league_tier, league_name, stadium, stadium_capacity, founded_year, short_name, nations(name)")
+    .select("id, clubname, league_tier, league_name, stadium, stadium_capacity, founded_year, short_name, nations(name)")
     .eq("id", clubId)
     .single();
 
@@ -27,7 +27,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
     return <div className="text-sm text-[var(--text-secondary)]">Club not found.</div>;
   }
 
-  const clubName = (club as any).name;
+  const clubName = (club as any).clubname;
   const nationName = (club as any).nations?.name ?? null;
   const leagueTier = (club as any).league_tier;
   const leagueName = (club as any).league_name;

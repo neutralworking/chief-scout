@@ -176,7 +176,7 @@ def main():
             ch.end_date,
             ch.is_loan,
             ch.sort_order,
-            c.league
+            c.league_name AS league
         FROM player_career_history ch
         LEFT JOIN clubs c ON c.id = ch.club_id
         {where_sql}

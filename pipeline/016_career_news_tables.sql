@@ -8,7 +8,7 @@
 -- One row per player, refreshed by 23_career_metrics.py.
 
 CREATE TABLE IF NOT EXISTS career_metrics (
-    person_id       UUID PRIMARY KEY REFERENCES people(id),
+    person_id       BIGINT PRIMARY KEY REFERENCES people(id),
     clubs_count     INT,              -- total distinct clubs
     loan_count      INT,              -- total loan spells
     career_years    NUMERIC(4,1),     -- span from first start_date to now or last end_date
@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_career_metrics_trajectory ON career_metrics(traje
 -- One row per player, refreshed by 24_news_sentiment.py.
 
 CREATE TABLE IF NOT EXISTS news_sentiment_agg (
-    person_id           UUID PRIMARY KEY REFERENCES people(id),
+    person_id           BIGINT PRIMARY KEY REFERENCES people(id),
     total_mentions      INT,              -- total news stories mentioning this player
     positive_count      INT,
     negative_count      INT,

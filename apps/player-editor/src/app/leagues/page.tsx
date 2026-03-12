@@ -49,7 +49,7 @@ export default async function LeaguesPage() {
   // Fetch ALL clubs with their nations
   const { data: clubs } = await supabaseServer
     .from("clubs")
-    .select("id, name, league_name, nation_id, nations(name)")
+    .select("id, clubname, league_name, nation_id, nations(name)")
     .order("name");
 
   // Also get player counts per club for display
@@ -71,7 +71,7 @@ export default async function LeaguesPage() {
     if (!nationMap.has(nation)) nationMap.set(nation, []);
     nationMap.get(nation)!.push({
       id: club.id,
-      name: club.name,
+      name: club.clubname,
       leagueName: club.league_name ?? null,
       playerCount: clubCounts.get(club.id) ?? 0,
     });

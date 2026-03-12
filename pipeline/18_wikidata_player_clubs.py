@@ -130,7 +130,7 @@ def normalize_club_name(name: str) -> str:
 
 # ── Load clubs lookup ─────────────────────────────────────────────────────────
 
-cur.execute("SELECT id, name, wikidata_id FROM clubs")
+cur.execute("SELECT id, clubname, wikidata_id FROM clubs")
 club_rows = cur.fetchall()
 
 # Build multiple indexes for matching
@@ -154,7 +154,7 @@ print(f"Loaded {len(club_rows)} clubs ({len(clubs_by_wikidata)} with wikidata_id
 
 if args.player:
     cur.execute("""
-        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.name AS current_club
+        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.clubname AS current_club
         FROM people p
         LEFT JOIN clubs c ON c.id = p.club_id
         WHERE p.id = %s AND p.wikidata_id IS NOT NULL
@@ -162,7 +162,7 @@ if args.player:
 elif args.league:
     league_name = LEAGUE_FILTERS.get(args.league, args.league)
     cur.execute("""
-        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.name AS current_club
+        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.clubname AS current_club
         FROM people p
         LEFT JOIN clubs c ON c.id = p.club_id
         WHERE p.wikidata_id IS NOT NULL
@@ -174,7 +174,7 @@ else:
     if not FORCE:
         where += " AND p.club_id IS NULL"
     cur.execute(f"""
-        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.name AS current_club
+        SELECT p.id, p.name, p.wikidata_id, p.club_id, c.clubname AS current_club
         FROM people p
         LEFT JOIN clubs c ON c.id = p.club_id
         WHERE {where}

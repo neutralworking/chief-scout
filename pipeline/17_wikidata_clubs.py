@@ -476,17 +476,17 @@ def main():
     # Load clubs to enrich
     if args.club:
         cur.execute("""
-            SELECT c.id, c.name, c.wikidata_id, n.name AS nation
+            SELECT c.id, c.clubname, c.wikidata_id, n.name AS nation
             FROM clubs c
             LEFT JOIN nations n ON n.id = c.nation_id
             WHERE c.id = %s
         """, (args.club,))
     else:
-        where = "WHERE c.name IS NOT NULL"
+        where = "WHERE c.clubname IS NOT NULL"
         if not FORCE:
             where += " AND c.wikidata_id IS NULL"
         cur.execute(f"""
-            SELECT c.id, c.name, c.wikidata_id, n.name AS nation
+            SELECT c.id, c.clubname, c.wikidata_id, n.name AS nation
             FROM clubs c
             LEFT JOIN nations n ON n.id = c.nation_id
             {where}
@@ -525,7 +525,7 @@ def main():
 
     for i, club in enumerate(clubs):
         cid = club["id"]
-        name = club["name"]
+        name = club["clubname"]
         nation = club["nation"]
         norm_name = normalize_name(name)
 
@@ -643,11 +643,11 @@ def main():
         if DRY_RUN:
             print(f"\n  [dry-run] Would update {len(updates)} clubs:")
             for details, cid in updates[:30]:
-                cur.execute("SELECT name FROM clubs WHERE id = %s", (cid,))
+                cur.execute("SELECT clubname FROM clubs WHERE id = %s", (cid,))
                 row = cur.fetchone()
                 league = details.get("league_name") or "—"
                 stadium = details.get("stadium") or "—"
-                print(f"    {row['name'] if row else '?':35s} → {details['wikidata_id']}  {league:25s}  {stadium}")
+                print(f"    {row['clubname'] if row else '?':35s} → {details['wikidata_id']}  {league:25s}  {stadium}")
             if len(updates) > 30:
                 print(f"    ... and {len(updates) - 30} more")
         else:

@@ -18,6 +18,7 @@ export interface PlayerCard {
   market_value_tier: string | null;
   true_mvt: string | null;
   market_value_eur: number | null;
+  director_valuation_meur: number | null;
 }
 
 export type Position =

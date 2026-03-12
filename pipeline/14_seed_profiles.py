@@ -40,7 +40,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 91,
+            "level": 86,
             "peak": 93,
             "overall": 91,
             "archetype": "Controller-Creator",
@@ -98,7 +98,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "GK",
-            "level": 90,
+            "level": 88,
             "peak": 92,
             "overall": 90,
             "archetype": "GK-Controller",
@@ -155,7 +155,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 88,
+            "level": 91,
             "peak": 96,
             "overall": 88,
             "archetype": "Dribbler-Creator",
@@ -213,7 +213,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "DM",
-            "level": 78,
+            "level": 84,
             "peak": 91,
             "overall": 78,
             "archetype": "Destroyer-Cover",
@@ -271,7 +271,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "DM",
-            "level": 92,
+            "level": 88,
             "peak": 94,
             "overall": 92,
             "archetype": "Controller-Destroyer",
@@ -329,7 +329,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WD",
-            "level": 86,
+            "level": 90,
             "peak": 88,
             "overall": 86,
             "archetype": "Sprinter-Engine",
@@ -387,7 +387,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "GK",
-            "level": 85,
+            "level": 88,
             "peak": 87,
             "overall": 85,
             "archetype": "GK-Controller",
@@ -503,7 +503,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CF",
-            "level": 82,
+            "level": 84,
             "peak": 86,
             "overall": 82,
             "archetype": "Striker-Target",
@@ -562,7 +562,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 87,
+            "level": 92,
             "peak": 90,
             "overall": 87,
             "archetype": "Dribbler-Sprinter",
@@ -620,7 +620,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 80,
+            "level": 85,
             "peak": 87,
             "overall": 80,
             "archetype": "Creator-Dribbler",
@@ -679,7 +679,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "AM",
-            "level": 79,
+            "level": 85,
             "peak": 88,
             "overall": 79,
             "archetype": "Creator-Controller",
@@ -795,7 +795,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 75,
+            "level": 83,
             "peak": 80,
             "overall": 75,
             "archetype": "Sprinter-Dribbler",
@@ -853,7 +853,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "GK",
-            "level": 79,
+            "level": 83,
             "peak": 87,
             "overall": 79,
             "archetype": "GK-Controller",
@@ -911,7 +911,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CD",
-            "level": 82,
+            "level": 84,
             "peak": 92,
             "overall": 82,
             "archetype": "Cover-Passer",
@@ -969,7 +969,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 84,
+            "level": 88,
             "peak": 91,
             "overall": 84,
             "archetype": "Controller-Engine",
@@ -1027,7 +1027,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 88,
+            "level": 90,
             "peak": 90,
             "overall": 88,
             "archetype": "Engine-Cover",
@@ -1085,7 +1085,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "DM",
-            "level": 78,
+            "level": 83,
             "peak": 86,
             "overall": 78,
             "archetype": "Engine-Destroyer",
@@ -1144,7 +1144,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CF",
-            "level": 72,
+            "level": 74,
             "peak": 76,
             "overall": 72,
             "archetype": "Striker-Creator",
@@ -1202,7 +1202,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 84,
+            "level": 86,
             "peak": 92,
             "overall": 84,
             "archetype": "Creator-Dribbler",
@@ -1261,7 +1261,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WD",
-            "level": 83,
+            "level": 85,
             "peak": 88,
             "overall": 83,
             "archetype": "Passer-Cover",
@@ -1320,7 +1320,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WD",
-            "level": 74,
+            "level": 79,
             "peak": 84,
             "overall": 74,
             "archetype": "Passer-Engine",
@@ -1381,7 +1381,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CD",
-            "level": 87,
+            "level": 88,
             "peak": 91,
             "overall": 87,
             "archetype": "Cover-Destroyer",
@@ -1552,7 +1552,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CD",
-            "level": 85,
+            "level": 86,
             "peak": 91,
             "overall": 85,
             "archetype": "Cover-Engine",
@@ -1609,7 +1609,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CD",
-            "level": 79,
+            "level": 81,
             "peak": 88,
             "overall": 79,
             "archetype": "Destroyer",
@@ -1722,7 +1722,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WD",
-            "level": 86,
+            "level": 84,
             "peak": 87,
             "overall": 86,
             "archetype": "Engine-Sprinter",
@@ -1779,7 +1779,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WD",
-            "level": 84,
+            "level": 89,
             "peak": 89,
             "overall": 84,
             "archetype": "Engine",
@@ -2005,7 +2005,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "DM",
-            "level": 85,
+            "level": 87,
             "peak": 88,
             "overall": 85,
             "archetype": "Controller",
@@ -2119,7 +2119,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 87,
+            "level": 89,
             "peak": 92,
             "overall": 87,
             "archetype": "Controller-Creator",
@@ -2176,7 +2176,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 84,
+            "level": 87,
             "peak": 89,
             "overall": 84,
             "archetype": "Engine-Destroyer",
@@ -2232,7 +2232,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CM",
-            "level": 85,
+            "level": 90,
             "peak": 89,
             "overall": 85,
             "archetype": "Controller-Dribbler",
@@ -2403,7 +2403,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CF",
-            "level": 92,
+            "level": 91,
             "peak": 95,
             "overall": 92,
             "archetype": "Target-Sprinter",
@@ -2460,7 +2460,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "CF",
-            "level": 86,
+            "level": 85,
             "peak": 88,
             "overall": 86,
             "archetype": "Target-Engine",
@@ -2573,7 +2573,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "GK",
-            "level": 87,
+            "level": 90,
             "peak": 90,
             "overall": 87,
             "archetype": "Commander",
@@ -2630,7 +2630,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 92,
+            "level": 93,
             "peak": 95,
             "overall": 92,
             "archetype": "Sprinter-Striker",
@@ -2687,7 +2687,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 91,
+            "level": 90,
             "peak": 94,
             "overall": 91,
             "archetype": "Dribbler-Sprinter",
@@ -2744,7 +2744,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WF",
-            "level": 87,
+            "level": 89,
             "peak": 88,
             "overall": 87,
             "archetype": "Engine-Creator",
@@ -2801,7 +2801,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WM",
-            "level": 89,
+            "level": 87,
             "peak": 90,
             "overall": 89,
             "archetype": "Controller-Engine",
@@ -2858,7 +2858,7 @@ PLAYERS = [
         },
         "profile": {
             "position": "WM",
-            "level": 88,
+            "level": 87,
             "peak": 92,
             "overall": 88,
             "archetype": "Creator-Dribbler",

@@ -3491,7 +3491,7 @@ VALUES (
   (SELECT COALESCE(MAX(id), 0) + 1 FROM people),
   %(name)s, %(dob)s, %(height_cm)s, %(preferred_foot)s,
   (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
-  (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
+  (SELECT id FROM clubs WHERE clubname = %(club)s OR clubname ILIKE %(club)s || '%%' ORDER BY (clubname = %(club)s)::int DESC LIMIT 1),
   %(active)s
 )
 RETURNING id;
@@ -3503,7 +3503,7 @@ UPDATE people SET
   height_cm      = %(height_cm)s,
   preferred_foot = %(preferred_foot)s,
   nation_id      = (SELECT id FROM nations WHERE name = %(nation)s LIMIT 1),
-  club_id        = (SELECT id FROM clubs WHERE name = %(club)s OR name ILIKE %(club)s || '%%' ORDER BY (name = %(club)s)::int DESC LIMIT 1),
+  club_id        = (SELECT id FROM clubs WHERE clubname = %(club)s OR clubname ILIKE %(club)s || '%%' ORDER BY (clubname = %(club)s)::int DESC LIMIT 1),
   active         = %(active)s,
   updated_at     = now()
 WHERE id = %(id)s;

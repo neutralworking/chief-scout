@@ -1,32 +1,41 @@
 """
-11_fbref_ingest.py — Scrape player season stats from FBRef and push to Supabase.
+11_fbref_ingest.py — Import FBRef player stats from local HTML/CSV files.
 
-FBRef enforces strict rate limits. This script respects them:
-  - 4 seconds between page requests (FBRef blocks at ~3s)
-  - Incremental: tracks synced comp/season/stat_type in fbref_sync_log
-  - First run fetches everything; subsequent runs skip already-synced pages
+FBRef blocks all automated scraping (Cloudflare). This script processes
+HTML pages saved from your browser. Workflow:
 
-Note: FBRef now blocks automated requests via Cloudflare. The primary ingest
-path is CSV import through the admin panel (/admin → Import tab). This script
-is a fallback/reference for when direct scraping works.
+  1. Open FBRef stat pages in your browser
+  2. Cmd+S to save the complete HTML page to pipeline/fbref_pages/
+  3. Run this script to parse and push to Supabase
+
+The script watches for files matching the pattern:
+  fbref_pages/{comp_id}_{season}_{stat_type}.html
+  e.g. fbref_pages/9_2024-2025_standard.html
+
+Or process ALL .html files in the directory (auto-detects stat type from content).
+
+Alternatively, save CSV exports from FBRef tables:
+  fbref_pages/{comp_id}_{season}_{stat_type}.csv
 
 Usage:
-    python 11_fbref_ingest.py                           # all priority comps, current season
-    python 11_fbref_ingest.py --season 2023-2024        # specific season
-    python 11_fbref_ingest.py --comp 9                  # EPL only
-    python 11_fbref_ingest.py --force                   # re-scrape even if already synced
+    python 11_fbref_ingest.py                           # process all files in fbref_pages/
+    python 11_fbref_ingest.py --watch                   # watch fbref_pages/ for new files
+    python 11_fbref_ingest.py --season 2024-2025        # filter to specific season
+    python 11_fbref_ingest.py --comp 9                  # filter to specific competition
     python 11_fbref_ingest.py --dry-run                 # preview without writing
-    python 11_fbref_ingest.py --seasons-back 3          # current + 2 previous seasons
+    python 11_fbref_ingest.py --force                   # re-process already synced files
+    python 11_fbref_ingest.py --open                    # open FBRef URLs in browser
 """
 import argparse
+import csv
+import io
 import re
 import sys
 import time
-import html as html_module
+import webbrowser
 from datetime import datetime, timezone
-from urllib.parse import urljoin
+from pathlib import Path
 
-import requests
 from bs4 import BeautifulSoup, Comment
 import psycopg2
 from psycopg2.extras import execute_values
@@ -35,51 +44,92 @@ from config import POSTGRES_DSN
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
-parser = argparse.ArgumentParser(description="Scrape FBRef player stats into Supabase")
-parser.add_argument("--comp", type=int, default=None, help="Single competition ID")
-parser.add_argument("--season", default=None, help="Season string, e.g. '2023-2024'")
+parser = argparse.ArgumentParser(description="Import FBRef stats from saved HTML/CSV files")
+parser.add_argument("--comp", type=int, default=None, help="Filter to competition ID")
+parser.add_argument("--season", default=None, help="Filter to season, e.g. '2024-2025'")
 parser.add_argument("--seasons-back", type=int, default=1,
-                    help="Number of seasons to fetch (default: 1 = current only)")
+                    help="Number of seasons for --open (default: 1 = current only)")
 parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
-parser.add_argument("--force", action="store_true", help="Re-scrape already-synced data")
+parser.add_argument("--force", action="store_true", help="Re-process already-synced files")
+parser.add_argument("--open", action="store_true",
+                    help="Open FBRef URLs in browser for manual saving")
+parser.add_argument("--watch", action="store_true",
+                    help="Watch fbref_pages/ for new files and process them")
+parser.add_argument("files", nargs="*", help="Specific HTML/CSV files to process")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
 FORCE = args.force
 
-# ── Rate limiting ─────────────────────────────────────────────────────────────
+# ── Local file processing ────────────────────────────────────────────────────
 
-REQUEST_DELAY = 4.0  # seconds between HTTP requests — FBRef blocks below ~3s
-_last_request_time = 0.0
-
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-})
+PAGES_DIR = Path(__file__).parent / "fbref_pages"
 
 
-def _fetch(url: str) -> BeautifulSoup | None:
-    """Fetch a URL with rate limiting. Returns parsed HTML or None on failure."""
-    global _last_request_time
-    elapsed = time.time() - _last_request_time
-    if elapsed < REQUEST_DELAY:
-        time.sleep(REQUEST_DELAY - elapsed)
-
+def _load_html(filepath: Path) -> BeautifulSoup | None:
+    """Load and parse a saved HTML file."""
     try:
-        resp = SESSION.get(url, timeout=30)
-        _last_request_time = time.time()
-        if resp.status_code == 429:
-            print(f"  RATE LIMITED — sleeping 60s")
-            time.sleep(60)
-            return _fetch(url)  # retry once
-        if resp.status_code != 200:
-            print(f"  HTTP {resp.status_code} for {url}")
-            return None
-        return BeautifulSoup(resp.text, "lxml")
+        text = filepath.read_text(encoding="utf-8", errors="replace")
+        return BeautifulSoup(text, "lxml")
     except Exception as e:
-        print(f"  WARN: fetch failed for {url}: {e}")
+        print(f"  WARN: failed to read {filepath}: {e}")
         return None
+
+
+def _detect_stat_type(soup: BeautifulSoup) -> str | None:
+    """Auto-detect which stat type a page contains."""
+    for stat_type, table_id in {
+        "standard": "stats_standard",
+        "shooting": "stats_shooting",
+        "passing": "stats_passing",
+        "defense": "stats_defense",
+        "possession": "stats_possession",
+        "keepers": "stats_keeper",
+    }.items():
+        if soup.find("table", {"id": table_id}):
+            return stat_type
+        # Check inside HTML comments
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            if table_id in str(comment):
+                return stat_type
+    return None
+
+
+def _parse_filename(filepath: Path) -> tuple[int | None, str | None, str | None]:
+    """Try to extract comp_id, season, stat_type from filename.
+    Expected: {comp_id}_{season}_{stat_type}.html
+    e.g. 9_2024-2025_standard.html
+    """
+    stem = filepath.stem
+    m = re.match(r"(\d+)_(\d{4}-\d{4})_(\w+)", stem)
+    if m:
+        return int(m.group(1)), m.group(2), m.group(3)
+    return None, None, None
+
+
+def open_fbref_urls(comp_ids: list[int], seasons: list[str]):
+    """Open FBRef stat page URLs in the default browser for manual saving."""
+    urls = []
+    for comp_id in comp_ids:
+        comp = COMPETITIONS.get(comp_id)
+        if not comp:
+            continue
+        for season in seasons:
+            for stat_type, stat_page in STAT_PAGES.items():
+                url = stats_url(comp_id, season, stat_type)
+                urls.append((comp_id, season, stat_type, url))
+
+    print(f"\nOpening {len(urls)} FBRef pages in your browser...")
+    print(f"Save each page as: fbref_pages/{{comp_id}}_{{season}}_{{stat_type}}.html")
+    print(f"Directory: {PAGES_DIR}\n")
+
+    PAGES_DIR.mkdir(exist_ok=True)
+
+    for comp_id, season, stat_type, url in urls:
+        filename = f"{comp_id}_{season}_{stat_type}.html"
+        print(f"  {filename}: {url}")
+        webbrowser.open(url)
+        time.sleep(2)  # don't overwhelm the browser
 
 
 # ── Competition registry ──────────────────────────────────────────────────────
@@ -378,13 +428,39 @@ def mark_synced(comp_id: int, season: str, stat_type: str, rows_fetched: int):
     """, (comp_id, season, stat_type, rows_fetched))
 
 
-# ── Main scraping loop ────────────────────────────────────────────────────────
+# ── Main processing loop ─────────────────────────────────────────────────────
 
-comps_to_scrape = {args.comp: COMPETITIONS[args.comp]} if args.comp else COMPETITIONS
-seasons = season_range(args.seasons_back, args.season)
+# Handle --open mode: just open URLs in browser and exit
+if args.open:
+    comp_ids = [args.comp] if args.comp else list(COMPETITIONS.keys())
+    seasons = season_range(args.seasons_back, args.season)
+    open_fbref_urls(comp_ids, seasons)
+    print(f"\nSave pages to: {PAGES_DIR}/")
+    print("Then run: python 11_fbref_ingest.py")
+    conn.close()
+    sys.exit(0)
 
-print(f"FBRef Ingest — {len(comps_to_scrape)} competitions × {len(seasons)} seasons")
-print(f"  Rate limit: {REQUEST_DELAY}s between requests")
+# Collect files to process
+PAGES_DIR.mkdir(exist_ok=True)
+
+if args.files:
+    files_to_process = [Path(f) for f in args.files]
+else:
+    files_to_process = sorted(PAGES_DIR.glob("*.html")) + sorted(PAGES_DIR.glob("*.csv"))
+
+if not files_to_process:
+    print(f"No files found in {PAGES_DIR}/")
+    print(f"\nTo get started:")
+    print(f"  1. Run: python 11_fbref_ingest.py --open --comp 9")
+    print(f"     This opens FBRef EPL pages in your browser.")
+    print(f"  2. Save each page (Cmd+S) to: {PAGES_DIR}/")
+    print(f"     Name format: {{comp_id}}_{{season}}_{{stat_type}}.html")
+    print(f"     e.g. 9_2024-2025_standard.html")
+    print(f"  3. Run: python 11_fbref_ingest.py")
+    conn.close()
+    sys.exit(0)
+
+print(f"FBRef Ingest — {len(files_to_process)} files to process")
 if DRY_RUN:
     print("  (dry-run mode)")
 print()
@@ -392,61 +468,108 @@ print()
 total_players_upserted = 0
 total_stats_upserted = 0
 
-for comp_id, comp_info in comps_to_scrape.items():
-    comp_name = comp_info["name"]
+# Group files by (comp_id, season) so we can merge stats across stat types
+file_groups: dict[tuple[int, str], dict[str, Path]] = {}
 
-    for season in seasons:
-        print(f"── {comp_name} {season} ──")
+for filepath in files_to_process:
+    comp_id_f, season_f, stat_type_f = _parse_filename(filepath)
 
-        # Accumulate stats per player across stat pages
-        player_stats = {}  # fbref_id → merged dict
+    # Apply filters
+    if args.comp and comp_id_f and comp_id_f != args.comp:
+        continue
+    if args.season and season_f and season_f != args.season:
+        continue
 
-        for stat_type in STAT_PAGES:
-            if is_synced(comp_id, season, stat_type):
-                print(f"  {stat_type}: already synced (skip)")
-                continue
+    if filepath.suffix == ".html":
+        soup = _load_html(filepath)
+        if soup is None:
+            continue
 
-            url = stats_url(comp_id, season, stat_type)
-            print(f"  {stat_type}: {url}")
+        # Auto-detect stat type if not in filename
+        if not stat_type_f:
+            stat_type_f = _detect_stat_type(soup)
 
-            soup = _fetch(url)
+        if not stat_type_f:
+            print(f"  SKIP {filepath.name}: cannot detect stat type")
+            continue
+
+        # Default comp/season if not in filename
+        if not comp_id_f:
+            comp_id_f = args.comp or 9  # default EPL
+        if not season_f:
+            season_f = args.season or current_season()
+
+    elif filepath.suffix == ".csv":
+        if not comp_id_f:
+            comp_id_f = args.comp or 9
+        if not season_f:
+            season_f = args.season or current_season()
+        if not stat_type_f:
+            stat_type_f = "standard"  # CSV exports are typically standard stats
+
+    key = (comp_id_f, season_f)
+    if key not in file_groups:
+        file_groups[key] = {}
+    file_groups[key][stat_type_f] = filepath
+
+# Process each (comp, season) group
+for (comp_id, season), stat_files in file_groups.items():
+    comp_info = COMPETITIONS.get(comp_id, {"name": f"comp-{comp_id}"})
+    comp_name = comp_info["name"] if isinstance(comp_info, dict) else str(comp_info)
+
+    print(f"── {comp_name} {season} ({len(stat_files)} stat pages) ──")
+
+    player_stats = {}  # fbref_id → merged dict
+
+    for stat_type, filepath in stat_files.items():
+        if is_synced(comp_id, season, stat_type) and not FORCE:
+            print(f"  {stat_type}: already synced (skip, use --force to re-process)")
+            continue
+
+        print(f"  {stat_type}: {filepath.name}")
+
+        if filepath.suffix == ".html":
+            soup = _load_html(filepath)
             if soup is None:
-                print(f"    SKIP — failed to fetch")
                 continue
-
             rows = parse_stats_table(soup, stat_type)
-            print(f"    parsed {len(rows)} player rows")
+        else:
+            # CSV processing — not yet implemented, skip
+            print(f"    SKIP — CSV support coming soon")
+            continue
 
-            if not rows:
-                # Page might not exist for this comp/season combo
-                mark_synced(comp_id, season, stat_type, 0)
+        print(f"    parsed {len(rows)} player rows")
+
+        if not rows:
+            mark_synced(comp_id, season, stat_type, 0)
+            continue
+
+        extractor = EXTRACTORS.get(stat_type)
+        if not extractor:
+            print(f"    SKIP — no extractor for {stat_type}")
+            continue
+
+        for row in rows:
+            fbref_id = row.get("_fbref_id")
+            if not fbref_id:
                 continue
 
-            extractor = EXTRACTORS[stat_type]
+            if fbref_id not in player_stats:
+                player_stats[fbref_id] = {
+                    "fbref_id": fbref_id,
+                    "name": row.get("player", ""),
+                    "fbref_url": row.get("_fbref_url", ""),
+                    "nation": row.get("nationality"),
+                    "position": row.get("position"),
+                    "team": row.get("team"),
+                }
 
-            for row in rows:
-                fbref_id = row.get("_fbref_id")
-                if not fbref_id:
-                    continue
+            extracted = extractor(row)
+            player_stats[fbref_id].update(
+                {k: v for k, v in extracted.items() if v is not None}
+            )
 
-                # Initialize player entry if new
-                if fbref_id not in player_stats:
-                    player_stats[fbref_id] = {
-                        "fbref_id": fbref_id,
-                        "name": row.get("player", ""),
-                        "fbref_url": row.get("_fbref_url", ""),
-                        "nation": row.get("nationality"),
-                        "position": row.get("position"),
-                        "team": row.get("team"),
-                    }
-
-                # Merge extracted stats
-                extracted = extractor(row)
-                player_stats[fbref_id].update(
-                    {k: v for k, v in extracted.items() if v is not None}
-                )
-
-            mark_synced(comp_id, season, stat_type, len(rows))
+        mark_synced(comp_id, season, stat_type, len(rows))
 
         # ── Upsert players and stats ──────────────────────────────────────
 
@@ -571,6 +694,13 @@ print(f"  Players upserted     : {total_players_upserted}")
 print(f"  Season stats upserted: {total_stats_upserted}")
 if DRY_RUN:
     print("  (dry-run — no data was written)")
+
+# Suggest next steps
+if total_players_upserted > 0 and not DRY_RUN:
+    print(f"\nNext steps:")
+    print(f"  1. Match FBRef players to people: python 10_player_matching.py --source fbref")
+    print(f"  2. Generate attribute grades:     python 22_fbref_grades.py")
+    print(f"  3. Re-score archetypes:           python 04_refine_players.py")
 
 cur.close()
 conn.close()

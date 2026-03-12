@@ -50,7 +50,7 @@ MODEL_ATTRIBUTES: dict[str, list[str]] = {
     # Physical
     "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
     "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "throwing"],
+    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
     # Tactical
     "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
     "Engine":      ["intensity", "pressing", "stamina", "versatility"],
@@ -58,7 +58,7 @@ MODEL_ATTRIBUTES: dict[str, list[str]] = {
     # Technical
     "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
     "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["short_range", "mid_range", "long_range", "penalties"],
+    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
     # Specialist
     "GK":          ["agility", "footwork", "handling", "reactions"],
 }

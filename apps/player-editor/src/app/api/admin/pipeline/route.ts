@@ -47,5 +47,17 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ counts, sourceCounts });
+  // Last cron run
+  let lastCronRun: Record<string, unknown> | null = null;
+  const { data: cronData } = await supabaseServer
+    .from("cron_log")
+    .select("job, ran_at, stats")
+    .eq("job", "news")
+    .order("ran_at", { ascending: false })
+    .limit(1);
+  if (cronData?.length) {
+    lastCronRun = cronData[0] as Record<string, unknown>;
+  }
+
+  return NextResponse.json({ counts, sourceCounts, lastCronRun });
 }

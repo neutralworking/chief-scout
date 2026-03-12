@@ -141,7 +141,7 @@ def main():
             "assists_p90": float(p["total_assists"]) / mins * 90,
             "chain_p90": float(p["total_chain"]) / mins * 90,
             "buildup_p90": float(p["total_buildup"]) / mins * 90,
-            "npxg_p90": float(p["total_xg"]) / mins * 90,  # approximate
+            "npxg_p90": float(p["total_npxg_approx"]) / mins * 90 if float(p["total_npxg_approx"] or 0) > 0 else float(p["total_xg"]) / mins * 90,
         }
 
         # Convert each attribute

@@ -4,8 +4,12 @@ writing results to `attribute_grades` with source='fbref'.
 
 This fills a critical gap: defensive metrics (tackles, interceptions, blocks,
 clearances), passing accuracy, progressive actions, dribbling, and GK stats
-from FBRef all get converted into the 1-20 grading scale alongside existing
-StatsBomb and Understat grades.
+from FBRef all get converted into the 0-10 SACROSANCT scale alongside existing
+Understat grades.
+
+FBRef metrics are mapped to SACROSANCT model attribute names so the radar
+scoring engine (route.ts) and archetype scoring (04_refine_players.py) can
+consume them directly.
 
 Usage:
     python 22_fbref_grades.py                        # all positions
@@ -73,20 +77,51 @@ MIDFIELDER_POS = {"CM", "DM", "WM"}
 DEFENDER_POS = {"CD", "WD"}
 GK_POS = {"GK"}
 
-# Metrics relevant per position group
+# ── FBRef metric → SACROSANCT attribute mapping ──────────────────────────────
+# Keys are the internal FBRef metric names computed below.
+# Values are the SACROSANCT attribute names expected by route.ts / 04_refine.
+FBREF_TO_SACROSANCT = {
+    # Striker model
+    "finishing":            "close_range",
+    "shot_accuracy":        "mid_range",
+    "xg_overperformance":   "long_range",
+    # Creator model
+    "creativity":           "creativity",
+    "vision":               "vision",
+    # Passer model
+    "pass_accuracy":        "pass_accuracy",
+    "progressive_passing":  "pass_range",
+    "through_balls_proxy":  "through_balls",
+    # Destroyer model
+    "tackling":             "tackling",
+    "blocks":               "blocking",
+    "clearances":           "clearances",
+    # Cover model
+    "interceptions":        "interceptions",
+    "defensive_work":       "awareness",
+    # Dribbler model
+    "dribbling":            "take_ons",
+    "progressive_carrying": "carries",
+    # GK model
+    "gk_shot_stopping":     "reactions",
+    "gk_saves_rate":        "handling",
+    "gk_clean_sheet_rate":  "footwork",
+}
+
+# Metrics relevant per position group (using FBREF internal names)
 ATTACKER_METRICS = {
     "finishing", "shot_accuracy", "creativity", "vision",
     "dribbling", "progressive_carrying", "progressive_passing",
-    "xg_overperformance",
+    "xg_overperformance", "through_balls_proxy",
 }
 MIDFIELDER_METRICS = {
     "pass_accuracy", "progressive_passing", "creativity", "vision",
     "tackling", "interceptions", "defensive_work", "dribbling",
-    "progressive_carrying", "composure",
+    "progressive_carrying", "through_balls_proxy",
 }
 DEFENDER_METRICS = {
-    "tackling", "interceptions", "blocks_clearances", "aerial_presence",
-    "pass_accuracy", "progressive_passing", "composure", "defensive_work",
+    "tackling", "interceptions", "blocks", "clearances",
+    "pass_accuracy", "progressive_passing", "defensive_work",
 }
 GK_METRICS = {
     "gk_shot_stopping", "gk_saves_rate", "gk_clean_sheet_rate",
@@ -147,7 +182,8 @@ def percentile_rank(values):
 
 
 def percentile_to_score(pct):
-    return max(1, min(20, round(pct / 5)))
+    """Convert 0-100 percentile rank to 1-10 SACROSANCT scale."""
+    return max(1, min(10, round(pct / 10)))
 
 
 def compute_positional_percentiles(player_metrics, player_positions):
@@ -349,29 +385,25 @@ def aggregate_fbref(cur):
             intercepts = d.get("interceptions") or 0
             m["defensive_work"] = _per90(tackles + intercepts, mins)
 
-            # Blocks + clearances per 90
+            # Blocks per 90 (Destroyer: blocking)
             blocks = d.get("blocks") or 0
+            m["blocks"] = _per90(blocks, mins)
+
+            # Clearances per 90 (Destroyer: clearances)
             clearances = d.get("clearances") or 0
-            m["blocks_clearances"] = _per90(blocks + clearances, mins)
+            m["clearances"] = _per90(clearances, mins)
 
             # Dribbling: successful / attempted
             drib_att = d.get("dribbles_attempted") or 0
             if drib_att >= 5:
                 m["dribbling"] = _safe((d.get("successful_dribbles") or 0) / drib_att * 100)
 
-            # Progressive carrying per 90
+            # Progressive carrying per 90 (Dribbler: carries)
             m["progressive_carrying"] = _per90(d.get("progressive_carries"), mins)
 
-            # Composure proxy: pass accuracy under volume
-            # (high pass_pct with high pass volume = composure)
-            passes_att = d.get("passes_attempted") or 0
-            if passes_att >= 50 and pass_pct is not None:
-                pass_volume_p90 = passes_att / mins * 90
-                m["composure"] = _safe(float(pass_pct) * min(pass_volume_p90 / 50, 1.2))
-
-            # Aerial presence proxy: clearances per 90 (best available from FBRef standard stats)
-            if clearances >= 3:
-                m["aerial_presence"] = _per90(clearances, mins)
+            # Through balls proxy: xAG per 90 (Passer: through_balls)
+            if xag is not None:
+                m["through_balls_proxy"] = _per90(float(xag), mins)
 
         # --- GK metrics ---
         if pg == "gk" or (pg is None and (d.get("gk_saves") or 0) > 0):
@@ -406,10 +438,14 @@ def aggregate_fbref(cur):
     now_iso = datetime.now(timezone.utc).isoformat()
     upsert_rows = []
     for pid, metric_scores in scores.items():
-        for attr, score in metric_scores.items():
+        for fbref_metric, score in metric_scores.items():
+            # Map FBRef metric name → SACROSANCT attribute name
+            sacrosanct_attr = FBREF_TO_SACROSANCT.get(fbref_metric)
+            if not sacrosanct_attr:
+                continue  # skip metrics that don't map to SACROSANCT
             upsert_rows.append({
                 "player_id": pid,
-                "attribute": attr,
+                "attribute": sacrosanct_attr,
                 "stat_score": score,
                 "source": "fbref",
                 "is_inferred": True,
@@ -424,11 +460,12 @@ def aggregate_fbref(cur):
         sample_pid = next(iter(scores))
         sample_name = player_data.get(sample_pid, {}).get("season", "?")
         print(f"\n  Sample (person_id={sample_pid}, season={sample_name}):")
-        for attr, sc in sorted(scores[sample_pid].items()):
-            raw = player_metrics.get(sample_pid, {}).get(attr, "?")
+        for fbref_metric, sc in sorted(scores[sample_pid].items()):
+            sacro = FBREF_TO_SACROSANCT.get(fbref_metric, "(unmapped)")
+            raw = player_metrics.get(sample_pid, {}).get(fbref_metric, "?")
             if isinstance(raw, float):
                 raw = f"{raw:.2f}"
-            print(f"    {attr:25s}  raw={raw:>8s}  score={sc:2d}/20")
+            print(f"    {fbref_metric:25s} → {sacro:15s}  raw={raw:>8s}  score={sc:2d}/10")
 
     # ── Upsert ─────────────────────────────────────────────────────────────
 

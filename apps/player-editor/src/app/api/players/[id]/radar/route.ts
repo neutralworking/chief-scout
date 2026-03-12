@@ -26,16 +26,18 @@ const ATTR_ALIASES: Record<string, string> = {
 };
 
 // Which models matter for each position (weights 0-1)
+// Reviewed by DOF: Passer added to CD, Powerhouse to DM, Cover raised for CM,
+// Striker added to AM, Engine raised for WF, Creator+Powerhouse added to CF
 const POSITION_WEIGHTS: Record<string, Record<string, number>> = {
   GK:  { GK: 1.0, Cover: 0.6, Commander: 0.5, Controller: 0.3 },
-  CD:  { Destroyer: 1.0, Cover: 0.9, Commander: 0.7, Target: 0.5, Powerhouse: 0.4 },
-  WD:  { Engine: 0.9, Dribbler: 0.7, Passer: 0.7, Sprinter: 0.6, Cover: 0.5 },
-  DM:  { Cover: 1.0, Destroyer: 0.9, Controller: 0.8, Passer: 0.5, Commander: 0.4 },
-  CM:  { Controller: 1.0, Passer: 0.9, Engine: 0.7, Cover: 0.4, Creator: 0.4 },
+  CD:  { Destroyer: 1.0, Cover: 0.9, Commander: 0.7, Target: 0.5, Powerhouse: 0.4, Passer: 0.3 },
+  WD:  { Engine: 0.9, Dribbler: 0.7, Passer: 0.7, Sprinter: 0.6, Cover: 0.6, Destroyer: 0.3 },
+  DM:  { Cover: 1.0, Destroyer: 0.9, Controller: 0.8, Passer: 0.5, Commander: 0.4, Powerhouse: 0.3 },
+  CM:  { Controller: 1.0, Passer: 0.9, Engine: 0.8, Cover: 0.5, Creator: 0.4 },
   WM:  { Dribbler: 0.9, Passer: 0.8, Engine: 0.7, Sprinter: 0.6, Creator: 0.5 },
-  AM:  { Creator: 1.0, Dribbler: 0.8, Passer: 0.7, Controller: 0.5, Sprinter: 0.3 },
-  WF:  { Dribbler: 1.0, Sprinter: 0.9, Striker: 0.7, Creator: 0.5, Engine: 0.3 },
-  CF:  { Striker: 1.0, Target: 0.7, Sprinter: 0.6, Dribbler: 0.4, Powerhouse: 0.3 },
+  AM:  { Creator: 1.0, Dribbler: 0.8, Passer: 0.7, Controller: 0.5, Striker: 0.4, Sprinter: 0.3 },
+  WF:  { Dribbler: 1.0, Sprinter: 0.9, Striker: 0.7, Creator: 0.5, Engine: 0.5 },
+  CF:  { Striker: 1.0, Target: 0.7, Sprinter: 0.6, Powerhouse: 0.5, Dribbler: 0.4, Creator: 0.3 },
 };
 
 // Tactical roles with primary + secondary model
@@ -48,6 +50,7 @@ const TACTICAL_ROLES: Record<string, { position: string; primary: string; second
     { position: "CD", primary: "Destroyer", secondary: "Cover" },
     { position: "CD", primary: "Cover", secondary: "Passer" },
     { position: "CD", primary: "Destroyer", secondary: "Commander" },
+    { position: "CD", primary: "Cover", secondary: "Dribbler" },
   ],
   WD:  [
     { position: "WD", primary: "Engine", secondary: "Dribbler" },
@@ -84,25 +87,29 @@ const TACTICAL_ROLES: Record<string, { position: string; primary: string; second
     { position: "CF", primary: "Target", secondary: "Powerhouse" },
     { position: "CF", primary: "Striker", secondary: "Sprinter" },
     { position: "CF", primary: "Dribbler", secondary: "Striker" },
+    { position: "CF", primary: "Creator", secondary: "Striker" },
   ],
 };
 
 const ROLE_NAMES: Record<string, Record<string, string>> = {
   GK:  { "GK+Cover": "Shot Stopper", "GK+Passer": "Sweeper Keeper" },
-  CD:  { "Destroyer+Cover": "Stopper", "Cover+Passer": "Ball-Playing CB", "Destroyer+Commander": "Enforcer" },
+  CD:  { "Destroyer+Cover": "Stopper", "Cover+Passer": "Ball-Playing CB", "Destroyer+Commander": "Enforcer", "Cover+Dribbler": "Ball-Carrier" },
   WD:  { "Engine+Dribbler": "Overlapping FB", "Cover+Passer": "Inverted FB", "Engine+Sprinter": "Wing-Back" },
   DM:  { "Cover+Destroyer": "Anchor", "Controller+Passer": "Regista", "Destroyer+Engine": "Ball Winner" },
   CM:  { "Controller+Passer": "Deep Playmaker", "Engine+Cover": "Box-to-Box", "Passer+Creator": "Mezzala" },
   WM:  { "Dribbler+Passer": "Wide Playmaker", "Engine+Sprinter": "Traditional Winger", "Creator+Dribbler": "Inside Forward" },
   AM:  { "Creator+Dribbler": "Trequartista", "Controller+Creator": "Advanced Playmaker", "Dribbler+Striker": "Shadow Striker" },
   WF:  { "Dribbler+Sprinter": "Inside Forward", "Striker+Dribbler": "Wide Forward", "Sprinter+Creator": "Inverted Winger" },
-  CF:  { "Striker+Target": "Target Man", "Target+Powerhouse": "Complete Forward", "Striker+Sprinter": "Poacher", "Dribbler+Striker": "False 9" },
+  CF:  { "Striker+Target": "Target Man", "Target+Powerhouse": "Complete Forward", "Striker+Sprinter": "Poacher", "Dribbler+Striker": "False 9", "Creator+Striker": "Deep-Lying Forward" },
 };
 
-// Source weights for blended scoring (higher = more trusted)
-const SOURCE_WEIGHTS: Record<string, number> = {
-  scout_assessment: 4,
-  statsbomb: 3,
+// Source priority for fallback scoring (higher = preferred)
+// For each attribute, we use the score from the highest-priority source that has data.
+// This prevents eafc_inferred garbage (undifferentiated all-10s) from polluting real data.
+const SOURCE_PRIORITY: Record<string, number> = {
+  scout_assessment: 5,
+  statsbomb: 4,
+  fbref: 3,
   understat: 2,
   eafc_inferred: 1,
 };
@@ -135,18 +142,11 @@ export async function GET(
   const playerLevel = profile?.level ?? profile?.peak ?? null;
   const playerPosition = profile?.position ?? null;
 
-  // ── Scale detection ──
-  // Check if any grade value > 10 → legacy 0-20 scale, otherwise 0-10 (SACROSANCT)
-  let maxVal = 0;
-  for (const g of grades) {
-    const v = g.scout_grade ?? g.stat_score ?? 0;
-    if (v > maxVal) maxVal = v;
-  }
-  const scale = maxVal > 10 ? 20.0 : 10.0;
-
-  // ── Blended grades per attribute ──
-  // Instead of "pick highest priority source", blend all sources with weights
-  const attrBlend = new Map<string, { weightedSum: number; totalWeight: number }>();
+  // ── Priority fallback per attribute ──
+  // For each attribute, use the score from the highest-priority source.
+  // This prevents eafc garbage (all 10s) from diluting real statistical data.
+  // Per-source scale detection: eafc/understat are 0-10, legacy data may be 0-20.
+  const attrBest = new Map<string, { normalized: number; priority: number; source: string }>();
   const sourcesSeen = new Set<string>();
 
   for (const g of grades) {
@@ -156,40 +156,50 @@ export async function GET(
     let attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
     attr = ATTR_ALIASES[attr] ?? attr;
     const source = g.source ?? "eafc_inferred";
-    const weight = SOURCE_WEIGHTS[source] ?? 1;
+    const priority = SOURCE_PRIORITY[source] ?? 1;
     sourcesSeen.add(source);
 
-    // Normalize to 0-100
+    // Per-source scale: scout grades can be 0-20, stats are 0-10
+    const scale = raw > 10 ? 20.0 : 10.0;
     const normalized = (raw / scale) * 100;
 
-    const existing = attrBlend.get(attr);
-    if (existing) {
-      existing.weightedSum += normalized * weight;
-      existing.totalWeight += weight;
-    } else {
-      attrBlend.set(attr, { weightedSum: normalized * weight, totalWeight: weight });
+    const existing = attrBest.get(attr);
+    if (!existing || priority > existing.priority) {
+      attrBest.set(attr, { normalized, priority, source });
     }
   }
 
-  // Final blended scores (0-100)
+  // Final scores (0-100) — one score per attribute from best available source
   const attrScores = new Map<string, number>();
-  for (const [attr, blend] of attrBlend) {
-    attrScores.set(attr, Math.round(blend.weightedSum / blend.totalWeight));
+  for (const [attr, best] of attrBest) {
+    attrScores.set(attr, Math.round(best.normalized));
   }
 
   // ── Data quality assessment ──
+  // Count how many attributes come from real sources vs eafc defaults
+  let realSourceAttrs = 0;
+  let eafcOnlyAttrs = 0;
+  for (const [, best] of attrBest) {
+    if (best.source !== "eafc_inferred") {
+      realSourceAttrs++;
+    } else {
+      eafcOnlyAttrs++;
+    }
+  }
   const values = Array.from(attrScores.values());
   const uniqueValues = new Set(values);
-  const isUndifferentiated = uniqueValues.size <= 2;
+  const isUndifferentiated = uniqueValues.size <= 2 && realSourceAttrs === 0;
 
   // Data confidence: determines how much we trust attributes vs level anchor
   let dataWeight = 0.3; // default: low (eafc-only undifferentiated)
   if (sourcesSeen.has("scout_assessment")) {
     dataWeight = 1.0; // full trust
-  } else if (sourcesSeen.has("statsbomb") || sourcesSeen.has("understat")) {
-    dataWeight = isUndifferentiated ? 0.4 : 0.7; // medium-high if differentiated
+  } else if (sourcesSeen.has("fbref") || sourcesSeen.has("statsbomb")) {
+    dataWeight = realSourceAttrs >= 10 ? 0.8 : 0.6;
+  } else if (sourcesSeen.has("understat")) {
+    dataWeight = realSourceAttrs >= 5 ? 0.7 : 0.5;
   } else if (!isUndifferentiated) {
-    dataWeight = 0.6; // differentiated eafc
+    dataWeight = 0.5; // differentiated eafc
   }
 
   // ── Model scores (0-100) ──
@@ -257,7 +267,7 @@ export async function GET(
     }).sort((a, b) => b.score - a.score);
   }
 
-  const hasDifferentiatedData = !isUndifferentiated || sourcesSeen.has("understat") || sourcesSeen.has("statsbomb");
+  const hasDifferentiatedData = !isUndifferentiated || sourcesSeen.has("understat") || sourcesSeen.has("statsbomb") || sourcesSeen.has("fbref");
 
   return NextResponse.json({
     modelScores,
@@ -268,6 +278,7 @@ export async function GET(
     hasDifferentiatedData,
     dataWeight,
     levelAnchor,
-    scale,
+    sources: Array.from(sourcesSeen),
+    realSourceAttrs,
   });
 }

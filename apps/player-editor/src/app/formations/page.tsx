@@ -15,6 +15,17 @@ interface FormationSlot {
   formation_id: number;
   position: string;
   slot_count: number;
+  slot_label: string | null;
+  role_id: number | null;
+}
+
+interface TacticalRole {
+  id: number;
+  name: string;
+  position: string;
+  description: string | null;
+  primary_archetype: string;
+  secondary_archetype: string;
 }
 
 interface TrackedPlayer {
@@ -34,31 +45,20 @@ function computeFitScore(
   if (slots.length === 0) return 0;
   let totalSlots = 0;
   let covered = 0;
+  // Aggregate slots by position for counting
+  const posNeeded: Record<string, number> = {};
   for (const slot of slots) {
-    const count = positionCounts[slot.position] ?? 0;
-    for (let i = 0; i < slot.slot_count; i++) {
-      totalSlots++;
-      if (count > i) {
-        covered += count > i + 1 ? 1.0 : count === i + 1 ? 0.5 : 0;
-        // Simplified: 2+ players for this slot position = 1, exactly matches = 0.5
-      }
-    }
+    posNeeded[slot.position] = (posNeeded[slot.position] ?? 0) + slot.slot_count;
   }
-  // Re-do with cleaner logic
-  totalSlots = 0;
-  covered = 0;
-  for (const slot of slots) {
-    const available = positionCounts[slot.position] ?? 0;
-    for (let i = 0; i < slot.slot_count; i++) {
+  for (const [pos, needed] of Object.entries(posNeeded)) {
+    const available = positionCounts[pos] ?? 0;
+    for (let i = 0; i < needed; i++) {
       totalSlots++;
-      if (available >= slot.slot_count + 1) {
-        // More players than slots = fully covered
+      if (available >= needed + 1) {
         covered += 1;
-      } else if (available >= slot.slot_count) {
-        // Exactly enough = 0.75
+      } else if (available >= needed) {
         covered += 0.75;
       } else if (available > i) {
-        // Some coverage
         covered += 0.5;
       }
     }
@@ -76,9 +76,10 @@ export default async function FormationsPage() {
     );
   }
 
-  const [formationsResult, slotsResult, playersResult] = await Promise.all([
+  const [formationsResult, slotsResult, rolesResult, playersResult] = await Promise.all([
     supabaseServer.from("formations").select("id, name, structure, notes, era, position_count").order("name"),
-    supabaseServer.from("formation_slots").select("formation_id, position, slot_count"),
+    supabaseServer.from("formation_slots").select("formation_id, position, slot_count, slot_label, role_id"),
+    supabaseServer.from("tactical_roles").select("id, name, position, description, primary_archetype, secondary_archetype"),
     supabaseServer
       .from("player_intelligence_card")
       .select("person_id, name, position, club, level, archetype, pursuit_status")
@@ -88,7 +89,14 @@ export default async function FormationsPage() {
 
   const formations = (formationsResult.data ?? []) as Formation[];
   const allSlots = (slotsResult.data ?? []) as FormationSlot[];
+  const roles = (rolesResult.data ?? []) as TacticalRole[];
   const players = (playersResult.data ?? []) as TrackedPlayer[];
+
+  // Build role lookup
+  const rolesById = new Map<number, TacticalRole>();
+  for (const role of roles) {
+    rolesById.set(role.id, role);
+  }
 
   // Group slots by formation
   const slotsByFormation = new Map<number, FormationSlot[]>();
@@ -123,17 +131,23 @@ export default async function FormationsPage() {
   // Formations without slots (unmapped)
   const unmappedFormations = formations.filter((f) => !slotsByFormation.has(f.id));
 
+  // Serialize roles map for client
+  const rolesMap: Record<number, TacticalRole> = {};
+  for (const [id, role] of rolesById) {
+    rolesMap[id] = role;
+  }
+
   return (
     <div className="max-w-5xl">
       <h1 className="text-2xl font-bold tracking-tight mb-2">Formations</h1>
       <p className="text-xs text-[var(--text-secondary)] mb-6">
-        {formationsWithFit.length} formations mapped · {players.length} tracked players
+        {formationsWithFit.length} formations mapped · {players.length} tracked players · {roles.length} tactical roles
       </p>
 
       {formationsWithFit.length === 0 ? (
         <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
           <p className="text-sm text-[var(--text-secondary)]">
-            No formation slots mapped yet. Run migration 011 and pipeline script 13 to populate.
+            No formation slots mapped yet. Run migration 018 and pipeline script 13 to populate.
           </p>
         </div>
       ) : (
@@ -145,6 +159,7 @@ export default async function FormationsPage() {
               slots={f.slots}
               fit={f.fit}
               playersByPosition={playersByPosition}
+              rolesMap={rolesMap}
             />
           ))}
         </div>

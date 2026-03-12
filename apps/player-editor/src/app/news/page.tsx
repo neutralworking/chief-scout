@@ -31,11 +31,17 @@ const STORY_TYPES = [
   "international",
 ];
 
-function sentimentColor(sentiment: string | null) {
-  if (sentiment === "positive") return { bg: "var(--green-dim)", color: "var(--green)", border: "rgba(57,255,20,0.25)" };
-  if (sentiment === "negative") return { bg: "var(--amber-dim)", color: "var(--amber)", border: "rgba(255,42,109,0.25)" };
-  return { bg: "var(--surface2)", color: "var(--text3)", border: "var(--border2)" };
-}
+const SENTIMENT_DOT: Record<string, string> = {
+  positive: "bg-[var(--sentiment-positive)]",
+  negative: "bg-[var(--sentiment-negative)]",
+  neutral: "bg-[var(--sentiment-neutral)]",
+};
+
+const SENTIMENT_PILL: Record<string, string> = {
+  positive: "bg-[var(--sentiment-positive)]/15 text-[var(--sentiment-positive)] ring-1 ring-[var(--sentiment-positive)]/20",
+  negative: "bg-[var(--sentiment-negative)]/15 text-[var(--sentiment-negative)] ring-1 ring-[var(--sentiment-negative)]/20",
+  neutral: "bg-[var(--bg-elevated)] text-[var(--text-muted)]",
+};
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -79,14 +85,12 @@ export default function NewsPage() {
     fetchNews();
   }, [fetchNews]);
 
-  // Build tag map: story_id -> PlayerTag[]
   const tagsByStory = new Map<string, PlayerTag[]>();
   for (const tag of tags) {
     if (!tagsByStory.has(tag.story_id)) tagsByStory.set(tag.story_id, []);
     tagsByStory.get(tag.story_id)!.push(tag);
   }
 
-  // Compute dominant sentiment per story
   function storySentiment(storyId: string): string | null {
     const storyTags = tagsByStory.get(storyId);
     if (!storyTags || storyTags.length === 0) return null;
@@ -99,20 +103,21 @@ export default function NewsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh" }}>
+    <div className="space-y-3">
       {/* Header */}
-      <div style={{
-        padding: "16px 24px 12px",
-        borderBottom: "1px solid var(--border)",
-        flexShrink: 0,
-      }}>
-        <h1 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em" }}>
-          News Feed
-        </h1>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">News Feed</h1>
+        <p className="text-xs text-[var(--text-secondary)] mb-3">
+          {stories.length > 0 ? `${stories.length} stories` : "Latest scouting intelligence"}
+        </p>
+        <div className="flex gap-1.5 flex-wrap">
           <button
             onClick={() => setTypeFilter("")}
-            style={pillStyle(typeFilter === "")}
+            className={`text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full transition-colors ${
+              typeFilter === ""
+                ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
+                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+            }`}
           >
             All
           </button>
@@ -120,7 +125,11 @@ export default function NewsPage() {
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              style={pillStyle(typeFilter === t)}
+              className={`text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full transition-colors ${
+                typeFilter === t
+                  ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
+                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              }`}
             >
               {t}
             </button>
@@ -129,154 +138,89 @@ export default function NewsPage() {
       </div>
 
       {/* Stories */}
-      <div style={{ flex: 1, overflow: "auto", padding: "16px 24px" }}>
-        {loading ? (
-          <p style={{ color: "var(--text3)", fontSize: "0.85rem" }}>Loading...</p>
-        ) : stories.length === 0 ? (
-          <p style={{ color: "var(--text3)", fontSize: "0.85rem" }}>No stories found.</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {stories.map((story) => {
-              const storyTags = tagsByStory.get(story.id) ?? [];
-              const sentiment = storySentiment(story.id);
-              const sentColors = sentimentColor(sentiment);
+      {loading ? (
+        <p className="text-sm text-[var(--text-muted)] py-8 text-center">Loading...</p>
+      ) : stories.length === 0 ? (
+        <div className="glass rounded-xl p-8 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No stories found.</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {stories.map((story) => {
+            const storyTags = tagsByStory.get(story.id) ?? [];
+            const sentiment = storySentiment(story.id);
 
-              return (
-                <article
-                  key={story.id}
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 10,
-                    padding: "14px 16px",
-                  }}
-                >
-                  {/* Top row: type badge + sentiment + time */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
-                    {story.story_type && (
-                      <span style={{
-                        fontSize: "0.62rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                        background: "var(--accent-dim)",
-                        color: "var(--accent)",
-                        border: "1px solid rgba(0,240,255,0.2)",
-                      }}>
-                        {story.story_type}
-                      </span>
-                    )}
-                    {sentiment && (
-                      <span style={{
-                        fontSize: "0.62rem",
-                        fontWeight: 700,
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                        background: sentColors.bg,
-                        color: sentColors.color,
-                        border: `1px solid ${sentColors.border}`,
-                        textTransform: "capitalize",
-                      }}>
-                        {sentiment}
-                      </span>
-                    )}
-                    <span style={{ marginLeft: "auto", fontSize: "0.68rem", color: "var(--text3)" }}>
-                      {story.published_at ? timeAgo(story.published_at) : ""}
+            return (
+              <article key={story.id} className="glass rounded-xl p-3 sm:p-4">
+                {/* Top row: type + sentiment + time */}
+                <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                  {story.story_type && (
+                    <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-[var(--accent-tactical)]/15 text-[var(--accent-tactical)]">
+                      {story.story_type}
                     </span>
-                  </div>
-
-                  {/* Headline */}
-                  <div style={{ fontSize: "0.88rem", fontWeight: 600, lineHeight: 1.35, marginBottom: 4 }}>
-                    {story.url ? (
-                      <a
-                        href={story.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "var(--text)", textDecoration: "none" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                      >
-                        {story.headline}
-                      </a>
-                    ) : (
-                      story.headline
-                    )}
-                  </div>
-
-                  {/* Summary */}
-                  {story.summary && (
-                    <p style={{
-                      fontSize: "0.78rem",
-                      color: "var(--text2)",
-                      lineHeight: 1.5,
-                      marginBottom: 8,
-                      marginTop: 2,
-                    }}>
-                      {story.summary}
-                    </p>
                   )}
+                  {sentiment && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded capitalize ${SENTIMENT_PILL[sentiment] ?? SENTIMENT_PILL.neutral}`}>
+                      {sentiment}
+                    </span>
+                  )}
+                  <span className="ml-auto text-[10px] text-[var(--text-muted)] font-mono">
+                    {story.published_at ? timeAgo(story.published_at) : ""}
+                  </span>
+                </div>
 
-                  {/* Tagged players + source */}
-                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                {/* Headline */}
+                <div className="text-sm font-semibold leading-snug mb-1">
+                  {story.url ? (
+                    <a
+                      href={story.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[var(--text-primary)] hover:underline"
+                    >
+                      {story.headline}
+                    </a>
+                  ) : (
+                    story.headline
+                  )}
+                </div>
+
+                {/* Summary */}
+                {story.summary && (
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-2">
+                    {story.summary}
+                  </p>
+                )}
+
+                {/* Tagged players + source */}
+                {(storyTags.length > 0 || story.source) && (
+                  <div className="flex items-center flex-wrap gap-1.5">
                     {storyTags.map((tag) => {
-                      const tc = sentimentColor(tag.sentiment);
+                      const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
                       return (
                         <Link
                           key={tag.player_id}
                           href={`/players/${tag.player_id}`}
-                          style={{
-                            fontSize: "0.68rem",
-                            fontWeight: 600,
-                            padding: "2px 8px",
-                            borderRadius: 12,
-                            background: tc.bg,
-                            color: tc.color,
-                            border: `1px solid ${tc.border}`,
-                            textDecoration: "none",
-                            transition: "opacity 0.15s",
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                         >
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                           {tag.name}
                         </Link>
                       );
                     })}
                     {story.source && (
-                      <span style={{
-                        marginLeft: "auto",
-                        fontSize: "0.65rem",
-                        color: "var(--text3)",
-                        opacity: 0.7,
-                      }}>
+                      <span className="ml-auto text-[9px] text-[var(--text-muted)] opacity-70">
                         {story.source}
                       </span>
                     )}
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
-}
-
-function pillStyle(active: boolean): React.CSSProperties {
-  return {
-    padding: "4px 10px",
-    borderRadius: 16,
-    fontSize: "0.72rem",
-    fontWeight: 600,
-    border: `1px solid ${active ? "var(--accent)" : "var(--border2)"}`,
-    background: active ? "var(--accent-dim)" : "var(--surface2)",
-    color: active ? "var(--accent)" : "var(--text3)",
-    cursor: "pointer",
-    transition: "all 0.15s",
-    textTransform: "capitalize" as const,
-    fontFamily: "inherit",
-  };
 }

@@ -14,21 +14,42 @@ export default async function ClubsPage() {
     return <div><h1 className="text-2xl font-bold mb-4">Clubs</h1><p className="text-sm text-[var(--text-secondary)]">Supabase not configured.</p></div>;
   }
 
-  // Fetch ALL clubs, not just ones with players
-  const { data: clubs } = await supabaseServer
-    .from("clubs")
-    .select("id, clubname, league_name, nations(name)")
-    .order("name");
+  // Fetch ALL clubs (paginate past PostgREST 1000-row cap)
+  const clubs: any[] = [];
+  {
+    const PAGE = 1000;
+    let from = 0;
+    let more = true;
+    while (more) {
+      const { data: page } = await supabaseServer
+        .from("clubs")
+        .select("id, clubname, league_name, nations(name)")
+        .order("clubname")
+        .range(from, from + PAGE - 1);
+      clubs.push(...(page ?? []));
+      more = (page?.length ?? 0) === PAGE;
+      from += PAGE;
+    }
+  }
 
-  // Get player counts per club
-  const { data: people } = await supabaseServer
-    .from("people")
-    .select("club_id")
-    .not("club_id", "is", null);
-
+  // Get player counts per club (paginate past PostgREST 1000-row cap)
   const clubCounts = new Map<number, number>();
-  for (const p of people ?? []) {
-    clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
+  {
+    const PAGE = 1000;
+    let from = 0;
+    let more = true;
+    while (more) {
+      const { data: page } = await supabaseServer
+        .from("people")
+        .select("club_id")
+        .not("club_id", "is", null)
+        .range(from, from + PAGE - 1);
+      for (const p of page ?? []) {
+        clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
+      }
+      more = (page?.length ?? 0) === PAGE;
+      from += PAGE;
+    }
   }
 
   const clubRows: ClubRow[] = (clubs ?? []).map((c: any) => ({
@@ -49,7 +70,7 @@ export default async function ClubsPage() {
           <Link
             key={club.id}
             href={`/clubs/${club.id}`}
-            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4 hover:border-[var(--accent-personality)]/40 transition-colors group"
+            className="glass rounded-xl p-4 hover:border-[var(--accent-personality)]/40 transition-colors group"
           >
             <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-white truncate">
               {club.name}

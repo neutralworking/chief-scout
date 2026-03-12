@@ -29,7 +29,7 @@ interface NewsStoryWithTags {
   published_at: string | null;
   summary: string | null;
   story_type: string | null;
-  tags: Array<{ person_id: number; name: string; sentiment: string | null }>;
+  tags: Array<{ player_id: number; name: string; sentiment: string | null }>;
 }
 
 async function getDashboardData(shortlistsEnabled: boolean) {
@@ -40,7 +40,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     // Featured player: get players with sentiment data for swing-based selection
     supabaseServer
       .from("news_player_tags")
-      .select("person_id, sentiment, people!inner(name)")
+      .select("player_id, sentiment, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(200),
     // Personality type counts
@@ -58,11 +58,11 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .from("news_stories")
       .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
-      .limit(8),
+      .limit(15),
     // Trending players
     supabaseServer
       .from("news_player_tags")
-      .select("person_id, people!inner(name)")
+      .select("player_id, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(50),
   ];
@@ -84,14 +84,14 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   const [sentimentResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
 
   // Find featured player based on sentiment swing (most mixed/controversial)
-  const sentimentRows = (sentimentResult.data ?? []) as Array<{ person_id: number; sentiment: string | null; people: { name: string } }>;
+  const sentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; sentiment: string | null; people: { name: string } }>;
   const playerSentiments = new Map<number, { name: string; positive: number; negative: number; total: number }>();
   for (const row of sentimentRows) {
-    const existing = playerSentiments.get(row.person_id) ?? { name: row.people?.name ?? "Unknown", positive: 0, negative: 0, total: 0 };
+    const existing = playerSentiments.get(row.player_id) ?? { name: row.people?.name ?? "Unknown", positive: 0, negative: 0, total: 0 };
     existing.total++;
     if (row.sentiment === "positive") existing.positive++;
     if (row.sentiment === "negative") existing.negative++;
-    playerSentiments.set(row.person_id, existing);
+    playerSentiments.set(row.player_id, existing);
   }
 
   // Pick player with highest sentiment swing (both positive AND negative mentions)
@@ -168,19 +168,19 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   if (storyIds.length > 0) {
     const { data: tagData } = await supabaseServer
       .from("news_player_tags")
-      .select("story_id, person_id, sentiment, people!inner(name)")
+      .select("story_id, player_id, sentiment, people!inner(name)")
       .in("story_id", storyIds);
 
     if (tagData) {
-      const tagMap = new Map<number, Array<{ person_id: number; name: string; sentiment: string | null }>>();
+      const tagMap = new Map<number, Array<{ player_id: number; name: string; sentiment: string | null }>>();
       for (const t of tagData as Array<Record<string, unknown>>) {
         const storyId = t.story_id as number;
-        const personId = t.person_id as number;
+        const playerId = t.player_id as number;
         const sentiment = t.sentiment as string | null;
         const people = t.people as { name: string } | { name: string }[] | null;
         const name = Array.isArray(people) ? people[0]?.name : people?.name;
         const list = tagMap.get(storyId) ?? [];
-        list.push({ person_id: personId, name: name ?? "Unknown", sentiment });
+        list.push({ player_id: playerId, name: name ?? "Unknown", sentiment });
         tagMap.set(storyId, list);
       }
       newsWithTags = rawNews.map((s) => ({ ...s, tags: tagMap.get(s.id) ?? [] }));
@@ -188,12 +188,12 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   }
 
   // Trending players
-  const trendingRaw = (trendingResult.data ?? []) as Array<{ person_id: number; people: { name: string } }>;
+  const trendingRaw = (trendingResult.data ?? []) as Array<{ player_id: number; people: { name: string } }>;
   const trendingMap = new Map<number, { person_id: number; name: string; count: number }>();
   for (const row of trendingRaw) {
-    const existing = trendingMap.get(row.person_id);
+    const existing = trendingMap.get(row.player_id);
     if (existing) { existing.count++; } else {
-      trendingMap.set(row.person_id, { person_id: row.person_id, name: row.people?.name ?? "Unknown", count: 1 });
+      trendingMap.set(row.player_id, { person_id: row.player_id, name: row.people?.name ?? "Unknown", count: 1 });
     }
   }
   const trendingPlayerIds = Array.from(trendingMap.values()).sort((a, b) => b.count - a.count).slice(0, 8);
@@ -258,6 +258,12 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d`;
 }
 
+const SENTIMENT_DOT: Record<string, string> = {
+  positive: "bg-[var(--sentiment-positive)]",
+  negative: "bg-[var(--sentiment-negative)]",
+  neutral: "bg-[var(--sentiment-neutral)]",
+};
+
 export default async function DashboardPage() {
   const preferences = await getUserPreferences();
   const flags = getFeatureFlags(preferences);
@@ -276,11 +282,47 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* Row 1: News Feed (top priority) + Featured Player */}
+      {/* Row 1: Featured Player + Choices CTA */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* News — 3 cols */}
-        <div className="lg:col-span-3 glass rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
+        {/* Featured Player — 3 cols */}
+        <div className="lg:col-span-3">
+          {featured ? (
+            <FeaturedPlayer player={featured} />
+          ) : (
+            <div className="glass rounded-xl p-6">
+              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Choices CTA — 2 cols, full height */}
+        <div className="lg:col-span-2">
+          <Link href="/choices" className="glass rounded-xl p-6 block h-full hover:bg-[var(--bg-elevated)] transition-colors group relative overflow-hidden">
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)]">Football Choices</span>
+              <h2 className="text-xl font-bold tracking-tight mt-1 group-hover:text-[var(--accent-personality)] transition-colors">
+                Build Your Footballing Identity
+              </h2>
+              <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
+                Pick between legends, debate GOATs, and discover your footballing personality through quick-fire comparisons.
+              </p>
+              <div className="flex items-center gap-3 mt-4">
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[var(--accent-personality)]/20 text-[var(--accent-personality)]">
+                  Play Now &rarr;
+                </span>
+              </div>
+            </div>
+            {/* Decorative gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-personality)]/5 to-transparent pointer-events-none" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Row 2: News Feed (scrollable, fills space) + Browse */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* News — 3 cols, scrollable */}
+        <div className="lg:col-span-3 glass rounded-xl p-4 sm:p-5 flex flex-col" style={{ maxHeight: "520px" }}>
+          <div className="flex items-center justify-between mb-3 shrink-0">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Latest News
             </h2>
@@ -288,19 +330,26 @@ export default async function DashboardPage() {
               All stories &rarr;
             </Link>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2.5 overflow-y-auto flex-1 -mr-2 pr-2">
             {news.map((story, i) => (
               <div key={story.id} className={`flex gap-3 ${i === 0 ? "pb-3 border-b border-[var(--border-subtle)]" : ""}`}>
                 <span className="text-[10px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    {story.story_type && (
+                      <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded bg-[var(--accent-tactical)]/15 text-[var(--accent-tactical)]">
+                        {story.story_type}
+                      </span>
+                    )}
+                  </div>
                   {story.url ? (
-                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--accent-personality)] truncate block transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--accent-personality)] block transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
                       {story.headline}
                     </a>
                   ) : (
-                    <p className={`text-[var(--text-primary)] truncate ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    <p className={`text-[var(--text-primary)] ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
                       {story.headline}
                     </p>
                   )}
@@ -308,20 +357,20 @@ export default async function DashboardPage() {
                     <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{story.summary}</p>
                   )}
                   {story.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {story.tags.slice(0, 3).map((tag) => (
-                        <Link
-                          key={tag.person_id}
-                          href={`/players/${tag.person_id}`}
-                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium hover:brightness-125 transition-all ${
-                            tag.sentiment === "positive" ? "bg-[var(--sentiment-positive)]/15 text-[var(--sentiment-positive)]" :
-                            tag.sentiment === "negative" ? "bg-[var(--sentiment-negative)]/15 text-[var(--sentiment-negative)]" :
-                            "bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
-                          }`}
-                        >
-                          {tag.name}
-                        </Link>
-                      ))}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {story.tags.slice(0, 3).map((tag) => {
+                        const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
+                        return (
+                          <Link
+                            key={tag.player_id}
+                            href={`/players/${tag.player_id}`}
+                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+                            {tag.name}
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -330,37 +379,8 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Featured Player + Radar + Quick Actions — 2 cols */}
+        {/* Browse — 2 cols */}
         <div className="lg:col-span-2 space-y-3">
-          {featured ? (
-            <FeaturedPlayer player={featured} />
-          ) : (
-            <div className="glass rounded-xl p-6">
-              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-2">
-            <Link href="/choices" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-0.5">Choices</p>
-              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">Build your XI</p>
-            </Link>
-            <Link href="/players" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-0.5">Players</p>
-              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">{Object.values(positionCounts).reduce((a, b) => a + b, 0).toLocaleString()}</p>
-            </Link>
-            <Link href="/formations" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] mb-0.5">Formations</p>
-              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">33+ systems</p>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* BROWSE section */}
-      <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Browse</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* By Position */}
           <div className="glass rounded-xl p-4">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-2">Position</h3>
@@ -381,7 +401,7 @@ export default async function DashboardPage() {
           {/* By Personality */}
           <div className="glass rounded-xl p-4">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality</h3>
-            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+            <div className="space-y-1 max-h-[140px] overflow-y-auto">
               {typeCounts.sort((a, b) => b.count - a.count).slice(0, 8).map((t) => (
                 <Link
                   key={t.type}
@@ -395,26 +415,10 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* By Playing Style (Archetype) */}
-          <div className="glass rounded-xl p-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] mb-2">Playing Style</h3>
-            <div className="space-y-1 max-h-[160px] overflow-y-auto">
-              {["The General","The Maestro","The Machine","The Captain","The Showman","The Genius","The Maverick","The Conductor"].map((style) => (
-                <Link
-                  key={style}
-                  href={`/players?personalities=${Object.entries({ANLC:"The General",INSP:"The Maestro",ANSC:"The Machine",INLC:"The Captain",AXLC:"The Showman",IXSP:"The Genius",IXSC:"The Maverick",ANLP:"The Conductor"}).find(([,v]) => v === style)?.[0] ?? ""}`}
-                  className="flex items-center justify-between px-2 py-1 rounded text-[10px] hover:bg-[var(--accent-mental)]/10 transition-colors"
-                >
-                  <span className="text-[var(--text-secondary)]">{style}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
           {/* By League */}
           <div className="glass rounded-xl p-4">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-2">League</h3>
-            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+            <div className="space-y-1 max-h-[140px] overflow-y-auto">
               {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
                 <Link
                   key={league}

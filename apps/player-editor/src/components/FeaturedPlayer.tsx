@@ -166,12 +166,6 @@ export function FeaturedPlayer({ player }: { player: FeaturedPlayerData }) {
               )}
             </div>
           )}
-          {player.level != null && (
-            <div className="mt-1">
-              <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Lvl </span>
-              <span className="text-base font-mono font-bold text-[var(--text-primary)]">{player.level}</span>
-            </div>
-          )}
         </div>
       </div>
 

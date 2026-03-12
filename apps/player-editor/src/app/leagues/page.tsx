@@ -46,21 +46,42 @@ export default async function LeaguesPage() {
     );
   }
 
-  // Fetch ALL clubs with their nations
-  const { data: clubs } = await supabaseServer
-    .from("clubs")
-    .select("id, clubname, league_name, nation_id, nations(name)")
-    .order("name");
+  // Fetch ALL clubs (paginate past PostgREST 1000-row cap)
+  const clubs: any[] = [];
+  {
+    const PAGE = 1000;
+    let from = 0;
+    let more = true;
+    while (more) {
+      const { data: page } = await supabaseServer
+        .from("clubs")
+        .select("id, clubname, league_name, nation_id, nations(name)")
+        .order("clubname")
+        .range(from, from + PAGE - 1);
+      clubs.push(...(page ?? []));
+      more = (page?.length ?? 0) === PAGE;
+      from += PAGE;
+    }
+  }
 
-  // Also get player counts per club for display
-  const { data: people } = await supabaseServer
-    .from("people")
-    .select("club_id")
-    .not("club_id", "is", null);
-
+  // Get player counts per club (paginate past PostgREST 1000-row cap)
   const clubCounts = new Map<number, number>();
-  for (const p of people ?? []) {
-    clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
+  {
+    const PAGE = 1000;
+    let from = 0;
+    let more = true;
+    while (more) {
+      const { data: page } = await supabaseServer
+        .from("people")
+        .select("club_id")
+        .not("club_id", "is", null)
+        .range(from, from + PAGE - 1);
+      for (const p of page ?? []) {
+        clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
+      }
+      more = (page?.length ?? 0) === PAGE;
+      from += PAGE;
+    }
   }
 
   // Group by nation (or league_name as fallback, or "Unassigned")
@@ -94,8 +115,9 @@ export default async function LeaguesPage() {
     .filter(Boolean)
     .sort((a, b) => b.clubs.length - a.clubs.length || b.totalPlayers - a.totalPlayers);
 
-  const totalClubs = (clubs ?? []).length;
-  const totalPlayers = (people ?? []).length;
+  const totalClubs = clubs.length;
+  let totalPlayers = 0;
+  for (const v of clubCounts.values()) totalPlayers += v;
 
   return (
     <div>
@@ -141,7 +163,7 @@ export default async function LeaguesPage() {
 
 function LeagueCard({ league }: { league: LeagueGroup }) {
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+    <div className="glass rounded-xl p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">{league.nation}</h3>
         <span className="text-xs font-mono text-[var(--text-muted)]">

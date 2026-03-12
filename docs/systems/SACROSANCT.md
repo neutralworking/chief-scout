@@ -132,9 +132,11 @@ Every player is scored 0-100 on all 13 models. The highest score determines thei
 
 **Primary**: Aggregate attribute grades across the 4 core attributes per model.
 
+**Attribute scale**: All attributes are scored **0-10** (integer). This is the canonical scale for all attribute grades in `attribute_grades`.
+
 **Sources**:
-1. Scout grades (1-20 scale, highest trust)
-2. FBref statistical scores (high trust)
+1. Scout grades (0-10, highest trust)
+2. FBref statistical scores (0-10, high trust)
 3. EAFC sub-attributes (baseline, ×0.3 trust weight)
 
 Model scores are computed, not assigned. The archetype emerges from the attribute profile.

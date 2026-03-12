@@ -304,11 +304,11 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* Transfer Fee */}
+          {/* CS Value */}
           {player.transfer_fee_eur != null && (
             <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Transfer Fee</span>
-              <span className="text-sm font-mono font-bold">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
+              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
+              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
             </div>
           )}
         </div>

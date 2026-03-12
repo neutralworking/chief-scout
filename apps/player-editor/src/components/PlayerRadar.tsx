@@ -36,7 +36,7 @@ function confidenceLabel(w: number): string {
   return "Level-anchored";
 }
 
-export function PlayerRadar({ playerId, position }: { playerId: number; position: string | null }) {
+export function PlayerRadar({ playerId, position, compact = false }: { playerId: number; position: string | null; compact?: boolean }) {
   const [radarData, setRadarData] = useState<RadarData | null>(null);
   const [selectedPos, setSelectedPos] = useState(position ?? "CM");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -60,7 +60,6 @@ export function PlayerRadar({ playerId, position }: { playerId: number; position
 
   if (!radarData?.hasData) return null;
 
-  // Position-specific models — only show axes relevant to the selected position
   const models = radarData.positionModels?.[selectedPos] ??
     Object.keys(radarData.modelScores);
   const radarLabels = models.map((m) => MODEL_SHORT[m] ?? m);
@@ -87,9 +86,11 @@ export function PlayerRadar({ playerId, position }: { playerId: number; position
   }
   layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.25, strokeWidth: 2 });
 
+  const radarSize = compact ? 170 : 200;
+
   return (
-    <div className="glass rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass rounded-xl p-3 sm:p-4">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Position & Role Fit</h3>
         <select
           value={selectedPos}
@@ -102,54 +103,54 @@ export function PlayerRadar({ playerId, position }: { playerId: number; position
         </select>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Radar */}
+      <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <RadarChart labels={radarLabels} layers={layers} size={240} />
+          <RadarChart labels={radarLabels} layers={layers} size={radarSize} />
         </div>
 
-        {/* Scores */}
-        <div className="w-24 shrink-0 space-y-3">
+        <div className="w-20 shrink-0 space-y-2">
           <div>
             <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
-            <div className="text-2xl font-mono font-bold text-[var(--text-primary)]">
-              {posScore}<span className="text-[10px] text-[var(--text-muted)]">%</span>
+            <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
+              {posScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
             </div>
-            <div className={`text-[10px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
+            <div className={`text-[9px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
           </div>
           {activeRole && (
             <div>
               <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
-              <div className="text-2xl font-mono font-bold text-[var(--text-primary)]">
-                {roleScore}<span className="text-[10px] text-[var(--text-muted)]">%</span>
+              <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
+                {roleScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
               </div>
-              <div className={`text-[10px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
+              <div className={`text-[9px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
             </div>
           )}
-          <div className="space-y-0.5 pt-2 border-t border-[var(--border-subtle)]">
+          <div className="space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
             <div className="flex items-center gap-1">
               <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(56,189,248,0.9)" }} />
-              <span className="text-[8px] text-[var(--text-muted)]">Player</span>
+              <span className="text-[7px] text-[var(--text-muted)]">Player</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(168,130,255,0.5)" }} />
-              <span className="text-[8px] text-[var(--text-muted)]">Role ideal</span>
+              <span className="text-[7px] text-[var(--text-muted)]">Role ideal</span>
             </div>
-            <div className="text-[7px] text-[var(--text-muted)] mt-1 opacity-60">
-              {confidenceLabel(radarData.dataWeight)}
-            </div>
+            {radarData.dataWeight != null && (
+              <div className="text-[7px] text-[var(--text-muted)] mt-0.5 opacity-60">
+                {confidenceLabel(radarData.dataWeight)}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Role pills */}
       {roles.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
+        <div className="flex flex-wrap gap-1 mt-2">
           {roles.map((role) => (
             <button
               key={role.name}
               onClick={() => setSelectedRole(role.name)}
-              className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${
+              className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
                 selectedRole === role.name
                   ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
                   : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"

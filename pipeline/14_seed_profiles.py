@@ -1,7 +1,7 @@
 """
-14_seed_profiles.py — Seed all 50 Chief Scout player profiles into Supabase.
+14_seed_profiles.py — Seed all 70 Chief Scout player profiles into Supabase.
 
-Codifies 50 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
+Codifies 70 profiles across all positions (GK, CD, WD, DM, CM, WM, AM, WF, CF).
 Inserts into: people, player_profiles, player_personality, player_market,
               player_status, attribute_grades.
 
@@ -41,7 +41,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 86,
-            "peak": 93,
             "overall": 91,
             "archetype": "Controller-Creator",
             "blueprint": "Maestro",
@@ -99,7 +98,6 @@ PLAYERS = [
         "profile": {
             "position": "GK",
             "level": 88,
-            "peak": 92,
             "overall": 90,
             "archetype": "GK-Controller",
             "blueprint": "Complete Keeper",
@@ -156,7 +154,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 91,
-            "peak": 96,
             "overall": 88,
             "archetype": "Dribbler-Creator",
             "blueprint": "Wizard",
@@ -214,7 +211,6 @@ PLAYERS = [
         "profile": {
             "position": "DM",
             "level": 84,
-            "peak": 91,
             "overall": 78,
             "archetype": "Destroyer-Cover",
             "blueprint": "Anchor",
@@ -272,7 +268,6 @@ PLAYERS = [
         "profile": {
             "position": "DM",
             "level": 88,
-            "peak": 94,
             "overall": 92,
             "archetype": "Controller-Destroyer",
             "blueprint": "Conductor",
@@ -330,7 +325,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 90,
-            "peak": 88,
             "overall": 86,
             "archetype": "Sprinter-Engine",
             "blueprint": "Flanker",
@@ -388,7 +382,6 @@ PLAYERS = [
         "profile": {
             "position": "GK",
             "level": 88,
-            "peak": 87,
             "overall": 85,
             "archetype": "GK-Controller",
             "blueprint": "Shotstopper",
@@ -446,7 +439,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 87,
-            "peak": 90,
             "overall": 87,
             "archetype": "Striker-Sprinter",
             "blueprint": "Colossus",
@@ -504,7 +496,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 84,
-            "peak": 86,
             "overall": 82,
             "archetype": "Striker-Target",
             "blueprint": "Target Man",
@@ -563,7 +554,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 92,
-            "peak": 90,
             "overall": 87,
             "archetype": "Dribbler-Sprinter",
             "blueprint": "Wizard",
@@ -621,7 +611,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 85,
-            "peak": 87,
             "overall": 80,
             "archetype": "Creator-Dribbler",
             "blueprint": "Playmaker",
@@ -680,7 +669,6 @@ PLAYERS = [
         "profile": {
             "position": "AM",
             "level": 85,
-            "peak": 88,
             "overall": 79,
             "archetype": "Creator-Controller",
             "blueprint": "Playmaker",
@@ -738,7 +726,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 82,
-            "peak": 86,
             "overall": 82,
             "archetype": "Sprinter-Engine",
             "blueprint": "Runner",
@@ -796,7 +783,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 83,
-            "peak": 80,
             "overall": 75,
             "archetype": "Sprinter-Dribbler",
             "blueprint": "Flanker",
@@ -854,7 +840,6 @@ PLAYERS = [
         "profile": {
             "position": "GK",
             "level": 83,
-            "peak": 87,
             "overall": 79,
             "archetype": "GK-Controller",
             "blueprint": "Modern Keeper",
@@ -912,7 +897,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 84,
-            "peak": 92,
             "overall": 82,
             "archetype": "Cover-Passer",
             "blueprint": "Ball-Playing CB",
@@ -970,7 +954,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 88,
-            "peak": 91,
             "overall": 84,
             "archetype": "Controller-Engine",
             "blueprint": "Conductor",
@@ -1028,7 +1011,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 90,
-            "peak": 90,
             "overall": 88,
             "archetype": "Engine-Cover",
             "blueprint": "Driver",
@@ -1086,7 +1068,6 @@ PLAYERS = [
         "profile": {
             "position": "DM",
             "level": 83,
-            "peak": 86,
             "overall": 78,
             "archetype": "Engine-Destroyer",
             "blueprint": "Ball Winner",
@@ -1145,7 +1126,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 74,
-            "peak": 76,
             "overall": 72,
             "archetype": "Striker-Creator",
             "blueprint": "Poacher",
@@ -1203,7 +1183,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 86,
-            "peak": 92,
             "overall": 84,
             "archetype": "Creator-Dribbler",
             "blueprint": "No.10",
@@ -1262,7 +1241,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 85,
-            "peak": 88,
             "overall": 83,
             "archetype": "Passer-Cover",
             "blueprint": "Ball-Playing Fullback",
@@ -1321,7 +1299,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 79,
-            "peak": 84,
             "overall": 74,
             "archetype": "Passer-Engine",
             "blueprint": "Attacking Fullback",
@@ -1382,7 +1359,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 88,
-            "peak": 91,
             "overall": 87,
             "archetype": "Cover-Destroyer",
             "blueprint": "Modern CB",
@@ -1439,7 +1415,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 85,
-            "peak": 88,
             "overall": 85,
             "archetype": "Destroyer",
             "blueprint": "Aggressive CB",
@@ -1496,7 +1471,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 87,
-            "peak": 89,
             "overall": 87,
             "archetype": "Cover-Passer",
             "blueprint": "Progressor CB",
@@ -1553,7 +1527,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 86,
-            "peak": 91,
             "overall": 85,
             "archetype": "Cover-Engine",
             "blueprint": "Hybrid Defender",
@@ -1610,7 +1583,6 @@ PLAYERS = [
         "profile": {
             "position": "CD",
             "level": 81,
-            "peak": 88,
             "overall": 79,
             "archetype": "Destroyer",
             "blueprint": "Traditional CB",
@@ -1667,7 +1639,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 86,
-            "peak": 89,
             "overall": 86,
             "archetype": "Engine-Sprinter",
             "blueprint": "Overlapping Full-Back",
@@ -1723,7 +1694,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 84,
-            "peak": 87,
             "overall": 86,
             "archetype": "Engine-Sprinter",
             "blueprint": "Attacking Full-Back",
@@ -1780,7 +1750,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 89,
-            "peak": 89,
             "overall": 84,
             "archetype": "Engine",
             "blueprint": "Two-Way Full-Back",
@@ -1836,7 +1805,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 88,
-            "peak": 89,
             "overall": 88,
             "archetype": "Creator-Passer",
             "blueprint": "Playmaking Full-Back",
@@ -1893,7 +1861,6 @@ PLAYERS = [
         "profile": {
             "position": "WD",
             "level": 84,
-            "peak": 87,
             "overall": 84,
             "archetype": "Engine-Dribbler",
             "blueprint": "Inverted Full-Back",
@@ -1949,7 +1916,6 @@ PLAYERS = [
         "profile": {
             "position": "DM",
             "level": 86,
-            "peak": 90,
             "overall": 86,
             "archetype": "Destroyer-Engine",
             "blueprint": "Box-to-Box Anchor",
@@ -2006,7 +1972,6 @@ PLAYERS = [
         "profile": {
             "position": "DM",
             "level": 87,
-            "peak": 88,
             "overall": 85,
             "archetype": "Controller",
             "blueprint": "Deep-Lying Playmaker",
@@ -2063,7 +2028,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 89,
-            "peak": 93,
             "overall": 89,
             "archetype": "Engine-Commander",
             "blueprint": "Box-to-Box Creator",
@@ -2120,7 +2084,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 89,
-            "peak": 92,
             "overall": 87,
             "archetype": "Controller-Creator",
             "blueprint": "Interior Playmaker",
@@ -2177,7 +2140,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 87,
-            "peak": 89,
             "overall": 84,
             "archetype": "Engine-Destroyer",
             "blueprint": "Ball-Winning Midfielder",
@@ -2233,7 +2195,6 @@ PLAYERS = [
         "profile": {
             "position": "CM",
             "level": 90,
-            "peak": 89,
             "overall": 85,
             "archetype": "Controller-Dribbler",
             "blueprint": "Technical Midfielder",
@@ -2290,7 +2251,6 @@ PLAYERS = [
         "profile": {
             "position": "AM",
             "level": 89,
-            "peak": 94,
             "overall": 89,
             "archetype": "Creator-Dribbler",
             "blueprint": "Floating Playmaker",
@@ -2347,7 +2307,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 88,
-            "peak": 92,
             "overall": 88,
             "archetype": "Creator-Engine",
             "blueprint": "Inverted Winger",
@@ -2404,7 +2363,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 91,
-            "peak": 95,
             "overall": 92,
             "archetype": "Target-Sprinter",
             "blueprint": "Goal Machine",
@@ -2461,7 +2419,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 85,
-            "peak": 88,
             "overall": 86,
             "archetype": "Target-Engine",
             "blueprint": "Complete Striker",
@@ -2518,7 +2475,6 @@ PLAYERS = [
         "profile": {
             "position": "CF",
             "level": 87,
-            "peak": 90,
             "overall": 87,
             "archetype": "Sprinter-Dribbler",
             "blueprint": "Mobile Striker",
@@ -2574,7 +2530,6 @@ PLAYERS = [
         "profile": {
             "position": "GK",
             "level": 90,
-            "peak": 90,
             "overall": 87,
             "archetype": "Commander",
             "blueprint": "Shot-Stopper",
@@ -2631,7 +2586,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 93,
-            "peak": 95,
             "overall": 92,
             "archetype": "Sprinter-Striker",
             "blueprint": "Inside Forward",
@@ -2688,7 +2642,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 90,
-            "peak": 94,
             "overall": 91,
             "archetype": "Dribbler-Sprinter",
             "blueprint": "Explosive Winger",
@@ -2745,7 +2698,6 @@ PLAYERS = [
         "profile": {
             "position": "WF",
             "level": 89,
-            "peak": 88,
             "overall": 87,
             "archetype": "Engine-Creator",
             "blueprint": "Work-Rate Winger",
@@ -2802,7 +2754,6 @@ PLAYERS = [
         "profile": {
             "position": "WM",
             "level": 87,
-            "peak": 90,
             "overall": 89,
             "archetype": "Controller-Engine",
             "blueprint": "Tireless Technician",
@@ -2859,7 +2810,6 @@ PLAYERS = [
         "profile": {
             "position": "WM",
             "level": 87,
-            "peak": 92,
             "overall": 88,
             "archetype": "Creator-Dribbler",
             "blueprint": "Free-Roaming Attacker",
@@ -2902,6 +2852,266 @@ PLAYERS = [
             "jumping": (10, "Low"), "volleys": (13, "Medium"),
         },
     },
+
+    # ─── 51. Bruno Fernandes ───────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Bruno Fernandes",
+            "dob": "1994-09-08",
+            "height_cm": 179,
+            "preferred_foot": "Right",
+            "nation": "Portugal",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "AM", "level": 89},
+    },
+
+    # ─── 52. Martin Ødegaard ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Martin Ødegaard",
+            "dob": "1998-12-17",
+            "height_cm": 178,
+            "preferred_foot": "Left",
+            "nation": "Norway",
+            "club": "Arsenal",
+        },
+        "profile": {"position": "AM", "level": 89},
+    },
+
+    # ─── 53. Florian Wirtz ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Florian Wirtz",
+            "dob": "2003-05-03",
+            "height_cm": 176,
+            "preferred_foot": "Right",
+            "nation": "Germany",
+            "club": "Bayer Leverkusen",
+        },
+        "profile": {"position": "AM", "level": 88},
+    },
+
+    # ─── 54. Cole Palmer ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Cole Palmer",
+            "dob": "2002-05-06",
+            "height_cm": 185,
+            "preferred_foot": "Left",
+            "nation": "England",
+            "club": "Chelsea",
+        },
+        "profile": {"position": "AM", "level": 88},
+    },
+
+    # ─── 55. Mohamed Salah ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Mohamed Salah",
+            "dob": "1992-06-15",
+            "height_cm": 175,
+            "preferred_foot": "Left",
+            "nation": "Egypt",
+            "club": "Liverpool",
+        },
+        "profile": {"position": "WF", "level": 87},
+    },
+
+    # ─── 56. Son Heung-min ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Son Heung-min",
+            "dob": "1992-07-08",
+            "height_cm": 183,
+            "preferred_foot": "Right",
+            "nation": "South Korea",
+            "club": "Tottenham Hotspur",
+        },
+        "profile": {"position": "WF", "level": 84},
+    },
+
+    # ─── 57. Federico Valverde ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Federico Valverde",
+            "dob": "1998-07-22",
+            "height_cm": 182,
+            "preferred_foot": "Right",
+            "nation": "Uruguay",
+            "club": "Real Madrid",
+        },
+        "profile": {"position": "CM", "level": 89},
+    },
+
+    # ─── 58. Bruno Guimarães ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Bruno Guimarães",
+            "dob": "1997-11-16",
+            "height_cm": 182,
+            "preferred_foot": "Right",
+            "nation": "Brazil",
+            "club": "Newcastle United",
+        },
+        "profile": {"position": "CM", "level": 87},
+    },
+
+    # ─── 59. Granit Xhaka ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Granit Xhaka",
+            "dob": "1992-09-27",
+            "height_cm": 185,
+            "preferred_foot": "Left",
+            "nation": "Switzerland",
+            "club": "Bayer Leverkusen",
+        },
+        "profile": {"position": "CM", "level": 85},
+    },
+
+    # ─── 60. Kobbie Mainoo ────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Kobbie Mainoo",
+            "dob": "2005-04-19",
+            "height_cm": 180,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Manchester United",
+        },
+        "profile": {"position": "CM", "level": 84},
+    },
+
+    # ─── 61. Virgil van Dijk ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Virgil van Dijk",
+            "dob": "1991-07-08",
+            "height_cm": 193,
+            "preferred_foot": "Right",
+            "nation": "Netherlands",
+            "club": "Liverpool",
+        },
+        "profile": {"position": "CD", "level": 88},
+    },
+
+    # ─── 62. Rúben Dias ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Rúben Dias",
+            "dob": "1997-05-14",
+            "height_cm": 187,
+            "preferred_foot": "Right",
+            "nation": "Portugal",
+            "club": "Manchester City",
+        },
+        "profile": {"position": "CD", "level": 88},
+    },
+
+    # ─── 63. Marquinhos ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Marquinhos",
+            "dob": "1994-05-14",
+            "height_cm": 183,
+            "preferred_foot": "Right",
+            "nation": "Brazil",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {"position": "CD", "level": 87},
+    },
+
+    # ─── 64. Marc-André ter Stegen ────────────────────────────────────────
+    {
+        "person": {
+            "name": "Marc-André ter Stegen",
+            "dob": "1992-04-30",
+            "height_cm": 187,
+            "preferred_foot": "Right",
+            "nation": "Germany",
+            "club": "Barcelona",
+        },
+        "profile": {"position": "GK", "level": 86},
+    },
+
+    # ─── 65. Thibaut Courtois ─────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Thibaut Courtois",
+            "dob": "1992-05-11",
+            "height_cm": 199,
+            "preferred_foot": "Left",
+            "nation": "Belgium",
+            "club": "Real Madrid",
+        },
+        "profile": {"position": "GK", "level": 89},
+    },
+
+    # ─── 66. Harry Kane ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Harry Kane",
+            "dob": "1993-07-28",
+            "height_cm": 188,
+            "preferred_foot": "Right",
+            "nation": "England",
+            "club": "Bayern Munich",
+        },
+        "profile": {"position": "CF", "level": 91},
+    },
+
+    # ─── 67. Julián Álvarez ──────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Julián Álvarez",
+            "dob": "2000-01-31",
+            "height_cm": 170,
+            "preferred_foot": "Right",
+            "nation": "Argentina",
+            "club": "Atlético Madrid",
+        },
+        "profile": {"position": "CF", "level": 84},
+    },
+
+    # ─── 68. Lautaro Martínez ────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Lautaro Martínez",
+            "dob": "1997-08-22",
+            "height_cm": 174,
+            "preferred_foot": "Right",
+            "nation": "Argentina",
+            "club": "Inter Milan",
+        },
+        "profile": {"position": "CF", "level": 89},
+    },
+
+    # ─── 69. Leroy Sané ──────────────────────────────────────────────────
+    {
+        "person": {
+            "name": "Leroy Sané",
+            "dob": "1996-01-11",
+            "height_cm": 183,
+            "preferred_foot": "Left",
+            "nation": "Germany",
+            "club": "Bayern Munich",
+        },
+        "profile": {"position": "WM", "level": 84},
+    },
+
+    # ─── 70. Khvicha Kvaratskhelia ────────────────────────────────────────
+    {
+        "person": {
+            "name": "Khvicha Kvaratskhelia",
+            "dob": "2001-02-12",
+            "height_cm": 183,
+            "preferred_foot": "Right",
+            "nation": "Georgia",
+            "club": "Paris Saint-Germain",
+        },
+        "profile": {"position": "WF", "level": 89},
+    },
 ]
 
 
@@ -2933,10 +3143,10 @@ WHERE id = %(id)s;
 """
 
 SQL_UPSERT_PROFILE = """
-INSERT INTO player_profiles (person_id, position, level, peak, overall, archetype, blueprint, profile_tier)
-VALUES (%(person_id)s, %(position)s, %(level)s, %(peak)s, %(overall)s, %(archetype)s, %(blueprint)s, %(profile_tier)s)
+INSERT INTO player_profiles (person_id, position, level, overall, archetype, blueprint, profile_tier)
+VALUES (%(person_id)s, %(position)s, %(level)s, %(overall)s, %(archetype)s, %(blueprint)s, %(profile_tier)s)
 ON CONFLICT (person_id) DO UPDATE SET
-  position = EXCLUDED.position, level = EXCLUDED.level, peak = EXCLUDED.peak,
+  position = EXCLUDED.position, level = EXCLUDED.level,
   overall = EXCLUDED.overall, archetype = EXCLUDED.archetype,
   blueprint = EXCLUDED.blueprint, profile_tier = EXCLUDED.profile_tier,
   updated_at = now();
@@ -3018,32 +3228,42 @@ def seed_player(cur, player: dict) -> None:
         print(f"  people: {name} → id={person_id} (inserted)")
 
     # 2. player_profiles
-    profile = {**player["profile"], "person_id": person_id}
-    cur.execute(SQL_UPSERT_PROFILE, profile)
-    print(f"  profile: {player['profile']['archetype']}")
+    if "profile" in player:
+        profile = {**player["profile"], "person_id": person_id}
+        # Default optional fields
+        profile.setdefault("overall", None)
+        profile.setdefault("archetype", None)
+        profile.setdefault("blueprint", None)
+        profile.setdefault("profile_tier", None)
+        cur.execute(SQL_UPSERT_PROFILE, profile)
+        print(f"  profile: {player['profile'].get('archetype', '(level only)')}")
 
     # 3. player_personality
-    personality = {**player["personality"], "person_id": person_id}
-    cur.execute(SQL_UPSERT_PERSONALITY, personality)
+    if "personality" in player:
+        personality = {**player["personality"], "person_id": person_id}
+        cur.execute(SQL_UPSERT_PERSONALITY, personality)
 
     # 4. player_market
-    market = {**player["market"], "person_id": person_id}
-    cur.execute(SQL_UPSERT_MARKET, market)
+    if "market" in player:
+        market = {**player["market"], "person_id": person_id}
+        cur.execute(SQL_UPSERT_MARKET, market)
 
     # 5. player_status
-    status = {**player["status"], "person_id": person_id}
-    sql, params = _build_status_sql(status)
-    cur.execute(sql, params)
+    if "status" in player:
+        status = {**player["status"], "person_id": person_id}
+        sql, params = _build_status_sql(status)
+        cur.execute(sql, params)
 
     # 6. attribute_grades (32 attributes)
-    for attr_name, (grade, confidence) in player["attributes"].items():
-        cur.execute(SQL_UPSERT_ATTR, {
-            "player_id": person_id,
-            "attribute": attr_name,
-            "scout_grade": grade,
-            "confidence": confidence,
-        })
-    print(f"  attributes: {len(player['attributes'])} grades")
+    if "attributes" in player:
+        for attr_name, (grade, confidence) in player["attributes"].items():
+            cur.execute(SQL_UPSERT_ATTR, {
+                "player_id": person_id,
+                "attribute": attr_name,
+                "scout_grade": grade,
+                "confidence": confidence,
+            })
+        print(f"  attributes: {len(player['attributes'])} grades")
 
 
 def main():

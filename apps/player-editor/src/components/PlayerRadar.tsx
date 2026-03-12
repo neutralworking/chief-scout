@@ -160,6 +160,44 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
         </div>
       </div>
 
+      {/* Physical Profile — composite of Sprinter + Powerhouse + Target */}
+      {(() => {
+        const physModels = ["Sprinter", "Powerhouse", "Target"] as const;
+        const physScores = physModels
+          .map((m) => ({ name: m, score: radarData.modelScores[m] }))
+          .filter((s) => s.score != null && s.score > 0);
+        if (physScores.length === 0) return null;
+        const physAvg = Math.round(physScores.reduce((s, p) => s + p.score, 0) / physScores.length);
+        const physGrade = gradeLabel(physAvg);
+        const physLabels: Record<string, string> = { Sprinter: "Pace & Agility", Powerhouse: "Strength & Power", Target: "Aerial & Presence" };
+        return (
+          <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Physical</span>
+              <span className={`text-[10px] font-bold ${physGrade.color}`}>{physAvg}</span>
+              <span className={`text-[9px] ${physGrade.color}`}>{physGrade.label}</span>
+            </div>
+            <div className="space-y-1">
+              {physScores.map(({ name, score }) => (
+                <div key={name} className="flex items-center gap-2">
+                  <span className="text-[9px] text-[var(--text-secondary)] w-28 truncate">{physLabels[name] ?? name}</span>
+                  <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.min(score, 100)}%`,
+                        backgroundColor: score >= 70 ? "var(--accent-tactical)" : score >= 50 ? "var(--text-secondary)" : "var(--text-muted)",
+                      }}
+                    />
+                  </div>
+                  <span className="text-[9px] font-mono w-5 text-right text-[var(--text-secondary)]">{score}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Role pills */}
       {roles.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">

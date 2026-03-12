@@ -24,7 +24,6 @@ interface IntelligenceCard {
   club: string | null;
   position: string | null;
   level: number | null;
-  peak: number | null;
   overall: number | null;
   archetype: string | null;
   model_id: string | null;
@@ -228,8 +227,8 @@ export default async function PlayerDetailPage({
             </div>
           </div>
 
-          {/* Level / Peak / Overall — headline numbers */}
-          {(player.level != null || player.peak != null || player.overall != null) && (
+          {/* Level / Overall — headline numbers */}
+          {(player.level != null || player.overall != null) && (
             <div className="flex items-center gap-3 shrink-0">
               {player.level != null && (
                 <div className="text-center">
@@ -237,13 +236,7 @@ export default async function PlayerDetailPage({
                   <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
                 </div>
               )}
-              {player.peak != null && (
-                <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-secondary)]">{player.peak}</div>
-                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Peak</div>
-                </div>
-              )}
-              {player.overall != null && (
+{player.overall != null && (
                 <div className="text-center">
                   <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--accent-tactical)]">{player.overall}</div>
                   <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">OVR</div>

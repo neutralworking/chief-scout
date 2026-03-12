@@ -5,6 +5,8 @@ import { useState, useRef } from "react";
 export function AdminActions() {
   const [newsRefreshing, setNewsRefreshing] = useState(false);
   const [newsResult, setNewsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [cardsRefreshing, setCardsRefreshing] = useState(false);
+  const [cardsResult, setCardsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // SQL Runner state
   const [sql, setSql] = useState("");
@@ -18,6 +20,23 @@ export function AdminActions() {
     ms?: number;
   } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const refreshCards = async () => {
+    setCardsRefreshing(true);
+    setCardsResult(null);
+    try {
+      const res = await fetch("/api/admin/refresh-cards", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setCardsResult({ type: "success", text: "Player cards refreshed" });
+      } else {
+        setCardsResult({ type: "error", text: data.error ?? "Failed" });
+      }
+    } catch (e) {
+      setCardsResult({ type: "error", text: String(e) });
+    }
+    setCardsRefreshing(false);
+  };
 
   const refreshNews = async () => {
     setNewsRefreshing(true);
@@ -115,24 +134,36 @@ export function AdminActions() {
 
   return (
     <div className="space-y-4">
-      {/* News Pipeline */}
+      {/* Pipeline Actions */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
-          News Pipeline
+          Pipeline Actions
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={refreshNews}
             disabled={newsRefreshing}
             className="px-4 py-1.5 rounded bg-[var(--accent-tactical)] text-[var(--bg-base)] text-sm font-semibold disabled:opacity-40 hover:brightness-110 transition-all"
           >
-            {newsRefreshing ? "Refreshing..." : "Refresh News Feed"}
+            {newsRefreshing ? "Refreshing..." : "Refresh News"}
           </button>
-          <span className="text-xs text-[var(--text-muted)]">Fetch RSS + process with Gemini</span>
+          <button
+            onClick={refreshCards}
+            disabled={cardsRefreshing}
+            className="px-4 py-1.5 rounded bg-[var(--accent-personality)] text-[var(--bg-base)] text-sm font-semibold disabled:opacity-40 hover:brightness-110 transition-all"
+          >
+            {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
+          </button>
+          <span className="text-xs text-[var(--text-muted)]">Run after pipeline changes</span>
         </div>
         {newsResult && (
           <p className={`mt-3 text-sm ${newsResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-[var(--accent-tactical)]"}`}>
             {newsResult.text}
+          </p>
+        )}
+        {cardsResult && (
+          <p className={`mt-3 text-sm ${cardsResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-[var(--accent-tactical)]"}`}>
+            {cardsResult.text}
           </p>
         )}
       </div>

@@ -136,9 +136,33 @@ PWA-ready comparison game at `apps/player-editor/app/choices/page.tsx`.
 
 CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_slug}_{name_slug}`. Player matching uses normalized exact name matching (no fuzzy).
 
+## App Pages
+| Route | Purpose |
+|---|---|
+| `/` | Dashboard home |
+| `/players` | Player list with search/filters |
+| `/players/[id]` | Player detail — profile, attributes, career, news |
+| `/editor` | Player search for editing |
+| `/editor/[id]` | Full player editor (attributes, profile, tags) |
+| `/clubs` | Flat A-Z club list with search + league/country filters. Accepts `?league=` param |
+| `/clubs/[id]` | Club detail — squad, position depth, archetypes |
+| `/leagues` | League list (top 5 pinned, all A-Z). Links to `/clubs?league=X` |
+| `/formations` | Formation browser — pitch visualization, tactical roles, player mapping |
+| `/news` | News stories feed |
+| `/choices` | Football Choices game (PWA) |
+| `/squad` | Squad builder |
+| `/scout-pad` | Scout pad |
+| `/admin` | Pipeline & data health dashboard |
+
+## CSS Variables
+Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
+- `--color-accent-tactical` (green), `--color-accent-mental` (blue), `--color-accent-physical` (gold)
+- `--color-accent-technical` (purple), `--color-accent-personality` (yellow)
+
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)
 - All feature tables use `person_id` as FK to `people(id)`
 - Position enum: GK, WD, CD, DM, CM, WM, AM, WF, CF
-- Pursuit status: Pass, Watch, Interested, Priority
+- Pursuit status: Pass, Watch, Interested, Scout Further, Monitor, Priority
 - Archetype confidence: high, medium, low
+- Profile tiers: 1 = scout-assessed with archetype, 2 = data-derived, 3 = skeleton

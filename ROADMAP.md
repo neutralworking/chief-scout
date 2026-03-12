@@ -69,7 +69,8 @@ Core UI built and working. Needs design polish pass.
 - [ ] **Formations page** — tables exist but empty, need seed from research (#54)
 - [ ] **Product polish** — glass styling consistency, archetype differentiation (#55)
 - [ ] **Comparison tool** — side-by-side player radar + stats
-- [ ] Production deployment to Vercel (#32)
+- [x] Staging/production environment separation — env detection, route filtering, sidebar gating
+- [ ] Production deployment to Vercel — create prod project, set env vars, first promotion (#32)
 - [ ] Scouting radar: statistical alert system (#25)
 - [ ] Free agent grader: ranked shortlists (#26)
 

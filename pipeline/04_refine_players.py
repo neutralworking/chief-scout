@@ -1,9 +1,10 @@
 """
-04_refine_players.py — Archetype scoring + enrichment using SACROSANCT models.
+04_refine_players.py — Archetype scoring + personality inference using SACROSANCT.
 
 Derives / infers:
   1. market_value_tier (1-5) from level / peak + division
   2. archetype — 13 SACROSANCT playing models scored from attribute_grades
+  3. personality — 4-dimension scores (ei/sn/tf/jp) inferred from attribute_grades
 
 The 13 playing models (per SACROSANCT):
   Mental:    Controller, Commander, Creator
@@ -223,6 +224,109 @@ def best_model(scores: dict[str, float], threshold: float = 15.0) -> str | None:
     return primary
 
 
+# ── Personality Inference ────────────────────────────────────────────────────
+#
+# Maps attribute_grades → personality dimension scores (0-100).
+# Per SACROSANCT, the four dimensions are:
+#   ei (Game Reading):      Analytical (A) ≥50 / Instinctive (I) <50
+#   sn (Motivation):        Extrinsic  (X) ≥50 / Intrinsic   (N) <50
+#   tf (Social Orientation): Soloist    (S) ≥50 / Leader      (L) <50
+#   jp (Pressure Response):  Competitor (C) ≥50 / Composer    (P) <50
+#
+# Each dimension is computed as an average of relevant attribute proxies,
+# some inverted (100 - score) to match the dimension polarity.
+
+PERSONALITY_DIMENSIONS: dict[str, list[tuple[str, bool]]] = {
+    # ei: high = Analytical (structured, pattern-reading)
+    #     Analytical players: high anticipation, decisions, awareness, concentration
+    "ei": [
+        ("anticipation", False),
+        ("decisions", False),
+        ("awareness", False),
+        ("concentration", False),
+    ],
+    # sn: high = Extrinsic (occasion-driven, crowd-fed)
+    #     Extrinsic players: high intensity/aggression (feed off atmosphere)
+    #     Intrinsic players: high discipline/drive (self-motivated)
+    "sn": [
+        ("intensity", False),
+        ("aggression", False),
+        ("discipline", True),   # inverted: high discipline → intrinsic
+        ("drive", True),        # inverted: high drive → intrinsic
+    ],
+    # tf: high = Soloist (self-contained)
+    #     Leader players: high leadership, communication
+    #     Soloist players: low leadership, low communication
+    "tf": [
+        ("leadership", True),      # inverted: high leadership → Leader (low tf)
+        ("communication", True),   # inverted: high communication → Leader (low tf)
+        ("creativity", False),     # creative types tend to be soloists
+        ("unpredictability", False),  # unpredictable players are self-focused
+    ],
+    # jp: high = Competitor (confrontational)
+    #     Competitor: high aggression, duels
+    #     Composer: high composure, discipline
+    "jp": [
+        ("aggression", False),
+        ("duels", False),
+        ("composure", True),     # inverted: high composure → Composer (low jp)
+        ("discipline", True),    # inverted: high discipline → Composer (low jp)
+    ],
+}
+
+
+def infer_personality(attr_scores: dict[str, float]) -> dict[str, int] | None:
+    """
+    Infer personality dimension scores from normalized attribute scores (0-100).
+    Returns {ei, sn, tf, jp} as integers 0-100, or None if insufficient data.
+    Requires at least 2 attributes per dimension to produce a score.
+    """
+    result: dict[str, int] = {}
+    for dim, attrs in PERSONALITY_DIMENSIONS.items():
+        values = []
+        for attr_name, invert in attrs:
+            v = attr_scores.get(attr_name)
+            if v is not None:
+                values.append((100.0 - v) if invert else v)
+        if len(values) < 2:
+            return None  # not enough data for reliable inference
+        result[dim] = max(0, min(100, round(sum(values) / len(values))))
+    return result
+
+
+def infer_traits(attr_scores: dict[str, float]) -> dict[str, int | None]:
+    """
+    Infer competitiveness and coachability from attributes.
+    Returns {competitiveness, coachability} as integers 1-10 (DB constraint).
+    """
+    # Competitiveness: aggression + duels + intensity + drive (0-100 → 1-10)
+    comp_attrs = ["aggression", "duels", "intensity", "drive"]
+    comp_vals = [attr_scores[a] for a in comp_attrs if a in attr_scores]
+    if len(comp_vals) >= 2:
+        competitiveness = max(1, min(10, round(sum(comp_vals) / len(comp_vals) / 10)))
+    else:
+        competitiveness = None
+
+    # Coachability: discipline + concentration + awareness - aggression proxy (0-100 → 1-10)
+    coach_attrs = [
+        ("discipline", False),
+        ("concentration", False),
+        ("awareness", False),
+        ("aggression", True),  # inverted: very aggressive players less coachable
+    ]
+    coach_vals = []
+    for a, inv in coach_attrs:
+        v = attr_scores.get(a)
+        if v is not None:
+            coach_vals.append((100.0 - v) if inv else v)
+    if len(coach_vals) >= 2:
+        coachability = max(1, min(10, round(sum(coach_vals) / len(coach_vals) / 10)))
+    else:
+        coachability = None
+
+    return {"competitiveness": competitiveness, "coachability": coachability}
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -269,11 +373,21 @@ def main():
         grades_by_player[pid].append(g)
     print(f"  {len(all_grades):,} grades for {len(grades_by_player):,} players.")
 
+    # Load existing personality data (to avoid overwriting manual assessments)
+    print("Loading existing personality data...")
+    cur.execute("SELECT person_id, is_inferred FROM player_personality")
+    existing_personality: dict[int, bool] = {}
+    for row in cur.fetchall():
+        existing_personality[row["person_id"]] = row["is_inferred"]
+    print(f"  {len(existing_personality):,} existing personality records ({sum(1 for v in existing_personality.values() if not v)} manual, {sum(1 for v in existing_personality.values() if v)} inferred)")
+
     # Build update plan
     arch_dist: dict[str, int] = {}
     method_dist: dict[str, int] = {"attribute_scored": 0, "undifferentiated": 0, "no_data": 0}
     mvt_changed = arch_changed = 0
     updates: list[tuple] = []
+    personality_updates: list[tuple] = []  # (pid, ei, sn, tf, jp, comp, coach)
+    personality_new = personality_skip = 0
 
     for p in players:
         pid      = p["id"]
@@ -293,6 +407,7 @@ def main():
         new_arch = None
         has_grades = pid in grades_by_player
         has_scout = False
+        attr_scores = None
 
         if has_grades:
             attr_scores, has_scout, has_diff = normalize_grades(grades_by_player[pid])
@@ -306,6 +421,7 @@ def main():
             else:
                 # All stat_scores identical (e.g. all 10) — undifferentiated
                 method_dist["undifferentiated"] += 1
+                attr_scores = None  # don't infer personality from undifferentiated data
         else:
             method_dist["no_data"] += 1
 
@@ -322,10 +438,28 @@ def main():
 
         updates.append((pid, new_mvt, new_arch, new_conf))
 
+        # ── Personality inference
+        # Skip manual assessments (is_inferred=False means scout entered it)
+        if pid in existing_personality and not existing_personality[pid]:
+            personality_skip += 1
+            continue
+
+        if attr_scores:
+            dims = infer_personality(attr_scores)
+            if dims:
+                traits = infer_traits(attr_scores)
+                personality_updates.append((
+                    pid,
+                    dims["ei"], dims["sn"], dims["tf"], dims["jp"],
+                    traits["competitiveness"], traits["coachability"],
+                ))
+                personality_new += 1
+
     # ── Summary
     print(f"\nPlan:")
     print(f"  MVT updated for {mvt_changed:,} players")
     print(f"  Archetype changed for {arch_changed:,} players")
+    print(f"  Personality inferred for {personality_new:,} players ({personality_skip:,} manual assessments preserved)")
     print(f"\nScoring method:")
     for method, count in sorted(method_dist.items(), key=lambda x: -x[1]):
         print(f"  {method:<20} {count:>6,}")
@@ -335,6 +469,20 @@ def main():
         bar = "█" * round(n / max_n * 30)
         pct = n / len(players) * 100
         print(f"  {arch:<14} {bar:<30} {n:>6,}  ({pct:.1f}%)")
+
+    # Personality type distribution
+    if personality_updates:
+        ptype_dist: dict[str, int] = {}
+        for _, ei, sn, tf, jp, _, _ in personality_updates:
+            code = ("A" if ei >= 50 else "I") + ("X" if sn >= 50 else "N") + \
+                   ("S" if tf >= 50 else "L") + ("C" if jp >= 50 else "P")
+            ptype_dist[code] = ptype_dist.get(code, 0) + 1
+        print(f"\nPersonality type distribution ({len(personality_updates):,} inferred):")
+        max_p = max(ptype_dist.values()) if ptype_dist else 1
+        for ptype, n in sorted(ptype_dist.items(), key=lambda x: -x[1]):
+            bar = "█" * round(n / max_p * 30)
+            pct = n / len(personality_updates) * 100
+            print(f"  {ptype:<6} {bar:<30} {n:>6,}  ({pct:.1f}%)")
 
     if DRY_RUN:
         print("\n--dry-run: no writes.")
@@ -380,7 +528,49 @@ def main():
         done = min(i + BATCH, len(updates))
         print(f"  {done:,}/{len(updates):,}", end="\r")
 
-    print(f"\nDone. {len(updates):,} rows committed.")
+    # ── Write personality (upsert into player_personality)
+    if personality_updates:
+        print(f"\nWriting {len(personality_updates):,} personality records...")
+        cur.execute("""
+            CREATE TEMP TABLE _personality_batch (
+                pid INTEGER PRIMARY KEY,
+                ei INTEGER,
+                sn INTEGER,
+                tf INTEGER,
+                jp INTEGER,
+                competitiveness INTEGER,
+                coachability INTEGER
+            )
+        """)
+        for i in range(0, len(personality_updates), BATCH):
+            batch = personality_updates[i:i + BATCH]
+            cur.execute("TRUNCATE _personality_batch")
+            execute_values(cur, """
+                INSERT INTO _personality_batch (pid, ei, sn, tf, jp, competitiveness, coachability)
+                VALUES %s
+            """, batch)
+            cur.execute("""
+                INSERT INTO player_personality (person_id, ei, sn, tf, jp, competitiveness, coachability, is_inferred, inference_notes)
+                SELECT pid, ei, sn, tf, jp, competitiveness, coachability, true, 'attribute_grades'
+                FROM _personality_batch
+                ON CONFLICT (person_id) DO UPDATE SET
+                    ei = EXCLUDED.ei,
+                    sn = EXCLUDED.sn,
+                    tf = EXCLUDED.tf,
+                    jp = EXCLUDED.jp,
+                    competitiveness = EXCLUDED.competitiveness,
+                    coachability = EXCLUDED.coachability,
+                    is_inferred = true,
+                    inference_notes = 'attribute_grades',
+                    updated_at = now()
+                WHERE player_personality.is_inferred = true
+            """)
+            conn.commit()
+            done = min(i + BATCH, len(personality_updates))
+            print(f"  {done:,}/{len(personality_updates):,}", end="\r")
+        print()
+
+    print(f"Done. {len(updates):,} archetype + {len(personality_updates):,} personality rows committed.")
     conn.close()
 
 

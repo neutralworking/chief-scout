@@ -163,10 +163,16 @@ export async function GET(
     }).sort((a, b) => b.score - a.score);
   }
 
+  // Check if data is differentiated (not all same score)
+  const scoreValues = Object.values(modelScores);
+  const uniqueScores = new Set(scoreValues);
+  const hasDifferentiatedData = uniqueScores.size > 2; // more than 2 distinct values
+
   return NextResponse.json({
     modelScores,
     positionScores,
     roleScores,
     hasData: Object.keys(modelScores).length > 0,
+    hasDifferentiatedData,
   });
 }

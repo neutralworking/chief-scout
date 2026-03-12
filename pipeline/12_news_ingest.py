@@ -76,14 +76,6 @@ RSS_SOURCES = {
         "url": "https://e00-marca.uecdn.es/rss/en/football.xml",
         "category": "league_esp",
     },
-    "football365": {
-        "url": "https://www.football365.com/feed",
-        "category": "general",
-    },
-    "teamtalk": {
-        "url": "https://www.teamtalk.com/feed",
-        "category": "transfer",
-    },
     "90min": {
         "url": "https://www.90min.com/posts.rss",
         "category": "general",
@@ -261,9 +253,10 @@ def fetch_rss():
         print("  (dry-run — no data was written)")
 
 
-# ── Phase 2: LLM Processing (Gemini → Groq fallback) ────────────────────────
+# ── Phase 2: LLM Processing (Gemini) ─────────────────────────────────────────
 
-_active_backend = "gemini"  # tracks which backend is active
+GEMINI_RATE_LIMIT_RETRIES = 3
+GEMINI_RATE_LIMIT_WAIT = 60  # seconds
 
 
 def init_gemini():
@@ -279,22 +272,10 @@ def init_gemini():
         return None
 
 
-def init_groq():
-    """Initialize Groq client. Returns client or None."""
-    if not GROQ_API_KEY:
-        return None
-    try:
-        from groq import Groq
-        return Groq(api_key=GROQ_API_KEY)
-    except Exception as e:
-        print(f"  WARN: Groq init failed: {e}")
-        return None
-
-
 def _parse_llm_response(text: str) -> dict | None:
     """Parse JSON from LLM response, stripping markdown fences and think tags."""
     text = text.strip()
-    # Strip <think>...</think> blocks (Llama/DeepSeek reasoning)
+    # Strip <think>...</think> blocks
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
     # Strip markdown code fences
     if text.startswith("```"):
@@ -313,56 +294,24 @@ def _parse_llm_response(text: str) -> dict | None:
 
 
 def call_gemini(model, headline: str, body: str) -> dict | None:
-    """Call Gemini Flash and parse JSON response."""
+    """Call Gemini Flash with rate-limit retry (sleep + retry up to 3 times)."""
     prompt = GEMINI_PROMPT.format(headline=headline, body=body[:3000])
-    try:
-        response = model.generate_content(prompt)
-        return _parse_llm_response(response.text)
-    except Exception as e:
-        err_str = str(e).lower()
-        if "429" in err_str or "quota" in err_str or "rate" in err_str:
-            print(f"    Gemini rate limited — switching to Groq fallback")
-            return "RATE_LIMITED"
-        print(f"    WARN: Gemini call failed: {e}")
-        return None
-
-
-def call_groq(client, headline: str, body: str) -> dict | None:
-    """Call Groq (DeepSeek/Llama) and parse JSON response."""
-    prompt = GEMINI_PROMPT.format(headline=headline, body=body[:3000])
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_completion_tokens=1024,
-        )
-        text = response.choices[0].message.content
-        return _parse_llm_response(text)
-    except Exception as e:
-        print(f"    WARN: Groq call failed: {e}")
-        return None
-
-
-def call_llm(gemini_model, groq_client, headline: str, body: str) -> dict | None:
-    """Call LLM with automatic Gemini → Groq fallback."""
-    global _active_backend
-
-    if _active_backend == "gemini" and gemini_model:
-        result = call_gemini(gemini_model, headline, body)
-        if result == "RATE_LIMITED":
-            _active_backend = "groq"
-            if groq_client:
-                return call_groq(groq_client, headline, body)
-            print("    WARN: no Groq fallback available")
+    for attempt in range(1, GEMINI_RATE_LIMIT_RETRIES + 1):
+        try:
+            response = model.generate_content(prompt)
+            return _parse_llm_response(response.text)
+        except Exception as e:
+            err_str = str(e).lower()
+            if "429" in err_str or "quota" in err_str or "rate" in err_str:
+                if attempt < GEMINI_RATE_LIMIT_RETRIES:
+                    print(f"    Gemini rate limited (attempt {attempt}/{GEMINI_RATE_LIMIT_RETRIES}) — waiting {GEMINI_RATE_LIMIT_WAIT}s...")
+                    time.sleep(GEMINI_RATE_LIMIT_WAIT)
+                    continue
+                else:
+                    print(f"    Gemini rate limited — exhausted {GEMINI_RATE_LIMIT_RETRIES} retries, skipping")
+                    return None
+            print(f"    WARN: Gemini call failed: {e}")
             return None
-        return result
-
-    if groq_client:
-        return call_groq(groq_client, headline, body)
-
-    print("    ERROR: no LLM backend available")
-    return None
 
 
 def _unaccent(text: str) -> str:
@@ -437,20 +386,14 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
 
 
 def process_stories():
-    """Process unprocessed stories with Gemini Flash (Groq fallback)."""
+    """Process unprocessed stories with Gemini Flash."""
     gemini_model = init_gemini()
-    groq_client = init_groq()
 
-    if not gemini_model and not groq_client:
-        print("ERROR: neither GEMINI_API_KEY nor GROQ_API_KEY is set")
+    if not gemini_model:
+        print("ERROR: GEMINI_API_KEY is not set or Gemini init failed")
         sys.exit(1)
 
-    backend_str = []
-    if gemini_model:
-        backend_str.append("Gemini Flash")
-    if groq_client:
-        backend_str.append("Groq (fallback)")
-    print(f"  LLM backends: {' → '.join(backend_str)}")
+    print(f"  LLM backend: Gemini Flash")
 
     where = "WHERE processed = false"
     if FORCE:
@@ -478,7 +421,7 @@ def process_stories():
     for idx, (story_id, headline, body) in enumerate(stories, 1):
         print(f"\n  [{idx}/{len(stories)}] {headline[:80]}...")
 
-        result = call_llm(gemini_model, groq_client, headline, body or "")
+        result = call_gemini(gemini_model, headline, body or "")
 
         # Rate limit
         time.sleep(0.5)

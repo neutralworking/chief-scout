@@ -5,10 +5,7 @@ import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
-import { FeaturedRadar } from "@/components/FeaturedRadar";
-import { PersonalityExplorer } from "@/components/PersonalityExplorer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
-import { PositionExplorer } from "@/components/PositionExplorer";
 import { PursuitPanel } from "@/components/PursuitPanel";
 
 const PIPELINE_STATUSES = ["Priority", "Interested", "Watch"] as const;
@@ -261,20 +258,6 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d`;
 }
 
-function FeaturedWithRadar({ featured }: { featured: { person_id: number; name: string; position: string | null; club: string | null; nation: string | null; level: number | null; overall: number | null; archetype: string | null; personality_type: string | null; market_value_tier: string | null; dob: string | null; blueprint: string | null } }) {
-  return (
-    <>
-      <FeaturedPlayer player={featured} />
-      <FeaturedRadar
-        personId={featured.person_id}
-        name={featured.name}
-        position={featured.position}
-        club={featured.club}
-      />
-    </>
-  );
-}
-
 export default async function DashboardPage() {
   const preferences = await getUserPreferences();
   const flags = getFeatureFlags(preferences);
@@ -350,7 +333,7 @@ export default async function DashboardPage() {
         {/* Featured Player + Radar + Quick Actions — 2 cols */}
         <div className="lg:col-span-2 space-y-3">
           {featured ? (
-            <FeaturedWithRadar featured={featured} />
+            <FeaturedPlayer player={featured} />
           ) : (
             <div className="glass rounded-xl p-6">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
@@ -374,18 +357,80 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 2: Personality Types */}
-      <PersonalityExplorer typeCounts={typeCounts} />
+      {/* BROWSE section */}
+      <div>
+        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Browse</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* By Position */}
+          <div className="glass rounded-xl p-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-2">Position</h3>
+            <div className="grid grid-cols-3 gap-1">
+              {(["GK","CD","WD","DM","CM","WM","AM","WF","CF"] as const).map((pos) => (
+                <Link
+                  key={pos}
+                  href={`/players?position=${pos}`}
+                  className="text-center py-1.5 rounded text-[10px] font-bold bg-[var(--bg-elevated)] hover:bg-[var(--accent-tactical)]/20 hover:text-[var(--accent-tactical)] text-[var(--text-secondary)] transition-colors"
+                >
+                  {pos}
+                  <span className="block text-[8px] font-normal text-[var(--text-muted)]">{positionCounts[pos] ?? 0}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
 
-      {/* Row 3: Trending + Position Explorer */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3">
-          <TrendingPlayers players={trendingPlayers} />
-        </div>
-        <div className="lg:col-span-2">
-          <PositionExplorer positionCounts={positionCounts} />
+          {/* By Personality */}
+          <div className="glass rounded-xl p-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality</h3>
+            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+              {typeCounts.sort((a, b) => b.count - a.count).slice(0, 8).map((t) => (
+                <Link
+                  key={t.type}
+                  href={`/players?personalities=${t.type}`}
+                  className="flex items-center justify-between px-2 py-1 rounded text-[10px] hover:bg-[var(--accent-personality)]/10 transition-colors"
+                >
+                  <span className="font-mono font-bold text-[var(--text-secondary)]">{t.type}</span>
+                  <span className="text-[var(--text-muted)]">{t.count}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* By Playing Style (Archetype) */}
+          <div className="glass rounded-xl p-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] mb-2">Playing Style</h3>
+            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+              {["The General","The Maestro","The Machine","The Captain","The Showman","The Genius","The Maverick","The Conductor"].map((style) => (
+                <Link
+                  key={style}
+                  href={`/players?personalities=${Object.entries({ANLC:"The General",INSP:"The Maestro",ANSC:"The Machine",INLC:"The Captain",AXLC:"The Showman",IXSP:"The Genius",IXSC:"The Maverick",ANLP:"The Conductor"}).find(([,v]) => v === style)?.[0] ?? ""}`}
+                  className="flex items-center justify-between px-2 py-1 rounded text-[10px] hover:bg-[var(--accent-mental)]/10 transition-colors"
+                >
+                  <span className="text-[var(--text-secondary)]">{style}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* By League */}
+          <div className="glass rounded-xl p-4">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-2">League</h3>
+            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+              {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
+                <Link
+                  key={league}
+                  href={`/leagues`}
+                  className="flex items-center px-2 py-1 rounded text-[10px] hover:bg-green-500/10 transition-colors"
+                >
+                  <span className="text-[var(--text-secondary)]">{league}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Trending Players */}
+      {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}
 
       {/* Pro: Pursuit Pipeline */}
       {proData && (

@@ -22,6 +22,13 @@ describe("PersonalityBadge", () => {
         screen.getByText("Personality not yet assessed.")
       ).toBeInTheDocument();
     });
+
+    it("renders nothing in compact mode when no personality", () => {
+      const { container } = render(
+        <PersonalityBadge personalityType={null} size="compact" />
+      );
+      expect(container.innerHTML).toBe("");
+    });
   });
 
   describe("mini mode", () => {

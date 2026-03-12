@@ -144,6 +144,7 @@ export function PersonalityBadge({
 
   if (!code) {
     if (size === "mini") return <span className="text-xs text-[var(--text-muted)]">–</span>;
+    if (size === "compact") return null;
     return <p className="text-sm text-[var(--text-muted)]">Personality not yet assessed.</p>;
   }
 

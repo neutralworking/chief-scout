@@ -5,9 +5,9 @@ export async function GET() {
   const supabase = supabaseServer!;
   const { data, error } = await supabase
     .from("tags")
-    .select("id, name, category")
+    .select("id, tag_name, category, is_scout_only")
     .order("category")
-    .order("name");
+    .order("tag_name");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data ?? []);

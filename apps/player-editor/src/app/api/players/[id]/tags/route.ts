@@ -12,17 +12,17 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("player_tags")
-    .select("id, tag_id, tags(name, category)")
+    .select("id, tag_id, tags(tag_name, category)")
     .eq("player_id", playerId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const rows = (data ?? []).map((r: Record<string, unknown>) => {
-    const tag = r.tags as { name: string; category: string } | null;
+    const tag = r.tags as { tag_name: string; category: string } | null;
     return {
       id: r.id,
       tag_id: r.tag_id,
-      tag_name: tag?.name ?? null,
+      tag_name: tag?.tag_name ?? null,
       tag_category: tag?.category ?? null,
     };
   });

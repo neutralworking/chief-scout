@@ -125,8 +125,8 @@ def percentile_rank(values):
 
 
 def percentile_to_score(pct):
-    """Convert percentile (0-100) to 1-20 scale."""
-    return max(1, min(20, round(pct / 5)))
+    """Convert percentile (0-100) to 1-10 scale."""
+    return max(1, min(10, round(pct / 10)))
 
 
 def compute_positional_percentiles(player_metrics, player_positions):

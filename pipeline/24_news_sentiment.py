@@ -80,26 +80,26 @@ def sentiment_to_numeric(sentiment):
 
 
 def compute_sentiment_score(positive, negative, neutral, total):
-    """1-20 sentiment score. 10 = neutral, 20 = overwhelmingly positive."""
+    """1-10 sentiment score. 5 = neutral, 10 = overwhelmingly positive."""
     if total == 0:
-        return 10
+        return 5
     net = (positive - negative) / total  # range: -1 to +1
-    # Map [-1, +1] → [1, 20]
-    return max(1, min(20, round(10 + net * 10)))
+    # Map [-1, +1] → [1, 10]
+    return max(1, min(10, round(5 + net * 5)))
 
 
 def compute_buzz_score(total_mentions, trend_7d, trend_30d):
-    """1-20 buzz score based on mention volume and recency."""
+    """1-10 buzz score based on mention volume and recency."""
     if total_mentions == 0:
         return 1
 
     # Weighted: recent mentions matter more
     recency_weight = (trend_7d or 0) * 4 + (trend_30d or 0)
-    volume_component = min(total_mentions, 50) / 50 * 10   # 0-10 from total volume
-    recency_component = min(recency_weight, 30) / 30 * 10  # 0-10 from recency
+    volume_component = min(total_mentions, 50) / 50 * 5    # 0-5 from total volume
+    recency_component = min(recency_weight, 30) / 30 * 5   # 0-5 from recency
 
     raw = volume_component + recency_component
-    return max(1, min(20, round(raw)))
+    return max(1, min(10, round(raw)))
 
 
 def chunked_upsert(rows):

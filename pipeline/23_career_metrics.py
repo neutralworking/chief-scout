@@ -98,9 +98,9 @@ def classify_trajectory(clubs_count, career_years, avg_tenure, current_club_yrs,
 
 
 def compute_loyalty_score(avg_tenure, max_tenure, clubs_count, career_years):
-    """1-20 loyalty score. High = long tenures, few moves."""
+    """1-10 loyalty score. High = long tenures, few moves."""
     if career_years is None or career_years <= 0:
-        return 10
+        return 5
 
     moves_per_year = max((clubs_count - 1), 0) / max(career_years, 1)
     # Lower moves_per_year = more loyal
@@ -109,13 +109,13 @@ def compute_loyalty_score(avg_tenure, max_tenure, clubs_count, career_years):
         (min(max_tenure or 0, 15) / 15) * 30 +        # max tenure (0-15 yrs → 0-30)
         max(0, (1 - moves_per_year)) * 30              # low move rate → 0-30
     )
-    return max(1, min(20, round(loyalty_raw / 5)))
+    return max(1, min(10, round(loyalty_raw / 10)))
 
 
 def compute_mobility_score(clubs_count, career_years, loan_count, leagues_count):
-    """1-20 mobility score. High = many moves, diverse experience."""
+    """1-10 mobility score. High = many moves, diverse experience."""
     if career_years is None or career_years <= 0:
-        return 10
+        return 5
 
     moves_per_year = max((clubs_count - 1), 0) / max(career_years, 1)
     mobility_raw = (
@@ -124,7 +124,7 @@ def compute_mobility_score(clubs_count, career_years, loan_count, leagues_count)
         min(loan_count, 5) / 5 * 20 +                   # loans → 0-20
         min(leagues_count or 0, 5) / 5 * 20             # league diversity → 0-20
     )
-    return max(1, min(20, round(mobility_raw / 5)))
+    return max(1, min(10, round(mobility_raw / 10)))
 
 
 def chunked_upsert(rows):

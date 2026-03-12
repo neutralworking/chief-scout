@@ -393,7 +393,7 @@ def main():
                 compound_rows.append({
                     "player_id": r["person_id"],
                     "attribute": compound.lower(),
-                    "stat_score": max(1, min(20, round(score / 5))),
+                    "stat_score": max(1, min(10, round(score / 10))),
                     "source": "computed",
                     "is_inferred": True,
                     "updated_at": now_iso,

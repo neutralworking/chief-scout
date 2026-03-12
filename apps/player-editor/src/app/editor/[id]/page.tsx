@@ -4,43 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
-// ── SACROSANCT attribute model ──────────────────────────────────────────────
-const MODELS: Record<string, { label: string; category: string; attrs: string[] }> = {
-  Controller:  { label: "Controller",  category: "mental",    attrs: ["anticipation", "composure", "decisions", "tempo"] },
-  Commander:   { label: "Commander",   category: "mental",    attrs: ["communication", "concentration", "drive", "leadership"] },
-  Creator:     { label: "Creator",     category: "technical", attrs: ["creativity", "unpredictability", "vision", "guile"] },
-  Target:      { label: "Target",      category: "physical",  attrs: ["aerial_duels", "heading", "jumping", "volleys"] },
-  Sprinter:    { label: "Sprinter",    category: "physical",  attrs: ["acceleration", "balance", "movement", "pace"] },
-  Powerhouse:  { label: "Powerhouse",  category: "physical",  attrs: ["aggression", "duels", "shielding", "stamina"] },
-  Cover:       { label: "Cover",       category: "tactical",  attrs: ["awareness", "discipline", "interceptions", "positioning"] },
-  Engine:      { label: "Engine",      category: "physical",  attrs: ["intensity", "pressing", "stamina", "versatility"] },
-  Destroyer:   { label: "Destroyer",   category: "tactical",  attrs: ["blocking", "clearances", "marking", "tackling"] },
-  Dribbler:    { label: "Dribbler",    category: "technical", attrs: ["carries", "first_touch", "skills", "take_ons"] },
-  Passer:      { label: "Passer",      category: "technical", attrs: ["pass_accuracy", "crossing", "pass_range", "through_balls"] },
-  Striker:     { label: "Striker",     category: "technical", attrs: ["close_range", "mid_range", "long_range", "penalties"] },
-  GK:          { label: "Goalkeeper",  category: "technical", attrs: ["agility", "footwork", "handling", "reactions"] },
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  mental:    "var(--accent-mental)",
-  physical:  "var(--accent-physical)",
-  tactical:  "var(--accent-tactical)",
-  technical: "var(--accent-personality)",
-};
-
-const CATEGORY_BG: Record<string, string> = {
-  mental:    "bg-blue-500/10 border-blue-500/20",
-  physical:  "bg-amber-500/10 border-amber-500/20",
-  tactical:  "bg-green-500/10 border-green-500/20",
-  technical: "bg-purple-500/10 border-purple-500/20",
-};
-
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
+const SQUAD_ROLES = ["Key Player", "Important Player", "Rotation", "Backup", "Youth", "Surplus"];
 const FEET = ["Right", "Left", "Both"];
 
-// All unique attributes across all models
-const ALL_ATTRS = [...new Set(Object.values(MODELS).flatMap((m) => m.attrs))].sort();
+const POSITION_COLORS: Record<string, string> = {
+  GK: "bg-amber-700/60", CD: "bg-blue-700/60", WD: "bg-blue-600/60",
+  DM: "bg-green-700/60", CM: "bg-green-600/60", WM: "bg-green-500/60",
+  AM: "bg-purple-600/60", WF: "bg-red-600/60", CF: "bg-red-700/60",
+};
 
 interface PlayerData {
   person_id: number;
@@ -48,6 +21,8 @@ interface PlayerData {
   club: string | null;
   nation: string | null;
   position: string | null;
+  secondary_position: string | null;
+  side: string | null;
   level: number | null;
   peak: number | null;
   overall: number | null;
@@ -62,11 +37,18 @@ interface PlayerData {
   hg: boolean | null;
 }
 
-interface AttrGrade {
-  attribute: string;
-  scout_grade: number | null;
-  stat_score: number | null;
-  source: string;
+interface Tag {
+  id: number;
+  tag_name: string;
+  category: string;
+  is_scout_only?: boolean;
+}
+
+interface PlayerTag {
+  id: number;
+  tag_id: number;
+  tag_name: string;
+  tag_category: string;
 }
 
 export default function PlayerEditorPage() {
@@ -74,9 +56,10 @@ export default function PlayerEditorPage() {
   const personId = Number(params.id);
 
   const [player, setPlayer] = useState<PlayerData | null>(null);
-  const [grades, setGrades] = useState<Map<string, AttrGrade[]>>(new Map());
-  const [scoutGrades, setScoutGrades] = useState<Record<string, number>>({});
   const [profile, setProfile] = useState<Record<string, string | number | boolean | null>>({});
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [playerTags, setPlayerTags] = useState<PlayerTag[]>([]);
+  const [tagFilter, setTagFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -90,10 +73,10 @@ export default function PlayerEditorPage() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch player data and attribute grades in parallel
-      const [playerRes, gradesRes] = await Promise.all([
+      const [playerRes, tagsRes, playerTagsRes] = await Promise.all([
         fetch(`/api/players/${personId}`),
-        fetch(`/api/players/${personId}/radar`),
+        fetch("/api/tags"),
+        fetch(`/api/players/${personId}/tags`),
       ]);
 
       if (!playerRes.ok) {
@@ -106,12 +89,13 @@ export default function PlayerEditorPage() {
       setPlayer(playerData);
       setProfile({
         position: playerData.position ?? "",
+        secondary_position: playerData.secondary_position ?? "",
+        side: playerData.side ?? "",
         level: playerData.level ?? "",
         peak: playerData.peak ?? "",
         overall: playerData.overall ?? "",
         archetype: playerData.archetype ?? "",
         pursuit_status: playerData.pursuit_status ?? "",
-        scouting_notes: playerData.scouting_notes ?? "",
         squad_role: playerData.squad_role ?? "",
         blueprint: playerData.blueprint ?? "",
         preferred_foot: playerData.preferred_foot ?? "",
@@ -119,29 +103,13 @@ export default function PlayerEditorPage() {
         hg: playerData.hg ?? false,
       });
 
-      // Parse radar response for raw grades
-      if (gradesRes.ok) {
-        const radarData = await gradesRes.json();
-        // Build grades map from raw grades if available
-        if (radarData.rawGrades) {
-          const gMap = new Map<string, AttrGrade[]>();
-          for (const g of radarData.rawGrades) {
-            const list = gMap.get(g.attribute) ?? [];
-            list.push(g);
-            gMap.set(g.attribute, list);
-          }
-          setGrades(gMap);
-
-          // Pre-fill scout grades from existing scout_assessment source
-          const sg: Record<string, number> = {};
-          for (const [attr, gradeList] of gMap) {
-            const scout = gradeList.find((g) => g.source === "scout_assessment");
-            if (scout?.scout_grade != null) {
-              sg[attr] = scout.scout_grade;
-            }
-          }
-          setScoutGrades(sg);
-        }
+      if (tagsRes.ok) {
+        const tags = await tagsRes.json();
+        setAllTags(tags);
+      }
+      if (playerTagsRes.ok) {
+        const pt = await playerTagsRes.json();
+        setPlayerTags(pt);
       }
     } catch {
       setError("Failed to load player");
@@ -150,21 +118,40 @@ export default function PlayerEditorPage() {
     }
   }
 
-  function setGrade(attr: string, value: number | null) {
-    setScoutGrades((prev) => {
-      if (value === null) {
-        const next = { ...prev };
-        delete next[attr];
-        return next;
-      }
-      return { ...prev, [attr]: value };
-    });
-    setSaved(false);
-  }
-
   function setProfileField(field: string, value: string | number | boolean | null) {
     setProfile((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
+  }
+
+  async function addTag(tagId: number) {
+    try {
+      const res = await fetch(`/api/players/${personId}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag_id: tagId }),
+      });
+      if (res.ok) {
+        // Reload player tags
+        const pt = await fetch(`/api/players/${personId}/tags`);
+        if (pt.ok) setPlayerTags(await pt.json());
+      }
+    } catch {
+      // ignore
+    }
+    setTagFilter("");
+  }
+
+  async function removeTag(tagId: number) {
+    try {
+      await fetch(`/api/players/${personId}/tags`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag_id: tagId }),
+      });
+      setPlayerTags((prev) => prev.filter((t) => t.tag_id !== tagId));
+    } catch {
+      // ignore
+    }
   }
 
   const saveAll = useCallback(async () => {
@@ -175,24 +162,11 @@ export default function PlayerEditorPage() {
     try {
       const promises: Promise<Response>[] = [];
 
-      // Save attribute grades
-      const gradeEntries = Object.entries(scoutGrades).filter(([, v]) => v != null && v > 0);
-      if (gradeEntries.length > 0) {
-        promises.push(
-          fetch("/api/admin/attribute-update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              person_id: personId,
-              grades: gradeEntries.map(([attribute, scout_grade]) => ({ attribute, scout_grade })),
-            }),
-          })
-        );
-      }
-
       // Save profile fields
       const profileUpdates: Record<string, unknown> = {};
       if (profile.position) profileUpdates.position = profile.position;
+      if (profile.secondary_position !== undefined) profileUpdates.secondary_position = profile.secondary_position || null;
+      if (profile.side !== undefined) profileUpdates.side = profile.side || null;
       if (profile.level !== "" && profile.level != null) profileUpdates.level = Number(profile.level);
       if (profile.peak !== "" && profile.peak != null) profileUpdates.peak = Number(profile.peak);
       if (profile.overall !== "" && profile.overall != null) profileUpdates.overall = Number(profile.overall);
@@ -212,7 +186,6 @@ export default function PlayerEditorPage() {
       // Save status fields
       const statusUpdates: Record<string, unknown> = {};
       if (profile.pursuit_status) statusUpdates.pursuit_status = profile.pursuit_status;
-      if (profile.scouting_notes !== undefined) statusUpdates.scouting_notes = profile.scouting_notes || null;
       if (profile.squad_role !== undefined) statusUpdates.squad_role = profile.squad_role || null;
 
       if (Object.keys(statusUpdates).length > 0) {
@@ -254,11 +227,11 @@ export default function PlayerEditorPage() {
     } finally {
       setSaving(false);
     }
-  }, [personId, scoutGrades, profile]);
+  }, [personId, profile]);
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto text-center py-20">
+      <div className="max-w-3xl mx-auto text-center py-20">
         <div className="inline-block w-8 h-8 border-2 border-[var(--text-muted)] border-t-[var(--accent-tactical)] rounded-full animate-spin" />
       </div>
     );
@@ -266,7 +239,7 @@ export default function PlayerEditorPage() {
 
   if (error && !player) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <Link href="/editor" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mb-4 inline-block">
           &larr; Back to search
         </Link>
@@ -277,27 +250,38 @@ export default function PlayerEditorPage() {
 
   if (!player) return null;
 
-  // Helper: get best existing grade for an attribute (for display)
-  function getBestGrade(attr: string): { value: number; source: string } | null {
-    const list = grades.get(attr);
-    if (!list?.length) return null;
-    const priority = ["scout_assessment", "statsbomb", "fbref", "understat", "eafc_inferred"];
-    const sorted = [...list].sort((a, b) => priority.indexOf(a.source) - priority.indexOf(b.source));
-    const best = sorted[0];
-    const val = best.scout_grade ?? best.stat_score;
-    return val != null ? { value: val, source: best.source } : null;
-  }
+  // Group tags by category
+  const tagsByCategory = allTags.reduce<Record<string, Tag[]>>((acc, t) => {
+    (acc[t.category] ??= []).push(t);
+    return acc;
+  }, {});
 
-  const sourceColors: Record<string, string> = {
-    scout_assessment: "text-[var(--accent-tactical)]",
-    statsbomb: "text-blue-400",
-    fbref: "text-purple-400",
-    understat: "text-amber-400",
-    eafc_inferred: "text-[var(--text-muted)]",
+  const playerTagIds = new Set(playerTags.map((t) => t.tag_id));
+
+  // Filter available tags
+  const availableTags = allTags.filter(
+    (t) => !playerTagIds.has(t.id) && (tagFilter === "" || t.tag_name.toLowerCase().includes(tagFilter.toLowerCase()))
+  );
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    scouting: "Scouting", style: "Style", fitness: "Fitness",
+    mental: "Mental", tactical: "Tactical", contract: "Contract",
+    disciplinary: "Disciplinary", archetype: "Archetype",
+  };
+
+  const TAG_CATEGORY_COLORS: Record<string, string> = {
+    scouting: "bg-[var(--accent-tactical)]/20 text-[var(--accent-tactical)] border-[var(--accent-tactical)]/30",
+    style: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+    fitness: "bg-green-500/20 text-green-400 border-green-500/30",
+    mental: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    tactical: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    contract: "bg-red-500/20 text-red-400 border-red-500/30",
+    disciplinary: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    archetype: "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] border-[var(--accent-personality)]/30",
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
+    <div className="max-w-3xl mx-auto pb-24">
       <div className="flex items-center justify-between mb-4">
         <Link href="/editor" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
           &larr; Back to search
@@ -312,127 +296,134 @@ export default function PlayerEditorPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight">{player.name}</h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              {[player.club, player.nation, player.position, player.archetype].filter(Boolean).join(" · ")}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              {player.position && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${POSITION_COLORS[player.position] ?? "bg-gray-600/60"} text-white`}>
+                  {player.position}
+                </span>
+              )}
+              <span className="text-xs text-[var(--text-muted)]">
+                {[player.club, player.nation].filter(Boolean).join(" · ")}
+              </span>
+            </div>
           </div>
-          <div className="text-right text-xs text-[var(--text-muted)] font-mono">
-            ID: {personId}
-          </div>
+          <span className="text-[10px] text-[var(--text-muted)] font-mono">#{personId}</span>
         </div>
       </div>
 
-      {/* Profile Fields */}
+      {/* Profile */}
       <div className="glass rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Profile</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <FieldSelect label="Position" value={String(profile.position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("position", v)} />
+          <FieldSelect label="2nd Position" value={String(profile.secondary_position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("secondary_position", v)} />
+          <FieldSelect label="Side" value={String(profile.side ?? "")} options={["Left", "Right", "Central", "Both"]} onChange={(v) => setProfileField("side", v)} />
+          <FieldSelect label="Foot" value={String(profile.preferred_foot ?? "")} options={FEET} onChange={(v) => setProfileField("preferred_foot", v)} />
           <FieldNumber label="Level" value={profile.level as number} onChange={(v) => setProfileField("level", v)} min={1} max={100} />
           <FieldNumber label="Peak" value={profile.peak as number} onChange={(v) => setProfileField("peak", v)} min={1} max={100} />
           <FieldNumber label="Overall" value={profile.overall as number} onChange={(v) => setProfileField("overall", v)} min={1} max={100} />
-          <FieldSelect label="Foot" value={String(profile.preferred_foot ?? "")} options={FEET} onChange={(v) => setProfileField("preferred_foot", v)} />
           <FieldNumber label="Height (cm)" value={profile.height_cm as number} onChange={(v) => setProfileField("height_cm", v)} min={140} max={220} />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
           <FieldSelect label="Pursuit" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
+          <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
           <FieldCheckbox label="Homegrown" checked={!!profile.hg} onChange={(v) => setProfileField("hg", v)} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
           <FieldText label="Archetype" value={String(profile.archetype ?? "")} onChange={(v) => setProfileField("archetype", v)} />
-          <FieldText label="Squad Role" value={String(profile.squad_role ?? "")} onChange={(v) => setProfileField("squad_role", v)} />
-        </div>
-
-        <div className="mt-3">
-          <FieldTextarea label="Scouting Notes" value={String(profile.scouting_notes ?? "")} onChange={(v) => setProfileField("scouting_notes", v)} />
-        </div>
-        <div className="mt-3">
-          <FieldTextarea label="Blueprint" value={String(profile.blueprint ?? "")} onChange={(v) => setProfileField("blueprint", v)} rows={2} />
+          <FieldText label="Blueprint" value={String(profile.blueprint ?? "")} onChange={(v) => setProfileField("blueprint", v)} />
         </div>
       </div>
 
-      {/* Attribute Grades by Model */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Attributes</h2>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {Object.keys(scoutGrades).length} / {ALL_ATTRS.length} graded
-          </span>
-        </div>
+      {/* Tags */}
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Tags</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {Object.entries(MODELS).map(([key, model]) => (
-            <div key={key} className={`rounded-xl border p-3 ${CATEGORY_BG[model.category]}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[model.category] }} />
-                <span className="text-xs font-bold">{model.label}</span>
-                <span className="text-[9px] text-[var(--text-muted)] uppercase">{model.category}</span>
-              </div>
+        {/* Current tags */}
+        {playerTags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {playerTags.map((pt) => (
+              <button
+                key={pt.tag_id}
+                onClick={() => removeTag(pt.tag_id)}
+                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border transition-opacity hover:opacity-70 ${TAG_CATEGORY_COLORS[pt.tag_category] ?? "bg-gray-500/20 text-gray-400 border-gray-500/30"}`}
+                title={`Remove ${pt.tag_name}`}
+              >
+                {pt.tag_name}
+                <svg className="w-2.5 h-2.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        )}
 
-              <div className="space-y-1.5">
-                {model.attrs.map((attr) => {
-                  const existing = getBestGrade(attr);
-                  const scoutVal = scoutGrades[attr];
+        {/* Tag search + add */}
+        <div className="relative">
+          <input
+            type="text"
+            value={tagFilter}
+            onChange={(e) => setTagFilter(e.target.value)}
+            placeholder="Search tags to add..."
+            className="w-full px-3 py-2 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors"
+          />
 
-                  return (
-                    <div key={attr} className="flex items-center gap-2">
-                      <span className="text-[11px] text-[var(--text-secondary)] w-28 truncate" title={attr}>
-                        {attr.replace(/_/g, " ")}
-                      </span>
-
-                      {/* Existing grade indicator */}
-                      {existing && scoutVal == null && (
-                        <span className={`text-[9px] font-mono ${sourceColors[existing.source] ?? "text-[var(--text-muted)]"}`} title={existing.source}>
-                          {existing.value}
-                        </span>
-                      )}
-
-                      {/* Scout grade input */}
-                      <div className="flex-1 flex items-center gap-1">
-                        <input
-                          type="range"
-                          min={0}
-                          max={10}
-                          step={1}
-                          value={scoutVal ?? 0}
-                          onChange={(e) => {
-                            const v = Number(e.target.value);
-                            setGrade(attr, v === 0 ? null : v);
-                          }}
-                          className="flex-1 h-1.5 accent-[var(--accent-tactical)] cursor-pointer"
-                          style={{ accentColor: CATEGORY_COLORS[model.category] }}
-                        />
-                        <span className={`text-xs font-mono w-5 text-right ${scoutVal ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-muted)]"}`}>
-                          {scoutVal ?? "–"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Model average */}
-              <div className="mt-2 pt-1.5 border-t border-white/5 flex justify-between">
-                <span className="text-[9px] text-[var(--text-muted)]">AVG</span>
-                <span className="text-[10px] font-mono font-bold" style={{ color: CATEGORY_COLORS[model.category] }}>
-                  {(() => {
-                    const vals = model.attrs.map((a) => scoutGrades[a]).filter((v): v is number => v != null && v > 0);
-                    return vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : "–";
-                  })()}
-                </span>
-              </div>
+          {tagFilter.length > 0 && availableTags.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] rounded-lg shadow-xl z-10 max-h-48 overflow-y-auto">
+              {availableTags.slice(0, 20).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => addTag(t.id)}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-elevated)]/50 transition-colors flex items-center justify-between"
+                >
+                  <span>{t.tag_name}</span>
+                  <span className="text-[9px] text-[var(--text-muted)]">{CATEGORY_LABELS[t.category] ?? t.category}</span>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
+
+        {/* Quick-add by category */}
+        {tagFilter === "" && (
+          <div className="mt-3 space-y-2">
+            {["scouting", "style", "fitness", "mental", "tactical", "contract"].map((cat) => {
+              const tags = (tagsByCategory[cat] ?? []).filter((t) => !playerTagIds.has(t.id));
+              if (tags.length === 0) return null;
+              return (
+                <div key={cat}>
+                  <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                    {CATEGORY_LABELS[cat] ?? cat}
+                  </span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {tags.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => addTag(t.id)}
+                        className="text-[9px] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-tactical)]/50 transition-colors"
+                      >
+                        + {t.tag_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Sticky save bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-50">
-        <div className="max-w-4xl mx-auto px-4 pb-4">
+        <div className="max-w-3xl mx-auto px-4 pb-4">
           <div className="glass rounded-xl p-3 flex items-center justify-between border border-[var(--border-subtle)]">
             <div className="text-xs text-[var(--text-muted)]">
               {error && <span className="text-red-400">{error}</span>}
-              {saved && <span className="text-[var(--accent-tactical)]">Saved successfully</span>}
+              {saved && <span className="text-[var(--accent-tactical)]">Saved</span>}
               {!error && !saved && (
-                <span>{Object.keys(scoutGrades).length} attributes graded</span>
+                <span>{playerTags.length} tags · {player.position ?? "No position"}</span>
               )}
             </div>
             <button
@@ -440,7 +431,7 @@ export default function PlayerEditorPage() {
               disabled={saving}
               className="px-6 py-2 rounded-lg bg-[var(--accent-tactical)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-40 transition-opacity"
             >
-              {saving ? "Saving..." : "Save All"}
+              {saving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
@@ -492,20 +483,6 @@ function FieldText({ label, value, onChange }: { label: string; value: string; o
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full px-2 py-1.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-tactical)]"
-      />
-    </div>
-  );
-}
-
-function FieldTextarea({ label, value, onChange, rows = 3 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
-  return (
-    <div>
-      <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">{label}</label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={rows}
-        className="w-full px-2 py-1.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-tactical)] resize-none"
       />
     </div>
   );

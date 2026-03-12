@@ -4,7 +4,8 @@
 Derives / infers:
   1. market_value_tier (1-5) from level / peak + division
   2. archetype — 13 SACROSANCT playing models scored from attribute_grades
-  3. personality — 4-dimension scores (ei/sn/tf/jp) inferred from attribute_grades
+  3. personality — 4-dimension scores (ei/sn/tf/jp) inferred from
+     attribute_grades + career_metrics + news_sentiment_agg
 
 The 13 playing models (per SACROSANCT):
   Mental:    Controller, Commander, Creator
@@ -335,12 +336,73 @@ PERSONALITY_DIMENSIONS: dict[str, list[tuple[str, bool]]] = {
 }
 
 
-def infer_personality(attr_scores: dict[str, float]) -> dict[str, int] | None:
+def compute_biographical_signals(
+    career: dict | None,
+    news: dict | None,
+) -> dict[str, float]:
     """
-    Infer personality dimension scores from normalized attribute scores (0-100).
+    Derive personality dimension signals from biographical data.
+    Returns {dim: score_0_100} for dimensions with enough evidence.
+
+    Sources (per SACROSANCT assessment methodology):
+      - Career patterns: loyalty/mobility → sn (Motivation), leagues → ei (Game Reading)
+      - News sentiment: controversy → jp (Pressure Response), transfer noise → tf (Social)
+    """
+    signals: dict[str, float] = {}
+
+    if career:
+        mobility = float(career.get("mobility_score") or 0)    # 1-20
+        trajectory = career.get("trajectory") or ""
+        leagues = int(career.get("leagues_count") or 0)
+
+        # ── sn (Motivation): high mobility → Extrinsic (X), low → Intrinsic (N)
+        if mobility > 0:
+            career_sn = (mobility / 20.0) * 100.0
+            if trajectory == "one-club":
+                career_sn = max(0, career_sn - 15)
+            elif trajectory == "journeyman":
+                career_sn = min(100, career_sn + 15)
+            signals["sn"] = max(0.0, min(100.0, career_sn))
+
+        # ── ei (Game Reading): success across many leagues → more analytical
+        if leagues >= 3:
+            signals["ei"] = min(100.0, 50.0 + (leagues - 2) * 8.0)
+
+    if news:
+        story_types = news.get("story_types") or {}
+        sentiment = float(news.get("sentiment_score") or 10)   # 1-20
+        total_stories = sum(story_types.values()) if story_types else 0
+
+        if total_stories >= 3:
+            # ── jp (Pressure Response): controversy → Competitor (C)
+            controversy = story_types.get("controversy", 0)
+            controversy_ratio = controversy / total_stories
+            news_jp = 50.0 + (controversy_ratio * 80.0) - ((sentiment - 10.0) * 2.0)
+            signals["jp"] = max(0.0, min(100.0, news_jp))
+
+            # ── tf (Social Orientation): transfer-dominated news → Soloist
+            transfer_ratio = story_types.get("transfer", 0) / total_stories
+            news_tf = 50.0 + (transfer_ratio * 30.0)
+            signals["tf"] = max(0.0, min(100.0, news_tf))
+
+    return signals
+
+
+def infer_personality(
+    attr_scores: dict[str, float],
+    bio_signals: dict[str, float] | None = None,
+) -> dict[str, int] | None:
+    """
+    Infer personality dimension scores from attribute scores (0-100)
+    blended with biographical signals from career/news data.
+
+    When both sources exist for a dimension, blends at 65/35 (attr/bio).
+    When only one source exists, uses it alone.
     Returns {ei, sn, tf, jp} as integers 0-100, or None if insufficient data.
-    Requires at least 2 attributes per dimension to produce a score.
     """
+    ATTR_WEIGHT = 0.65
+    BIO_WEIGHT = 0.35
+
     result: dict[str, int] = {}
     for dim, attrs in PERSONALITY_DIMENSIONS.items():
         values = []
@@ -348,15 +410,29 @@ def infer_personality(attr_scores: dict[str, float]) -> dict[str, int] | None:
             v = attr_scores.get(attr_name)
             if v is not None:
                 values.append((100.0 - v) if invert else v)
-        if len(values) < 2:
-            return None  # not enough data for reliable inference
-        result[dim] = max(0, min(100, round(sum(values) / len(values))))
+
+        attr_score = sum(values) / len(values) if len(values) >= 2 else None
+        bio_score = (bio_signals or {}).get(dim)
+
+        if attr_score is not None and bio_score is not None:
+            blended = attr_score * ATTR_WEIGHT + bio_score * BIO_WEIGHT
+        elif attr_score is not None:
+            blended = attr_score
+        elif bio_score is not None:
+            blended = bio_score
+        else:
+            return None  # no data at all for this dimension
+
+        result[dim] = max(0, min(100, round(blended)))
     return result
 
 
-def infer_traits(attr_scores: dict[str, float]) -> dict[str, int | None]:
+def infer_traits(
+    attr_scores: dict[str, float],
+    career: dict | None = None,
+) -> dict[str, int | None]:
     """
-    Infer competitiveness and coachability from attributes.
+    Infer competitiveness and coachability from attributes + career signals.
     Returns {competitiveness, coachability} as integers 1-10 (DB constraint).
     """
     # Competitiveness: aggression + duels + intensity + drive (0-100 → 1-10)
@@ -383,6 +459,19 @@ def infer_traits(attr_scores: dict[str, float]) -> dict[str, int | None]:
         coachability = max(1, min(10, round(sum(coach_vals) / len(coach_vals) / 10)))
     else:
         coachability = None
+
+    # Career-based adjustments
+    if career:
+        trajectory = career.get("trajectory", "")
+        mobility = float(career.get("mobility_score") or 0)
+
+        # One-club players: committed to a system → more coachable
+        if coachability is not None and trajectory == "one-club":
+            coachability = min(10, coachability + 1)
+
+        # High mobility: competitive ambition to seek bigger challenges
+        if competitiveness is not None and mobility >= 14:
+            competitiveness = min(10, competitiveness + 1)
 
     return {"competitiveness": competitiveness, "coachability": coachability}
 
@@ -433,6 +522,27 @@ def main():
         grades_by_player[pid].append(g)
     print(f"  {len(all_grades):,} grades for {len(grades_by_player):,} players.")
 
+    # Load career metrics for personality signals (SACROSANCT inference source #6)
+    print("Loading career metrics...")
+    cur.execute("""
+        SELECT person_id, loyalty_score, mobility_score, trajectory,
+               clubs_count, loan_count, avg_tenure_yrs, max_tenure_yrs,
+               leagues_count, career_years
+        FROM career_metrics
+    """)
+    career_signals: dict[int, dict] = {row["person_id"]: row for row in cur.fetchall()}
+    print(f"  {len(career_signals):,} career metric records.")
+
+    # Load news sentiment for personality signals
+    print("Loading news sentiment...")
+    cur.execute("""
+        SELECT person_id, sentiment_score, buzz_score,
+               story_types, dominant_type
+        FROM news_sentiment_agg
+    """)
+    news_signals: dict[int, dict] = {row["person_id"]: row for row in cur.fetchall()}
+    print(f"  {len(news_signals):,} news sentiment records.")
+
     # Load existing personality data (to avoid overwriting manual assessments)
     print("Loading existing personality data...")
     cur.execute("SELECT person_id, is_inferred FROM player_personality")
@@ -446,7 +556,7 @@ def main():
     method_dist: dict[str, int] = {"attribute_scored": 0, "undifferentiated": 0, "no_data": 0}
     mvt_changed = arch_changed = 0
     updates: list[tuple] = []
-    personality_updates: list[tuple] = []  # (pid, ei, sn, tf, jp, comp, coach)
+    personality_updates: list[tuple] = []  # (pid, ei, sn, tf, jp, comp, coach, sources)
     personality_new = personality_skip = 0
 
     for p in players:
@@ -500,20 +610,33 @@ def main():
 
         updates.append((pid, new_mvt, new_arch, new_conf))
 
-        # ── Personality inference
+        # ── Personality inference (multi-source: attributes + career + news)
         # Skip manual assessments (is_inferred=False means scout entered it)
         if pid in existing_personality and not existing_personality[pid]:
             personality_skip += 1
             continue
 
-        if pers_scores:
-            dims = infer_personality(pers_scores)
+        career = career_signals.get(pid)
+        news = news_signals.get(pid)
+
+        if pers_scores or career or news:
+            bio = compute_biographical_signals(career, news)
+            dims = infer_personality(pers_scores or {}, bio_signals=bio or None)
             if dims:
-                traits = infer_traits(pers_scores)
+                traits = infer_traits(pers_scores or {}, career=career)
+                # Track which sources contributed
+                sources = []
+                if pers_scores:
+                    sources.append("attribute_grades")
+                if career:
+                    sources.append("career_metrics")
+                if news:
+                    sources.append("news_sentiment")
                 personality_updates.append((
                     pid,
                     dims["ei"], dims["sn"], dims["tf"], dims["jp"],
                     traits["competitiveness"], traits["coachability"],
+                    ",".join(sources),
                 ))
                 personality_new += 1
 
@@ -535,7 +658,7 @@ def main():
     # Personality type distribution
     if personality_updates:
         ptype_dist: dict[str, int] = {}
-        for _, ei, sn, tf, jp, _, _ in personality_updates:
+        for _, ei, sn, tf, jp, _, _, _ in personality_updates:
             code = ("A" if ei >= 50 else "I") + ("X" if sn >= 50 else "N") + \
                    ("S" if tf >= 50 else "L") + ("C" if jp >= 50 else "P")
             ptype_dist[code] = ptype_dist.get(code, 0) + 1
@@ -545,6 +668,17 @@ def main():
             bar = "█" * round(n / max_p * 30)
             pct = n / len(personality_updates) * 100
             print(f"  {ptype:<6} {bar:<30} {n:>6,}  ({pct:.1f}%)")
+
+    # Source coverage summary
+    if personality_updates:
+        source_counts: dict[str, int] = {}
+        for *_, sources_str in personality_updates:
+            for src in sources_str.split(","):
+                source_counts[src] = source_counts.get(src, 0) + 1
+        print(f"\nPersonality inference sources:")
+        for src, n in sorted(source_counts.items(), key=lambda x: -x[1]):
+            pct = n / len(personality_updates) * 100
+            print(f"  {src:<20} {n:>6,}  ({pct:.1f}%)")
 
     if DRY_RUN:
         print("\n--dry-run: no writes.")
@@ -601,19 +735,20 @@ def main():
                 tf INTEGER,
                 jp INTEGER,
                 competitiveness INTEGER,
-                coachability INTEGER
+                coachability INTEGER,
+                sources TEXT
             )
         """)
         for i in range(0, len(personality_updates), BATCH):
             batch = personality_updates[i:i + BATCH]
             cur.execute("TRUNCATE _personality_batch")
             execute_values(cur, """
-                INSERT INTO _personality_batch (pid, ei, sn, tf, jp, competitiveness, coachability)
+                INSERT INTO _personality_batch (pid, ei, sn, tf, jp, competitiveness, coachability, sources)
                 VALUES %s
             """, batch)
             cur.execute("""
                 INSERT INTO player_personality (person_id, ei, sn, tf, jp, competitiveness, coachability, is_inferred, inference_notes)
-                SELECT pid, ei, sn, tf, jp, competitiveness, coachability, true, 'attribute_grades'
+                SELECT pid, ei, sn, tf, jp, competitiveness, coachability, true, sources
                 FROM _personality_batch
                 ON CONFLICT (person_id) DO UPDATE SET
                     ei = EXCLUDED.ei,
@@ -623,7 +758,7 @@ def main():
                     competitiveness = EXCLUDED.competitiveness,
                     coachability = EXCLUDED.coachability,
                     is_inferred = true,
-                    inference_notes = 'attribute_grades',
+                    inference_notes = EXCLUDED.inference_notes,
                     updated_at = now()
                 WHERE player_personality.is_inferred = true
             """)

@@ -2,29 +2,31 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase-server";
 
 // Top 5 leagues + key scouting leagues, ordered by priority
-const LEAGUE_TIERS: { tier: string; nations: string[] }[] = [
+const LEAGUE_TIERS: { tier: string; nations: string[]; sortAlpha: boolean }[] = [
   {
     tier: "Top 5 Leagues",
     nations: ["England", "Spain", "Germany", "Italy", "France"],
+    sortAlpha: false, // fixed order
   },
   {
     tier: "Key Scouting Leagues",
     nations: [
-      "Netherlands",
-      "Portugal",
-      "Belgium",
-      "Turkey",
-      "Scotland",
       "Austria",
-      "Switzerland",
-      "Denmark",
-      "Norway",
-      "Sweden",
+      "Belgium",
       "Croatia",
-      "Serbia",
-      "Greece",
       "Czech Republic",
+      "Denmark",
+      "Greece",
+      "Netherlands",
+      "Norway",
+      "Portugal",
+      "Scotland",
+      "Serbia",
+      "Sweden",
+      "Switzerland",
+      "Turkey",
     ],
+    sortAlpha: true,
   },
 ];
 
@@ -34,6 +36,7 @@ interface LeagueGroup {
   nation: string;
   clubs: { id: number; name: string; leagueName: string | null; playerCount: number }[];
   totalPlayers: number;
+  avgOverall: number | null;
 }
 
 export default async function LeaguesPage() {
@@ -84,6 +87,57 @@ export default async function LeaguesPage() {
     }
   }
 
+  // Fetch player_profiles.overall joined with people.club_id (paginated)
+  // We need: person_id -> overall, person_id -> club_id
+  const clubOveralls = new Map<number, number[]>(); // club_id -> list of overall scores
+  {
+    const PAGE = 1000;
+    let from = 0;
+    let more = true;
+    while (more) {
+      const { data: page } = await supabaseServer
+        .from("player_profiles")
+        .select("overall, people!inner(club_id)")
+        .not("overall", "is", null)
+        .range(from, from + PAGE - 1);
+      for (const row of page ?? []) {
+        const clubId = (row as any).people?.club_id;
+        if (clubId != null) {
+          if (!clubOveralls.has(clubId)) clubOveralls.set(clubId, []);
+          clubOveralls.get(clubId)!.push((row as any).overall);
+        }
+      }
+      more = (page?.length ?? 0) === PAGE;
+      from += PAGE;
+    }
+  }
+
+  // Build a map of club_id -> nation for computing nation-level averages
+  const clubNationMap = new Map<number, string>();
+  for (const rawClub of clubs ?? []) {
+    const club = rawClub as any;
+    const nation = club.nations?.name || (club.league_name ? `League: ${club.league_name}` : "Unassigned");
+    clubNationMap.set(club.id, nation);
+  }
+
+  // Compute nation-level average overall
+  const nationOveralls = new Map<string, number[]>();
+  for (const [clubId, scores] of clubOveralls) {
+    const nation = clubNationMap.get(clubId);
+    if (nation) {
+      if (!nationOveralls.has(nation)) nationOveralls.set(nation, []);
+      nationOveralls.get(nation)!.push(...scores);
+    }
+  }
+
+  const nationAvgOverall = new Map<string, number>();
+  for (const [nation, scores] of nationOveralls) {
+    if (scores.length > 0) {
+      const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
+      nationAvgOverall.set(nation, Math.round(avg));
+    }
+  }
+
   // Group by nation (or league_name as fallback, or "Unassigned")
   const nationMap = new Map<string, { id: number; name: string; leagueName: string | null; playerCount: number }[]>();
   for (const rawClub of clubs ?? []) {
@@ -105,15 +159,16 @@ export default async function LeaguesPage() {
       nation,
       clubs: clubs.sort((a, b) => b.playerCount - a.playerCount || a.name.localeCompare(b.name)),
       totalPlayers: clubs.reduce((sum, c) => sum + c.playerCount, 0),
+      avgOverall: nationAvgOverall.get(nation) ?? null,
     };
   };
 
-  // Remaining nations not in any tier
+  // Remaining nations not in any tier — sorted alphabetically by nation name
   const otherNations = [...nationMap.keys()]
     .filter((n) => !TIER_NATIONS.has(n))
     .map((n) => buildGroup(n)!)
     .filter(Boolean)
-    .sort((a, b) => b.clubs.length - a.clubs.length || b.totalPlayers - a.totalPlayers);
+    .sort((a, b) => a.nation.localeCompare(b.nation));
 
   const totalClubs = clubs.length;
   let totalPlayers = 0;
@@ -130,13 +185,17 @@ export default async function LeaguesPage() {
       {LEAGUE_TIERS.map((tier) => {
         const groups = tier.nations.map(buildGroup).filter(Boolean) as LeagueGroup[];
         if (groups.length === 0) return null;
+        // Sort alphabetically if tier requires it
+        const sorted = tier.sortAlpha
+          ? [...groups].sort((a, b) => a.nation.localeCompare(b.nation))
+          : groups;
         return (
           <div key={tier.tier} className="mb-8">
             <h2 className="text-xs font-semibold tracking-widest uppercase text-[var(--accent-personality)] mb-4">
               {tier.tier}
             </h2>
             <div className="space-y-4">
-              {groups.map((league) => (
+              {sorted.map((league) => (
                 <LeagueCard key={league.nation} league={league} />
               ))}
             </div>
@@ -165,7 +224,14 @@ function LeagueCard({ league }: { league: LeagueGroup }) {
   return (
     <div className="glass rounded-xl p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">{league.nation}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{league.nation}</h3>
+          {league.avgOverall != null && (
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--accent-personality)]/15 text-[var(--accent-personality)]">
+              Avg: {league.avgOverall}
+            </span>
+          )}
+        </div>
         <span className="text-xs font-mono text-[var(--text-muted)]">
           {league.clubs.length} clubs{league.totalPlayers > 0 ? ` · ${league.totalPlayers} players` : ""}
         </span>

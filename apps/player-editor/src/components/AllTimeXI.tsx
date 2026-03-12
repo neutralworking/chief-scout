@@ -34,6 +34,77 @@ interface Pick {
 
 type Phase = "pitch" | "picking";
 
+const FORMATIONS: { slug: string; label: string; coords: Record<number, { top: string; left: string }> }[] = [
+  {
+    slug: "classic-433",
+    label: "4-3-3",
+    coords: {
+      1:  { top: "82%", left: "50%" },
+      2:  { top: "65%", left: "85%" },
+      3:  { top: "65%", left: "62%" },
+      4:  { top: "65%", left: "38%" },
+      5:  { top: "65%", left: "15%" },
+      6:  { top: "42%", left: "70%" },
+      7:  { top: "42%", left: "50%" },
+      8:  { top: "42%", left: "30%" },
+      9:  { top: "18%", left: "80%" },
+      10: { top: "18%", left: "50%" },
+      11: { top: "18%", left: "20%" },
+    },
+  },
+  {
+    slug: "classic-442",
+    label: "4-4-2",
+    coords: {
+      1:  { top: "82%", left: "50%" },
+      2:  { top: "65%", left: "85%" },
+      3:  { top: "65%", left: "62%" },
+      4:  { top: "65%", left: "38%" },
+      5:  { top: "65%", left: "15%" },
+      6:  { top: "42%", left: "85%" },
+      7:  { top: "42%", left: "62%" },
+      8:  { top: "42%", left: "38%" },
+      9:  { top: "42%", left: "15%" },
+      10: { top: "18%", left: "62%" },
+      11: { top: "18%", left: "38%" },
+    },
+  },
+  {
+    slug: "classic-352",
+    label: "3-5-2",
+    coords: {
+      1:  { top: "82%", left: "50%" },
+      2:  { top: "65%", left: "72%" },
+      3:  { top: "65%", left: "50%" },
+      4:  { top: "65%", left: "28%" },
+      5:  { top: "42%", left: "90%" },
+      6:  { top: "42%", left: "68%" },
+      7:  { top: "42%", left: "50%" },
+      8:  { top: "42%", left: "32%" },
+      9:  { top: "42%", left: "10%" },
+      10: { top: "18%", left: "62%" },
+      11: { top: "18%", left: "38%" },
+    },
+  },
+  {
+    slug: "classic-4231",
+    label: "4-2-3-1",
+    coords: {
+      1:  { top: "82%", left: "50%" },
+      2:  { top: "65%", left: "85%" },
+      3:  { top: "65%", left: "62%" },
+      4:  { top: "65%", left: "38%" },
+      5:  { top: "65%", left: "15%" },
+      6:  { top: "48%", left: "62%" },
+      7:  { top: "48%", left: "38%" },
+      8:  { top: "30%", left: "80%" },
+      9:  { top: "30%", left: "50%" },
+      10: { top: "30%", left: "20%" },
+      11: { top: "14%", left: "50%" },
+    },
+  },
+];
+
 const POSITION_COORDS: Record<number, { top: string; left: string }> = {
   1:  { top: "82%", left: "50%" },
   2:  { top: "65%", left: "85%" },
@@ -57,6 +128,7 @@ const ERA_LABELS: Record<string, string> = {
 export function AllTimeXI() {
   const { fcUserId } = useAuth();
   const [phase, setPhase] = useState<Phase>("pitch");
+  const [formation, setFormation] = useState(FORMATIONS[0]);
   const [positions, setPositions] = useState<SquadPosition[]>([]);
   const [picks, setPicks] = useState<Record<number, Pick>>({});
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
@@ -312,7 +384,7 @@ export function AllTimeXI() {
               <div className="absolute inset-x-[20%] top-0 h-[30%] border border-white/5" />
 
               {positions.map((pos) => {
-                const coords = POSITION_COORDS[pos.slot];
+                const coords = formation.coords[pos.slot];
                 if (!coords) return null;
                 const pick = picks[pos.slot];
                 return (
@@ -343,19 +415,27 @@ export function AllTimeXI() {
               })}
             </div>
 
-            {/* Action — always visible without scrolling */}
-            <div className="mt-2 sm:mt-3 flex justify-center">
-              {!isComplete ? (
-                <button
-                  onClick={nextSlot}
-                  className="px-5 py-2 bg-[var(--accent-tactical)] text-white rounded-lg text-sm font-semibold hover:opacity-90"
-                >
-                  Pick next position →
-                </button>
-              ) : (
+            {/* Formation selector + actions */}
+            <div className="mt-2 sm:mt-3 flex items-center justify-between">
+              <div className="flex gap-1">
+                {FORMATIONS.map((f) => (
+                  <button
+                    key={f.slug}
+                    onClick={() => setFormation(f)}
+                    className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${
+                      formation.slug === f.slug
+                        ? "bg-[var(--accent-tactical)]/20 text-[var(--accent-tactical)] ring-1 ring-[var(--accent-tactical)]/30"
+                        : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              {isComplete && (
                 <button
                   onClick={() => { setPicks({}); setPhase("pitch"); }}
-                  className="px-4 py-1.5 text-xs text-[var(--text-muted)] border border-[var(--border-subtle)] rounded-lg hover:text-[var(--text-secondary)]"
+                  className="px-3 py-1 text-[10px] text-[var(--text-muted)] border border-[var(--border-subtle)] rounded hover:text-[var(--text-secondary)]"
                 >
                   Start over
                 </button>
@@ -366,13 +446,13 @@ export function AllTimeXI() {
       </div>
 
       {/* Right: Analysis Panel (hidden on mobile in pitch view, always visible on desktop) */}
-      <div className="hidden lg:block lg:w-64 shrink-0 space-y-3">
-        {/* Squad List — compact */}
-        <div className="glass rounded-xl overflow-hidden">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 gap-3" style={{ minHeight: "min(60vw, 500px)" }}>
+        {/* Squad List — fills available space */}
+        <div className="glass rounded-xl overflow-hidden flex-1 flex flex-col">
           <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
             <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Squad</span>
           </div>
-          <div className="max-h-[280px] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {positions.map((pos) => {
               const pick = picks[pos.slot];
               return (

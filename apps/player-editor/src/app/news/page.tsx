@@ -146,13 +146,13 @@ export default function NewsPage() {
           <p className="text-xs text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
           {stories.map((story) => {
             const storyTags = tagsByStory.get(story.id) ?? [];
             const sentiment = storySentiment(story.id);
 
             return (
-              <article key={story.id} className="glass rounded-xl p-3 sm:p-4">
+              <article key={story.id} className="glass rounded-xl p-3 lg:p-2.5">
                 {/* Top row: type + sentiment + time */}
                 <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                   {story.story_type && (
@@ -171,7 +171,7 @@ export default function NewsPage() {
                 </div>
 
                 {/* Headline */}
-                <div className="text-sm font-semibold leading-snug mb-1">
+                <div className="text-sm font-semibold leading-snug mb-1 line-clamp-2">
                   {story.url ? (
                     <a
                       href={story.url}
@@ -202,7 +202,7 @@ export default function NewsPage() {
                         <Link
                           key={tag.player_id}
                           href={`/players/${tag.player_id}`}
-                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                          className="inline-flex items-center gap-1 text-[10px] lg:text-[11px] font-medium px-2 lg:px-2.5 py-0.5 lg:py-1 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                           {tag.name}

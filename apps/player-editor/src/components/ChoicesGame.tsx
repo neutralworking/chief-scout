@@ -55,6 +55,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   const [streak, setStreak] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
+  const [autoAdvance, setAutoAdvance] = useState(true);
   const timerRef = useRef<number>(0);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -115,10 +116,15 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         const newTotal = totalAnswered + 1;
         setTotalAnswered(newTotal);
         localStorage.setItem("fc_total_answered", String(newTotal));
-        // Auto-scroll to next button so user doesn't have to
-        setTimeout(() => {
-          nextBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 400);
+        if (autoAdvance) {
+          // Show results briefly then auto-advance
+          setTimeout(() => nextQuestion(), 1500);
+        } else {
+          // Scroll to next button
+          setTimeout(() => {
+            nextBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 400);
+        }
       }
     } catch (err) {
       console.error("Failed to submit vote:", err);
@@ -192,6 +198,16 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           &larr; Menu
         </button>
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+          <button
+            onClick={() => setAutoAdvance(!autoAdvance)}
+            className={`flex items-center gap-1 transition-colors ${autoAdvance ? "text-[var(--accent-tactical)]" : ""}`}
+            title={autoAdvance ? "Auto-advance ON" : "Auto-advance OFF"}
+          >
+            <span className={`w-6 h-3 rounded-full relative transition-colors ${autoAdvance ? "bg-[var(--accent-tactical)]" : "bg-[var(--bg-elevated)]"}`}>
+              <span className={`absolute top-0.5 w-2 h-2 rounded-full bg-white transition-all ${autoAdvance ? "left-3.5" : "left-0.5"}`} />
+            </span>
+            <span className="hidden sm:inline">Auto</span>
+          </button>
           {streak > 0 && (
             <span className="font-mono">
               Streak: <span className="text-[var(--accent-tactical)] font-bold">{streak}</span>
@@ -249,21 +265,32 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
             optionCount={currentQuestion.option_count}
           />
 
-          {/* Results overlay + next button */}
-          {results && (
-            <div className="mt-6 text-center animate-fadeIn">
-              <div className="text-xs text-[var(--text-muted)] mb-3">
-                {currentQuestion.total_votes + 1} votes on this question
-              </div>
+          {/* Results + next / Pass button */}
+          <div className="mt-6 flex items-center justify-center gap-3 animate-fadeIn">
+            {results ? (
+              <>
+                <span className="text-xs text-[var(--text-muted)]">
+                  {currentQuestion.total_votes + 1} votes
+                </span>
+                {!autoAdvance && (
+                  <button
+                    ref={nextBtnRef}
+                    onClick={nextQuestion}
+                    className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    Next Question →
+                  </button>
+                )}
+              </>
+            ) : (
               <button
-                ref={nextBtnRef}
                 onClick={nextQuestion}
-                className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                className="px-6 py-2 border border-[var(--border-subtle)] text-[var(--text-muted)] rounded-lg text-xs hover:text-[var(--text-secondary)] transition-colors"
               >
-                Next Question →
+                Pass — skip this question
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>

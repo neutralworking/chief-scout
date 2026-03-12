@@ -9,6 +9,7 @@ interface RadarLayer {
 
 interface RadarChartProps {
   labels?: string[];
+  tooltips?: string[];
   layers?: RadarLayer[];
   // Legacy API (player detail page)
   data?: Array<{ label: string; value: number }>;
@@ -16,7 +17,7 @@ interface RadarChartProps {
   size?: number;
 }
 
-export function RadarChart({ labels: labelsProp, layers: layersProp, data, color, size = 200 }: RadarChartProps) {
+export function RadarChart({ labels: labelsProp, tooltips, layers: layersProp, data, color, size = 200 }: RadarChartProps) {
   // Support legacy { data, color } API
   const labels = labelsProp ?? (data?.map((d) => d.label) ?? []);
   const layers = layersProp ?? (data && color ? [{ values: data.map((d) => d.value), color }] : []);
@@ -90,7 +91,7 @@ export function RadarChart({ labels: labelsProp, layers: layersProp, data, color
         );
       })}
 
-      {/* Axis labels */}
+      {/* Axis labels with tooltips */}
       {labels.map((label, i) => {
         const [x, y] = polarToXY(i, 120);
         return (
@@ -99,10 +100,11 @@ export function RadarChart({ labels: labelsProp, layers: layersProp, data, color
             x={x} y={y}
             textAnchor="middle"
             dominantBaseline="central"
-            className="fill-[var(--text-muted)]"
+            className="fill-[var(--text-muted)] cursor-default"
             fontSize={7.5}
             fontWeight={500}
           >
+            {tooltips?.[i] && <title>{tooltips[i]}</title>}
             {label}
           </text>
         );

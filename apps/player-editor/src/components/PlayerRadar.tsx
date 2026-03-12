@@ -10,6 +10,22 @@ const MODEL_SHORT: Record<string, string> = {
   Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
 };
 
+const MODEL_ATTRS: Record<string, string> = {
+  Controller: "Anticipation, Composure, Decisions, Tempo",
+  Commander: "Communication, Concentration, Drive, Leadership",
+  Creator: "Creativity, Unpredictability, Vision, Guile",
+  Target: "Aerial Duels, Heading, Jumping, Volleys",
+  Sprinter: "Acceleration, Balance, Movement, Pace",
+  Powerhouse: "Aggression, Duels, Shielding, Stamina",
+  Cover: "Awareness, Discipline, Interceptions, Positioning",
+  Engine: "Intensity, Pressing, Stamina, Versatility",
+  Destroyer: "Blocking, Clearances, Marking, Tackling",
+  Dribbler: "Carries, First Touch, Skills, Take-Ons",
+  Passer: "Pass Accuracy, Crossing, Pass Range, Through Balls",
+  Striker: "Close Range, Mid Range, Long Range, Penalties",
+  GK: "Agility, Footwork, Handling, Reactions",
+};
+
 interface RadarData {
   modelScores: Record<string, number>;
   positionScores: Record<string, number>;
@@ -63,6 +79,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
   const models = radarData.positionModels?.[selectedPos] ??
     Object.keys(radarData.modelScores);
   const radarLabels = models.map((m) => MODEL_SHORT[m] ?? m);
+  const radarTooltips = models.map((m) => `${m}: ${MODEL_ATTRS[m] ?? ""}`);
   const radarValues = models.map((m) => radarData.modelScores[m] ?? 0);
   const roles = radarData.roleScores?.[selectedPos] ?? [];
   const activeRole = roles.find((r) => r.name === selectedRole) ?? roles[0];
@@ -105,7 +122,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
 
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <RadarChart labels={radarLabels} layers={layers} size={radarSize} />
+          <RadarChart labels={radarLabels} tooltips={radarTooltips} layers={layers} size={radarSize} />
         </div>
 
         <div className="w-20 shrink-0 space-y-2">

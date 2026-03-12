@@ -17,6 +17,22 @@ const MODEL_SHORT: Record<string, string> = {
   Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
 };
 
+const MODEL_ATTRS: Record<string, string> = {
+  Controller: "Anticipation, Composure, Decisions, Tempo",
+  Commander: "Communication, Concentration, Drive, Leadership",
+  Creator: "Creativity, Unpredictability, Vision, Guile",
+  Target: "Aerial Duels, Heading, Jumping, Volleys",
+  Sprinter: "Acceleration, Balance, Movement, Pace",
+  Powerhouse: "Aggression, Duels, Shielding, Stamina",
+  Cover: "Awareness, Discipline, Interceptions, Positioning",
+  Engine: "Intensity, Pressing, Stamina, Versatility",
+  Destroyer: "Blocking, Clearances, Marking, Tackling",
+  Dribbler: "Carries, First Touch, Skills, Take-Ons",
+  Passer: "Pass Accuracy, Crossing, Pass Range, Through Balls",
+  Striker: "Close Range, Mid Range, Long Range, Penalties",
+  GK: "Agility, Footwork, Handling, Reactions",
+};
+
 interface RadarData {
   modelScores: Record<string, number>;
   positionScores: Record<string, number>;
@@ -93,6 +109,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
   const isGK = selectedPos === "GK";
   const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
   const radarLabels = models.map((m) => MODEL_SHORT[m]);
+  const radarTooltips = models.map((m) => `${m}: ${MODEL_ATTRS[m] ?? ""}`);
   const radarValues = models.map((m) => data.modelScores[m] ?? 0);
 
   // Role overlay: find selected role and build its ideal radar shape
@@ -162,7 +179,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
       <div className="flex items-start gap-3">
         {/* Radar */}
         <div className="flex-1 min-w-0">
-          <RadarChart labels={radarLabels} layers={layers} size={220} />
+          <RadarChart labels={radarLabels} tooltips={radarTooltips} layers={layers} size={220} />
         </div>
 
         {/* Grades panel */}

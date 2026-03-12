@@ -161,17 +161,19 @@ export default async function AdminPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+      <div className="glass rounded-xl p-6 mb-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
           Quick Stats
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
           {[
             { label: "Total Players", value: stats.totalPlayers },
             { label: "Tier 1 Profiles", value: stats.tier1Profiles },
             { label: "Full Profiles", value: stats.fullProfiles },
             { label: "FBRef Linked", value: stats.fbrefLinked },
             { label: "Tracked", value: stats.tracked },
+            { label: "News Stories", value: coverage.newsStories },
+            { label: "News Tags", value: coverage.newsTags },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
@@ -182,7 +184,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Data Coverage */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+      <div className="glass rounded-xl p-6 mb-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
           Data Coverage
         </h2>
@@ -227,7 +229,7 @@ export default async function AdminPage() {
       </div>
 
       {/* External Data Sources */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+      <div className="glass rounded-xl p-6 mb-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
           External Data Sources
         </h2>
@@ -285,7 +287,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Club Coverage */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+      <div className="glass rounded-xl p-6 mb-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
           Club Coverage
         </h2>
@@ -333,7 +335,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Position Depth */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+      <div className="glass rounded-xl p-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
           Position Depth
         </h2>

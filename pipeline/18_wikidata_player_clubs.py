@@ -204,17 +204,15 @@ def batch_get_clubs(qids: list[str]) -> dict[str, dict]:
     values = " ".join(f"wd:{qid}" for qid in qids)
 
     # P54 = member of sports team
-    # Get the most recent team (no end date, or latest end date)
+    # Use qualified statements (p:/ps:/pq:) to get start/end dates reliably.
+    # Only entries with explicit date qualifiers are trusted for "current" detection.
     query = f"""
     SELECT ?player ?playerLabel ?team ?teamLabel ?start ?end WHERE {{
       VALUES ?player {{ {values} }}
-      ?player wdt:P54 ?team .
-      OPTIONAL {{
-        ?player p:P54 ?stmt .
-        ?stmt ps:P54 ?team .
-        OPTIONAL {{ ?stmt pq:P580 ?start . }}
-        OPTIONAL {{ ?stmt pq:P582 ?end . }}
-      }}
+      ?player p:P54 ?stmt .
+      ?stmt ps:P54 ?team .
+      OPTIONAL {{ ?stmt pq:P580 ?start . }}
+      OPTIONAL {{ ?stmt pq:P582 ?end . }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
     }}
     ORDER BY ?player DESC(?start)
@@ -252,18 +250,25 @@ def batch_get_clubs(qids: list[str]) -> dict[str, dict]:
         })
 
     # For each player, pick the current club (no end date) or most recent
+    # Entries with no start AND no end date are undated — low confidence.
     result = {}
     for qid, clubs in player_clubs.items():
-        # Prefer clubs with no end date (= current)
-        current = [c for c in clubs if c["end"] is None]
+        # Split into: current (has start, no end), ended, undated
+        current = [c for c in clubs if c["end"] is None and c["start"]]
+        ended = [c for c in clubs if c["end"] is not None]
+        undated = [c for c in clubs if c["end"] is None and not c["start"]]
+
         if current:
-            # Pick the one with the latest start date
+            # Has start date, no end date = active membership
             current.sort(key=lambda c: c["start"] or "", reverse=True)
             result[qid] = current[0]
-        else:
-            # All have end dates — pick latest end date
-            clubs.sort(key=lambda c: c["end"] or "", reverse=True)
-            result[qid] = clubs[0]
+        elif ended:
+            # All have end dates — pick latest end date (most recent departure)
+            ended.sort(key=lambda c: c["end"] or "", reverse=True)
+            result[qid] = ended[0]
+        elif undated:
+            # Only undated entries — pick first but flag as low confidence
+            result[qid] = undated[0]
 
     return result
 
@@ -284,14 +289,19 @@ def match_club(club_qid: str, club_label: str) -> int | None:
     if alias in clubs_by_alias:
         return clubs_by_alias[alias]
 
-    # 4. Partial match — but be smarter about it
-    # Only match if the candidate is a significant substring (>= 5 chars)
-    # and isn't just a common word like "fc" or "united"
-    min_match_len = 5
-    for cname_norm, cid in clubs_by_name_norm.items():
-        if len(norm) >= min_match_len and len(cname_norm) >= min_match_len:
-            # Check if the Wikidata name is contained in our club name or vice versa
-            if norm in cname_norm or cname_norm in norm:
+    # 4. Word-boundary partial match — strict to avoid false positives
+    # e.g. "Olympique Lyonnais" should NOT match "Lyon" (too short/ambiguous)
+    # but "Manchester United FC" CAN match "Manchester United"
+    # Only match if the DB club name is a significant word-boundary match
+    norm_words = set(norm.split())
+    # Skip common noise words
+    noise = {"fc", "cf", "sc", "ac", "as", "ss", "ssc", "afc", "bsc", "fk", "sk", "de", "del", "la", "le", "el", "al", "the"}
+    norm_meaningful = norm_words - noise
+    if len(norm_meaningful) >= 2:
+        for cname_norm, cid in clubs_by_name_norm.items():
+            cname_words = set(cname_norm.split()) - noise
+            # Both sides must have meaningful words, and one must be a subset of the other
+            if len(cname_words) >= 2 and (cname_words <= norm_meaningful or norm_meaningful <= cname_words):
                 return cid
 
     return None

@@ -5,7 +5,6 @@ import { POSITIONS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
-import { PersonalityExplorer } from "@/components/PersonalityExplorer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PositionExplorer } from "@/components/PositionExplorer";
 import { PursuitPanel } from "@/components/PursuitPanel";
@@ -44,11 +43,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .not("personality_type", "is", null)
       .not("archetype", "is", null)
       .limit(20),
-    // Personality type counts
-    supabaseServer
-      .from("player_intelligence_card")
-      .select("personality_type")
-      .not("personality_type", "is", null),
     // Position counts (all profiled players)
     supabaseServer
       .from("player_intelligence_card")
@@ -86,7 +80,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   const results = await Promise.all(queries);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [featuredResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
+  const [featuredResult, positionResult, newsResult, trendingResult] = results as any[];
 
   // Pick a random featured player from the top-rated ones
   const featuredCandidates = (featuredResult.data ?? []) as Array<{
@@ -98,14 +92,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   const featured = featuredCandidates.length > 0
     ? featuredCandidates[Math.floor(Math.random() * featuredCandidates.length)]
     : null;
-
-  // Count personality types
-  const personalityRows = (personalityResult.data ?? []) as { personality_type: string }[];
-  const typeCountMap = new Map<string, number>();
-  for (const row of personalityRows) {
-    typeCountMap.set(row.personality_type, (typeCountMap.get(row.personality_type) ?? 0) + 1);
-  }
-  const typeCounts = Array.from(typeCountMap.entries()).map(([type, count]) => ({ type, count }));
 
   // Count positions
   const positionRows = (positionResult.data ?? []) as { position: string }[];
@@ -171,7 +157,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   let proData = null;
   if (shortlistsEnabled) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(5) as any[];
+    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(4) as any[];
     const pipelinePlayers = (pipelineResult.data ?? []) as PlayerCardType[];
 
     const pipeline: Record<string, PlayerCardType[]> = {};
@@ -198,7 +184,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   return {
     featured,
-    typeCounts,
     positionCounts,
     news,
     trendingPlayers,
@@ -226,7 +211,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
+  const { featured, positionCounts, news, trendingPlayers, proData } = data;
 
   return (
     <div>
@@ -281,22 +266,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 2: Personality Types */}
-      <div className="mb-6">
-        <PersonalityExplorer typeCounts={typeCounts} />
-      </div>
-
-      {/* Row 3: Trending Players + Position Explorer */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2">
-          <TrendingPlayers players={trendingPlayers} />
-        </div>
-        <div>
-          <PositionExplorer positionCounts={positionCounts} />
-        </div>
-      </div>
-
-      {/* Row 4: Recent News */}
+      {/* Row 2: Recent News */}
       {news.length > 0 && (
         <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -314,7 +284,18 @@ export default async function DashboardPage() {
                   {formatDate(story.published_at)}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm text-[var(--text-primary)] truncate">{story.title}</p>
+                  {story.url ? (
+                    <a
+                      href={story.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[var(--text-primary)] hover:text-[var(--accent-personality)] transition-colors truncate block"
+                    >
+                      {story.title}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-[var(--text-primary)] truncate">{story.title}</p>
+                  )}
                   {story.summary && (
                     <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{story.summary}</p>
                   )}
@@ -324,6 +305,16 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Row 3: Trending Players + Position Explorer */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div className="lg:col-span-2">
+          <TrendingPlayers players={trendingPlayers} />
+        </div>
+        <div>
+          <PositionExplorer positionCounts={positionCounts} />
+        </div>
+      </div>
 
       {/* Pro: Pursuit Pipeline — only when shortlists enabled */}
       {proData && (

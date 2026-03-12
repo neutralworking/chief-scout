@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { supabase } from "@/lib/supabase";
 import { PlayerCard as PlayerCardType } from "@/lib/types";
 import { PlayerCard } from "@/components/PlayerCard";
 import { PlayerFilters } from "@/components/PlayerFilters";
@@ -69,23 +68,17 @@ function PlayersContent() {
 
   useEffect(() => {
     async function load() {
-      if (!supabase) {
-        setError("Supabase not configured. Run scripts/setup-env.sh to set credentials.");
-        setLoading(false);
-        return;
-      }
-      const { data, error: fetchError } = await supabase
-        .from("player_intelligence_card")
-        .select(
-          "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur"
-        )
-        .order("level", { ascending: false, nullsFirst: false })
-        .limit(10000);
-
-      if (fetchError) {
-        setError(`Supabase error: ${fetchError.message}. Check RLS policies (run migration 009).`);
-      } else if (data) {
-        setAllPlayers((data as PlayerCardType[]).filter((p) => p.name && p.name.trim() !== ""));
+      try {
+        const res = await fetch("/api/players/all");
+        if (!res.ok) {
+          setError(`Failed to load players: ${res.statusText}`);
+          setLoading(false);
+          return;
+        }
+        const data: PlayerCardType[] = await res.json();
+        setAllPlayers(data.filter((p) => p.name && p.name.trim() !== ""));
+      } catch (e) {
+        setError(`Failed to load players: ${e}`);
       }
       setLoading(false);
     }

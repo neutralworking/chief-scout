@@ -1,7 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
-// 13 compound models, each averaging 4 raw attributes (0-20 scale)
+// 13 SACROSANCT playing models, each averaging 4 core attributes
 const MODEL_ATTRIBUTES: Record<string, string[]> = {
   Controller:  ["anticipation", "composure", "decisions", "tempo"],
   Commander:   ["communication", "concentration", "drive", "leadership"],
@@ -18,7 +18,14 @@ const MODEL_ATTRIBUTES: Record<string, string[]> = {
   GK:          ["agility", "footwork", "handling", "reactions"],
 };
 
-// Which models matter for each position (weights 0-1, higher = more important)
+// Attribute aliases (DB inconsistencies)
+const ATTR_ALIASES: Record<string, string> = {
+  takeons: "take_ons",
+  leadership: "leadership",
+  unpredicability: "unpredictability",
+};
+
+// Which models matter for each position (weights 0-1)
 const POSITION_WEIGHTS: Record<string, Record<string, number>> = {
   GK:  { GK: 1.0, Cover: 0.6, Commander: 0.5, Controller: 0.3 },
   CD:  { Destroyer: 1.0, Cover: 0.9, Commander: 0.7, Target: 0.5, Powerhouse: 0.4 },
@@ -92,51 +99,115 @@ const ROLE_NAMES: Record<string, Record<string, string>> = {
   CF:  { "Striker+Target": "Target Man", "Target+Powerhouse": "Complete Forward", "Striker+Sprinter": "Poacher", "Dribbler+Striker": "False 9" },
 };
 
+// Source weights for blended scoring (higher = more trusted)
+const SOURCE_WEIGHTS: Record<string, number> = {
+  scout_assessment: 4,
+  statsbomb: 3,
+  understat: 2,
+  eafc_inferred: 1,
+};
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const supabase = supabaseServer!;
   const { id } = await params;
+  const pid = parseInt(id, 10);
 
-  // Fetch all attribute grades for this player
-  const { data: grades, error } = await supabase
-    .from("attribute_grades")
-    .select("attribute, scout_grade, stat_score, source")
-    .eq("player_id", parseInt(id, 10));
+  // Fetch all attribute grades + player profile in parallel
+  const [gradesRes, profileRes] = await Promise.all([
+    supabase
+      .from("attribute_grades")
+      .select("attribute, scout_grade, stat_score, source")
+      .eq("player_id", pid),
+    supabase
+      .from("player_intelligence_card")
+      .select("level, peak, position")
+      .eq("person_id", pid)
+      .single(),
+  ]);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (gradesRes.error) return NextResponse.json({ error: gradesRes.error.message }, { status: 500 });
 
-  // Prefer scout_assessment > statsbomb > understat > eafc_inferred
-  const SOURCE_PRIORITY: Record<string, number> = {
-    scout_assessment: 4, statsbomb: 3, understat: 2, eafc_inferred: 1,
-  };
+  const grades = gradesRes.data ?? [];
+  const profile = profileRes.data;
+  const playerLevel = profile?.level ?? profile?.peak ?? null;
+  const playerPosition = profile?.position ?? null;
 
-  // Best grade per attribute
-  const bestGrades = new Map<string, number>();
-  for (const g of grades ?? []) {
-    const score = g.scout_grade ?? g.stat_score ?? 0;
-    const priority = SOURCE_PRIORITY[g.source] ?? 0;
-    const attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
-    const existing = bestGrades.get(attr);
-    if (existing === undefined || priority > (bestGrades.get(`${attr}_pri`) ?? 0)) {
-      bestGrades.set(attr, score);
-      bestGrades.set(`${attr}_pri`, priority);
+  // ── Scale detection ──
+  // Check if any grade value > 10 → legacy 0-20 scale, otherwise 0-10 (SACROSANCT)
+  let maxVal = 0;
+  for (const g of grades) {
+    const v = g.scout_grade ?? g.stat_score ?? 0;
+    if (v > maxVal) maxVal = v;
+  }
+  const scale = maxVal > 10 ? 20.0 : 10.0;
+
+  // ── Blended grades per attribute ──
+  // Instead of "pick highest priority source", blend all sources with weights
+  const attrBlend = new Map<string, { weightedSum: number; totalWeight: number }>();
+  const sourcesSeen = new Set<string>();
+
+  for (const g of grades) {
+    const raw = g.scout_grade ?? g.stat_score ?? 0;
+    if (raw <= 0) continue;
+
+    let attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
+    attr = ATTR_ALIASES[attr] ?? attr;
+    const source = g.source ?? "eafc_inferred";
+    const weight = SOURCE_WEIGHTS[source] ?? 1;
+    sourcesSeen.add(source);
+
+    // Normalize to 0-100
+    const normalized = (raw / scale) * 100;
+
+    const existing = attrBlend.get(attr);
+    if (existing) {
+      existing.weightedSum += normalized * weight;
+      existing.totalWeight += weight;
+    } else {
+      attrBlend.set(attr, { weightedSum: normalized * weight, totalWeight: weight });
     }
   }
 
-  // Compute model scores (0-100 scale, from 0-20 grades)
+  // Final blended scores (0-100)
+  const attrScores = new Map<string, number>();
+  for (const [attr, blend] of attrBlend) {
+    attrScores.set(attr, Math.round(blend.weightedSum / blend.totalWeight));
+  }
+
+  // ── Data quality assessment ──
+  const values = Array.from(attrScores.values());
+  const uniqueValues = new Set(values);
+  const isUndifferentiated = uniqueValues.size <= 2;
+
+  // Data confidence: determines how much we trust attributes vs level anchor
+  let dataWeight = 0.3; // default: low (eafc-only undifferentiated)
+  if (sourcesSeen.has("scout_assessment")) {
+    dataWeight = 1.0; // full trust
+  } else if (sourcesSeen.has("statsbomb") || sourcesSeen.has("understat")) {
+    dataWeight = isUndifferentiated ? 0.4 : 0.7; // medium-high if differentiated
+  } else if (!isUndifferentiated) {
+    dataWeight = 0.6; // differentiated eafc
+  }
+
+  // ── Model scores (0-100) ──
   const modelScores: Record<string, number> = {};
   for (const [model, attrs] of Object.entries(MODEL_ATTRIBUTES)) {
-    const values = attrs
-      .map((a) => bestGrades.get(a))
-      .filter((v): v is number => v !== undefined && v > 0);
-    if (values.length > 0) {
-      modelScores[model] = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 5); // 0-20 → 0-100
+    const vals = attrs
+      .map((a) => attrScores.get(a))
+      .filter((v): v is number => v !== undefined);
+    if (vals.length > 0) {
+      modelScores[model] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     }
   }
 
-  // Position suitability scores
+  // ── Level anchor ──
+  // For players with established level/peak, anchor scores to their quality
+  const levelAnchor = playerLevel ? Math.min(playerLevel, 100) : null;
+
+  // ── Position suitability scores (with level anchoring) ──
   const positionScores: Record<string, number> = {};
   for (const [pos, weights] of Object.entries(POSITION_WEIGHTS)) {
     let weightedSum = 0;
@@ -147,32 +218,56 @@ export async function GET(
         totalWeight += weight;
       }
     }
-    positionScores[pos] = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+    let attrScore = totalWeight > 0 ? weightedSum / totalWeight : 0;
+
+    // Apply level anchor: blend attribute-based score with player level
+    if (levelAnchor !== null && attrScore > 0) {
+      attrScore = Math.round(attrScore * dataWeight + levelAnchor * (1 - dataWeight));
+    } else {
+      attrScore = Math.round(attrScore);
+    }
+    positionScores[pos] = attrScore;
   }
 
-  // Role fit scores per position
+  // ── Position-specific models (only show relevant axes) ──
+  const positionModels: Record<string, string[]> = {};
+  for (const [pos, weights] of Object.entries(POSITION_WEIGHTS)) {
+    positionModels[pos] = Object.keys(weights).sort(
+      (a, b) => (weights[b] ?? 0) - (weights[a] ?? 0)
+    );
+  }
+
+  // ── Role fit scores ──
   const roleScores: Record<string, Array<{ name: string; primary: string; secondary: string; score: number }>> = {};
   for (const [pos, roles] of Object.entries(TACTICAL_ROLES)) {
     roleScores[pos] = roles.map((r) => {
       const pScore = modelScores[r.primary] ?? 0;
       const sScore = modelScores[r.secondary] ?? 0;
-      const score = Math.round(pScore * 0.6 + sScore * 0.4);
+      let score = pScore * 0.6 + sScore * 0.4;
+
+      // Apply level anchor to role scores too
+      if (levelAnchor !== null && score > 0) {
+        score = score * dataWeight + levelAnchor * (1 - dataWeight);
+      }
+      score = Math.round(score);
+
       const key = `${r.primary}+${r.secondary}`;
       const name = ROLE_NAMES[pos]?.[key] ?? `${r.primary}/${r.secondary}`;
       return { name, primary: r.primary, secondary: r.secondary, score };
     }).sort((a, b) => b.score - a.score);
   }
 
-  // Check if data is differentiated (not all same score)
-  const scoreValues = Object.values(modelScores);
-  const uniqueScores = new Set(scoreValues);
-  const hasDifferentiatedData = uniqueScores.size > 2; // more than 2 distinct values
+  const hasDifferentiatedData = !isUndifferentiated || sourcesSeen.has("understat") || sourcesSeen.has("statsbomb");
 
   return NextResponse.json({
     modelScores,
     positionScores,
+    positionModels,
     roleScores,
     hasData: Object.keys(modelScores).length > 0,
     hasDifferentiatedData,
+    dataWeight,
+    levelAnchor,
+    scale,
   });
 }

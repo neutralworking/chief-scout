@@ -9,7 +9,7 @@ import type { KeyMoment } from "@/components/KeyMomentsList";
 import { ScoutPad } from "@/components/ScoutPad";
 import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
-import RadarChart from "@/components/RadarChart";
+import { RadarChart } from "@/components/RadarChart";
 import { CareerTimeline } from "@/components/CareerTimeline";
 
 interface IntelligenceCard {

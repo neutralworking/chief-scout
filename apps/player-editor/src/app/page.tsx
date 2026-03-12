@@ -5,6 +5,7 @@ import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
+import { FeaturedRadar } from "@/components/FeaturedRadar";
 import { PersonalityExplorer } from "@/components/PersonalityExplorer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PositionExplorer } from "@/components/PositionExplorer";
@@ -260,6 +261,20 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d`;
 }
 
+function FeaturedWithRadar({ featured }: { featured: { person_id: number; name: string; position: string | null; club: string | null; nation: string | null; level: number | null; overall: number | null; archetype: string | null; personality_type: string | null; market_value_tier: string | null; dob: string | null; blueprint: string | null } }) {
+  return (
+    <>
+      <FeaturedPlayer player={featured} />
+      <FeaturedRadar
+        personId={featured.person_id}
+        name={featured.name}
+        position={featured.position}
+        club={featured.club}
+      />
+    </>
+  );
+}
+
 export default async function DashboardPage() {
   const preferences = await getUserPreferences();
   const flags = getFeatureFlags(preferences);
@@ -332,10 +347,10 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Featured Player + Quick Actions — 2 cols */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Featured Player + Radar + Quick Actions — 2 cols */}
+        <div className="lg:col-span-2 space-y-3">
           {featured ? (
-            <FeaturedPlayer player={featured} />
+            <FeaturedWithRadar featured={featured} />
           ) : (
             <div className="glass rounded-xl p-6">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>

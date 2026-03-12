@@ -7,6 +7,19 @@ interface ClubRow {
   nation: string | null;
   league_name: string | null;
   player_count: number;
+  avg_overall: number | null;
+}
+
+const TOP_5_LEAGUES = [
+  "Premier League",
+  "La Liga",
+  "Serie A",
+  "Bundesliga",
+  "Ligue 1",
+];
+
+function leagueSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
 
 export default async function ClubsPage() {
@@ -32,8 +45,9 @@ export default async function ClubsPage() {
     }
   }
 
-  // Get player counts per club (paginate past PostgREST 1000-row cap)
+  // Get player counts + avg overall per club
   const clubCounts = new Map<number, number>();
+  const clubOveralls = new Map<number, number[]>();
   {
     const PAGE = 1000;
     let from = 0;
@@ -41,43 +55,43 @@ export default async function ClubsPage() {
     while (more) {
       const { data: page } = await supabaseServer
         .from("people")
-        .select("club_id")
+        .select("club_id, player_profiles(overall)")
         .not("club_id", "is", null)
         .range(from, from + PAGE - 1);
       for (const p of page ?? []) {
-        clubCounts.set(p.club_id, (clubCounts.get(p.club_id) ?? 0) + 1);
+        const clubId = p.club_id as number;
+        clubCounts.set(clubId, (clubCounts.get(clubId) ?? 0) + 1);
+        const profile = p.player_profiles as any;
+        const overall = Array.isArray(profile) ? profile[0]?.overall : profile?.overall;
+        if (overall != null) {
+          if (!clubOveralls.has(clubId)) clubOveralls.set(clubId, []);
+          clubOveralls.get(clubId)!.push(overall);
+        }
       }
       more = (page?.length ?? 0) === PAGE;
       from += PAGE;
     }
   }
 
-  const clubRows: ClubRow[] = (clubs ?? []).map((c: any) => ({
-    id: c.id,
-    name: c.clubname,
-    nation: c.nations?.name ?? null,
-    league_name: c.league_name ?? null,
-    player_count: clubCounts.get(c.id) ?? 0,
-  }));
+  const clubRows: ClubRow[] = (clubs ?? []).map((c: any) => {
+    const overalls = clubOveralls.get(c.id);
+    const avg = overalls && overalls.length > 0
+      ? Math.round((overalls.reduce((a: number, b: number) => a + b, 0) / overalls.length) * 10) / 10
+      : null;
+    return {
+      id: c.id,
+      name: c.clubname,
+      nation: c.nations?.name ?? null,
+      league_name: c.league_name ?? null,
+      player_count: clubCounts.get(c.id) ?? 0,
+      avg_overall: avg,
+    };
+  });
 
-  // Top 5 league patterns — matched via case-insensitive substring includes
-  const TOP_5_PATTERNS = [
-    "Premier League",
-    "La Liga",
-    "Bundesliga",
-    "Serie A",
-    "Ligue 1",
-  ];
-
-  function isTop5League(leagueName: string): number {
-    const lower = leagueName.toLowerCase();
-    return TOP_5_PATTERNS.findIndex((pattern) => lower.includes(pattern.toLowerCase()));
-  }
-
-  // Group clubs by league_name
+  // Group clubs by league_name, falling back to nation name
   const leagueMap = new Map<string, ClubRow[]>();
   for (const club of clubRows) {
-    const key = club.league_name ?? "Unknown League";
+    const key = club.league_name ?? club.nation ?? "Unknown";
     if (!leagueMap.has(key)) leagueMap.set(key, []);
     leagueMap.get(key)!.push(club);
   }
@@ -89,29 +103,66 @@ export default async function ClubsPage() {
 
   // Sort leagues: Top 5 first (in order), then remaining alphabetically
   const sortedLeagues = Array.from(leagueMap.keys()).sort((a, b) => {
-    const aIdx = isTop5League(a);
-    const bIdx = isTop5League(b);
-    const aIsTop5 = aIdx !== -1;
-    const bIsTop5 = bIdx !== -1;
-    if (aIsTop5 && bIsTop5) return aIdx - bIdx;
-    if (aIsTop5) return -1;
-    if (bIsTop5) return 1;
+    const aIdx = TOP_5_LEAGUES.findIndex((l) => a.toLowerCase().includes(l.toLowerCase()));
+    const bIdx = TOP_5_LEAGUES.findIndex((l) => b.toLowerCase().includes(l.toLowerCase()));
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    if (aIdx !== -1) return -1;
+    if (bIdx !== -1) return 1;
     return a.localeCompare(b);
   });
+
+  // Separate top 5 and rest for nav
+  const top5Names = sortedLeagues.filter(
+    (l) => TOP_5_LEAGUES.some((t) => l.toLowerCase().includes(t.toLowerCase()))
+  );
+  const otherNames = sortedLeagues.filter(
+    (l) => !TOP_5_LEAGUES.some((t) => l.toLowerCase().includes(t.toLowerCase()))
+  );
 
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-1">Clubs</h1>
-      <p className="text-xs text-[var(--text-secondary)] mb-6">{clubRows.length} clubs in database</p>
+      <p className="text-xs text-[var(--text-secondary)] mb-4">{clubRows.length} clubs across {sortedLeagues.length} leagues</p>
 
+      {/* League Navigation */}
+      <nav className="glass rounded-xl p-4 mb-6 sticky top-0 z-10">
+        {/* Top 5 */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {top5Names.map((league) => (
+            <a
+              key={league}
+              href={`#${leagueSlug(league)}`}
+              className="px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)] text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--accent-personality)]/20 transition-colors"
+            >
+              {league}
+              <span className="text-xs font-mono text-[var(--text-muted)] ml-1.5">{leagueMap.get(league)!.length}</span>
+            </a>
+          ))}
+        </div>
+        {/* Other leagues */}
+        <div className="flex flex-wrap gap-1.5">
+          {otherNames.map((league) => (
+            <a
+              key={league}
+              href={`#${leagueSlug(league)}`}
+              className="px-2 py-0.5 rounded text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
+            >
+              {league}
+            </a>
+          ))}
+        </div>
+      </nav>
+
+      {/* League Sections */}
       <div className="space-y-8">
         {sortedLeagues.map((league) => {
           const leagueClubs = leagueMap.get(league)!;
           const totalPlayers = leagueClubs.reduce((sum, c) => sum + c.player_count, 0);
+          const isTop5 = TOP_5_LEAGUES.some((t) => league.toLowerCase().includes(t.toLowerCase()));
           return (
-            <section key={league}>
+            <section key={league} id={leagueSlug(league)} className="scroll-mt-24">
               <div className="flex items-baseline gap-3 mb-3">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">{league}</h2>
+                <h2 className={`font-semibold text-[var(--text-primary)] ${isTop5 ? "text-lg" : "text-base"}`}>{league}</h2>
                 <span className="text-xs text-[var(--text-muted)]">
                   {leagueClubs.length} club{leagueClubs.length !== 1 ? "s" : ""}
                   {totalPlayers > 0 && <> &middot; {totalPlayers} player{totalPlayers !== 1 ? "s" : ""}</>}
@@ -128,11 +179,14 @@ export default async function ClubsPage() {
                       {club.name}
                     </p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {club.nation && (
+                      {club.nation && !club.league_name && (
                         <span className="text-xs text-[var(--text-secondary)]">{club.nation}</span>
                       )}
                       {club.player_count > 0 && (
                         <span className="text-xs font-mono text-[var(--text-muted)]">{club.player_count} players</span>
+                      )}
+                      {club.avg_overall != null && (
+                        <span className="text-xs font-mono text-[var(--color-accent-tactical)]">{club.avg_overall} avg</span>
                       )}
                     </div>
                   </Link>

@@ -1,42 +1,12 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase-server";
 
-// Top 5 leagues + key scouting leagues, ordered by priority
-const LEAGUE_TIERS: { tier: string; nations: string[]; sortAlpha: boolean }[] = [
-  {
-    tier: "Top 5 Leagues",
-    nations: ["England", "Spain", "Germany", "Italy", "France"],
-    sortAlpha: false, // fixed order
-  },
-  {
-    tier: "Key Scouting Leagues",
-    nations: [
-      "Austria",
-      "Belgium",
-      "Croatia",
-      "Czech Republic",
-      "Denmark",
-      "Greece",
-      "Netherlands",
-      "Norway",
-      "Portugal",
-      "Scotland",
-      "Serbia",
-      "Sweden",
-      "Switzerland",
-      "Turkey",
-    ],
-    sortAlpha: true,
-  },
-];
+const TOP_5 = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
 
-const TIER_NATIONS = new Set(LEAGUE_TIERS.flatMap((t) => t.nations));
-
-interface LeagueGroup {
-  nation: string;
-  clubs: { id: number; name: string; leagueName: string | null; playerCount: number }[];
-  totalPlayers: number;
-  avgOverall: number | null;
+interface LeagueRow {
+  name: string;
+  clubCount: number;
+  playerCount: number;
 }
 
 export default async function LeaguesPage() {
@@ -49,7 +19,7 @@ export default async function LeaguesPage() {
     );
   }
 
-  // Fetch ALL clubs (paginate past PostgREST 1000-row cap)
+  // Fetch all clubs with league_name set
   const clubs: any[] = [];
   {
     const PAGE = 1000;
@@ -58,8 +28,9 @@ export default async function LeaguesPage() {
     while (more) {
       const { data: page } = await supabaseServer
         .from("clubs")
-        .select("id, clubname, league_name, nation_id, nations(name)")
-        .order("clubname")
+        .select("id, league_name")
+        .not("league_name", "is", null)
+        .order("league_name")
         .range(from, from + PAGE - 1);
       clubs.push(...(page ?? []));
       more = (page?.length ?? 0) === PAGE;
@@ -67,7 +38,7 @@ export default async function LeaguesPage() {
     }
   }
 
-  // Get player counts per club (paginate past PostgREST 1000-row cap)
+  // Get player counts per club
   const clubCounts = new Map<number, number>();
   {
     const PAGE = 1000;
@@ -87,170 +58,103 @@ export default async function LeaguesPage() {
     }
   }
 
-  // Fetch player_profiles.overall joined with people.club_id (paginated)
-  // We need: person_id -> overall, person_id -> club_id
-  const clubOveralls = new Map<number, number[]>(); // club_id -> list of overall scores
-  {
-    const PAGE = 1000;
-    let from = 0;
-    let more = true;
-    while (more) {
-      const { data: page } = await supabaseServer
-        .from("player_profiles")
-        .select("overall, people!inner(club_id)")
-        .not("overall", "is", null)
-        .range(from, from + PAGE - 1);
-      for (const row of page ?? []) {
-        const clubId = (row as any).people?.club_id;
-        if (clubId != null) {
-          if (!clubOveralls.has(clubId)) clubOveralls.set(clubId, []);
-          clubOveralls.get(clubId)!.push((row as any).overall);
-        }
-      }
-      more = (page?.length ?? 0) === PAGE;
-      from += PAGE;
-    }
+  // Group by league_name
+  const leagueMap = new Map<string, { clubCount: number; playerCount: number }>();
+  for (const club of clubs) {
+    const name = club.league_name as string;
+    const existing = leagueMap.get(name) ?? { clubCount: 0, playerCount: 0 };
+    existing.clubCount++;
+    existing.playerCount += clubCounts.get(club.id) ?? 0;
+    leagueMap.set(name, existing);
   }
 
-  // Build a map of club_id -> nation for computing nation-level averages
-  const clubNationMap = new Map<number, string>();
-  for (const rawClub of clubs ?? []) {
-    const club = rawClub as any;
-    const nation = club.nations?.name || (club.league_name ? `League: ${club.league_name}` : "Unassigned");
-    clubNationMap.set(club.id, nation);
-  }
+  const allLeagues: LeagueRow[] = Array.from(leagueMap.entries()).map(([name, data]) => ({
+    name,
+    ...data,
+  }));
 
-  // Compute nation-level average overall
-  const nationOveralls = new Map<string, number[]>();
-  for (const [clubId, scores] of clubOveralls) {
-    const nation = clubNationMap.get(clubId);
-    if (nation) {
-      if (!nationOveralls.has(nation)) nationOveralls.set(nation, []);
-      nationOveralls.get(nation)!.push(...scores);
-    }
-  }
+  // Separate top 5 and rest
+  const top5Leagues = TOP_5
+    .map((name) => allLeagues.find((l) => l.name === name))
+    .filter(Boolean) as LeagueRow[];
 
-  const nationAvgOverall = new Map<string, number>();
-  for (const [nation, scores] of nationOveralls) {
-    if (scores.length > 0) {
-      const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
-      nationAvgOverall.set(nation, Math.round(avg));
-    }
-  }
+  const otherLeagues = allLeagues
+    .filter((l) => !TOP_5.includes(l.name))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Group by nation (or league_name as fallback, or "Unassigned")
-  const nationMap = new Map<string, { id: number; name: string; leagueName: string | null; playerCount: number }[]>();
-  for (const rawClub of clubs ?? []) {
-    const club = rawClub as any;
-    const nation = club.nations?.name || (club.league_name ? `League: ${club.league_name}` : "Unassigned");
-    if (!nationMap.has(nation)) nationMap.set(nation, []);
-    nationMap.get(nation)!.push({
-      id: club.id,
-      name: club.clubname,
-      leagueName: club.league_name ?? null,
-      playerCount: clubCounts.get(club.id) ?? 0,
-    });
-  }
-
-  const buildGroup = (nation: string): LeagueGroup | null => {
-    const clubs = nationMap.get(nation);
-    if (!clubs) return null;
-    return {
-      nation,
-      clubs: clubs.sort((a, b) => b.playerCount - a.playerCount || a.name.localeCompare(b.name)),
-      totalPlayers: clubs.reduce((sum, c) => sum + c.playerCount, 0),
-      avgOverall: nationAvgOverall.get(nation) ?? null,
-    };
-  };
-
-  // Remaining nations not in any tier — sorted alphabetically by nation name
-  const otherNations = [...nationMap.keys()]
-    .filter((n) => !TIER_NATIONS.has(n))
-    .map((n) => buildGroup(n)!)
-    .filter(Boolean)
-    .sort((a, b) => a.nation.localeCompare(b.nation));
-
-  const totalClubs = clubs.length;
-  let totalPlayers = 0;
-  for (const v of clubCounts.values()) totalPlayers += v;
+  const totalPlayers = allLeagues.reduce((sum, l) => sum + l.playerCount, 0);
 
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-1">Leagues</h1>
       <p className="text-xs text-[var(--text-secondary)] mb-6">
-        {nationMap.size} nations · {totalClubs.toLocaleString()} clubs · {totalPlayers.toLocaleString()} players tracked
+        {allLeagues.length} leagues &middot; {totalPlayers.toLocaleString()} players tracked
       </p>
 
-      {/* Tiered leagues */}
-      {LEAGUE_TIERS.map((tier) => {
-        const groups = tier.nations.map(buildGroup).filter(Boolean) as LeagueGroup[];
-        if (groups.length === 0) return null;
-        // Sort alphabetically if tier requires it
-        const sorted = tier.sortAlpha
-          ? [...groups].sort((a, b) => a.nation.localeCompare(b.nation))
-          : groups;
-        return (
-          <div key={tier.tier} className="mb-8">
-            <h2 className="text-xs font-semibold tracking-widest uppercase text-[var(--accent-personality)] mb-4">
-              {tier.tier}
-            </h2>
-            <div className="space-y-4">
-              {sorted.map((league) => (
-                <LeagueCard key={league.nation} league={league} />
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Other leagues */}
-      {otherNations.length > 0 && (
+      {/* Top 5 */}
+      {top5Leagues.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xs font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
-            Other Leagues
+          <h2 className="text-xs font-semibold tracking-widest uppercase text-[var(--color-accent-personality)] mb-3">
+            Top 5 Leagues
           </h2>
-          <div className="space-y-4">
-            {otherNations.map((league) => (
-              <LeagueCard key={league.nation} league={league} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {top5Leagues.map((league) => (
+              <Link
+                key={league.name}
+                href={`/clubs?league=${encodeURIComponent(league.name)}`}
+                className="glass rounded-xl p-5 hover:border-[var(--color-accent-personality)]/40 transition-colors group"
+              >
+                <p className="text-base font-semibold text-[var(--text-primary)] group-hover:text-white">
+                  {league.name}
+                </p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  {league.clubCount} clubs &middot; {league.playerCount} players
+                </p>
+              </Link>
             ))}
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-function LeagueCard({ league }: { league: LeagueGroup }) {
-  return (
-    <div className="glass rounded-xl p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{league.nation}</h3>
-          {league.avgOverall != null && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--accent-personality)]/15 text-[var(--accent-personality)]">
-              Avg: {league.avgOverall}
-            </span>
-          )}
+      {/* All leagues A-Z */}
+      <div>
+        <h2 className="text-xs font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
+          All Leagues
+        </h2>
+        <div className="glass rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+                <th className="text-left py-2.5 px-4 font-medium">League</th>
+                <th className="text-right py-2.5 px-4 font-medium w-20">Clubs</th>
+                <th className="text-right py-2.5 px-4 font-medium w-20">Players</th>
+              </tr>
+            </thead>
+            <tbody>
+              {otherLeagues.map((league) => (
+                <tr
+                  key={league.name}
+                  className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors"
+                >
+                  <td className="py-2 px-4">
+                    <Link
+                      href={`/clubs?league=${encodeURIComponent(league.name)}`}
+                      className="text-[var(--text-primary)] hover:text-white transition-colors"
+                    >
+                      {league.name}
+                    </Link>
+                  </td>
+                  <td className="py-2 px-4 text-right font-mono text-[var(--text-muted)]">
+                    {league.clubCount}
+                  </td>
+                  <td className="py-2 px-4 text-right font-mono text-[var(--text-muted)]">
+                    {league.playerCount || "–"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <span className="text-xs font-mono text-[var(--text-muted)]">
-          {league.clubs.length} clubs{league.totalPlayers > 0 ? ` · ${league.totalPlayers} players` : ""}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
-        {league.clubs.map((club) => (
-          <Link
-            key={club.id}
-            href={`/clubs/${club.id}`}
-            className="flex items-center justify-between px-3 py-2 rounded bg-[var(--bg-elevated)]/50 hover:bg-[var(--bg-elevated)] transition-colors"
-          >
-            <span className="text-xs text-[var(--text-secondary)] truncate">{club.name}</span>
-            {club.playerCount > 0 && (
-              <span className="text-xs font-mono text-[var(--text-muted)] ml-2 shrink-0">
-                {club.playerCount}
-              </span>
-            )}
-          </Link>
-        ))}
       </div>
     </div>
   );

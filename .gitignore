@@ -33,3 +33,4 @@ archive/
 # Cron job logs
 scripts/logs/
 .worktrees/
+.vercel

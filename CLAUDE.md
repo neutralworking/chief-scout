@@ -27,9 +27,10 @@ The old monolithic `players` table has been split. A **`players` view** exists f
 - Identity data → `people` (key: `id`)
 
 ## Environment
-- Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN)
+- Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY)
 - `apps/player-editor/.env.local`: Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*)
-- Both point to the `fnvlemkbhohyouhjebwf` project
+- Vercel env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GEMINI_API_KEY, CRON_SECRET
+- Both local env files point to the `fnvlemkbhohyouhjebwf` project
 
 ## Security
 - Old project (`njulrlyfiamklxptvlun`) has compromised keys in git history — do NOT use
@@ -44,7 +45,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
 - `11_fbref_ingest.py` → FBRef season stats → `fbref_players/fbref_player_season_stats`. Flags: `--comp`, `--season`, `--seasons-back`, `--dry-run`, `--force`
 - `12_news_ingest.py` → RSS + Gemini Flash → `news_stories/news_player_tags`. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`, `--force`
-- `13_formation_slots.py` → Populate `formation_slots` with role-assigned slots. Each slot gets a tactical role (Regista, Inside Forward, etc.) from `tactical_roles` table. Flags: `--dry-run`. Requires migration `018_tactical_roles.sql`.
+- `13_stat_metrics.py` → Aggregate StatsBomb events + Understat xG into per-player attribute scores → `attribute_grades`
 - `14_seed_profiles.py` → Seed full player profiles (50 curated players with all 6 tables)
 - `15_wikidata_enrich.py` → Wikidata SPARQL → backfill DOB/height/foot + cross-link IDs. Flags: `--phase 1|2|3`, `--player`, `--force`, `--batch-size`
 - `16_club_ingest.py` → Parse `imports/clubs.csv` → `clubs` + `nations` tables. Flags: `--dry-run`, `--force`, `--parse-only`
@@ -52,11 +53,19 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `18_wikidata_player_clubs.py` → Batch-update player clubs from Wikidata P54. Improved alias matching + reports missing clubs. Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--batch-sparql`, `--verbose`, `--create-missing`.
 - `19_wikidata_deep_enrich.py` → Deep Wikidata enrichment: P27 (citizenship), P54 (career history), P413 (position), P18 (image), P2446 (Transfermarkt ID), P19 (birthplace). Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--phase identity|career`, `--batch-size`. Requires migration `014_wikidata_deep_enrich.sql`.
 - `20_seed_choices.py` → Seed Football Choices game questions and options. Flags: `--dry-run`, `--force`. Requires migration `015_football_choices.sql`.
+- `21_seed_alltime_xi.py` → Seed all-time XI data
 - `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
 - `23_career_metrics.py` → Career trajectory metrics from `player_career_history` → `career_metrics`. Computes loyalty/mobility scores (1-20), trajectory labels (rising/peak/declining/journeyman/one-club/newcomer), tenure stats. Flags: `--player`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
 - `24_news_sentiment.py` → News sentiment aggregation from `news_player_tags` → `news_sentiment_agg`. Computes sentiment/buzz scores (1-20), story type breakdown, 7d/30d trend windows. Flags: `--player`, `--days`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
-- `26_key_moments.py` → Career milestones + news moments → `key_moments`. Generates debuts, transfers, long-service awards from `player_career_history`, and high-confidence news-derived moments from `news_player_tags`. Flags: `--player`, `--limit`, `--source career|news|all`, `--dry-run`, `--force`.
-- `27_player_ratings.py` → Composite overall rating from attribute grades → `player_profiles.overall` + compound scores to `attribute_grades` (source='computed'). Position-weighted compound average (Technical/Tactical/Physical/Mental) blended with editorial level/peak. Flags: `--player`, `--limit`, `--dry-run`, `--force`.
+- `25_formation_slots.py` → Populate `formation_slots` with role-assigned slots from `tactical_roles`. Flags: `--dry-run`. Requires migration `018_tactical_roles.sql`.
+- `25_transfermarkt_ingest.py` → Fetch Transfermarkt market values → Supabase. Requires migration `015_transfermarkt_market_values.sql`.
+- `26_key_moments.py` → Career milestones + news moments → `key_moments`. Flags: `--player`, `--limit`, `--source career|news|all`, `--dry-run`, `--force`.
+- `26_fix_club_assignments.py` → Fix/repair club_id assignments on people table
+- `27_player_ratings.py` → Composite overall rating from attribute grades → `player_profiles.overall` + compound scores to `attribute_grades` (source='computed'). Flags: `--player`, `--limit`, `--dry-run`, `--force`.
+- `27_understat_grades.py` → Understat xG/xA → `attribute_grades` (source='understat')
+- `28_statsbomb_grades.py` → StatsBomb event data → `attribute_grades` (source='statsbomb')
+- `29_scouting_tags.py` → Auto-assign scouting tags based on player data (attributes, career, news sentiment)
+- `30_squad_roles.py` → DOF-level squad role assessment
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -104,13 +113,15 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)
-Browser-based pipeline management at `apps/player-editor/app/admin/page.tsx`.
+Single-page dashboard at `apps/player-editor/src/app/admin/page.tsx`.
 
-| Tab | Purpose | API Route |
-|---|---|---|
-| **Import** | Upload FBRef CSV exports → parse client-side → upsert to Supabase | `POST /api/admin/fbref-import` |
-| **Pipeline** | Table row counts, sync timestamps, freshness indicators, FBRef sync log | `GET /api/admin/pipeline` |
-| **Data Health** | Coverage metrics (profiles, market, FBRef match rate) + trigger player matching | `GET /api/admin/health`, `POST /api/admin/match` |
+- **News Pipeline**: Manual refresh button (triggers `/api/cron/news`)
+- **Quick Stats**: Total players, Tier 1 profiles (scout-assessed with archetype), tracked, news counts
+- **Data Coverage**: Progress bars for profiles, personality, market, status, wikidata enrichment
+- **External Data**: Understat match/player stats
+- **Club Coverage**: Nation, league, wikidata, stadium coverage bars
+
+News cron runs daily at 6am UTC via Vercel (`vercel.json`). Requires `GEMINI_API_KEY` in Vercel env vars for Gemini Flash processing phase.
 
 ## Football Choices (`/choices`)
 PWA-ready comparison game at `apps/player-editor/app/choices/page.tsx`.

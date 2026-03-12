@@ -134,7 +134,8 @@ def main():
         trajectory = traj.get("trajectory", "")
 
         # High Ceiling: peak significantly above current level
-        if gap >= 8 and level < 85:
+        # For elite players (L>=85), require bigger gap since ceiling is relative
+        if (gap >= 8 and level < 85) or (gap >= 6 and level >= 85 and level < 90):
             tags_for_player.append("High Ceiling")
 
         # Low Floor: peak close to level, already plateaued, not elite
@@ -150,8 +151,18 @@ def main():
             tags_for_player.append("Declining")
 
         # ── Versatility ────────────────────────────────────────────────
+        # Only tag Versatile if positions are in meaningfully different roles
+        # Same-zone variants (WF↔CF, CM↔DM, WD↔CD) are natural, not versatile
+        # Cross-zone (CM↔CD, WD↔CM, AM↔CF) shows genuine flexibility
+        NATURAL_PAIRS = {
+            frozenset({"WF", "CF"}), frozenset({"CM", "DM"}),
+            frozenset({"WD", "CD"}), frozenset({"WM", "AM"}),
+            frozenset({"WF", "WM"}),
+        }
         if secondary and secondary != position:
-            tags_for_player.append("Versatile")
+            pair = frozenset({position, secondary})
+            if pair not in NATURAL_PAIRS:
+                tags_for_player.append("Versatile")
 
         # ── Foot preference ────────────────────────────────────────────
         # Inverted: left-footed on right side, or right-footed on left
@@ -218,8 +229,9 @@ def main():
         if level >= 82 and gap <= 2 and trajectory in ("peak", "declining"):
             tags_for_player.append("Sell High")
 
-        # Buy Low: good peak but current level depressed
-        if peak >= 83 and level < peak - 5 and trajectory not in ("declining",):
+        # Buy Low: good peak but current level depressed AND not already elite
+        # A player at L=88 with P=96 is not "buy low" — they're already world-class
+        if peak >= 83 and level < peak - 5 and level < 83 and trajectory not in ("declining",):
             tags_for_player.append("Buy Low")
 
         # ── Big Game Player: high level + leadership + composure ───────

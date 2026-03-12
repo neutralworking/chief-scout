@@ -141,23 +141,29 @@ SOURCE_WEIGHT: dict[str, float] = {
 }
 
 
-def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], bool, bool]:
+# Sources considered reliable for personality inference.
+# eafc_inferred fills mental attributes (leadership, communication, etc.)
+# with synthetic mid-range values that don't reflect real personality.
+PERSONALITY_TRUSTED_SOURCES = frozenset({
+    "scout_assessment", "fbref", "computed", "understat", "statsbomb",
+})
+
+
+def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], dict[str, float], bool, bool]:
     """
     Convert attribute_grades rows into {attribute: score_0_100}.
 
     Groups by attribute, picks the highest-priority source per attribute,
     and applies source-specific dampening weights.
 
-    Scale detection: 0-20 sources (scout_assessment, eafc_inferred) are
-    detected by checking max values per source group. Each source may
-    use a different scale.
+    Returns (all_scores, personality_scores, has_any_scout_grade, has_differentiated_data).
 
-    Returns (scores_dict, has_any_scout_grade, has_differentiated_data).
+    - all_scores: used for archetype scoring (includes eafc_inferred with dampening)
+    - personality_scores: used for personality inference (excludes eafc_inferred)
     """
     has_scout = False
     stat_values: set[float] = set()
 
-    # Group by (attribute, source) → best value
     # Key: attribute → list of (source, raw_value, is_scout_grade)
     attr_candidates: dict[str, list[tuple[str, float, bool]]] = {}
 
@@ -197,7 +203,9 @@ def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], bool, bool]:
         attr_candidates[attr].append((src, raw, is_scout))
 
     # For each attribute, pick the highest-priority source and apply weight
-    result: dict[str, float] = {}
+    all_scores: dict[str, float] = {}
+    personality_scores: dict[str, float] = {}
+
     for attr, candidates in attr_candidates.items():
         # Sort by source priority (highest first), then prefer scout_grade
         candidates.sort(key=lambda c: (-SOURCE_PRIORITY.get(c[0], 0), -int(c[2])))
@@ -205,10 +213,22 @@ def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], bool, bool]:
 
         scale = source_scale.get(best_src, 10.0)
         weight = SOURCE_WEIGHT.get(best_src, 0.8)
-        result[attr] = (best_val / scale) * 100.0 * weight
+        all_scores[attr] = (best_val / scale) * 100.0 * weight
+
+        # For personality: only include if best source is trusted
+        if best_src in PERSONALITY_TRUSTED_SOURCES:
+            personality_scores[attr] = (best_val / scale) * 100.0 * weight
+        else:
+            # Check if any trusted source exists for this attribute
+            for src, raw, is_sc in candidates:
+                if src in PERSONALITY_TRUSTED_SOURCES:
+                    s = source_scale.get(src, 10.0)
+                    w = SOURCE_WEIGHT.get(src, 0.8)
+                    personality_scores[attr] = (raw / s) * 100.0 * w
+                    break
 
     has_differentiated = has_scout or len(stat_values) > 1
-    return result, has_scout, has_differentiated
+    return all_scores, personality_scores, has_scout, has_differentiated
 
 
 def score_models(attr_scores: dict[str, float], position: str | None) -> dict[str, float]:
@@ -448,9 +468,10 @@ def main():
         has_grades = pid in grades_by_player
         has_scout = False
         attr_scores = None
+        pers_scores = None  # personality-only scores (excludes eafc_inferred)
 
         if has_grades:
-            attr_scores, has_scout, has_diff = normalize_grades(grades_by_player[pid])
+            attr_scores, pers_scores, has_scout, has_diff = normalize_grades(grades_by_player[pid])
             if has_diff:
                 model_scores = score_models(attr_scores, position)
                 new_arch = best_model(model_scores)
@@ -461,7 +482,8 @@ def main():
             else:
                 # All stat_scores identical (e.g. all 10) — undifferentiated
                 method_dist["undifferentiated"] += 1
-                attr_scores = None  # don't infer personality from undifferentiated data
+                attr_scores = None
+                pers_scores = None
         else:
             method_dist["no_data"] += 1
 
@@ -484,10 +506,10 @@ def main():
             personality_skip += 1
             continue
 
-        if attr_scores:
-            dims = infer_personality(attr_scores)
+        if pers_scores:
+            dims = infer_personality(pers_scores)
             if dims:
-                traits = infer_traits(attr_scores)
+                traits = infer_traits(pers_scores)
                 personality_updates.append((
                     pid,
                     dims["ei"], dims["sn"], dims["tf"], dims["jp"],

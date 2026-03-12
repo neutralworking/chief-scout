@@ -295,10 +295,10 @@ export default async function PlayerDetailPage({
           )}
 
           {/* CS Value */}
-          {player.transfer_fee_eur != null && (
+          {player.director_valuation_meur != null && (
             <div>
               <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
-              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
+              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">&euro;{player.director_valuation_meur}m</span>
             </div>
           )}
         </div>

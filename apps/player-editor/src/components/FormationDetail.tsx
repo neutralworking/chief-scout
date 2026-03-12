@@ -43,106 +43,136 @@ interface FormationDetailProps {
   fit: number;
   playersByPosition: Record<string, TrackedPlayer[]>;
   rolesMap?: Record<number, TacticalRole>;
+  rolesByPosition?: Record<string, TacticalRole[]>;
 }
 
-// Pitch Y positions for each position (0 = GK end, 100 = striker end)
+// Pitch Y positions (0 = GK end, 100 = striker end)
 const POSITION_Y: Record<string, number> = {
-  GK: 5,
-  CD: 20,
-  WD: 22,
-  DM: 38,
-  CM: 50,
-  WM: 52,
-  AM: 65,
-  WF: 78,
-  CF: 90,
+  GK: 6, CD: 22, WD: 24, DM: 40, CM: 52, WM: 54, AM: 67, WF: 80, CF: 92,
 };
 
-// Render order (defense → attack)
 const RENDER_ORDER = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"];
 
-// Archetype category colors
-const ARCHETYPE_COLORS: Record<string, string> = {
-  Controller: "var(--accent-mental)",
-  Commander: "var(--accent-mental)",
-  Creator: "var(--accent-mental)",
-  Target: "var(--accent-physical)",
-  Sprinter: "var(--accent-physical)",
-  Powerhouse: "var(--accent-physical)",
-  Cover: "var(--accent-tactical)",
-  Engine: "var(--accent-tactical)",
-  Destroyer: "var(--accent-tactical)",
-  Dribbler: "var(--accent-technical)",
-  Passer: "var(--accent-technical)",
-  Striker: "var(--accent-technical)",
-  GK: "var(--accent-personality)",
-};
-
-function fitColor(fit: number): string {
-  if (fit >= 80) return "var(--sentiment-positive)";
-  if (fit >= 50) return "var(--accent-personality)";
-  return "var(--sentiment-negative)";
+// Expand a slot row (slot_count=2) into individual expanded slots
+interface ExpandedSlot {
+  position: string;
+  index: number; // 0-based within this position
+  total: number; // total count for this position
+  label: string;
+  role: TacticalRole | null;
 }
 
-function roleFitScore(player: TrackedPlayer, role: TacticalRole): number | null {
-  // Simple: if player archetype matches primary or secondary, show affinity
-  if (!player.archetype) return null;
-  if (player.archetype === role.primary_archetype) return 90;
-  if (player.archetype === role.secondary_archetype) return 70;
-  return 30;
-}
+function expandSlots(
+  slots: FormationSlot[],
+  rolesMap: Record<number, TacticalRole>,
+  rolesByPosition: Record<string, TacticalRole[]>
+): ExpandedSlot[] {
+  const expanded: ExpandedSlot[] = [];
 
-function roleFitBadge(score: number | null): { label: string; color: string } | null {
-  if (score === null) return null;
-  if (score >= 80) return { label: "ideal", color: "var(--sentiment-positive)" };
-  if (score >= 60) return { label: "good", color: "var(--accent-personality)" };
-  return { label: "poor", color: "var(--text-muted)" };
+  // Group by position first
+  const byPos: Record<string, FormationSlot[]> = {};
+  for (const s of slots) {
+    if (!byPos[s.position]) byPos[s.position] = [];
+    byPos[s.position].push(s);
+  }
+
+  for (const pos of RENDER_ORDER) {
+    const posSlots = byPos[pos];
+    if (!posSlots) continue;
+
+    // Total count for this position across all slot rows
+    const totalCount = posSlots.reduce((sum, s) => sum + s.slot_count, 0);
+    let idx = 0;
+
+    for (const slot of posSlots) {
+      // Get roles for this position
+      const posRoles = rolesByPosition[pos] ?? [];
+
+      for (let i = 0; i < slot.slot_count; i++) {
+        // Assign role: explicit role_id first, then cycle through position roles
+        let role: TacticalRole | null = null;
+        if (slot.role_id) {
+          role = rolesMap[slot.role_id] ?? null;
+        } else if (posRoles.length > 0) {
+          role = posRoles[idx % posRoles.length];
+        }
+
+        expanded.push({
+          position: pos,
+          index: idx,
+          total: totalCount,
+          label: slot.slot_label ?? pos,
+          role,
+        });
+        idx++;
+      }
+    }
+  }
+
+  return expanded;
 }
 
 function distributeX(count: number): number[] {
   if (count === 1) return [50];
   if (count === 2) return [28, 72];
-  if (count === 3) return [20, 50, 80];
-  if (count === 4) return [15, 38, 62, 85];
+  if (count === 3) return [18, 50, 82];
+  if (count === 4) return [12, 37, 63, 88];
   return Array.from({ length: count }, (_, i) => 10 + (80 / (count - 1)) * i);
 }
 
-export function FormationDetail({ formation, slots, fit, playersByPosition, rolesMap = {} }: FormationDetailProps) {
+function bestPlayerForRole(
+  players: TrackedPlayer[],
+  role: TacticalRole | null,
+  alreadyUsed: Set<number>
+): TrackedPlayer | null {
+  const available = players.filter((p) => !alreadyUsed.has(p.person_id));
+  if (available.length === 0) return null;
+  if (!role) return available[0]; // highest level (already sorted)
+
+  // Score by archetype match
+  const scored = available.map((p) => {
+    let score = p.level ?? 0;
+    if (p.archetype === role.primary_archetype) score += 100;
+    else if (p.archetype === role.secondary_archetype) score += 50;
+    return { player: p, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0].player;
+}
+
+export function FormationDetail({
+  formation,
+  slots,
+  fit: _fit,
+  playersByPosition,
+  rolesMap = {},
+  rolesByPosition = {},
+}: FormationDetailProps) {
   const [expanded, setExpanded] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
 
-  const hasRoles = slots.some((s) => s.role_id != null);
+  const expandedSlots = expandSlots(slots, rolesMap, rolesByPosition);
+  const totalPlayers = expandedSlots.length;
 
-  // Group slots by position for pitch dots
-  const slotsByPos: Record<string, FormationSlot[]> = {};
-  for (const slot of slots) {
-    if (!slotsByPos[slot.position]) slotsByPos[slot.position] = [];
-    slotsByPos[slot.position].push(slot);
+  // Group expanded slots by position for pitch rendering
+  const slotsByPos: Record<string, ExpandedSlot[]> = {};
+  for (const s of expandedSlots) {
+    if (!slotsByPos[s.position]) slotsByPos[s.position] = [];
+    slotsByPos[s.position].push(s);
   }
 
-  // Build position dots for pitch diagram
-  const dots: { x: number; y: number; pos: string; label: string; role?: TacticalRole; isGap: boolean }[] = [];
+  // Build pitch dots
+  const dots: { x: number; y: number; pos: string; role: TacticalRole | null }[] = [];
   for (const pos of RENDER_ORDER) {
-    const posSlots = slotsByPos[pos];
-    if (!posSlots) continue;
+    const posExpanded = slotsByPos[pos];
+    if (!posExpanded) continue;
     const y = POSITION_Y[pos] ?? 50;
-    const xs = distributeX(posSlots.length);
-    const available = (playersByPosition[pos] ?? []).length;
-    for (let i = 0; i < posSlots.length; i++) {
-      const slot = posSlots[i];
-      const role = slot.role_id ? rolesMap[slot.role_id] : undefined;
-      dots.push({
-        x: xs[i],
-        y,
-        pos,
-        label: slot.slot_label ?? pos,
-        role,
-        isGap: available <= i,
-      });
+    const xs = distributeX(posExpanded.length);
+    for (let i = 0; i < posExpanded.length; i++) {
+      dots.push({ x: xs[i], y, pos, role: posExpanded[i].role });
     }
   }
 
-  // Unique position summary for header
+  // Position summary for header
   const posSummary: { pos: string; count: number }[] = [];
   for (const pos of RENDER_ORDER) {
     if (pos === "GK") continue;
@@ -150,9 +180,19 @@ export function FormationDetail({ formation, slots, fit, playersByPosition, role
     if (count > 0) posSummary.push({ pos, count });
   }
 
+  // Assign best players per slot
+  const usedPlayers = new Set<number>();
+  const slotAssignments: { slot: ExpandedSlot; player: TrackedPlayer | null }[] = [];
+  for (const slot of expandedSlots) {
+    const posPlayers = playersByPosition[slot.position] ?? [];
+    const player = bestPlayerForRole(posPlayers, slot.role, usedPlayers);
+    if (player) usedPlayers.add(player.person_id);
+    slotAssignments.push({ slot, player });
+  }
+
   return (
     <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
-      {/* Header — always visible */}
+      {/* Header */}
       <button
         className="w-full flex items-center gap-4 p-4 hover:bg-[var(--bg-elevated)]/30 transition-colors cursor-pointer text-left"
         onClick={() => setExpanded(!expanded)}
@@ -162,19 +202,17 @@ export function FormationDetail({ formation, slots, fit, playersByPosition, role
           {dots.map((dot, i) => (
             <div
               key={i}
-              className="absolute w-1.5 h-1.5 rounded-full"
+              className="absolute w-1.5 h-1.5 rounded-full bg-[var(--text-primary)]"
               style={{
                 left: `${dot.x}%`,
                 bottom: `${dot.y}%`,
                 transform: "translate(-50%, 50%)",
-                backgroundColor: dot.isGap ? "var(--sentiment-negative)" : "var(--text-primary)",
-                opacity: dot.isGap ? 0.5 : 0.7,
+                opacity: 0.7,
               }}
             />
           ))}
         </div>
 
-        {/* Name + meta */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-[var(--text-primary)]">{formation.name}</span>
@@ -183,191 +221,122 @@ export function FormationDetail({ formation, slots, fit, playersByPosition, role
                 {formation.era}
               </span>
             )}
-            {hasRoles && (
-              <span className="text-[9px] uppercase tracking-wider text-[var(--accent-mental)] bg-[var(--accent-mental)]/10 px-1.5 py-0.5 rounded">
-                roles
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {posSummary.map(({ pos, count }) => {
               const posColor = POSITION_COLORS[pos] ?? "bg-zinc-700/60";
               return (
                 <span key={pos} className={`text-[8px] font-bold px-1 py-0.5 rounded ${posColor} text-white`}>
-                  {pos}×{count}
+                  {pos}x{count}
                 </span>
               );
             })}
+            <span className="text-[10px] text-[var(--text-muted)] ml-1">{totalPlayers} players</span>
           </div>
         </div>
 
-        {/* Fit score */}
-        <div className="text-right shrink-0">
-          <div className="text-lg font-mono font-bold" style={{ color: fitColor(fit) }}>
-            {fit}%
-          </div>
-          <div className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider">Fit</div>
-        </div>
-
-        {/* Expand indicator */}
-        <span className={`text-[var(--text-muted)] transition-transform ${expanded ? "rotate-90" : ""}`}>
+        <span className={`text-[var(--text-muted)] transition-transform text-lg ${expanded ? "rotate-90" : ""}`}>
           &rsaquo;
         </span>
       </button>
 
-      {/* Expanded detail */}
+      {/* Expanded */}
       {expanded && (
-        <div className="border-t border-[var(--border-subtle)] p-4 animate-[fadeIn_200ms_ease-out]">
+        <div className="border-t border-[var(--border-subtle)] p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pitch visualization */}
+            {/* Pitch */}
             <div className="relative bg-[var(--bg-base)]/30 rounded-lg border border-[var(--border-subtle)] aspect-[3/4] overflow-hidden">
-              {/* Pitch lines */}
+              {/* Pitch markings */}
               <div className="absolute inset-0">
                 <div className="absolute left-0 right-0 top-1/2 h-px bg-[var(--border-subtle)]" />
                 <div className="absolute left-1/2 top-1/2 w-16 h-16 -ml-8 -mt-8 rounded-full border border-[var(--border-subtle)]" />
-                <div className="absolute left-1/4 right-1/4 top-0 h-[15%] border-b border-l border-r border-[var(--border-subtle)]" />
-                <div className="absolute left-1/4 right-1/4 bottom-0 h-[15%] border-t border-l border-r border-[var(--border-subtle)]" />
+                <div className="absolute left-[20%] right-[20%] top-0 h-[12%] border-b border-l border-r border-[var(--border-subtle)]" />
+                <div className="absolute left-[20%] right-[20%] bottom-0 h-[12%] border-t border-l border-r border-[var(--border-subtle)]" />
               </div>
-              {/* Position dots with role labels */}
-              {dots.map((dot, i) => (
-                <div
-                  key={i}
-                  className="absolute flex flex-col items-center"
-                  style={{
-                    left: `${dot.x}%`,
-                    bottom: `${dot.y}%`,
-                    transform: "translate(-50%, 50%)",
-                  }}
-                >
+              {/* Player dots with names */}
+              {slotAssignments.map(({ slot, player }, i) => {
+                const posExpanded = slotsByPos[slot.position];
+                const y = POSITION_Y[slot.position] ?? 50;
+                const xs = distributeX(posExpanded.length);
+                const x = xs[slot.index];
+                const posColor = POSITION_COLORS[slot.position] ?? "bg-zinc-700/60";
+
+                return (
                   <div
-                    className={`w-3 h-3 rounded-full border ${dot.isGap ? "border-[var(--sentiment-negative)] bg-[var(--sentiment-negative)]/20" : "border-[var(--text-primary)]/50 bg-[var(--text-primary)]/30"}`}
-                  />
-                  <span className="text-[6px] font-bold text-[var(--text-muted)] mt-0.5 whitespace-nowrap">
-                    {dot.role ? dot.role.name.split(" ")[0] : dot.label}
-                  </span>
-                </div>
-              ))}
+                    key={i}
+                    className="absolute flex flex-col items-center"
+                    style={{
+                      left: `${x}%`,
+                      bottom: `${y}%`,
+                      transform: "translate(-50%, 50%)",
+                    }}
+                  >
+                    <div className={`w-4 h-4 rounded-full ${posColor} flex items-center justify-center`}>
+                      <span className="text-[6px] font-bold text-white">{slot.position}</span>
+                    </div>
+                    <span className="text-[7px] font-medium text-[var(--text-secondary)] mt-0.5 whitespace-nowrap max-w-[60px] truncate text-center">
+                      {player ? player.name.split(" ").pop() : "–"}
+                    </span>
+                    {slot.role && (
+                      <span className="text-[6px] text-[var(--text-muted)] whitespace-nowrap">
+                        {slot.role.name}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Role mapping */}
+            {/* Role + Player mapping */}
             <div>
               <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
-                {hasRoles ? "Role Mapping" : "Slot Mapping"}
+                Roles & Players
               </h3>
               <div className="space-y-3">
                 {RENDER_ORDER.map((pos) => {
-                  const posSlots = slotsByPos[pos];
-                  if (!posSlots) return null;
-                  const posPlayers = playersByPosition[pos] ?? [];
+                  const posAssignments = slotAssignments.filter((a) => a.slot.position === pos);
+                  if (posAssignments.length === 0) return null;
                   const posColor = POSITION_COLORS[pos] ?? "bg-zinc-700/60";
 
                   return (
                     <div key={pos}>
-                      {/* Position header */}
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white`}>
                           {pos}
                         </span>
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          {posSlots.length} slot{posSlots.length > 1 ? "s" : ""}
-                        </span>
-                        {posPlayers.length < posSlots.length && (
-                          <span className="text-[9px] text-[var(--sentiment-negative)] font-medium">gap</span>
-                        )}
                       </div>
-
-                      {/* Individual slots with roles */}
-                      <div className="ml-4 space-y-2">
-                        {posSlots.map((slot, slotIdx) => {
-                          const role = slot.role_id ? rolesMap[slot.role_id] : null;
-                          return (
-                            <div key={slotIdx} className="border-l-2 border-[var(--border-subtle)] pl-3">
-                              {/* Role name + archetype affinity */}
-                              {role ? (
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[10px] font-semibold text-[var(--text-primary)]">
-                                    {slot.slot_label && (
-                                      <span className="text-[var(--text-muted)] font-mono mr-1">{slot.slot_label}</span>
-                                    )}
-                                    {role.name}
-                                  </span>
-                                  <span
-                                    className="text-[8px] font-medium px-1 py-0.5 rounded"
-                                    style={{
-                                      color: ARCHETYPE_COLORS[role.primary_archetype] ?? "var(--text-muted)",
-                                      backgroundColor: `color-mix(in srgb, ${ARCHETYPE_COLORS[role.primary_archetype] ?? "var(--text-muted)"} 15%, transparent)`,
-                                    }}
-                                  >
-                                    {role.primary_archetype}
-                                  </span>
-                                  <span
-                                    className="text-[8px] px-1 py-0.5 rounded"
-                                    style={{
-                                      color: ARCHETYPE_COLORS[role.secondary_archetype] ?? "var(--text-muted)",
-                                      backgroundColor: `color-mix(in srgb, ${ARCHETYPE_COLORS[role.secondary_archetype] ?? "var(--text-muted)"} 10%, transparent)`,
-                                    }}
-                                  >
-                                    {role.secondary_archetype}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[10px] text-[var(--text-secondary)]">
-                                    {slot.slot_label ?? `${pos} #${slotIdx + 1}`}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Players that fit this slot */}
-                              {posPlayers.length > 0 ? (
-                                <div className="space-y-0.5">
-                                  {posPlayers.slice(0, 3).map((p) => {
-                                    const fitBadge = role ? roleFitBadge(roleFitScore(p, role)) : null;
-                                    return (
-                                      <Link
-                                        key={p.person_id}
-                                        href={`/players/${p.person_id}`}
-                                        className="flex items-center gap-2 text-xs hover:text-[var(--text-primary)] transition-colors group"
-                                      >
-                                        <span className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
-                                          {p.name}
-                                        </span>
-                                        {p.level != null && (
-                                          <span className="text-[10px] font-mono text-[var(--text-muted)]">{p.level}</span>
-                                        )}
-                                        {p.archetype && (
-                                          <span
-                                            className="text-[9px] font-medium"
-                                            style={{ color: ARCHETYPE_COLORS[p.archetype] ?? "var(--text-muted)" }}
-                                          >
-                                            {p.archetype}
-                                          </span>
-                                        )}
-                                        {fitBadge && (
-                                          <span
-                                            className="text-[8px] font-medium px-1 rounded"
-                                            style={{ color: fitBadge.color }}
-                                          >
-                                            {fitBadge.label}
-                                          </span>
-                                        )}
-                                      </Link>
-                                    );
-                                  })}
-                                  {posPlayers.length > 3 && (
-                                    <span className="text-[10px] text-[var(--text-muted)]">
-                                      +{posPlayers.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-[10px] text-[var(--sentiment-negative)]">
-                                  No tracked players
-                                </p>
+                      <div className="ml-4 space-y-1.5">
+                        {posAssignments.map(({ slot, player }, i) => (
+                          <div key={i} className="border-l-2 border-[var(--border-subtle)] pl-3 py-0.5">
+                            {/* Role */}
+                            <div className="text-[10px] text-[var(--text-muted)]">
+                              {slot.role ? slot.role.name : `${pos} #${slot.index + 1}`}
+                              {slot.role?.description && (
+                                <span className="ml-1 text-[var(--text-muted)]/60">— {slot.role.description}</span>
                               )}
                             </div>
-                          );
-                        })}
+                            {/* Assigned player */}
+                            {player ? (
+                              <Link
+                                href={`/players/${player.person_id}`}
+                                className="flex items-center gap-2 text-xs hover:text-white transition-colors mt-0.5"
+                              >
+                                <span className="text-[var(--text-primary)] font-medium">{player.name}</span>
+                                {player.level != null && (
+                                  <span className="text-[10px] font-mono text-[var(--text-muted)]">Lvl {player.level}</span>
+                                )}
+                                {player.archetype && (
+                                  <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>
+                                )}
+                                {player.club && (
+                                  <span className="text-[9px] text-[var(--text-muted)]">{player.club}</span>
+                                )}
+                              </Link>
+                            ) : (
+                              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">No tracked player</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   );
@@ -376,34 +345,16 @@ export function FormationDetail({ formation, slots, fit, playersByPosition, role
             </div>
           </div>
 
-          {/* Role legend */}
-          {hasRoles && (
-            <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
-              <div className="flex items-center gap-4 text-[9px] text-[var(--text-muted)]">
-                <span className="uppercase tracking-wider font-semibold">Archetype fit:</span>
-                <span style={{ color: "var(--sentiment-positive)" }}>● ideal</span>
-                <span style={{ color: "var(--accent-personality)" }}>● good</span>
-                <span>● poor</span>
-              </div>
-            </div>
-          )}
-
-          {/* Tactical notes */}
+          {/* Notes */}
           {formation.notes && (
-            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-              <button
-                className="text-[10px] text-[var(--accent-personality)] hover:underline cursor-pointer"
-                onClick={() => setShowNotes(!showNotes)}
-              >
-                {showNotes ? "Hide" : "Show"} tactical notes
-              </button>
-              {showNotes && (
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-2 max-h-48 overflow-y-auto whitespace-pre-line">
-                  {formation.notes.slice(0, 1000)}
-                  {(formation.notes.length > 1000) && "..."}
-                </p>
-              )}
-            </div>
+            <details className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+              <summary className="text-[10px] text-[var(--color-accent-personality)] cursor-pointer hover:underline">
+                Tactical notes
+              </summary>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-2 whitespace-pre-line">
+                {formation.notes}
+              </p>
+            </details>
           )}
         </div>
       )}

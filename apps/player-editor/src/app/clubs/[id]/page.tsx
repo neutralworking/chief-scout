@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS, POSITION_COLORS } from "@/lib/types";
-import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { computeAge } from "@/lib/types";
+
+interface ClubPlayer {
+  person_id: number;
+  name: string;
+  dob: string | null;
+  position: string | null;
+  level: number | null;
+  peak: number | null;
+  archetype: string | null;
+  pursuit_status: string | null;
+  personality_type: string | null;
+  market_value_tier: string | null;
+  true_mvt: string | null;
+}
 
 interface ClubPageProps {
   params: Promise<{ id: string }>;
@@ -44,18 +57,18 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
 
   const personIds = (peopleData ?? []).map((p: any) => p.id);
 
-  let players: PlayerCardType[] = [];
+  let players: ClubPlayer[] = [];
   if (personIds.length > 0) {
     const { data: playersData } = await supabaseServer
       .from("player_intelligence_card")
       .select("person_id, name, dob, position, level, peak, archetype, pursuit_status, personality_type, market_value_tier, true_mvt")
       .in("person_id", personIds)
       .order("level", { ascending: false });
-    players = (playersData ?? []) as PlayerCardType[];
+    players = (playersData ?? []) as ClubPlayer[];
   }
 
   // Position depth
-  const positionCounts: Record<string, PlayerCardType[]> = {};
+  const positionCounts: Record<string, ClubPlayer[]> = {};
   for (const pos of POSITIONS) {
     positionCounts[pos] = players.filter((p) => p.position === pos);
   }

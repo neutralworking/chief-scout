@@ -9,12 +9,14 @@ export interface PlayerCard {
   club: string | null;
   position: string | null;
   level: number | null;
-  peak: number | null;
   overall: number | null;
   archetype: string | null;
   model_id: string | null;
   profile_tier: number | null;
   personality_type: string | null;
+  technical_score: number | null;
+  physical_score: number | null;
+  best_role: string | null;
   pursuit_status: string | null;
   market_value_tier: string | null;
   true_mvt: string | null;

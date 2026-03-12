@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
-const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
-const GK_MODELS = ["GK", "Cover", "Commander", "Controller", "Passer"];
 const MODEL_SHORT: Record<string, string> = {
   Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
   Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
@@ -15,9 +13,12 @@ const MODEL_SHORT: Record<string, string> = {
 interface RadarData {
   modelScores: Record<string, number>;
   positionScores: Record<string, number>;
+  positionModels: Record<string, string[]>;
   roleScores: Record<string, Array<{ name: string; primary: string; secondary: string; score: number }>>;
   hasData: boolean;
   hasDifferentiatedData: boolean;
+  dataWeight: number;
+  levelAnchor: number | null;
 }
 
 function gradeLabel(score: number): { label: string; color: string } {
@@ -26,6 +27,13 @@ function gradeLabel(score: number): { label: string; color: string } {
   if (score >= 55) return { label: "Adequate", color: "text-blue-400" };
   if (score >= 40) return { label: "Developing", color: "text-orange-400" };
   return { label: "Weak", color: "text-red-400" };
+}
+
+function confidenceLabel(w: number): string {
+  if (w >= 0.9) return "Scout assessed";
+  if (w >= 0.6) return "Stats-derived";
+  if (w >= 0.4) return "Partially inferred";
+  return "Level-anchored";
 }
 
 export function PlayerRadar({ playerId, position }: { playerId: number; position: string | null }) {
@@ -50,11 +58,12 @@ export function PlayerRadar({ playerId, position }: { playerId: number; position
     if (roles?.length) setSelectedRole(roles[0].name);
   }, [selectedPos, radarData]);
 
-  if (!radarData?.hasData || !radarData?.hasDifferentiatedData) return null;
+  if (!radarData?.hasData) return null;
 
-  const isGK = selectedPos === "GK";
-  const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
-  const radarLabels = models.map((m) => MODEL_SHORT[m]);
+  // Position-specific models — only show axes relevant to the selected position
+  const models = radarData.positionModels?.[selectedPos] ??
+    Object.keys(radarData.modelScores);
+  const radarLabels = models.map((m) => MODEL_SHORT[m] ?? m);
   const radarValues = models.map((m) => radarData.modelScores[m] ?? 0);
   const roles = radarData.roleScores?.[selectedPos] ?? [];
   const activeRole = roles.find((r) => r.name === selectedRole) ?? roles[0];
@@ -125,6 +134,9 @@ export function PlayerRadar({ playerId, position }: { playerId: number; position
             <div className="flex items-center gap-1">
               <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(168,130,255,0.5)" }} />
               <span className="text-[8px] text-[var(--text-muted)]">Role ideal</span>
+            </div>
+            <div className="text-[7px] text-[var(--text-muted)] mt-1 opacity-60">
+              {confidenceLabel(radarData.dataWeight)}
             </div>
           </div>
         </div>

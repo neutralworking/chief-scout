@@ -236,8 +236,8 @@ export default function SquadPage() {
                             textTransform: "uppercase", letterSpacing: "0.04em",
                           }}>
                             {p.loan_status
-                              ? `loan: ${p.loan_status.replace("_", " ")}`
-                              : p.squad_role!.replace("_", " ")}
+                              ? `Loan: ${p.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}`
+                              : p.squad_role!.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                           </span>
                         )}
                       </Link>

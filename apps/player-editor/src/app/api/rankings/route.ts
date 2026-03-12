@@ -6,7 +6,7 @@ export async function GET() {
   // Get award contention tags
   const { data: tagData, error: tagErr } = await supabase
     .from("player_tags")
-    .select("player_id, tag_id, tags(name, category)")
+    .select("player_id, tag_id, tags(tag_name, category)")
     .eq("tags.category", "award_contention");
 
   if (tagErr) return NextResponse.json({ error: tagErr.message }, { status: 500 });
@@ -28,7 +28,7 @@ export async function GET() {
 
   const rows = filtered
     .map((r: Record<string, unknown>) => {
-      const tag = r.tags as { name: string; category: string };
+      const tag = r.tags as { tag_name: string; category: string };
       const player = playerMap.get(r.player_id) as Record<string, unknown> | undefined;
       return {
         id: r.player_id,
@@ -37,7 +37,7 @@ export async function GET() {
         position: player?.position ?? null,
         level: player?.level as number | null ?? null,
         peak: player?.peak ?? null,
-        tag_name: tag.name,
+        tag_name: tag.tag_name,
       };
     })
     .sort((a, b) => (b.level ?? 0) - (a.level ?? 0));

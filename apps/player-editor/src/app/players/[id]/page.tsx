@@ -96,7 +96,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -129,6 +129,10 @@ export default async function PlayerDetailPage({
       .select("clubs_count, loan_count, career_years, avg_tenure_yrs, loyalty_score, mobility_score, trajectory")
       .eq("person_id", playerId)
       .single(),
+    supabaseServer
+      .from("player_tags")
+      .select("tag_id, tags(tag_name, category)")
+      .eq("player_id", playerId),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -170,10 +174,15 @@ export default async function PlayerDetailPage({
   const careerEntries = (careerResult.data ?? []) as Array<{ club_name: string; club_id: number | null; start_date: string | null; end_date: string | null; is_loan: boolean }>;
   const careerMetrics = metricsResult.data as { clubs_count: number; loan_count: number; career_years: number; avg_tenure_yrs: number; loyalty_score: number; mobility_score: number; trajectory: string | null } | null;
 
+  const playerTags = (playerTagsResult.data ?? []).map((r: Record<string, unknown>) => {
+    const tag = r.tags as { tag_name: string; category: string } | null;
+    return { tag_name: tag?.tag_name ?? "", category: tag?.category ?? "" };
+  }).filter((t: { tag_name: string }) => t.tag_name);
+
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const personalityName = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
-  const hasNotes = !!(player.scouting_notes || player.squad_role || player.loan_status);
+  const hasStatus = !!(player.squad_role || player.loan_status || playerTags.length > 0);
 
   return (
     <div className="space-y-2">
@@ -197,19 +206,15 @@ export default async function PlayerDetailPage({
                 <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                   {player.position ?? "–"}
                 </span>
-                {player.pursuit_status && (
-                  <span className="text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)] shrink-0">
-                    {player.pursuit_status}
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
                 {player.club && <span>{player.club}</span>}
                 {player.nation && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.nation}</span></>}
-                {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span>{age}y</span></>}
-                {player.height_cm && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.height_cm}cm</span></>}
-                {player.preferred_foot && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.preferred_foot}</span></>}
-                {player.hg && <><span className="text-[var(--text-muted)]">&middot;</span><span className="text-[var(--accent-tactical)] font-bold">HG</span></>}
+                {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span title="Age">{age}y</span></>}
+                {player.height_cm && <><span className="text-[var(--text-muted)]">&middot;</span><span title="Height">{player.height_cm}cm</span></>}
+                {player.preferred_foot && (
+                  <><span className="text-[var(--text-muted)]">&middot;</span><span title="Preferred foot">👟 {player.preferred_foot}</span></>
+                )}
               </div>
             </div>
           </div>
@@ -273,18 +278,38 @@ export default async function PlayerDetailPage({
         </div>
       </div>
 
-      {/* Scouting Notes — only if present, compact inline */}
-      {hasNotes && (
+      {/* Status & Tags */}
+      {hasStatus && (
         <div className="glass rounded-xl px-3 py-2 sm:px-4 sm:py-2.5">
-          <div className="flex items-start gap-3">
-            {(player.squad_role || player.loan_status) && (
-              <div className="flex gap-3 text-[10px] text-[var(--text-secondary)] shrink-0">
-                {player.squad_role && <span><span className="text-[var(--text-muted)]">Role:</span> {player.squad_role.replace(/_/g, " ")}</span>}
-                {player.loan_status && <span><span className="text-[var(--text-muted)]">Loan:</span> {player.loan_status.replace(/_/g, " ")}</span>}
-              </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {player.squad_role && (
+              <span className="text-[10px] text-[var(--text-secondary)]">
+                <span className="text-[var(--text-muted)]">Role:</span> {player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
             )}
-            {player.scouting_notes && (
-              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 flex-1">{player.scouting_notes}</p>
+            {player.loan_status && (
+              <span className="text-[10px] text-[var(--text-secondary)]">
+                <span className="text-[var(--text-muted)]">Loan:</span> {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
+            )}
+            {playerTags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {playerTags.map((t: { tag_name: string; category: string }, i: number) => (
+                  <span
+                    key={i}
+                    className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md border ${
+                      t.category === "scouting" ? "bg-[var(--accent-tactical)]/15 text-[var(--accent-tactical)] border-[var(--accent-tactical)]/25" :
+                      t.category === "style" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" :
+                      t.category === "fitness" ? "bg-green-500/15 text-green-400 border-green-500/25" :
+                      t.category === "mental" ? "bg-blue-500/15 text-blue-400 border-blue-500/25" :
+                      t.category === "contract" ? "bg-red-500/15 text-red-400 border-red-500/25" :
+                      "bg-gray-500/15 text-gray-400 border-gray-500/25"
+                    }`}
+                  >
+                    {t.tag_name}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -321,9 +346,6 @@ export default async function PlayerDetailPage({
 
           {news.length > 0 && (
             <ScoutPad
-              scoutingNotes={null}
-              squadRole={null}
-              loanStatus={null}
               news={news}
             />
           )}

@@ -9,6 +9,8 @@ import type { KeyMoment } from "@/components/KeyMomentsList";
 import { ScoutPad } from "@/components/ScoutPad";
 import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
+import RadarChart from "@/components/RadarChart";
+import { CareerTimeline } from "@/components/CareerTimeline";
 
 interface IntelligenceCard {
   person_id: number;
@@ -93,7 +95,7 @@ export default async function PlayerDetailPage({
   }
 
   // Fetch all data in parallel
-  const [playerResult, momentsResult, gradesResult, newsResult, fbrefLinkResult] = await Promise.all([
+  const [playerResult, momentsResult, gradesResult, newsResult, fbrefLinkResult, careerResult, metricsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -121,6 +123,16 @@ export default async function PlayerDetailPage({
       .eq("person_id", playerId)
       .eq("source", "fbref")
       .limit(1),
+    supabaseServer
+      .from("player_career_history")
+      .select("club_name, club_id, start_date, end_date, is_loan, sort_order")
+      .eq("person_id", playerId)
+      .order("sort_order", { ascending: true }),
+    supabaseServer
+      .from("career_metrics")
+      .select("clubs_count, loan_count, career_years, avg_tenure_yrs, loyalty_score, mobility_score, trajectory")
+      .eq("person_id", playerId)
+      .single(),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -160,6 +172,19 @@ export default async function PlayerDetailPage({
     });
   }
 
+  const careerEntries = (careerResult.data ?? []) as Array<{ club_name: string; club_id: number | null; start_date: string | null; end_date: string | null; is_loan: boolean }>;
+  const careerMetrics = metricsResult.data as { clubs_count: number; loan_count: number; career_years: number; avg_tenure_yrs: number; loyalty_score: number; mobility_score: number; trajectory: string | null } | null;
+
+  // Build radar data from personality dimensions
+  const radarData = player.ei != null ? [
+    { label: "Analytical", value: player.ei ?? 0 },
+    { label: "Extrinsic", value: player.sn ?? 0 },
+    { label: "Soloist", value: player.tf ?? 0 },
+    { label: "Competitor", value: player.jp ?? 0 },
+    { label: "Compete", value: (player.competitiveness ?? 5) * 10 },
+    { label: "Coach", value: (player.coachability ?? 5) * 10 },
+  ] : [];
+
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const pursuitColor = PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "";
@@ -174,7 +199,7 @@ export default async function PlayerDetailPage({
       </Link>
 
       {/* Zone A: Identity Bar */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4 sm:p-5 mb-3 overflow-hidden">
+      <div className="glass rounded-xl p-4 sm:p-5 mb-3 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-sm sm:text-base font-bold text-[var(--text-muted)] shrink-0">
@@ -273,7 +298,22 @@ export default async function PlayerDetailPage({
         </div>
 
         {/* Right column */}
-        <div>
+        <div className="space-y-3">
+          {/* Personality Radar */}
+          {radarData.length > 0 && (
+            <div className="glass rounded-xl p-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Personality Profile</h3>
+              <div className="flex justify-center">
+                <RadarChart data={radarData} size={180} color="var(--accent-personality)" />
+              </div>
+            </div>
+          )}
+
+          {/* Career Timeline */}
+          {careerEntries.length > 0 && (
+            <CareerTimeline entries={careerEntries} metrics={careerMetrics} />
+          )}
+
           {/* Scout Pad (tabbed) */}
           <ScoutPad
             scoutingNotes={player.scouting_notes}

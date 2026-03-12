@@ -48,7 +48,7 @@ export function FeaturedPlayer({ player }: { player: FeaturedPlayerData }) {
 
   return (
     <Link href={`/players/${player.person_id}`} className="block group">
-      <div className={`${styles.card} p-6 hover:brightness-110 transition-all duration-200`}>
+      <div className={`${styles.card} p-5 hover:brightness-110 transition-all duration-200`}>
         <div className="flex items-start gap-1.5 mb-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
             Featured

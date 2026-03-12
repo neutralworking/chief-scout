@@ -19,7 +19,7 @@ const POSITION_FULL_NAMES: Record<string, string> = {
 
 export function PositionExplorer({ positionCounts }: PositionExplorerProps) {
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+    <div className="glass rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
           Explore by Position

@@ -322,7 +322,7 @@ function OptionGrid({
               `}
             >
               {/* Player image or initials */}
-              <div className="aspect-[3/4] bg-[var(--bg-elevated)] flex items-center justify-center relative">
+              <div className="aspect-[4/3] bg-[var(--bg-elevated)] flex items-center justify-center relative">
                 {opt.image_url ? (
                   <img
                     src={opt.image_url}
@@ -330,7 +330,7 @@ function OptionGrid({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-3xl sm:text-4xl font-bold text-[var(--text-muted)]">
+                  <div className="text-2xl sm:text-3xl font-bold text-[var(--text-muted)]">
                     {opt.label
                       .split(" ")
                       .map((n) => n[0])

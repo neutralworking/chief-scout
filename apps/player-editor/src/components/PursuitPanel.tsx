@@ -37,7 +37,7 @@ export function PursuitPanel({ pipeline, positionCounts, stats }: PursuitPanelPr
           { label: "Tracked", value: stats.tracked.toString() },
           { label: "Priority", value: stats.priority.toString() },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5">
+          <div key={label} className="glass rounded-xl p-5">
             <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] mb-1">{label}</p>
             <p className="text-2xl font-mono font-bold text-[var(--text-primary)]">{value}</p>
           </div>
@@ -47,7 +47,7 @@ export function PursuitPanel({ pipeline, positionCounts, stats }: PursuitPanelPr
       {/* Scouting Targets + Position Depth */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Scouting Targets — 2 cols */}
-        <div className="lg:col-span-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+        <div className="lg:col-span-2 glass rounded-xl p-6">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
             Scouting Targets
           </h2>
@@ -108,7 +108,7 @@ export function PursuitPanel({ pipeline, positionCounts, stats }: PursuitPanelPr
         </div>
 
         {/* Position Depth */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+        <div className="glass rounded-xl p-6">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
             Position Depth
           </h2>

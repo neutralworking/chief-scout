@@ -39,10 +39,14 @@ SELECT
   p.preferred_foot,
   p.active,
   p.wikidata_id,
+  p.image_url,
+  p.place_of_birth,
+  p.transfermarkt_id,
+  p.wikidata_position,
 
   -- Nation & Club (resolved names)
   n.name              AS nation,
-  c.name              AS club,
+  c.clubname          AS club,
 
   -- Profile (player_profiles)
   pp.position,
@@ -61,8 +65,9 @@ SELECT
   pper.jp,
   pper.competitiveness,
   pper.coachability,
+  pper.confidence     AS personality_confidence,
   -- Computed 4-letter football personality code
-  CASE WHEN pper.ei IS NOT NULL THEN
+  CASE WHEN pper.ei IS NOT NULL AND pper.sn IS NOT NULL AND pper.tf IS NOT NULL AND pper.jp IS NOT NULL THEN
     CONCAT(
       CASE WHEN pper.ei >= 50 THEN 'A' ELSE 'I' END,
       CASE WHEN pper.sn >= 50 THEN 'X' ELSE 'N' END,
@@ -109,7 +114,7 @@ SELECT
   pper.jp,
   pper.competitiveness,
   pper.coachability,
-  CASE WHEN pper.ei IS NOT NULL THEN
+  CASE WHEN pper.ei IS NOT NULL AND pper.sn IS NOT NULL AND pper.tf IS NOT NULL AND pper.jp IS NOT NULL THEN
     CONCAT(
       CASE WHEN pper.ei >= 50 THEN 'A' ELSE 'I' END,
       CASE WHEN pper.sn >= 50 THEN 'X' ELSE 'N' END,

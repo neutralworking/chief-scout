@@ -36,7 +36,7 @@ function LevelBar({
   );
 }
 
-export function PlayerCard({ player }: { player: PlayerCardType }) {
+export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const pursuitColor =
@@ -62,7 +62,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
               {player.name}
             </h3>
           </div>
-          {player.pursuit_status && (
+          {showPursuit && player.pursuit_status && (
             <span
               className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded shrink-0 ${pursuitColor}`}
             >

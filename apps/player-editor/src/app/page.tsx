@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase-server";
-import { POSITIONS } from "@/lib/types";
+import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
@@ -14,92 +14,138 @@ const PIPELINE_STATUSES = ["Priority", "Interested", "Watch"] as const;
 
 async function getUserPreferences(): Promise<Record<string, unknown> | null> {
   if (!supabaseServer) return null;
-
   try {
     const cookieStore = await cookies();
-    // Check for Supabase auth cookie to find user
     const authCookie = cookieStore.getAll().find((c) => c.name.includes("auth-token"));
     if (!authCookie) return null;
-
-    // We can't easily decode the JWT here without the auth client,
-    // so we'll rely on a simpler approach: check localStorage preference
-    // passed via cookie or default to consumer mode
     return null;
   } catch {
     return null;
   }
 }
 
+interface NewsStoryWithTags {
+  id: number;
+  headline: string;
+  url: string | null;
+  published_at: string | null;
+  summary: string | null;
+  story_type: string | null;
+  tags: Array<{ person_id: number; name: string; sentiment: string | null }>;
+}
+
 async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
 
-  // Consumer queries: featured player, personality type counts, trending players, position counts, news
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
-    // Featured player: random full-profile player
+    // Featured player: get players with sentiment data for swing-based selection
     supabaseServer
-      .from("player_intelligence_card")
-      .select("person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob")
-      .eq("profile_tier", 1)
-      .not("personality_type", "is", null)
-      .not("archetype", "is", null)
-      .limit(20),
+      .from("news_player_tags")
+      .select("person_id, sentiment, people!inner(name)")
+      .order("created_at", { ascending: false })
+      .limit(200),
     // Personality type counts
     supabaseServer
       .from("player_intelligence_card")
       .select("personality_type")
       .not("personality_type", "is", null),
-    // Position counts (all profiled players)
+    // Position counts
     supabaseServer
       .from("player_intelligence_card")
       .select("position")
       .not("position", "is", null),
-    // Recent news
+    // Recent news with tags
     supabaseServer
       .from("news_stories")
-      .select("id, headline, url, published_at, summary")
+      .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
-      .limit(5),
-    // Trending players: most mentioned in recent news
+      .limit(8),
+    // Trending players
     supabaseServer
       .from("news_player_tags")
-      .select("person_id, people!inner(name), count")
+      .select("person_id, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(50),
   ];
 
-  // Pro queries: only if shortlists enabled
   if (shortlistsEnabled) {
     queries.push(
-      // Pipeline players
       supabaseServer
         .from("player_intelligence_card")
         .select("person_id, name, position, club, level, archetype, pursuit_status, profile_tier, personality_type")
         .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"])
         .order("level", { ascending: false }),
-      // Quick stats
       supabaseServer.from("people").select("id", { count: "exact", head: true }),
       supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
     );
   }
 
   const results = await Promise.all(queries);
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [featuredResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
+  const [sentimentResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
 
-  // Pick a random featured player from the top-rated ones
-  const featuredCandidates = (featuredResult.data ?? []) as Array<{
+  // Find featured player based on sentiment swing (most mixed/controversial)
+  const sentimentRows = (sentimentResult.data ?? []) as Array<{ person_id: number; sentiment: string | null; people: { name: string } }>;
+  const playerSentiments = new Map<number, { name: string; positive: number; negative: number; total: number }>();
+  for (const row of sentimentRows) {
+    const existing = playerSentiments.get(row.person_id) ?? { name: row.people?.name ?? "Unknown", positive: 0, negative: 0, total: 0 };
+    existing.total++;
+    if (row.sentiment === "positive") existing.positive++;
+    if (row.sentiment === "negative") existing.negative++;
+    playerSentiments.set(row.person_id, existing);
+  }
+
+  // Pick player with highest sentiment swing (both positive AND negative mentions)
+  let featuredPersonId: number | null = null;
+  let maxSwing = 0;
+  for (const [pid, s] of playerSentiments) {
+    const swing = Math.min(s.positive, s.negative) * 2 + s.total;
+    if (swing > maxSwing && s.total >= 2) {
+      maxSwing = swing;
+      featuredPersonId = pid;
+    }
+  }
+
+  // Fallback: most mentioned player
+  if (!featuredPersonId && playerSentiments.size > 0) {
+    let maxTotal = 0;
+    for (const [pid, s] of playerSentiments) {
+      if (s.total > maxTotal) { maxTotal = s.total; featuredPersonId = pid; }
+    }
+  }
+
+  // Fetch full profile for featured player
+  let featured: {
     person_id: number; name: string; position: string | null; club: string | null;
     nation: string | null; level: number | null; overall: number | null;
     archetype: string | null; personality_type: string | null;
-    market_value_tier: string | null; dob: string | null;
-  }>;
-  const featured = featuredCandidates.length > 0
-    ? featuredCandidates[Math.floor(Math.random() * featuredCandidates.length)]
-    : null;
+    market_value_tier: string | null; dob: string | null; blueprint: string | null;
+  } | null = null;
 
-  // Count personality types
+  if (featuredPersonId) {
+    const { data: fp } = await supabaseServer
+      .from("player_intelligence_card")
+      .select("person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint")
+      .eq("person_id", featuredPersonId)
+      .single();
+    if (fp) featured = fp as NonNullable<typeof featured>;
+  }
+
+  // Fallback: random full-profile player
+  if (!featured) {
+    const { data: fallbacks } = await supabaseServer
+      .from("player_intelligence_card")
+      .select("person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint")
+      .eq("profile_tier", 1)
+      .not("personality_type", "is", null)
+      .not("archetype", "is", null)
+      .limit(20);
+    const candidates = (fallbacks ?? []) as Array<typeof featured & object>;
+    if (candidates.length > 0) featured = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  // Personality type counts
   const personalityRows = (personalityResult.data ?? []) as { personality_type: string }[];
   const typeCountMap = new Map<string, number>();
   for (const row of personalityRows) {
@@ -107,36 +153,53 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   }
   const typeCounts = Array.from(typeCountMap.entries()).map(([type, count]) => ({ type, count }));
 
-  // Count positions
+  // Position counts
   const positionRows = (positionResult.data ?? []) as { position: string }[];
   const positionCounts: Record<string, number> = {};
   for (const pos of POSITIONS) {
     positionCounts[pos] = positionRows.filter((r) => r.position === pos).length;
   }
 
-  // News
-  const news = (newsResult.data ?? []) as { id: number; headline: string; url: string | null; published_at: string | null; summary: string | null }[];
+  // News stories
+  const rawNews = (newsResult.data ?? []) as Array<{ id: number; headline: string; url: string | null; published_at: string | null; summary: string | null; story_type: string | null }>;
 
-  // Trending: aggregate person mentions from news tags
+  // Get tags for news stories
+  const storyIds = rawNews.map((s) => s.id);
+  let newsWithTags: NewsStoryWithTags[] = rawNews.map((s) => ({ ...s, tags: [] }));
+
+  if (storyIds.length > 0) {
+    const { data: tagData } = await supabaseServer
+      .from("news_player_tags")
+      .select("story_id, person_id, sentiment, people!inner(name)")
+      .in("story_id", storyIds);
+
+    if (tagData) {
+      const tagMap = new Map<number, Array<{ person_id: number; name: string; sentiment: string | null }>>();
+      for (const t of tagData as Array<Record<string, unknown>>) {
+        const storyId = t.story_id as number;
+        const personId = t.person_id as number;
+        const sentiment = t.sentiment as string | null;
+        const people = t.people as { name: string } | { name: string }[] | null;
+        const name = Array.isArray(people) ? people[0]?.name : people?.name;
+        const list = tagMap.get(storyId) ?? [];
+        list.push({ person_id: personId, name: name ?? "Unknown", sentiment });
+        tagMap.set(storyId, list);
+      }
+      newsWithTags = rawNews.map((s) => ({ ...s, tags: tagMap.get(s.id) ?? [] }));
+    }
+  }
+
+  // Trending players
   const trendingRaw = (trendingResult.data ?? []) as Array<{ person_id: number; people: { name: string } }>;
   const trendingMap = new Map<number, { person_id: number; name: string; count: number }>();
   for (const row of trendingRaw) {
     const existing = trendingMap.get(row.person_id);
-    if (existing) {
-      existing.count++;
-    } else {
-      trendingMap.set(row.person_id, {
-        person_id: row.person_id,
-        name: row.people?.name ?? "Unknown",
-        count: 1,
-      });
+    if (existing) { existing.count++; } else {
+      trendingMap.set(row.person_id, { person_id: row.person_id, name: row.people?.name ?? "Unknown", count: 1 });
     }
   }
-  const trendingPlayerIds = Array.from(trendingMap.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
+  const trendingPlayerIds = Array.from(trendingMap.values()).sort((a, b) => b.count - a.count).slice(0, 8);
 
-  // Enrich trending with profile data
   let trendingPlayers: Array<{
     person_id: number; name: string; position: string | null;
     club: string | null; personality_type: string | null;
@@ -154,14 +217,10 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .map((t) => {
         const e = enrichedMap.get(t.person_id) as Record<string, unknown> | undefined;
         return {
-          person_id: t.person_id,
-          name: (e?.name as string) ?? t.name,
-          position: (e?.position as string | null) ?? null,
-          club: (e?.club as string | null) ?? null,
-          personality_type: (e?.personality_type as string | null) ?? null,
-          archetype: (e?.archetype as string | null) ?? null,
-          level: (e?.level as number | null) ?? null,
-          story_count: t.count,
+          person_id: t.person_id, name: (e?.name as string) ?? t.name,
+          position: (e?.position as string | null) ?? null, club: (e?.club as string | null) ?? null,
+          personality_type: (e?.personality_type as string | null) ?? null, archetype: (e?.archetype as string | null) ?? null,
+          level: (e?.level as number | null) ?? null, story_count: t.count,
         };
       })
       .filter((t) => t.name !== "Unknown");
@@ -173,43 +232,32 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [pipelineResult, totalResult, fullProfilesResult] = results.slice(5) as any[];
     const pipelinePlayers = (pipelineResult.data ?? []) as PlayerCardType[];
-
     const pipeline: Record<string, PlayerCardType[]> = {};
     for (const status of PIPELINE_STATUSES) {
       pipeline[status] = pipelinePlayers.filter((p) => p.pursuit_status === status);
     }
-
     const pipelinePositionCounts: Record<string, number> = {};
     for (const pos of POSITIONS) {
       pipelinePositionCounts[pos] = pipelinePlayers.filter((p) => p.position === pos).length;
     }
-
     proData = {
-      pipeline,
-      positionCounts: pipelinePositionCounts,
-      stats: {
-        total: totalResult.count ?? 0,
-        fullProfiles: fullProfilesResult.count ?? 0,
-        priority: pipeline["Priority"]?.length ?? 0,
-        tracked: pipelinePlayers.length,
-      },
+      pipeline, positionCounts: pipelinePositionCounts,
+      stats: { total: totalResult.count ?? 0, fullProfiles: fullProfilesResult.count ?? 0, priority: pipeline["Priority"]?.length ?? 0, tracked: pipelinePlayers.length },
     };
   }
 
-  return {
-    featured,
-    typeCounts,
-    positionCounts,
-    news,
-    trendingPlayers,
-    proData,
-  };
+  return { featured, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
 }
 
-function formatDate(dateStr: string | null): string {
+function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d`;
 }
 
 export default async function DashboardPage() {
@@ -229,103 +277,96 @@ export default async function DashboardPage() {
   const { featured, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
 
   return (
-    <div>
-      {/* Hero: Featured Player + Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Featured Player — 2 cols */}
-        <div className="lg:col-span-2">
-          {featured ? (
-            <FeaturedPlayer player={{ ...featured, blueprint: null }} />
-          ) : (
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
-              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-3">
-          <Link
-            href="/choices"
-            className="block bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5 hover:bg-[var(--bg-elevated)]/50 transition-colors group"
-          >
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-1">
-              Football Choices
-            </p>
-            <p className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-              Build your footballing identity by picking between legends and stars
-            </p>
-          </Link>
-          <Link
-            href="/players"
-            className="block bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5 hover:bg-[var(--bg-elevated)]/50 transition-colors group"
-          >
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-1">
-              Player Database
-            </p>
-            <p className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-              Search and filter {positionCounts ? Object.values(positionCounts).reduce((a, b) => a + b, 0).toLocaleString() : "all"} profiled players
-            </p>
-          </Link>
-          <Link
-            href="/formations"
-            className="block bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5 hover:bg-[var(--bg-elevated)]/50 transition-colors group"
-          >
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--accent-mental)] mb-1">
-              Formations
-            </p>
-            <p className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-              Explore 33+ tactical formations and their player requirements
-            </p>
-          </Link>
-        </div>
-      </div>
-
-      {/* Row 2: Personality Types */}
-      <div className="mb-6">
-        <PersonalityExplorer typeCounts={typeCounts} />
-      </div>
-
-      {/* Row 3: Trending Players + Position Explorer */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2">
-          <TrendingPlayers players={trendingPlayers} />
-        </div>
-        <div>
-          <PositionExplorer positionCounts={positionCounts} />
-        </div>
-      </div>
-
-      {/* Row 4: Recent News */}
-      {news.length > 0 && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6 mb-6">
+    <div className="space-y-4">
+      {/* Row 1: News Feed (top priority) + Featured Player */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* News — 3 cols */}
+        <div className="lg:col-span-3 glass rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-              Recent News
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+              Latest News
             </h2>
             <Link href="/news" className="text-xs text-[var(--accent-personality)] hover:underline">
-              All news &rarr;
+              All stories &rarr;
             </Link>
           </div>
           <div className="space-y-3">
-            {news.map((story) => (
-              <div key={story.id} className="flex items-start gap-3">
-                <span className="text-xs text-[var(--text-muted)] w-14 shrink-0 pt-0.5">
-                  {formatDate(story.published_at)}
+            {news.map((story, i) => (
+              <div key={story.id} className={`flex gap-3 ${i === 0 ? "pb-3 border-b border-[var(--border-subtle)]" : ""}`}>
+                <span className="text-[10px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
+                  {timeAgo(story.published_at)}
                 </span>
-                <div className="min-w-0">
-                  <p className="text-sm text-[var(--text-primary)] truncate">{story.headline}</p>
-                  {story.summary && (
-                    <p className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{story.summary}</p>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-[var(--text-primary)] truncate ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    {story.headline}
+                  </p>
+                  {i === 0 && story.summary && (
+                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{story.summary}</p>
+                  )}
+                  {story.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {story.tags.slice(0, 3).map((tag) => (
+                        <Link
+                          key={tag.person_id}
+                          href={`/players/${tag.person_id}`}
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium hover:brightness-125 transition-all ${
+                            tag.sentiment === "positive" ? "bg-[var(--sentiment-positive)]/15 text-[var(--sentiment-positive)]" :
+                            tag.sentiment === "negative" ? "bg-[var(--sentiment-negative)]/15 text-[var(--sentiment-negative)]" :
+                            "bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
+                          }`}
+                        >
+                          {tag.name}
+                        </Link>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
             ))}
           </div>
         </div>
-      )}
 
-      {/* Pro: Pursuit Pipeline — only when shortlists enabled */}
+        {/* Featured Player + Quick Actions — 2 cols */}
+        <div className="lg:col-span-2 space-y-4">
+          {featured ? (
+            <FeaturedPlayer player={featured} />
+          ) : (
+            <div className="glass rounded-xl p-6">
+              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2">
+            <Link href="/choices" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-0.5">Choices</p>
+              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">Build your XI</p>
+            </Link>
+            <Link href="/players" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-0.5">Players</p>
+              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">{Object.values(positionCounts).reduce((a, b) => a + b, 0).toLocaleString()}</p>
+            </Link>
+            <Link href="/formations" className="glass rounded-xl p-3 hover:bg-[var(--bg-elevated)] transition-colors text-center group">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] mb-0.5">Formations</p>
+              <p className="text-[10px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">33+ systems</p>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Personality Types */}
+      <PersonalityExplorer typeCounts={typeCounts} />
+
+      {/* Row 3: Trending + Position Explorer */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3">
+          <TrendingPlayers players={trendingPlayers} />
+        </div>
+        <div className="lg:col-span-2">
+          <PositionExplorer positionCounts={positionCounts} />
+        </div>
+      </div>
+
+      {/* Pro: Pursuit Pipeline */}
       {proData && (
         <PursuitPanel
           pipeline={proData.pipeline}

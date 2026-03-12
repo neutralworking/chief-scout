@@ -92,6 +92,32 @@ COMPOUND_MODELS = {
     "Mental":    ["Controller", "Commander", "Creator"],
 }
 
+# Position weights for role fit (mirrors radar route.ts)
+POSITION_WEIGHTS = {
+    "GK":  {"GK": 1.0, "Cover": 0.6, "Commander": 0.5, "Controller": 0.3},
+    "CD":  {"Destroyer": 1.0, "Cover": 0.9, "Commander": 0.7, "Target": 0.5, "Powerhouse": 0.4, "Passer": 0.3},
+    "WD":  {"Engine": 0.9, "Dribbler": 0.7, "Passer": 0.7, "Sprinter": 0.6, "Cover": 0.6, "Destroyer": 0.3},
+    "DM":  {"Cover": 1.0, "Destroyer": 0.9, "Controller": 0.8, "Passer": 0.5, "Commander": 0.4, "Powerhouse": 0.3},
+    "CM":  {"Controller": 1.0, "Passer": 0.9, "Engine": 0.8, "Cover": 0.5, "Creator": 0.4},
+    "WM":  {"Dribbler": 0.9, "Passer": 0.8, "Engine": 0.7, "Sprinter": 0.6, "Creator": 0.5},
+    "AM":  {"Creator": 1.0, "Dribbler": 0.8, "Passer": 0.7, "Controller": 0.5, "Striker": 0.4, "Sprinter": 0.3},
+    "WF":  {"Dribbler": 1.0, "Sprinter": 0.9, "Striker": 0.7, "Creator": 0.5, "Engine": 0.5},
+    "CF":  {"Striker": 1.0, "Target": 0.7, "Sprinter": 0.6, "Powerhouse": 0.5, "Dribbler": 0.4, "Creator": 0.3},
+}
+
+# Tactical roles with primary + secondary model (mirrors radar route.ts)
+TACTICAL_ROLES = {
+    "GK":  [("GK", "Cover", "Shot Stopper"), ("GK", "Passer", "Sweeper Keeper")],
+    "CD":  [("Destroyer", "Cover", "Stopper"), ("Cover", "Passer", "Ball-Playing CB"), ("Destroyer", "Commander", "Enforcer"), ("Cover", "Dribbler", "Ball-Carrier")],
+    "WD":  [("Engine", "Dribbler", "Overlapping FB"), ("Cover", "Passer", "Inverted FB"), ("Engine", "Sprinter", "Wing-Back")],
+    "DM":  [("Cover", "Destroyer", "Anchor"), ("Controller", "Passer", "Regista"), ("Destroyer", "Engine", "Ball Winner")],
+    "CM":  [("Controller", "Passer", "Deep Playmaker"), ("Engine", "Cover", "Box-to-Box"), ("Passer", "Creator", "Mezzala")],
+    "WM":  [("Dribbler", "Passer", "Wide Playmaker"), ("Engine", "Sprinter", "Traditional Winger"), ("Creator", "Dribbler", "Inside Forward")],
+    "AM":  [("Creator", "Dribbler", "Trequartista"), ("Controller", "Creator", "Advanced Playmaker"), ("Dribbler", "Striker", "Shadow Striker")],
+    "WF":  [("Dribbler", "Sprinter", "Inside Forward"), ("Striker", "Dribbler", "Wide Forward"), ("Sprinter", "Creator", "Inverted Winger")],
+    "CF":  [("Striker", "Target", "Target Man"), ("Target", "Powerhouse", "Complete Forward"), ("Striker", "Sprinter", "Poacher"), ("Dribbler", "Striker", "False 9"), ("Creator", "Striker", "Deep-Lying Forward")],
+}
+
 # Position weights for overall calculation (which compounds matter per position)
 POSITION_COMPOUND_WEIGHTS = {
     "GK":  {"Technical": 0.5, "Tactical": 0.2, "Physical": 0.1, "Mental": 0.2},
@@ -200,6 +226,25 @@ def compute_overall(compound_scores, position, level=None, peak=None):
         overall = technical_overall
 
     return round(min(max(overall, 1), 99))
+
+
+def compute_best_role(model_scores, position):
+    """Compute the best tactical role for a player based on model scores and position."""
+    roles = TACTICAL_ROLES.get(position, [])
+    if not roles:
+        return None
+
+    best_role = None
+    best_score = -1
+    for primary, secondary, name in roles:
+        p_score = model_scores.get(primary, 0)
+        s_score = model_scores.get(secondary, 0)
+        score = p_score * 0.6 + s_score * 0.4
+        if score > best_score:
+            best_score = score
+            best_role = name
+
+    return best_role
 
 
 def has_differentiated_data(model_scores):
@@ -320,6 +365,8 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
+        best_role = compute_best_role(model_scores, position)
+
         results.append({
             "person_id": pid,
             "overall": overall,
@@ -327,7 +374,9 @@ def main():
             "compound_scores": compound_scores,
             "position": position,
             "level": level,
-            "peak": peak,
+            "best_role": best_role,
+            "technical_score": compound_scores.get("Technical"),
+            "physical_score": compound_scores.get("Physical"),
         })
 
     print(f"\n  Computed ratings: {stats['computed']}")
@@ -359,22 +408,29 @@ def main():
             name = name_row[0] if name_row else f"#{r['person_id']}"
             compounds = ", ".join(f"{k}={v}" for k, v in r["compound_scores"].items())
             level_str = f" lvl={r['level']}" if r['level'] else ""
-            peak_str = f" pk={r['peak']}" if r['peak'] else ""
+            role_str = f" role={r['best_role']}" if r.get('best_role') else ""
             print(f"    {name:25s} {r['position']:3s}  overall={r['overall']:2d}"
-                  f"{level_str}{peak_str}  [{compounds}]")
+                  f"{level_str}{role_str}  [{compounds}]")
 
     # ── Step 6: Write results ────────────────────────────────────────────────
 
     if not DRY_RUN and results:
         now_iso = datetime.now(timezone.utc).isoformat()
 
-        # Update player_profiles.overall
+        # Update player_profiles: overall + compound scores + best_role
         profile_updates = []
         for r in results:
-            profile_updates.append({
+            update = {
                 "person_id": r["person_id"],
                 "overall": float(r["overall"]),
-            })
+            }
+            if r.get("technical_score") is not None:
+                update["technical_score"] = r["technical_score"]
+            if r.get("physical_score") is not None:
+                update["physical_score"] = r["physical_score"]
+            if r.get("best_role"):
+                update["best_role"] = r["best_role"]
+            profile_updates.append(update)
 
         for i in range(0, len(profile_updates), CHUNK_SIZE):
             chunk = profile_updates[i:i + CHUNK_SIZE]

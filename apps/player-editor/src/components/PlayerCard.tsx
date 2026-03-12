@@ -8,29 +8,30 @@ import {
 import { PersonalityBadge } from "@/components/PersonalityBadge";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 
-function LevelBar({
+const PERSONALITY_NAMES: Record<string, string> = {
+  ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
+  AXLC: "Showman", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
+  AXSC: "Enforcer", AXSP: "Technician", AXLP: "Orchestrator", INLP: "Guardian",
+  INSC: "Hunter", IXLC: "Provocateur", IXLP: "Playmaker", ANSP: "Professor",
+};
+
+function QuadrantMetric({
   label,
   value,
-  max = 100,
+  color,
 }: {
   label: string;
-  value: number | null;
-  max?: number;
+  value: string | null;
+  color: string;
 }) {
-  const pct = value ? Math.min((value / max) * 100, 100) : 0;
+  if (!value) return null;
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] text-[var(--text-secondary)] w-8 uppercase tracking-wide">
+    <div className="flex items-center gap-1.5">
+      <span className={`text-[8px] font-bold uppercase tracking-wider ${color} w-[3ch]`}>
         {label}
       </span>
-      <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full bg-[var(--text-primary)] opacity-60"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs font-mono text-[var(--text-primary)] w-6 text-right">
-        {value ?? "–"}
+      <span className="text-[10px] text-[var(--text-primary)] truncate">
+        {value}
       </span>
     </div>
   );
@@ -44,14 +45,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
 
+  const mentalLabel = player.personality_type ? PERSONALITY_NAMES[player.personality_type] ?? player.personality_type : null;
+
   return (
     <Link
       href={`/players/${player.person_id}`}
       className="block group"
     >
       <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name + CSPER */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+        {/* Row 1: Position badge + Name + Level */}
+        <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <span
               className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}
@@ -63,7 +66,11 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
             </h3>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <PersonalityBadge personalityType={player.personality_type} size="compact" />
+            {player.level != null && (
+              <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none">
+                {player.level}
+              </span>
+            )}
             {showPursuit && player.pursuit_status && (
               <span
                 className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
@@ -75,8 +82,8 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         </div>
 
         {/* Row 2: Club, Nation, Age */}
-        <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mb-3">
-          {player.club && <span>{player.club}</span>}
+        <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-3">
+          {player.club && <span className="truncate">{player.club}</span>}
           {player.nation && (
             <>
               <span className="text-[var(--text-muted)]">·</span>
@@ -91,14 +98,31 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Level/Peak/Overall bars */}
-        <div className="space-y-1 mb-3">
-          <LevelBar label="Lvl" value={player.level} />
-          <LevelBar label="Peak" value={player.peak} />
-          <LevelBar label="OVR" value={player.overall} />
+        {/* Row 3: Four quadrant metrics */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3">
+          <QuadrantMetric
+            label="TEC"
+            value={player.technical_score != null ? `${player.technical_score}` : null}
+            color="text-sky-400"
+          />
+          <QuadrantMetric
+            label="PHY"
+            value={player.physical_score != null ? `${player.physical_score}` : null}
+            color="text-amber-400"
+          />
+          <QuadrantMetric
+            label="MEN"
+            value={mentalLabel}
+            color="text-purple-400"
+          />
+          <QuadrantMetric
+            label="TAC"
+            value={player.best_role}
+            color="text-green-400"
+          />
         </div>
 
-        {/* Row 4: Market Value + Archetype + Tier */}
+        {/* Row 4: Market Value + Archetype + CSPER badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {player.market_value_eur != null && (
@@ -114,15 +138,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
               </span>
             )}
           </div>
-          <span className={`text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded ${
-            player.profile_tier === 1 && player.archetype
-              ? "text-[var(--accent-personality)] border border-[var(--accent-personality)]/30"
-              : player.level != null
-              ? "text-[var(--text-muted)] border border-[var(--border-subtle)]"
-              : "text-[var(--text-muted)]/50"
-          }`}>
-            {player.profile_tier === 1 && player.archetype ? "Assessed" : player.level != null ? "Analyzed" : "Unknown"}
-          </span>
+          <PersonalityBadge personalityType={player.personality_type} size="mini" />
         </div>
       </div>
     </Link>

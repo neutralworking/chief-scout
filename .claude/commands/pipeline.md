@@ -52,3 +52,9 @@ cd pipeline && python3 09_understat_ingest.py --league EPL --season 2024 --dry-r
 - Check `.env.local` for SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN
 - Migration `pipeline/sql/003_news_statsbomb_understat.sql` must be run before scripts 08/09
 - New scripts should follow the `NN_descriptive_name.py` naming pattern
+
+## External Data Sources — Fail Fast
+When a data source is blocked (Cloudflare, anti-bot, rate limits, auth walls):
+- **Do NOT** try multiple bypass strategies (cloudscraper, Playwright stealth, curl_cffi, etc.)
+- After **2 failed attempts**, stop and propose alternatives: official APIs, CSV exports, open data sources, or manual upload via admin panel
+- The admin panel already supports CSV import for FBRef data — use that pattern for other blocked sources

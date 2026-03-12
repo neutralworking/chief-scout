@@ -22,11 +22,15 @@ export default async function ChoicesPage() {
   let categories: Category[] = [];
 
   if (supabaseServer) {
-    const { data } = await supabaseServer
-      .from("fc_categories")
-      .select("id, slug, name, description, icon, sort_order")
-      .order("sort_order");
-    categories = (data ?? []) as Category[];
+    try {
+      const { data, error } = await supabaseServer
+        .from("fc_categories")
+        .select("id, slug, name, description, icon, sort_order")
+        .order("sort_order");
+      if (!error) categories = (data ?? []) as Category[];
+    } catch {
+      // Table may not exist yet — migrations 015/016 not applied
+    }
   }
 
   return (

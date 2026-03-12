@@ -18,37 +18,42 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing slot" }, { status: 400 });
   }
 
-  const sb = createClient(supabaseUrl, supabaseKey);
+  try {
+    const sb = createClient(supabaseUrl, supabaseKey);
 
-  // Get template
-  const { data: template } = await sb
-    .from("fc_squad_templates")
-    .select("id")
-    .eq("slug", templateSlug)
-    .single();
+    // Get template
+    const { data: template, error: templateErr } = await sb
+      .from("fc_squad_templates")
+      .select("id")
+      .eq("slug", templateSlug)
+      .single();
 
-  if (!template) {
-    return NextResponse.json({ error: "Template not found" }, { status: 404 });
+    if (templateErr || !template) {
+      return NextResponse.json({ candidates: [], stats: [] });
+    }
+
+    // Get candidates
+    const { data: candidates } = await sb
+      .from("fc_position_candidates")
+      .select("id, player_name, person_id, subtitle, image_url, era, sort_order")
+      .eq("template_id", template.id)
+      .eq("slot", slot)
+      .order("sort_order");
+
+    // Get pick stats for context
+    const { data: stats } = await sb
+      .from("fc_pick_stats")
+      .select("player_name, pick_count, pick_pct")
+      .eq("template_id", template.id)
+      .eq("slot", slot)
+      .order("pick_count", { ascending: false });
+
+    return NextResponse.json({
+      candidates: candidates ?? [],
+      stats: stats ?? [],
+    });
+  } catch (err) {
+    console.error("Candidates API error:", err);
+    return NextResponse.json({ candidates: [], stats: [] });
   }
-
-  // Get candidates
-  const { data: candidates } = await sb
-    .from("fc_position_candidates")
-    .select("id, player_name, person_id, subtitle, image_url, era, sort_order")
-    .eq("template_id", template.id)
-    .eq("slot", slot)
-    .order("sort_order");
-
-  // Get pick stats for context
-  const { data: stats } = await sb
-    .from("fc_pick_stats")
-    .select("player_name, pick_count, pick_pct")
-    .eq("template_id", template.id)
-    .eq("slot", slot)
-    .order("pick_count", { ascending: false });
-
-  return NextResponse.json({
-    candidates: candidates ?? [],
-    stats: stats ?? [],
-  });
 }

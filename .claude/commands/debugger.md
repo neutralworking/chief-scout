@@ -36,3 +36,18 @@ Given `$ARGUMENTS` (an error message, unexpected behavior, or "something's wrong
 3. Read the relevant source files
 4. Form a hypothesis, test it
 5. Fix and verify
+
+## Self-Fix Loop
+Before presenting any code changes, follow this loop:
+1. Make the edit
+2. Run the build and all relevant tests
+3. If anything fails, read the error, diagnose the root cause, fix it, and re-run — up to 3 attempts
+4. If CSS is involved, check for visibility issues (opacity, display, z-index)
+5. Only show the final working result or explain what's still broken after 3 attempts
+
+## Fail Fast on Blockers
+Set a **2-attempt limit** on any single approach. If two variations of the same strategy fail (e.g. bypassing Cloudflare, working around a permissions issue), do NOT try more variations. Instead:
+1. Stop immediately
+2. Propose 3 alternative approaches ranked by feasibility
+3. Let the user pick one
+4. Never burn session time on 5+ variations of a doomed approach

@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
+  try {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("user_id");
   const category = searchParams.get("category");
@@ -60,4 +61,8 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({ questions: questions ?? [] });
+  } catch (err) {
+    console.error("Choices API error:", err);
+    return NextResponse.json({ questions: [] });
+  }
 }

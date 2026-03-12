@@ -40,6 +40,15 @@ Given `$ARGUMENTS`:
 
 When building UI, always invoke the `frontend-design` skill — it produces distinctive, production-grade interfaces that avoid generic AI aesthetics.
 
+## UI Wireframe-First Rule
+Before writing any UI code, describe the layout in plain text:
+1. What fields will be shown and how they're grouped
+2. What the user flow looks like step by step
+3. Which existing components/patterns to reuse
+4. Present this for user approval BEFORE building
+
+Never jump straight to code for UI work. The cost of rebuilding rejected UI is far higher than the cost of a 2-minute text wireframe.
+
 ## Rules
 - All feature tables use `person_id` FK to `people(id)`
 - Position enum: GK, WD, CD, DM, CM, WM, AM, WF, CF

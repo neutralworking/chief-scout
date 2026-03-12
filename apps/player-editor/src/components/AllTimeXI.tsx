@@ -109,6 +109,7 @@ export function AllTimeXI() {
   async function loadSquad() {
     try {
       const res = await fetch(`/api/choices/squad?user_id=${fcUserId}&template=classic-433`);
+      if (!res.ok) return;
       const data = await res.json();
       if (data.template?.positions) setPositions(data.template.positions);
       if (data.picks?.length) {

@@ -10,60 +10,65 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("user_id");
-  const templateSlug = searchParams.get("template") ?? "classic-433";
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("user_id");
+    const templateSlug = searchParams.get("template") ?? "classic-433";
 
-  const sb = createClient(supabaseUrl, supabaseKey);
+    const sb = createClient(supabaseUrl, supabaseKey);
 
-  // Get template
-  const { data: template } = await sb
-    .from("fc_squad_templates")
-    .select("*")
-    .eq("slug", templateSlug)
-    .single();
-
-  if (!template) {
-    return NextResponse.json({ error: "Template not found" }, { status: 404 });
-  }
-
-  // Get user's squad if exists
-  let squad = null;
-  let picks: Record<string, unknown>[] = [];
-
-  if (userId) {
-    const { data: squadData } = await sb
-      .from("fc_squads")
+    // Get template
+    const { data: template, error: templateErr } = await sb
+      .from("fc_squad_templates")
       .select("*")
-      .eq("user_id", userId)
-      .eq("template_id", template.id)
+      .eq("slug", templateSlug)
       .single();
 
-    squad = squadData;
-
-    if (squad) {
-      const { data: picksData } = await sb
-        .from("fc_squad_picks")
-        .select("*")
-        .eq("squad_id", squad.id)
-        .order("slot");
-      picks = picksData ?? [];
+    if (templateErr || !template) {
+      return NextResponse.json({ template: null, squad: null, picks: [], stats: [] });
     }
+
+    // Get user's squad if exists
+    let squad = null;
+    let picks: Record<string, unknown>[] = [];
+
+    if (userId) {
+      const { data: squadData } = await sb
+        .from("fc_squads")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("template_id", template.id)
+        .single();
+
+      squad = squadData;
+
+      if (squad) {
+        const { data: picksData } = await sb
+          .from("fc_squad_picks")
+          .select("*")
+          .eq("squad_id", squad.id)
+          .order("slot");
+        picks = picksData ?? [];
+      }
+    }
+
+    // Get pick stats for this template
+    const { data: stats } = await sb
+      .from("fc_pick_stats")
+      .select("*")
+      .eq("template_id", template.id)
+      .order("pick_count", { ascending: false });
+
+    return NextResponse.json({
+      template,
+      squad,
+      picks,
+      stats: stats ?? [],
+    });
+  } catch (err) {
+    console.error("Squad API error:", err);
+    return NextResponse.json({ template: null, squad: null, picks: [], stats: [] });
   }
-
-  // Get pick stats for this template
-  const { data: stats } = await sb
-    .from("fc_pick_stats")
-    .select("*")
-    .eq("template_id", template.id)
-    .order("pick_count", { ascending: false });
-
-  return NextResponse.json({
-    template,
-    squad,
-    picks,
-    stats: stats ?? [],
-  });
 }
 
 // POST /api/choices/squad — create or get squad, and make a pick
@@ -72,6 +77,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
+  try {
   const body = await request.json();
   const { user_id, template_slug, slot, player_name, person_id, time_ms } = body;
 
@@ -190,4 +196,8 @@ export async function POST(request: Request) {
     slot_stats: slotStats ?? [],
     completed: (count ?? 0) >= 11,
   });
+  } catch (err) {
+    console.error("Squad POST error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
 }

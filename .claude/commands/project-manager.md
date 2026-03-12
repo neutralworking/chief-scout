@@ -23,6 +23,13 @@ For each task, specify:
 - **How**: Which skill to use (`/supabase`, `/pipeline`, `/debugger`, etc.)
 - **Depends on**: Any blocking tasks
 
+## Session Scoping
+Keep sessions focused on **one goal at a time**. Sessions attempting 3+ unrelated goals have the lowest success rates. When the user's request spans multiple areas:
+1. Identify the distinct goals
+2. Recommend tackling them as separate focused sessions
+3. Sequence them: build first, deploy second, debug third
+4. Each session should have a clear "done" criteria
+
 ## Rules
 - Always check git status before planning — account for uncommitted work
 - Reference the normalized schema (people, player_profiles, player_status, player_market, etc.)

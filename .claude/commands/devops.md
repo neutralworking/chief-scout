@@ -127,6 +127,22 @@ When connecting new services (Linear, Notion, etc.):
 - **API URL:** `https://fnvlemkbhohyouhjebwf.supabase.co`
 - **Pooler DSN:** `postgresql://postgres.fnvlemkbhohyouhjebwf:[password]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`
 
+## Feasibility Recon
+Before implementing any external integration or service connection, run a recon phase FIRST:
+1. **Probe** the target endpoint/API/server — check for blocking, rate limits, auth requirements, and environment constraints
+2. **Test** that all required CLI tools, permissions, and env vars are available
+3. **Identify** the top 3 risks that could block implementation
+4. For each risk, propose a **primary approach and a fallback**
+5. Present a **go/no-go recommendation** with findings before writing any implementation code
+
+Never start building against an external service without confirming it's reachable and cooperative first.
+
+## Env Var Verification
+When debugging build or deploy issues, check for missing environment variables FIRST:
+- Never assume env vars exist in all environments (local, Vercel, CI)
+- Cross-reference `process.env.*` references in `src/` against actual env files
+- Verify Vercel env vars match local: `npx vercel env ls --cwd apps/player-editor`
+
 ## Common Issues
 
 | Symptom | Likely Cause | Fix |

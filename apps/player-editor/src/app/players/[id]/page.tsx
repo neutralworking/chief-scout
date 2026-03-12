@@ -282,16 +282,6 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* CS Value (Director Valuation) */}
-          {player.director_valuation_meur != null && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
-              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">
-                &euro;{player.director_valuation_meur.toFixed(1)}m
-              </span>
-            </div>
-          )}
-
           {/* Peak Value */}
           {player.highest_market_value_eur != null && player.highest_market_value_eur !== player.market_value_eur && (
             <div>

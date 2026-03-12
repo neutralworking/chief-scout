@@ -91,12 +91,19 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         {/* Row 4: Market Value + Archetype + CSPER badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {player.director_valuation_meur != null && (
+            {player.director_valuation_meur != null ? (
               <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">
                 &euro;{player.director_valuation_meur}m
                 <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">CS</span>
               </span>
-            )}
+            ) : player.market_value_eur != null ? (
+              <span className="text-sm font-mono font-bold text-[var(--accent-tactical)]">
+                &euro;{player.market_value_eur >= 1_000_000
+                  ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
+                  : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
+                <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">TM</span>
+              </span>
+            ) : null}
             {player.archetype && (
               <span className="text-[10px] text-[var(--text-secondary)]">
                 {player.archetype}

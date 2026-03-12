@@ -107,11 +107,13 @@ SELECT
   -- Identity (people)
   p.id                AS person_id,
   p.name,
-  p.dob,
+  p.date_of_birth,
   p.height_cm,
   p.preferred_foot,
   p.active,
   p.wikidata_id,
+  p.image_url,
+  p.transfermarkt_id,
 
   -- Nation & Club (resolved names)
   n.name              AS nation,

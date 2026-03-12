@@ -297,9 +297,15 @@ export default async function DashboardPage() {
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[var(--text-primary)] truncate ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
-                    {story.headline}
-                  </p>
+                  {story.url ? (
+                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--accent-personality)] truncate block transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                      {story.headline}
+                    </a>
+                  ) : (
+                    <p className={`text-[var(--text-primary)] truncate ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                      {story.headline}
+                    </p>
+                  )}
                   {i === 0 && story.summary && (
                     <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{story.summary}</p>
                   )}

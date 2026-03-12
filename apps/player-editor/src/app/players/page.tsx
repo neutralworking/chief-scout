@@ -57,6 +57,7 @@ function PlayersContent() {
   const [allPlayers, setAllPlayers] = useState<PlayerCardType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(60);
 
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
@@ -102,6 +103,7 @@ function PlayersContent() {
     }
     if (fullOnly) result = result.filter((p) => p.archetype != null && p.personality_type != null && p.level != null);
     if (q) result = result.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+    setVisibleCount(60);
     return sortPlayers(result, sort);
   }, [allPlayers, position, pursuit, personalities, tier, fullOnly, q, sort]);
 
@@ -122,10 +124,21 @@ function PlayersContent() {
       <PlayerFilters />
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-        {filtered.map((player) => (
+        {filtered.slice(0, visibleCount).map((player) => (
           <PlayerCard key={player.person_id} player={player} />
         ))}
       </div>
+
+      {visibleCount < filtered.length && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setVisibleCount((c) => c + 60)}
+            className="px-6 py-2 text-sm font-medium bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+          >
+            Show more ({filtered.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="mt-8 p-4 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg">

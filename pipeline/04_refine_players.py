@@ -118,56 +118,96 @@ def archetype_confidence(has_grades: bool, has_scout_grades: bool) -> str:
 
 # ── Model scoring from attribute_grades ───────────────────────────────────────
 
+# Source priority: higher = preferred. When multiple sources provide the same
+# attribute, the highest-priority source wins.
+SOURCE_PRIORITY: dict[str, int] = {
+    "scout_assessment": 50,
+    "fbref":           40,
+    "computed":        35,
+    "understat":       30,
+    "statsbomb":       25,
+    "eafc_inferred":   10,
+}
+
+# Dampening factors per source. eafc_inferred inflates physical attributes
+# (EA FC game data skews toward pace/acceleration), so we discount it.
+SOURCE_WEIGHT: dict[str, float] = {
+    "scout_assessment": 1.0,
+    "fbref":           1.0,
+    "computed":        0.95,
+    "understat":       0.90,
+    "statsbomb":       0.90,
+    "eafc_inferred":   0.75,
+}
+
+
 def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], bool, bool]:
     """
     Convert attribute_grades rows into {attribute: score_0_100}.
-    Prefers scout_grade, falls back to stat_score.
 
-    Canonical scale is 0-10 (per SACROSANCT). Legacy data may use 0-20.
-    We detect the scale by checking max values and normalize accordingly.
+    Groups by attribute, picks the highest-priority source per attribute,
+    and applies source-specific dampening weights.
+
+    Scale detection: 0-20 sources (scout_assessment, eafc_inferred) are
+    detected by checking max values per source group. Each source may
+    use a different scale.
 
     Returns (scores_dict, has_any_scout_grade, has_differentiated_data).
-
-    If all stat_scores are identical (e.g. all 10 = default/unfilled),
-    the data is undifferentiated and archetype scoring is meaningless.
     """
-    result: dict[str, float] = {}
     has_scout = False
     stat_values: set[float] = set()
-    raw_scout: list[float] = []
-    raw_stat: list[float] = []
 
+    # Group by (attribute, source) → best value
+    # Key: attribute → list of (source, raw_value, is_scout_grade)
+    attr_candidates: dict[str, list[tuple[str, float, bool]]] = {}
+
+    # Detect scale per source
+    source_max: dict[str, float] = {}
     for g in grades:
+        src = g.get("source", "unknown")
         scout = g.get("scout_grade")
         stat = g.get("stat_score")
-        if scout is not None and scout > 0:
-            raw_scout.append(scout)
-        if stat is not None and stat > 0:
-            raw_stat.append(stat)
+        val = scout if (scout is not None and scout > 0) else stat if (stat is not None and stat > 0) else None
+        if val is not None:
+            source_max[src] = max(source_max.get(src, 0), val)
 
-    # Detect scale: if any value > 10, data is on 0-20 scale (legacy).
-    # If scout data is on 0-20, stat data is too (same import batch).
-    all_vals = raw_scout + raw_stat
-    max_val = max(all_vals) if all_vals else 10
-    scale = 20.0 if max_val > 10 else 10.0
+    source_scale: dict[str, float] = {}
+    for src, mx in source_max.items():
+        source_scale[src] = 20.0 if mx > 10 else 10.0
 
     for g in grades:
         attr = g["attribute"]
         attr = ATTR_ALIASES.get(attr, attr)
-
+        src = g.get("source", "unknown")
         scout = g.get("scout_grade")
         stat = g.get("stat_score")
 
-        if scout is not None and scout > 0:
-            result[attr] = (scout / scale) * 100.0
+        is_scout = scout is not None and scout > 0
+        raw = scout if is_scout else stat if (stat is not None and stat > 0) else None
+        if raw is None:
+            continue
+
+        if is_scout:
             has_scout = True
-        elif stat is not None and stat > 0:
-            result[attr] = (stat / scale) * 100.0
+        else:
             stat_values.add(stat)
 
-    # If no scout grades and all stat_scores are identical, data is undifferentiated
-    has_differentiated = has_scout or len(stat_values) > 1
+        if attr not in attr_candidates:
+            attr_candidates[attr] = []
+        attr_candidates[attr].append((src, raw, is_scout))
 
+    # For each attribute, pick the highest-priority source and apply weight
+    result: dict[str, float] = {}
+    for attr, candidates in attr_candidates.items():
+        # Sort by source priority (highest first), then prefer scout_grade
+        candidates.sort(key=lambda c: (-SOURCE_PRIORITY.get(c[0], 0), -int(c[2])))
+        best_src, best_val, _ = candidates[0]
+
+        scale = source_scale.get(best_src, 10.0)
+        weight = SOURCE_WEIGHT.get(best_src, 0.8)
+        result[attr] = (best_val / scale) * 100.0 * weight
+
+    has_differentiated = has_scout or len(stat_values) > 1
     return result, has_scout, has_differentiated
 
 
@@ -363,7 +403,7 @@ def main():
 
     # Load all attribute grades keyed by player_id
     print("Loading attribute grades...")
-    cur.execute("SELECT player_id, attribute, scout_grade, stat_score FROM attribute_grades")
+    cur.execute("SELECT player_id, attribute, scout_grade, stat_score, source FROM attribute_grades")
     all_grades = cur.fetchall()
     grades_by_player: dict[int, list[dict]] = {}
     for g in all_grades:

@@ -81,6 +81,7 @@ SELECT
   pm.market_value_eur,
   pm.highest_market_value_eur,
   pm.market_value_date,
+  pm.director_valuation_meur,
 
   ps.pursuit_status,
   ps.scouting_notes,

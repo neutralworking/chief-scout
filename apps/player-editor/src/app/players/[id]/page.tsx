@@ -17,6 +17,9 @@ interface IntelligenceCard {
   height_cm: number | null;
   preferred_foot: string | null;
   active: boolean;
+  image_url: string | null;
+  wikidata_id: string | null;
+  transfermarkt_id: string | null;
   nation: string | null;
   club: string | null;
   position: string | null;
@@ -41,6 +44,7 @@ interface IntelligenceCard {
   market_value_eur: number | null;
   highest_market_value_eur: number | null;
   market_value_date: string | null;
+  director_valuation_meur: number | null;
   ei: number | null;
   sn: number | null;
   tf: number | null;
@@ -104,7 +108,7 @@ export default async function PlayerDetailPage({
       .single(),
     supabaseServer
       .from("key_moments")
-      .select("id, title, description, moment_date, moment_type, sentiment, source_url, news_stories(headline, url, summary, published_at)")
+      .select("id, title, description, moment_date, moment_type, sentiment, source_url")
       .eq("person_id", playerId)
       .order("moment_date", { ascending: true }),
     supabaseServer
@@ -149,10 +153,7 @@ export default async function PlayerDetailPage({
     fbrefStats = (statsData ?? []) as FBRefStat[];
   }
 
-  const moments = (momentsResult.data ?? []).map((m: Record<string, unknown>) => ({
-    ...m,
-    news_story: Array.isArray(m.news_stories) ? m.news_stories[0] ?? null : m.news_stories ?? null,
-  })) as KeyMoment[];
+  const moments = (momentsResult.data ?? []) as KeyMoment[];
 
   const news: NewsStory[] = [];
   for (const t of (newsResult.data ?? []) as Record<string, unknown>[]) {
@@ -183,6 +184,7 @@ export default async function PlayerDetailPage({
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const personalityName = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
   const hasStatus = !!(player.squad_role || player.loan_status || playerTags.length > 0);
+  const fbrefId = fbrefLink?.external_id;
 
   return (
     <div className="space-y-2">
@@ -193,19 +195,26 @@ export default async function PlayerDetailPage({
         &larr; Players
       </Link>
 
-      {/* Identity Bar — name, bio, archetype, personality, market */}
+      {/* Identity Bar — name, bio, ratings */}
       <div className="glass rounded-xl p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-xs sm:text-sm font-bold text-[var(--text-muted)] shrink-0">
-              {player.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-            </div>
+            {player.image_url ? (
+              <img src={player.image_url} alt={player.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-xs sm:text-sm font-bold text-[var(--text-muted)] shrink-0">
+                {player.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+              </div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold tracking-tight truncate">{player.name}</h1>
                 <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                   {player.position ?? "–"}
                 </span>
+                {!player.active && (
+                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
+                )}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
                 {player.club && <span>{player.club}</span>}
@@ -218,6 +227,30 @@ export default async function PlayerDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Level / Peak / Overall — headline numbers */}
+          {(player.level != null || player.peak != null || player.overall != null) && (
+            <div className="flex items-center gap-3 shrink-0">
+              {player.level != null && (
+                <div className="text-center">
+                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
+                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
+                </div>
+              )}
+              {player.peak != null && (
+                <div className="text-center">
+                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-secondary)]">{player.peak}</div>
+                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Peak</div>
+                </div>
+              )}
+              {player.overall != null && (
+                <div className="text-center">
+                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--accent-tactical)]">{player.overall}</div>
+                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">OVR</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Archetype + Personality + Market — inline row */}
@@ -244,14 +277,24 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* Market Value */}
+          {/* Market Value (Transfermarkt) */}
           {player.market_value_eur != null && (
             <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Market Value</span>
+              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Market Value <span className="normal-case opacity-60">(TM)</span></span>
               <span className="text-sm font-mono font-bold text-[var(--accent-tactical)]">
                 &euro;{player.market_value_eur >= 1_000_000
                   ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
                   : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
+              </span>
+            </div>
+          )}
+
+          {/* CS Value (Director Valuation) */}
+          {player.director_valuation_meur != null && (
+            <div>
+              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
+              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">
+                &euro;{player.director_valuation_meur.toFixed(1)}m
               </span>
             </div>
           )}
@@ -278,18 +321,25 @@ export default async function PlayerDetailPage({
         </div>
       </div>
 
-      {/* Status & Tags */}
-      {hasStatus && (
+      {/* Scouting Notes — prominent callout */}
+      {player.scouting_notes && (
+        <div className="glass rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border-l-2 border-l-[var(--accent-personality)]">
+          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{player.scouting_notes}</p>
+        </div>
+      )}
+
+      {/* Status, Tags & External Links */}
+      {(hasStatus || player.transfermarkt_id || fbrefId) && (
         <div className="glass rounded-xl px-3 py-2 sm:px-4 sm:py-2.5">
           <div className="flex items-center gap-3 flex-wrap">
             {player.squad_role && (
               <span className="text-[10px] text-[var(--text-secondary)]">
-                <span className="text-[var(--text-muted)]">Role:</span> {player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                <span className="text-[var(--text-muted)]">Role:</span> {player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
               </span>
             )}
             {player.loan_status && (
               <span className="text-[10px] text-[var(--text-secondary)]">
-                <span className="text-[var(--text-muted)]">Loan:</span> {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                <span className="text-[var(--text-muted)]">Loan:</span> {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
               </span>
             )}
             {playerTags.length > 0 && (
@@ -311,20 +361,35 @@ export default async function PlayerDetailPage({
                 ))}
               </div>
             )}
+            {/* External links */}
+            <div className="flex items-center gap-2 ml-auto">
+              {player.transfermarkt_id && (
+                <a href={`https://www.transfermarkt.com/spieler/profil/spieler/${player.transfermarkt_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">TM</a>
+              )}
+              {fbrefId && (
+                <a href={`https://fbref.com/en/players/${fbrefId}/`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">FBRef</a>
+              )}
+              {player.wikidata_id && (
+                <a href={`https://www.wikidata.org/wiki/${player.wikidata_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Wiki</a>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-        {/* Left: Radar + Personality */}
+        {/* Left: Stats + Radar + Personality */}
         <div className="space-y-2">
+          {/* FBRef Stats — elevated to top of left column */}
+          {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
+
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
           {/* Personality dimensions — compact */}
           {player.ei != null && (
             <div className="glass rounded-xl p-3 sm:p-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality Dimensions</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality</h3>
               <PersonalityBadge
                 personalityType={player.personality_type}
                 ei={player.ei}
@@ -333,7 +398,7 @@ export default async function PlayerDetailPage({
                 jp={player.jp}
                 competitiveness={player.competitiveness}
                 coachability={player.coachability}
-                size="hero"
+                size="compact"
                 showDescription={false}
               />
             </div>
@@ -351,9 +416,6 @@ export default async function PlayerDetailPage({
           )}
         </div>
       </div>
-
-      {/* FBRef Stats — full width below fold */}
-      {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
     </div>
   );
 }

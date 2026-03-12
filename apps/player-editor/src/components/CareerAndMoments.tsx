@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { NewsModal } from "./NewsModal";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,12 +31,6 @@ export interface KeyMoment {
   moment_type: string | null;
   sentiment: string | null;
   source_url: string | null;
-  news_story: {
-    title: string;
-    url: string | null;
-    summary: string | null;
-    published_at: string | null;
-  } | null;
 }
 
 interface Props {
@@ -92,7 +85,6 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
   const hasMoments = moments.length > 0;
   const hasCareer = entries.length > 0;
   const [tab, setTab] = useState<Tab>(hasCareer ? "career" : "moments");
-  const [selectedMoment, setSelectedMoment] = useState<KeyMoment | null>(null);
   const [momentsExpanded, setMomentsExpanded] = useState(false);
 
   if (!hasCareer && !hasMoments) return null;
@@ -154,13 +146,12 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
               <MiniStat label="Clubs" value={metrics.clubs_count} />
               <MiniStat label="Years" value={metrics.career_years} />
               <MiniStat label="Avg Tenure" value={`${metrics.avg_tenure_yrs.toFixed(1)}y`} />
-              <MiniStat label="Loyalty" value={metrics.loyalty_score} />
-              <MiniStat label="Trajectory" value={metrics.trajectory ?? "—"} color={trajectoryColor(metrics.trajectory)} />
+              <MiniStat label="Trajectory" value={metrics.trajectory ? metrics.trajectory.charAt(0).toUpperCase() + metrics.trajectory.slice(1) : "—"} color={trajectoryColor(metrics.trajectory)} />
             </div>
           )}
 
           {/* Compact timeline */}
-          <div className="relative ml-2 max-h-[280px] overflow-y-auto">
+          <div className="relative ml-2 max-h-[280px] overflow-y-auto pb-1">
             <div className="absolute left-0 top-1 bottom-1 w-px bg-[var(--border-subtle)]" />
             <div className="space-y-0">
               {entries.map((e, i) => {
@@ -208,10 +199,9 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
         <div>
           <div className="space-y-0.5 max-h-[320px] overflow-y-auto">
             {visibleMoments.map((m) => (
-              <button
+              <div
                 key={m.id}
-                onClick={() => setSelectedMoment(m)}
-                className="w-full flex gap-2 items-start text-left px-2 py-1.5 -mx-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)] cursor-pointer"
+                className="flex gap-2 items-start px-2 py-1.5 -mx-2 rounded-md"
               >
                 <div
                   className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
@@ -219,11 +209,28 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-medium truncate block">{m.title}</span>
+                  {m.description && (
+                    <span className="text-[10px] text-[var(--text-muted)] line-clamp-1 block mt-0.5">{m.description}</span>
+                  )}
                 </div>
-                {m.moment_date && (
-                  <span className="text-[9px] text-[var(--text-muted)] shrink-0 font-mono">{formatDate(m.moment_date)}</span>
-                )}
-              </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {m.moment_date && (
+                    <span className="text-[9px] text-[var(--text-muted)] font-mono">{formatDate(m.moment_date)}</span>
+                  )}
+                  {m.source_url && (
+                    <a
+                      href={m.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[9px] font-medium hover:underline"
+                      style={{ color: "var(--accent-personality)" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ref
+                    </a>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
           {sortedMoments.length > MOMENT_LIMIT && (
@@ -236,10 +243,6 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
             </button>
           )}
         </div>
-      )}
-
-      {selectedMoment && (
-        <NewsModal moment={selectedMoment} onClose={() => setSelectedMoment(null)} />
       )}
     </div>
   );

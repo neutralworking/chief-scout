@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { NewsModal } from "./NewsModal";
 
 export interface KeyMoment {
   id: number;
@@ -11,12 +10,6 @@ export interface KeyMoment {
   moment_type: string | null;
   sentiment: string | null;
   source_url: string | null;
-  news_story: {
-    title: string;
-    url: string | null;
-    summary: string | null;
-    published_at: string | null;
-  } | null;
 }
 
 const SENTIMENT_COLORS: Record<string, string> = {
@@ -35,7 +28,6 @@ const COLLAPSED_LIMIT = 5;
 
 export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
   const [expanded, setExpanded] = useState(false);
-  const [selectedMoment, setSelectedMoment] = useState<KeyMoment | null>(null);
 
   if (moments.length === 0) {
     return (
@@ -69,10 +61,9 @@ export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
       </div>
       <div className="space-y-1">
         {visible.map((m) => (
-          <button
+          <div
             key={m.id}
-            onClick={() => setSelectedMoment(m)}
-            className="w-full flex gap-3 items-start text-left px-2 py-2 -mx-2 rounded-md transition-colors hover:bg-[var(--bg-elevated)] cursor-pointer"
+            className="flex gap-3 items-start px-2 py-2 -mx-2 rounded-md"
           >
             <div
               className="w-2 h-2 rounded-full mt-1.5 shrink-0"
@@ -90,13 +81,29 @@ export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
                   </span>
                 )}
               </div>
+              {m.description && (
+                <p className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-0.5">{m.description}</p>
+              )}
             </div>
-            {m.moment_date && (
-              <span className="text-[10px] text-[var(--text-muted)] shrink-0 mt-0.5">
-                {formatDate(m.moment_date)}
-              </span>
-            )}
-          </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {m.moment_date && (
+                <span className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                  {formatDate(m.moment_date)}
+                </span>
+              )}
+              {m.source_url && (
+                <a
+                  href={m.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] font-medium hover:underline"
+                  style={{ color: "var(--accent-personality)" }}
+                >
+                  ref
+                </a>
+              )}
+            </div>
+          </div>
         ))}
       </div>
       {hasMore && expanded && (
@@ -107,10 +114,6 @@ export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
         >
           Show Less
         </button>
-      )}
-
-      {selectedMoment && (
-        <NewsModal moment={selectedMoment} onClose={() => setSelectedMoment(null)} />
       )}
     </div>
   );

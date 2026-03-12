@@ -7,7 +7,6 @@ interface SquadPlayer {
   id: number;
   name: string;
   level: number | null;
-  peak: number | null;
   squad_role: string | null;
   loan_status: string | null;
   age: number | null;

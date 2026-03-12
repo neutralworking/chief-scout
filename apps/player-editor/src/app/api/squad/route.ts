@@ -24,7 +24,6 @@ export interface SquadPlayer {
   id: number;
   name: string;
   level: number | null;
-  peak: number | null;
   squad_role: string | null;
   loan_status: string | null;
   age: number | null;
@@ -59,7 +58,7 @@ export async function getSquadAssessment() {
   // 2. Query squad players
   const { data: players, error: playersErr } = await supabase
     .from("players")
-    .select("id, name, position, secondary_position, level, peak, squad_role, loan_status, date_of_birth")
+    .select("id, name, position, secondary_position, level, squad_role, loan_status, date_of_birth")
     .ilike("club", clubName);
 
   if (playersErr) {
@@ -86,7 +85,6 @@ export async function getSquadAssessment() {
       id: p.id,
       name: p.name,
       level: p.level,
-      peak: p.peak,
       squad_role: p.squad_role,
       loan_status: p.loan_status,
       age,

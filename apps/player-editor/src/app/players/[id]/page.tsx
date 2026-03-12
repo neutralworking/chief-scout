@@ -24,7 +24,6 @@ interface IntelligenceCard {
   club: string | null;
   position: string | null;
   level: number | null;
-  overall: number | null;
   archetype: string | null;
   model_id: string | null;
   profile_tier: number | null;
@@ -227,21 +226,11 @@ export default async function PlayerDetailPage({
             </div>
           </div>
 
-          {/* Level / Overall — headline numbers */}
-          {(player.level != null || player.overall != null) && (
-            <div className="flex items-center gap-3 shrink-0">
-              {player.level != null && (
-                <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
-                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
-                </div>
-              )}
-{player.overall != null && (
-                <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--accent-tactical)]">{player.overall}</div>
-                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">OVR</div>
-                </div>
-              )}
+          {/* Level — headline number */}
+          {player.level != null && (
+            <div className="text-center shrink-0">
+              <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
+              <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
             </div>
           )}
         </div>

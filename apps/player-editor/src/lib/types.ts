@@ -9,7 +9,6 @@ export interface PlayerCard {
   club: string | null;
   position: string | null;
   level: number | null;
-  overall: number | null;
   archetype: string | null;
   model_id: string | null;
   profile_tier: number | null;

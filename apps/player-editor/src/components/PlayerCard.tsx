@@ -76,15 +76,10 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Personality + Overall */}
-        {(mentalLabel || player.overall != null) && (
+        {/* Row 3: Personality */}
+        {mentalLabel && (
           <div className="flex items-center gap-3 text-[10px] mb-3">
-            {mentalLabel && (
-              <span className="text-purple-400 font-medium">{mentalLabel}</span>
-            )}
-            {player.overall != null && (
-              <span className="text-[var(--text-muted)] font-mono">{player.overall.toFixed(1)} OVR</span>
-            )}
+            <span className="text-purple-400 font-medium">{mentalLabel}</span>
           </div>
         )}
 

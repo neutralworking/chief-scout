@@ -59,17 +59,17 @@ export function ScoutPad({ scoutingNotes, squadRole, loanStatus, news }: ScoutPa
   tabs.push({ key: "news", label: "News", count: news.length });
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+    <div className="glass rounded-xl p-5">
       {/* Tab bar */}
       {tabs.length > 1 && (
-        <div className="flex gap-4 mb-4 border-b border-[var(--border-subtle)] -mx-6 px-6" role="tablist">
+        <div className="flex gap-4 mb-4 border-b border-[var(--border-subtle)] -mx-5 px-5" role="tablist">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`pb-2 text-[11px] font-semibold tracking-widest uppercase transition-colors relative ${
+              className={`pb-2 text-[11px] font-bold tracking-wider uppercase transition-colors relative ${
                 activeTab === tab.key
                   ? "text-[var(--text-primary)]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -94,7 +94,7 @@ export function ScoutPad({ scoutingNotes, squadRole, loanStatus, news }: ScoutPa
 
       {/* Single tab header when only one tab */}
       {tabs.length === 1 && (
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-4">
           {tabs[0].label}
         </h3>
       )}

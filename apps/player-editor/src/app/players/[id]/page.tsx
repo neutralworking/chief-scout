@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
-import { computeAge, PURSUIT_COLORS, POSITION_COLORS } from "@/lib/types";
-import { PlayerIdentityPanel } from "@/components/PlayerIdentityPanel";
-import { CompoundMetrics } from "@/components/CompoundMetrics";
+import { computeAge, POSITION_COLORS } from "@/lib/types";
+import { PersonalityBadge } from "@/components/PersonalityBadge";
+import { ArchetypeShape } from "@/components/ArchetypeShape";
 import { KeyMomentsList } from "@/components/KeyMomentsList";
 import type { KeyMoment } from "@/components/KeyMomentsList";
 import { ScoutPad } from "@/components/ScoutPad";
 import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
-import { RadarChart } from "@/components/RadarChart";
+import { PlayerRadar } from "@/components/PlayerRadar";
 import { CareerTimeline } from "@/components/CareerTimeline";
 
 interface IntelligenceCard {
@@ -49,12 +49,6 @@ interface IntelligenceCard {
   jp: number | null;
   competitiveness: number | null;
   coachability: number | null;
-}
-
-interface AttributeGrade {
-  attribute: string;
-  scout_grade: number | null;
-  stat_score: number | null;
 }
 
 interface FBRefStat {
@@ -97,8 +91,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  // Fetch all data in parallel
-  const [playerResult, momentsResult, gradesResult, newsResult, fbrefLinkResult, careerResult, metricsResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -110,10 +103,6 @@ export default async function PlayerDetailPage({
       .eq("person_id", playerId)
       .order("display_order", { ascending: true })
       .order("moment_date", { ascending: false }),
-    supabaseServer
-      .from("attribute_grades")
-      .select("attribute, scout_grade, stat_score")
-      .eq("player_id", playerId),
     supabaseServer
       .from("news_player_tags")
       .select("story_type, confidence, sentiment, news_stories(id, headline, summary, source, url, published_at, story_type)")
@@ -157,7 +146,6 @@ export default async function PlayerDetailPage({
     ...m,
     news_story: Array.isArray(m.news_stories) ? m.news_stories[0] ?? null : m.news_stories ?? null,
   })) as KeyMoment[];
-  const grades = (gradesResult.data ?? []) as AttributeGrade[];
   const news: NewsStory[] = [];
   for (const t of (newsResult.data ?? []) as Record<string, unknown>[]) {
     const story = t.news_stories as Record<string, unknown> | null;
@@ -178,31 +166,20 @@ export default async function PlayerDetailPage({
   const careerEntries = (careerResult.data ?? []) as Array<{ club_name: string; club_id: number | null; start_date: string | null; end_date: string | null; is_loan: boolean }>;
   const careerMetrics = metricsResult.data as { clubs_count: number; loan_count: number; career_years: number; avg_tenure_yrs: number; loyalty_score: number; mobility_score: number; trajectory: string | null } | null;
 
-  // Build radar data from personality dimensions
-  const radarData = player.ei != null ? [
-    { label: "Analytical", value: player.ei ?? 0 },
-    { label: "Extrinsic", value: player.sn ?? 0 },
-    { label: "Soloist", value: player.tf ?? 0 },
-    { label: "Competitor", value: player.jp ?? 0 },
-    { label: "Compete", value: (player.competitiveness ?? 5) * 10 },
-    { label: "Coach", value: (player.coachability ?? 5) * 10 },
-  ] : [];
-
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
-  const pursuitColor = PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "";
 
   return (
-    <div>
+    <div className="space-y-3">
       <Link
         href="/players"
-        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-4 inline-block"
+        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block"
       >
-        &larr; Back to Players
+        &larr; Players
       </Link>
 
-      {/* Zone A: Identity Bar */}
-      <div className="glass rounded-xl p-4 sm:p-5 mb-3 overflow-hidden">
+      {/* Identity Bar */}
+      <div className="glass rounded-xl p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-sm sm:text-base font-bold text-[var(--text-muted)] shrink-0">
@@ -224,97 +201,87 @@ export default async function PlayerDetailPage({
               {player.position ?? "–"}
             </span>
             {player.pursuit_status && (
-              <span className={`text-[10px] font-semibold tracking-wide px-2 py-1 rounded ${pursuitColor}`}>
+              <span className="text-[10px] font-semibold tracking-wide px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
                 {player.pursuit_status}
               </span>
             )}
+            {player.hg && (
+              <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 px-1.5 py-0.5 rounded">HG</span>
+            )}
           </div>
         </div>
-        {/* Inline ratings + market info */}
-        <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6">
-          <div className="flex items-center gap-4">
-            {[
-              { label: "Level", value: player.level },
-              { label: "Peak", value: player.peak },
-              { label: "Overall", value: player.overall },
-            ].map(({ label, value }) => (
-              <div key={label} className="text-center">
-                <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">{label}</span>
-                <span className="text-lg font-mono font-bold">{value ?? "–"}</span>
-              </div>
-            ))}
-          </div>
-          {/* Market info inline */}
-          {(player.market_value_eur != null || player.transfer_fee_eur != null || player.scarcity_score != null) && (
-            <div className="ml-auto flex items-center gap-4 text-xs">
-              {player.market_value_eur != null && (
-                <div>
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Market Value</span>
-                  <span className="font-mono font-bold text-[var(--accent-tactical)]">
-                    &euro;{player.market_value_eur >= 1_000_000
-                      ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
-                      : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
-                  </span>
-                </div>
-              )}
-              {player.highest_market_value_eur != null && player.highest_market_value_eur !== player.market_value_eur && (
-                <div>
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Peak Value</span>
-                  <span className="font-mono font-bold">
-                    &euro;{player.highest_market_value_eur >= 1_000_000
-                      ? `${(player.highest_market_value_eur / 1_000_000).toFixed(1)}m`
-                      : `${(player.highest_market_value_eur / 1_000).toFixed(0)}k`}
-                  </span>
-                </div>
-              )}
-              {player.transfer_fee_eur != null && (
-                <div>
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Transfer Fee</span>
-                  <span className="font-mono font-bold">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
-                </div>
-              )}
-              {player.scarcity_score != null && (
-                <div>
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Scarcity</span>
-                  <span className="font-mono font-bold">{player.scarcity_score}</span>
-                </div>
-              )}
-              {player.hg && (
-                <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 px-1.5 py-0.5 rounded">HG</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Zone B: Personality + Archetype — compact */}
-      <div className="mb-3">
-        <PlayerIdentityPanel
-          personality={{
-            personalityType: player.personality_type,
-            ei: player.ei,
-            sn: player.sn,
-            tf: player.tf,
-            jp: player.jp,
-            competitiveness: player.competitiveness,
-            coachability: player.coachability,
-          }}
-          archetype={{
-            archetype: player.archetype,
-            blueprint: player.blueprint,
-          }}
-        />
+        {/* Market info */}
+        {(player.market_value_eur != null || player.transfer_fee_eur != null) && (
+          <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6 text-xs">
+            {player.market_value_eur != null && (
+              <div>
+                <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Market Value</span>
+                <span className="font-mono font-bold text-[var(--accent-tactical)]">
+                  &euro;{player.market_value_eur >= 1_000_000
+                    ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
+                    : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
+                </span>
+              </div>
+            )}
+            {player.highest_market_value_eur != null && player.highest_market_value_eur !== player.market_value_eur && (
+              <div>
+                <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Peak Value</span>
+                <span className="font-mono font-bold">
+                  &euro;{player.highest_market_value_eur >= 1_000_000
+                    ? `${(player.highest_market_value_eur / 1_000_000).toFixed(1)}m`
+                    : `${(player.highest_market_value_eur / 1_000).toFixed(0)}k`}
+                </span>
+              </div>
+            )}
+            {player.transfer_fee_eur != null && (
+              <div>
+                <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] block">Transfer Fee</span>
+                <span className="font-mono font-bold">&euro;{(player.transfer_fee_eur / 1_000_000).toFixed(1)}m</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-3">
         {/* Left column */}
         <div className="space-y-3">
-          {/* Key Moments */}
-          <KeyMomentsList moments={moments} />
+          {/* Personality + Archetype — compact row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="glass rounded-xl p-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-3">
+                Personality
+              </h3>
+              <PersonalityBadge
+                personalityType={player.personality_type}
+                ei={player.ei}
+                sn={player.sn}
+                tf={player.tf}
+                jp={player.jp}
+                competitiveness={player.competitiveness}
+                coachability={player.coachability}
+                size="hero"
+              />
+            </div>
+            <div className="glass rounded-xl p-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-3">
+                Archetype
+              </h3>
+              <ArchetypeShape
+                archetype={player.archetype}
+                blueprint={player.blueprint}
+                size="full"
+              />
+            </div>
+          </div>
 
-          {/* Attributes */}
-          <CompoundMetrics attributeGrades={grades} profileTier={player.profile_tier ?? undefined} />
+          {/* Position & Role Suitability Radar */}
+          <PlayerRadar playerId={player.person_id} position={player.position} />
+
+          {/* Key Moments */}
+          {moments.length > 0 && <KeyMomentsList moments={moments} />}
 
           {/* FBRef Stats */}
           {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
@@ -322,22 +289,12 @@ export default async function PlayerDetailPage({
 
         {/* Right column */}
         <div className="space-y-3">
-          {/* Personality Radar */}
-          {radarData.length > 0 && (
-            <div className="glass rounded-xl p-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Personality Profile</h3>
-              <div className="flex justify-center">
-                <RadarChart data={radarData} size={180} color="var(--accent-personality)" />
-              </div>
-            </div>
-          )}
-
           {/* Career Timeline */}
           {careerEntries.length > 0 && (
             <CareerTimeline entries={careerEntries} metrics={careerMetrics} />
           )}
 
-          {/* Scout Pad (tabbed) */}
+          {/* Scout Pad (tabbed: notes + news) */}
           <ScoutPad
             scoutingNotes={player.scouting_notes}
             squadRole={player.squad_role}

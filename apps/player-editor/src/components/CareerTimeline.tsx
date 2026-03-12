@@ -71,10 +71,10 @@ export function CareerTimeline({ entries, metrics }: CareerTimelineProps) {
   const totalYears = metrics?.career_years;
 
   return (
-    <div className="bg-[var(--bg-surface)]/80 backdrop-blur border border-[var(--border-subtle)] rounded-lg p-5">
+    <div className="glass rounded-xl p-5">
       {/* Header */}
       <div className="flex items-baseline justify-between mb-4">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)]">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           Career History
         </h3>
         <span className="text-[11px] text-[var(--text-muted)]">

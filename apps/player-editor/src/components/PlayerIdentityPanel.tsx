@@ -35,16 +35,10 @@ export function PlayerIdentityPanel({
       : "flex flex-col gap-3";
 
   return (
-    <div
-      className={gridClass}
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(232,197,71,0.05) 0%, transparent 60%)",
-      }}
-    >
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
-          Personality — WHO
+    <div className={gridClass}>
+      <div className="glass rounded-xl p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-3">
+          Personality
         </h3>
         <PersonalityBadge
           personalityType={personality.personalityType}
@@ -58,9 +52,9 @@ export function PlayerIdentityPanel({
         />
       </div>
 
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-4">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
-          Archetype — HOW
+      <div className="glass rounded-xl p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-3">
+          Archetype
         </h3>
         <ArchetypeShape
           archetype={archetype.archetype}

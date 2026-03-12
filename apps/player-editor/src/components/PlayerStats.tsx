@@ -50,9 +50,9 @@ export function PlayerStats({ stats }: { stats: FBRefStat[] }) {
   ];
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-5">
+    <div className="glass rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)]">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           Season Stats
         </h3>
         <div className="flex gap-1">

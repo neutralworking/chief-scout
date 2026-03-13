@@ -7,7 +7,7 @@ import { PlayerCard as PlayerCardType } from "@/lib/types";
 import { PlayerCard } from "@/components/PlayerCard";
 import { PlayerFilters } from "@/components/PlayerFilters";
 
-const PAGE_SIZE = 60;
+const PAGE_SIZE = 30;
 
 function PlayersContent() {
   const searchParams = useSearchParams();

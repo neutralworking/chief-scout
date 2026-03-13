@@ -76,17 +76,49 @@ export async function POST(request: Request) {
       .eq("id", question_id);
   }
 
-  // Increment user total votes
+  // Increment user total votes + apply dimension scoring
   const { data: currentUser } = await sb
     .from("fc_users")
-    .select("total_votes")
+    .select("total_votes, flair_vs_function, youth_vs_experience, attack_vs_defense, loyalty_vs_ambition, domestic_vs_global, stats_vs_eye_test")
     .eq("id", user_id)
     .single();
 
   if (currentUser) {
+    const newTotalVotes = (currentUser.total_votes ?? 0) + 1;
+    const userUpdate: Record<string, unknown> = {
+      total_votes: newTotalVotes,
+    };
+
+    // Apply dimension weights from the chosen option
+    const { data: chosenOption } = await sb
+      .from("fc_options")
+      .select("dimension_weights")
+      .eq("id", option_id)
+      .single();
+
+    if (chosenOption?.dimension_weights) {
+      const weights = chosenOption.dimension_weights as Record<string, number>;
+      const dampening = Math.max(0.3, 1.0 - newTotalVotes * 0.02);
+
+      const dimensions = [
+        "flair_vs_function", "youth_vs_experience", "attack_vs_defense",
+        "loyalty_vs_ambition", "domestic_vs_global", "stats_vs_eye_test",
+      ] as const;
+
+      for (const dim of dimensions) {
+        if (weights[dim] !== undefined) {
+          const current = (currentUser[dim] as number | null) ?? 50;
+          const shifted = Math.round(
+            Math.max(0, Math.min(100, current + weights[dim] * dampening))
+          );
+          userUpdate[dim] = shifted;
+        }
+      }
+    }
+
     await sb
       .from("fc_users")
-      .update({ total_votes: (currentUser.total_votes ?? 0) + 1 })
+      .update(userUpdate)
       .eq("id", user_id);
   }
 

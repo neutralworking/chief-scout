@@ -11,6 +11,13 @@ interface Category {
   icon: string;
 }
 
+interface PlayerIntel {
+  position: string | null;
+  level: number | null;
+  archetype: string | null;
+  personality_code: string | null;
+}
+
 interface Option {
   id: number;
   person_id: number | null;
@@ -19,6 +26,8 @@ interface Option {
   image_url: string | null;
   sort_order: number;
   vote_count: number;
+  dimension_weights?: Record<string, number> | null;
+  player_intel?: PlayerIntel | null;
 }
 
 interface Question {
@@ -29,6 +38,7 @@ interface Question {
   difficulty: number;
   tags: string[] | null;
   total_votes: number;
+  tier: number | null;
   category: Category | null;
   options: Option[];
 }
@@ -117,8 +127,9 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         setTotalAnswered(newTotal);
         localStorage.setItem("fc_total_answered", String(newTotal));
         if (autoAdvance) {
-          // Show results briefly then auto-advance
-          setTimeout(() => nextQuestion(), 1500);
+          // Tier 2 needs more time to read the intel cards
+          const delay = currentQuestion.tier === 2 ? 3000 : 1500;
+          setTimeout(() => nextQuestion(), delay);
         } else {
           // Scroll to next button
           setTimeout(() => {
@@ -263,6 +274,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
             chosenId={chosenId}
             onVote={submitVote}
             optionCount={currentQuestion.option_count}
+            isTier2={currentQuestion.tier === 2}
           />
 
           {/* Results + next / Pass button */}
@@ -305,12 +317,14 @@ function OptionGrid({
   chosenId,
   onVote,
   optionCount,
+  isTier2,
 }: {
   options: Option[];
   results: VoteResult[] | null;
   chosenId: number | null;
   onVote: (id: number) => void;
   optionCount: number;
+  isTier2: boolean;
 }) {
   const totalVotes = results
     ? results.reduce((sum, r) => sum + (r.vote_count ?? 0), 0)
@@ -340,6 +354,8 @@ function OptionGrid({
             ? resultData.vote_count === Math.max(...results.map((r) => r.vote_count ?? 0))
             : false;
           const hasVoted = chosenId !== null;
+          const intel = opt.player_intel;
+          const showIntel = isTier2 && hasVoted && intel;
 
           return (
             <button
@@ -393,11 +409,50 @@ function OptionGrid({
                 )}
               </div>
 
-              {/* Label */}
+              {/* Label + info */}
               <div className="p-3">
                 <div className="font-semibold text-sm truncate">{opt.label}</div>
                 {opt.subtitle && (
                   <div className="text-xs text-[var(--text-muted)] mt-0.5 truncate">{opt.subtitle}</div>
+                )}
+
+                {/* Tier 2 progressive reveal: player intelligence card */}
+                {showIntel && (
+                  <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] space-y-1 animate-fadeIn">
+                    {intel.level && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Level</span>
+                        <span className="text-xs font-bold font-mono text-[var(--accent-tactical)]">{intel.level}</span>
+                      </div>
+                    )}
+                    {intel.position && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Pos</span>
+                        <span className="text-xs font-mono">{intel.position}</span>
+                      </div>
+                    )}
+                    {intel.archetype && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
+                        <span className="text-xs">{intel.archetype}</span>
+                      </div>
+                    )}
+                    {intel.personality_code && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">MBTI</span>
+                        <span className="text-xs font-mono">{intel.personality_code}</span>
+                      </div>
+                    )}
+                    {opt.person_id && (
+                      <a
+                        href={`/players/${opt.person_id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="block text-[10px] text-[var(--accent-tactical)] hover:underline mt-1"
+                      >
+                        See full profile &rarr;
+                      </a>
+                    )}
+                  </div>
                 )}
               </div>
 

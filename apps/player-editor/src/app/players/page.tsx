@@ -7,12 +7,12 @@ import { PlayerCard as PlayerCardType } from "@/lib/types";
 import { PlayerCard } from "@/components/PlayerCard";
 import { PlayerFilters } from "@/components/PlayerFilters";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20;
 
 function PlayersContent() {
   const searchParams = useSearchParams();
   const [players, setPlayers] = useState<PlayerCardType[]>([]);
-  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ function PlayersContent() {
         const data = await res.json();
         if (!cancelled) {
           setPlayers(data.players ?? []);
-          setTotal(data.total ?? 0);
+          setHasMore(data.hasMore ?? false);
         }
       } catch (e) {
         if (!cancelled) setError(`Failed to load players: ${e}`);
@@ -71,20 +71,19 @@ function PlayersContent() {
       const res = await fetch(buildUrl(players.length));
       const data = await res.json();
       setPlayers((prev) => [...prev, ...(data.players ?? [])]);
+      setHasMore(data.hasMore ?? false);
     } catch {
       // silently fail
     }
     setLoadingMore(false);
   };
 
-  const remaining = total - players.length;
-
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold tracking-tight mb-1">Players</h2>
         <p className="text-xs text-[var(--text-secondary)]">
-          {loading ? "Loading..." : `${total.toLocaleString()} player${total !== 1 ? "s" : ""}`}
+          {loading ? "Loading..." : `${players.length.toLocaleString()} shown`}
           {position ? ` · ${position}` : ""}
           {pursuit ? ` · ${pursuit}` : ""}
           {personalities ? ` · ${personalities}` : ""}
@@ -101,14 +100,14 @@ function PlayersContent() {
         ))}
       </div>
 
-      {remaining > 0 && !loading && (
+      {hasMore && !loading && (
         <div className="mt-6 text-center">
           <button
             onClick={loadMore}
             disabled={loadingMore}
             className="px-6 py-2 text-sm font-medium glass rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
           >
-            {loadingMore ? "Loading..." : `Show more (${remaining.toLocaleString()} remaining)`}
+            {loadingMore ? "Loading..." : "Show more"}
           </button>
         </div>
       )}

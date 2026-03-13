@@ -18,14 +18,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import time
 from collections import defaultdict
 
-from config import POSTGRES_DSN, GEMINI_API_KEY
+from config import POSTGRES_DSN
 
-parser = argparse.ArgumentParser(description="Gemini-powered player profiling")
+parser = argparse.ArgumentParser(description="LLM-powered player profiling")
 parser.add_argument("--dry-run", action="store_true")
 parser.add_argument("--league", default=None, help="Single league to process")
 parser.add_argument("--club", default=None, help="Single club to process")
@@ -74,49 +72,12 @@ Respond with a JSON array, one object per player, in the same order:
 JSON only, no markdown fences, no extra text.
 """
 
-RATE_LIMIT_WAIT = 60  # Gemini free tier needs longer waits
-MAX_RETRIES = 5
-BATCH_SIZE = 25  # Players per Gemini call
-INTER_CLUB_DELAY = 5  # Seconds between clubs
+BATCH_SIZE = 25  # Players per LLM call
+INTER_CLUB_DELAY = 2  # Seconds between clubs (lower with router fallback)
 
 
-def init_gemini():
-    if not GEMINI_API_KEY:
-        print("  ERROR: GEMINI_API_KEY not set")
-        return None
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        return genai.GenerativeModel("gemini-2.0-flash")
-    except Exception as e:
-        print(f"  ERROR: Gemini init failed: {e}")
-        return None
-
-
-def parse_response(text: str) -> list[dict] | None:
-    text = text.strip()
-    # Strip think tags
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-    # Strip markdown fences
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
-    # Find JSON array
-    if not text.startswith("["):
-        match = re.search(r"\[.*\]", text, re.DOTALL)
-        if match:
-            text = match.group(0)
-    try:
-        data = json.loads(text)
-        if isinstance(data, list):
-            return data
-        return None
-    except json.JSONDecodeError as e:
-        print(f"    WARN: Invalid JSON: {e}")
-        return None
-
-
-def call_gemini(model, club_name: str, league: str, players: list[dict]) -> list[dict] | None:
+def call_llm_squad(router, club_name: str, league: str, players: list[dict]) -> list[dict] | None:
+    """Call LLM router to profile a squad batch. Returns list of dicts or None."""
     player_lines = []
     for p in players:
         parts = [f"- {p['name']}"]
@@ -134,23 +95,18 @@ def call_gemini(model, club_name: str, league: str, players: list[dict]) -> list
         player_list="\n".join(player_lines),
     )
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            response = model.generate_content(prompt)
-            return parse_response(response.text)
-        except Exception as e:
-            err_str = str(e).lower()
-            if "429" in err_str or "quota" in err_str or "rate" in err_str:
-                if attempt < MAX_RETRIES:
-                    wait = RATE_LIMIT_WAIT * attempt  # Exponential backoff
-                    print(f"    Rate limited (attempt {attempt}/{MAX_RETRIES}) — waiting {wait}s...")
-                    time.sleep(wait)
-                    continue
-                else:
-                    print(f"    Rate limited — exhausted {MAX_RETRIES} retries")
-                    return "QUOTA_EXHAUSTED"
-            print(f"    ERROR: Gemini call failed: {e}")
-            return None
+    result = router.call(prompt, json_mode=True)
+    if result is None:
+        return None
+
+    parsed = result.parsed
+    if isinstance(parsed, list):
+        return parsed
+    # Groq json_mode wraps in an object — look for array inside
+    if isinstance(parsed, dict):
+        for v in parsed.values():
+            if isinstance(v, list):
+                return v
     return None
 
 
@@ -158,12 +114,15 @@ def main():
     import psycopg2
     import psycopg2.extras
     from datetime import date
+    from lib.llm_router import LLMRouter
 
-    print("33 — Gemini Player Profiling")
+    print("33 — LLM Player Profiling (via router)")
 
-    model = init_gemini()
-    if not model:
+    router = LLMRouter(verbose=True)
+    if not router.available_providers():
+        print("  ERROR: No LLM providers configured. Set GROQ_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY")
         return
+    print(f"  Providers: {', '.join(router.available_providers())}")
 
     conn = psycopg2.connect(POSTGRES_DSN)
     conn.autocommit = False
@@ -282,14 +241,7 @@ def main():
             if i > 0:
                 time.sleep(1)  # Small delay between batches
 
-            results = call_gemini(model, club_name, league, batch)
-            if results == "QUOTA_EXHAUSTED":
-                print(f"\n  QUOTA EXHAUSTED — stopping. Re-run later to continue.")
-                if not DRY_RUN and all_results:
-                    conn.commit()
-                print(f"\n  Total updated so far: {total_updated:,}")
-                conn.close()
-                return
+            results = call_llm_squad(router, club_name, league, batch)
             if not results:
                 print(f"    ERROR: Gemini returned nothing for batch {i//BATCH_SIZE + 1}")
                 total_errors += len(batch)
@@ -370,6 +322,7 @@ def main():
     if DRY_RUN:
         print("  --dry-run: no writes.")
 
+    router.print_stats()
     conn.close()
     print("Done.")
 

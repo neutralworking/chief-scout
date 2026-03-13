@@ -18,7 +18,6 @@ import argparse
 import json
 import re
 import sys
-import time
 from datetime import datetime, timezone
 from html import unescape as html_unescape
 
@@ -26,7 +25,7 @@ import feedparser
 import psycopg2
 from psycopg2.extras import execute_values
 
-from config import POSTGRES_DSN, GEMINI_API_KEY
+from config import POSTGRES_DSN
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 
@@ -294,65 +293,7 @@ def fetch_rss():
         print("  (dry-run — no data was written)")
 
 
-# ── Phase 2: LLM Processing (Gemini) ─────────────────────────────────────────
-
-GEMINI_RATE_LIMIT_RETRIES = 3
-GEMINI_RATE_LIMIT_WAIT = 60  # seconds
-
-
-def init_gemini():
-    """Initialize Gemini client. Returns model or None."""
-    if not GEMINI_API_KEY:
-        return None
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        return genai.GenerativeModel("gemini-2.0-flash")
-    except Exception as e:
-        print(f"  WARN: Gemini init failed: {e}")
-        return None
-
-
-def _parse_llm_response(text: str) -> dict | None:
-    """Parse JSON from LLM response, stripping markdown fences and think tags."""
-    text = text.strip()
-    # Strip <think>...</think> blocks
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-    # Strip markdown code fences
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
-    # Try to find JSON object if there's extra text around it
-    if not text.startswith("{"):
-        match = re.search(r"\{.*\}", text, re.DOTALL)
-        if match:
-            text = match.group(0)
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as e:
-        print(f"    WARN: LLM returned invalid JSON: {e}")
-        return None
-
-
-def call_gemini(model, headline: str, body: str) -> dict | None:
-    """Call Gemini Flash with rate-limit retry (sleep + retry up to 3 times)."""
-    prompt = GEMINI_PROMPT.format(headline=headline, body=body[:3000])
-    for attempt in range(1, GEMINI_RATE_LIMIT_RETRIES + 1):
-        try:
-            response = model.generate_content(prompt)
-            return _parse_llm_response(response.text)
-        except Exception as e:
-            err_str = str(e).lower()
-            if "429" in err_str or "quota" in err_str or "rate" in err_str:
-                if attempt < GEMINI_RATE_LIMIT_RETRIES:
-                    print(f"    Gemini rate limited (attempt {attempt}/{GEMINI_RATE_LIMIT_RETRIES}) — waiting {GEMINI_RATE_LIMIT_WAIT}s...")
-                    time.sleep(GEMINI_RATE_LIMIT_WAIT)
-                    continue
-                else:
-                    print(f"    Gemini rate limited — exhausted {GEMINI_RATE_LIMIT_RETRIES} retries, skipping")
-                    return None
-            print(f"    WARN: Gemini call failed: {e}")
-            return None
+# ── Phase 2: LLM Processing (via router) ─────────────────────────────────────
 
 
 def _unaccent(text: str) -> str:
@@ -427,14 +368,15 @@ def match_player(name: str, club: str | None = None, nationality: str | None = N
 
 
 def process_stories():
-    """Process unprocessed stories with Gemini Flash."""
-    gemini_model = init_gemini()
+    """Process unprocessed stories with LLM router (auto-fallback across providers)."""
+    from lib.llm_router import LLMRouter
 
-    if not gemini_model:
-        print("ERROR: GEMINI_API_KEY is not set or Gemini init failed")
+    router = LLMRouter(verbose=True)
+    if not router.available_providers():
+        print("ERROR: No LLM providers configured. Set GROQ_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY")
         sys.exit(1)
 
-    print(f"  LLM backend: Gemini Flash")
+    print(f"  LLM providers: {', '.join(router.available_providers())}")
 
     where = "WHERE processed = false"
     if FORCE:
@@ -462,15 +404,14 @@ def process_stories():
     for idx, (story_id, headline, body) in enumerate(stories, 1):
         print(f"\n  [{idx}/{len(stories)}] {headline[:80]}...")
 
-        result = call_gemini(gemini_model, headline, body or "")
+        prompt = GEMINI_PROMPT.format(headline=headline, body=(body or "")[:3000])
+        llm_result = router.call(prompt, json_mode=True)
 
-        # Rate limit
-        time.sleep(0.5)
-
-        if result is None:
+        if llm_result is None or llm_result.parsed is None:
             print(f"    SKIP — no valid response")
             continue
 
+        result = llm_result.parsed
         summary = result.get("summary", "")
         story_type = result.get("story_type", "other")
         players = result.get("players", [])
@@ -520,6 +461,7 @@ def process_stories():
 
         processed_count += 1
 
+    router.print_stats()
     print(f"\n── Processing summary: {processed_count} stories processed, {tagged_count} player tags created")
     if DRY_RUN:
         print("  (dry-run — no data was written)")

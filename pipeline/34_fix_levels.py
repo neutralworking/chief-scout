@@ -76,6 +76,36 @@ TIER_FLOOR = {1: 78, 2: 75, 3: 72, 4: 70}
 # Level ceiling for non-elite players at lower tiers
 TIER_CEILING = {3: 87, 4: 84}
 
+# League tier caps — players at non-tiered clubs get capped by their league quality
+# Tier A: top 5 leagues (no cap applied here — handled by club tiers)
+TOP_5_LEAGUES = {
+    "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
+}
+# Tier B: strong leagues — cap at 86
+TIER_B_LEAGUES = {
+    "Liga Portugal", "Eredivisie", "Scottish Premiership",
+    "Campeonato Brasileiro Série A", "Liga MX", "Saudi Pro League",
+    "Süper Lig", "Belgian Pro League", "Austrian Bundesliga",
+}
+# Tier C: decent leagues — cap at 80
+TIER_C_LEAGUES = {
+    "Major League Soccer", "Danish Superliga", "Swiss Super League",
+    "Ekstraklasa", "Russian Premier League", "Ukrainian Premier League",
+    "Croatian First Football League", "Serbian SuperLiga",
+    "Czech First League", "Greek Super League",
+    "Campeonato Brasileiro Série B", "Argentine Primera División",
+    "Championship", "2. Bundesliga", "Serie B", "Segunda División",
+    "Ligue 2",
+}
+# Everything else: cap at 74
+
+LEAGUE_CAP = {}
+for lg in TIER_B_LEAGUES:
+    LEAGUE_CAP[lg] = 86
+for lg in TIER_C_LEAGUES:
+    LEAGUE_CAP[lg] = 80
+# Default for unknown leagues = 74
+
 # Women's team indicators
 WOMENS_INDICATORS = {"Women", "WFC", "Femení", "Féminin", "Frauen"}
 
@@ -151,13 +181,12 @@ def main():
             continue
 
         # ── Fix 3: Lower-league/reserve players rated too high ───
-        # DISABLED — too aggressive, catches world-class players at Saudi/Turkish clubs
-        # and clubs with wrong league_name data (e.g. Celtic → Cabo Verde)
-        # TODO: re-enable with smarter logic once league data is cleaned
-        # if level and level >= 85 and not tier:
-        #     if league and league not in ("Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"):
-        #         fixes.append((pid, 72, f"{name} at {club} ({league}): L={level}→72 (non-top-5)"))
-        #         continue
+        # Players at non-tiered clubs get capped by their league quality
+        if level and not tier and league and league not in TOP_5_LEAGUES:
+            cap = LEAGUE_CAP.get(league, 74)
+            if level > cap:
+                fixes.append((pid, cap, f"{name} at {club} ({league}): L={level}→{cap} (league cap)"))
+                continue
 
         # ── Fix 4: Known lower-division English clubs rated too high ──
         LOWER_ENGLISH = {

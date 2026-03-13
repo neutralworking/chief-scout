@@ -215,13 +215,10 @@ def compute_overall(compound_scores, position, level=None, peak=None):
 
     technical_overall = weighted_sum / total_weight
 
-    # Blend with level/peak if available
-    if level is not None and peak is not None:
-        # Level and peak are on ~0-100 scale
-        editorial = (level * 0.6 + peak * 0.4)
-        overall = technical_overall * 0.7 + editorial * 0.3
-    elif level is not None:
-        overall = technical_overall * 0.75 + level * 0.25
+    # Blend with level if available — level is the stronger signal
+    # since compound scores suffer from incomplete attribute data
+    if level is not None:
+        overall = technical_overall * 0.35 + level * 0.65
     else:
         overall = technical_overall
 

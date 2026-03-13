@@ -3,44 +3,44 @@
 Quick-reference map of every feature → its key files. Use this instead of searching.
 
 ## Dashboard / Home
-- **Page**: `apps/player-editor/src/app/page.tsx`
+- **Page**: `apps/web/src/app/page.tsx`
 - **Components**: `FeaturedPlayer.tsx`, `TrendingPlayers.tsx`, `PursuitPanel.tsx`, `PersonalityExplorer.tsx`
 - **DB**: `player_intelligence_card` view, `news_player_tags`, `player_personality`
 - **Notes**: 4-tier featured player selection (DOF Picks → Top Scouted → News Trending → Discovery)
 
 ## Player Profiles
-- **Page**: `apps/player-editor/src/app/players/[id]/page.tsx`
+- **Page**: `apps/web/src/app/players/[id]/page.tsx`
 - **Components**: `CareerAndMoments.tsx`, `KeyMomentsList.tsx`, `PlayerStats.tsx`, `PlayerRadar.tsx`, `PersonalityBadge.tsx`, `ScoutPad.tsx`
 - **API**: `GET /api/players/[id]`, `GET /api/players/[id]/radar`, `GET /api/players/[id]/tags`, `GET /api/players/[id]/news`
 - **DB**: `people`, `player_profiles`, `player_status`, `player_market`, `player_personality`, `attribute_grades`, `key_moments`
 
 ## Player Browse / Search
-- **Page**: `apps/player-editor/src/app/players/page.tsx`
+- **Page**: `apps/web/src/app/players/page.tsx`
 - **Components**: `PlayerCard.tsx`, `PlayerFilters.tsx`
 - **API**: `GET /api/players/all`
 - **DB**: `player_intelligence_card` view
 
 ## Player Editor
-- **Pages**: `apps/player-editor/src/app/editor/page.tsx` (search), `editor/[id]/page.tsx` (edit form)
+- **Pages**: `apps/web/src/app/editor/page.tsx` (search), `editor/[id]/page.tsx` (edit form)
 - **API**: `PUT /api/players/[id]`, `POST /api/players/[id]/tags`, `POST /api/admin/attribute-update`
 - **DB**: All feature tables (people, profiles, status, market, personality, tags)
 
 ## Squad
-- **Page**: `apps/player-editor/src/app/squad/page.tsx`
+- **Page**: `apps/web/src/app/squad/page.tsx`
 - **API**: `GET /api/squad`, `GET /api/club/needs`, `POST /api/club/needs/infer`
 - **DB**: `clubs`, `player_profiles`, `player_status`, `club_needs`
 - **Pipeline**: `30_squad_roles.py`
 - **SQL**: `club_needs.sql`, `squad_additions.sql`
 
 ## Formations
-- **Page**: `apps/player-editor/src/app/formations/page.tsx`
+- **Page**: `apps/web/src/app/formations/page.tsx`
 - **Components**: `FormationDetail.tsx`
 - **DB**: `formations`, `formation_slots`, `tactical_roles`
 - **Pipeline**: `25_formation_slots.py`
 - **SQL**: `011_formation_slots.sql`, `018_tactical_roles.sql`, `formations_insert.sql`
 
 ## Football Choices / All-Time XI
-- **Page**: `apps/player-editor/src/app/choices/page.tsx`
+- **Page**: `apps/web/src/app/choices/page.tsx`
 - **Components**: `ChoicesGame.tsx`, `ChoicesShell.tsx`, `AllTimeXI.tsx`, `CompoundMetrics.tsx`
 - **API**: `GET /api/choices/categories`, `GET /api/choices`, `POST /api/choices/vote`, `GET /api/choices/squad`, `GET /api/choices/user`
 - **DB**: `fc_categories`, `fc_candidates`, `fc_votes`, `fc_user_squad`, `fc_user_identity`
@@ -54,7 +54,7 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **Notes**: SACROSANCT 13 models × 4 attributes = 52 total. Source priority: scout > statsbomb > fbref > understat > eafc_inferred
 
 ## News / ScoutPad
-- **Pages**: `apps/player-editor/src/app/news/page.tsx`, `scout-pad/page.tsx`
+- **Pages**: `apps/web/src/app/news/page.tsx`, `scout-pad/page.tsx`
 - **Components**: `ScoutPad.tsx`
 - **API**: `GET /api/news`, `GET /api/players/[id]/news`, `GET /api/cron/news`
 - **DB**: `news_stories`, `news_player_tags`
@@ -62,13 +62,13 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **SQL**: `003_news_statsbomb_understat.sql`, `005_news_columns.sql`
 
 ## Admin Panel
-- **Page**: `apps/player-editor/src/app/admin/page.tsx`
+- **Page**: `apps/web/src/app/admin/page.tsx`
 - **Components**: `AdminActions.tsx`
 - **API**: `GET /api/admin/pipeline`, `GET /api/admin/health`, `POST /api/admin/match`, `POST /api/admin/fbref-import`, `POST /api/admin/sql`, `GET /api/admin/player-search`, `POST /api/admin/player-update`, `POST /api/admin/attribute-update`
 - **Notes**: SQL console, FBRef CSV import, data health, player matching
 
 ## Clubs & Leagues
-- **Pages**: `apps/player-editor/src/app/clubs/page.tsx`, `clubs/[id]/page.tsx`, `leagues/page.tsx`
+- **Pages**: `apps/web/src/app/clubs/page.tsx`, `clubs/[id]/page.tsx`, `leagues/page.tsx`
 - **API**: `GET /api/club`, `GET /api/club/needs`
 - **DB**: `clubs`, `nations`, `club_needs`
 - **Pipeline**: `16_club_ingest.py`, `17_wikidata_clubs.py`, `18_wikidata_player_clubs.py`, `26_fix_club_assignments.py`
@@ -105,7 +105,7 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **SQL**: `017_auth_profile.sql`
 
 ## Layout / Sidebar
-- **Layout**: `apps/player-editor/src/app/layout.tsx`, `globals.css`
+- **Layout**: `apps/web/src/app/layout.tsx`, `globals.css`
 - **Components**: `Sidebar.tsx`, `ServiceWorker.tsx`
 - **Lib**: `types.ts`, `features.ts`, `club-themes.ts`, `archetype-themes.ts`
 - **Nav items**: Dashboard, Players, Clubs, Leagues, Formations, News, Choices, Editor, Admin

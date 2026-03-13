@@ -7,7 +7,7 @@ A football scouting and player intelligence platform. Data pipeline ingests from
 ```
 chief-scout/
 ├── pipeline/                ← data pipeline (27 numbered scripts)
-├── apps/player-editor/      ← Next.js player intelligence UI
+├── apps/web/      ← Next.js player intelligence UI
 ├── imports/                 ← CSV data (Real Players Active, clubs)
 ├── transfer_availability/   ← submodule: player archetype + transfer model
 ├── docs/

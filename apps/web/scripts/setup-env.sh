@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup .env.local for the player-editor Next.js app.
+# Setup .env.local for the web Next.js app.
 # Usage: ./scripts/setup-env.sh
 #
 # Requires the Supabase anon key. Get it from:

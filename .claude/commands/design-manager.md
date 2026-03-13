@@ -33,7 +33,7 @@ Given `$ARGUMENTS`:
 5. **Document**: Update CLAUDE.md schema section if tables change
 
 ### Frontend & UI Design
-6. **Prototype**: Use the `frontend-design` skill to create UI prototypes in `apps/player-editor/`
+6. **Prototype**: Use the `frontend-design` skill to create UI prototypes in `apps/web/`
 7. **Design System**: Define and maintain component patterns, tokens, and layout conventions
 8. **Spec-to-UI**: Translate dashboard specs and game design docs into buildable components
 9. **Review UI**: Ensure frontend implementations match design intent and data model
@@ -55,5 +55,5 @@ Never jump straight to code for UI work. The cost of rebuilding rejected UI is f
 - Use `TIMESTAMPTZ` for all timestamps
 - Always include `created_at` and `updated_at` on new tables
 - Generate RLS policies if the table is user-facing
-- Frontend prototypes go in `apps/player-editor/`
+- Frontend prototypes go in `apps/web/`
 - Reference `docs/design/` for game mechanics context when designing UI

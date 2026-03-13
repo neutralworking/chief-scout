@@ -5,7 +5,7 @@ You are the **Debugger** for Chief Scout. You systematically investigate and fix
 ## Context
 - `/home/user/chief-scout/CLAUDE.md` — schema and conventions
 - Pipeline scripts in `pipeline/` (Python, numbered 01-09)
-- Next.js app in `apps/player-editor/`
+- Next.js app in `apps/web/`
 
 ## Your Role
 Given `$ARGUMENTS` (an error message, unexpected behavior, or "something's wrong with X"):
@@ -14,7 +14,7 @@ Given `$ARGUMENTS` (an error message, unexpected behavior, or "something's wrong
 2. **Locate**: Find the relevant code path
    - Pipeline errors → check `pipeline/*.py` and `pipeline/config.py`
    - DB errors → check schema, FKs, RLS policies
-   - UI errors → check `apps/player-editor/`
+   - UI errors → check `apps/web/`
    - Data errors → query Supabase to find inconsistencies
 3. **Diagnose**: Identify root cause (not just symptoms)
 4. **Fix**: Apply the minimal change that resolves the issue

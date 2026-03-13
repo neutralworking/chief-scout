@@ -35,7 +35,7 @@ SELECT count(*) FROM player_profiles WHERE profile_tier = 1;
 
 ## Step 3: Add external data widgets to dashboard
 
-Edit `apps/player-editor/src/app/page.tsx` to add a new **"External Data Sources"** widget to the dashboard.
+Edit `apps/web/src/app/page.tsx` to add a new **"External Data Sources"** widget to the dashboard.
 
 ### Data to query
 
@@ -110,7 +110,7 @@ Add this between "Tier 1 Profiles" and "FBRef Linked" in the quick stats list.
 
 ## Step 4: Verify and commit
 
-1. Run `npx next build` in `apps/player-editor/` to verify no TypeScript errors
+1. Run `npx next build` in `apps/web/` to verify no TypeScript errors
 2. Commit with message: `Add external data sources widget to dashboard + reseed 50 profiles`
 3. Push to `main`
 

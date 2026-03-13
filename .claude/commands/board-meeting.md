@@ -13,7 +13,7 @@ Before producing the report, gather real data:
    - `attribute_grades`, `news_stories`, `fbref_player_season_stats`
    - `career_metrics`, `news_sentiment_agg`, `fc_users`, `clubs`
 4. **Pipeline state**: Check which scripts exist and recent modifications
-5. **UI state**: Check `apps/player-editor/` for page routes and recent changes
+5. **UI state**: Check `apps/web/` for page routes and recent changes
 6. **Roadmap**: Read `ROADMAP.md` for phase status
 7. **Prototypes**: Check `prototypes/INDEX.md` if it exists
 

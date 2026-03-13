@@ -28,7 +28,7 @@ Authorization: Bearer <CRON_SECRET from .env.local>
 {"sql": "<the query>"}
 ```
 
-Read CRON_SECRET from `/Users/solid-snake/Documents/chief-scout/apps/player-editor/.env.local` (grep for CRON_SECRET). Include it as `Authorization: Bearer <value>` header.
+Read CRON_SECRET from `/Users/solid-snake/Documents/chief-scout/apps/web/.env.local` (grep for CRON_SECRET). Include it as `Authorization: Bearer <value>` header.
 
 ## Schema Reference
 - `people` — name, dob, height_cm, preferred_foot, nation_id, club_id, active, wikidata_id

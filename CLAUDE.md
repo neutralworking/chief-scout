@@ -1,7 +1,7 @@
 # Chief Scout — Project Instructions
 
 ## Stack
-- **App**: Next.js (Turbopack) in `apps/player-editor/`
+- **App**: Next.js (Turbopack) in `apps/web/`
 - **DB**: Supabase (project ref: `fnvlemkbhohyouhjebwf`, region: EU Frankfurt)
 - **Pipeline**: Python scripts in `pipeline/`
 - **Skills**: Custom commands in `.claude/commands/` (see below)
@@ -50,7 +50,7 @@ Use `python pipeline/40_promote_to_prod.py --dry-run` to preview, then run witho
 
 ### Environment variables
 - Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY, PROD_SUPABASE_URL, PROD_SUPABASE_SERVICE_KEY)
-- `apps/player-editor/.env.local`: Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*, NEXT_PUBLIC_APP_ENV)
+- `apps/web/.env.local`: Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*, NEXT_PUBLIC_APP_ENV)
 - Vercel staging: SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GEMINI_API_KEY, CRON_SECRET
 - Vercel prod: Same as staging but pointing to prod Supabase + `NEXT_PUBLIC_APP_ENV=production`
 
@@ -136,7 +136,7 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 - Technical: `/project-manager` to plan → `/design-manager` for schema → `/supabase` to implement → `/qa-manager` to validate
 
 ## Admin Panel (`/admin`)
-Single-page dashboard at `apps/player-editor/src/app/admin/page.tsx`.
+Single-page dashboard at `apps/web/src/app/admin/page.tsx`.
 
 - **News Pipeline**: Manual refresh button (triggers `/api/cron/news`)
 - **Quick Stats**: Total players, Tier 1 profiles (scout-assessed with archetype), tracked, news counts
@@ -147,7 +147,7 @@ Single-page dashboard at `apps/player-editor/src/app/admin/page.tsx`.
 News cron runs daily at 6am UTC via Vercel (`vercel.json`). Requires `GEMINI_API_KEY` in Vercel env vars for Gemini Flash processing phase.
 
 ## Gaffer (`/choices`)
-Manager decision game at `apps/player-editor/src/app/choices/page.tsx`.
+Manager decision game at `apps/web/src/app/choices/page.tsx`.
 
 - Users make managerial decisions — bench calls, transfers, pub debates, scouting dilemmas
 - Builds a manager identity profile from vote patterns (e.g., "You manage like Wenger — who backs youth")

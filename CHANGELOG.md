@@ -10,7 +10,7 @@ Format: grouped by date, newest first. Each entry notes scope and affected areas
 **Scope**: Medium | **Areas**: Infrastructure, Pipeline, App
 
 ### Added
-- `apps/player-editor/src/lib/env.ts` — Environment detection (`NEXT_PUBLIC_APP_ENV`: staging | production)
+- `apps/web/src/lib/env.ts` — Environment detection (`NEXT_PUBLIC_APP_ENV`: staging | production)
 - `pipeline/40_promote_to_prod.py` — Promotion script: syncs only Tier 1 complete profiles to prod Supabase
 - Route blocking in production: `/admin`, `/editor`, `/scout-pad`, `/squad` redirect to `/`
 

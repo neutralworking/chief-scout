@@ -30,6 +30,7 @@ parser.add_argument("--club", default=None, help="Single club to process")
 parser.add_argument("--limit", type=int, default=None, help="Max clubs to process")
 parser.add_argument("--force", action="store_true", help="Overwrite existing scout-assessed profiles")
 parser.add_argument("--skip-seed", action="store_true", help="Skip manually seeded players")
+parser.add_argument("--prod-ready", action="store_true", help="Only process players one step from prod-ready (have all data except notes)")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
@@ -152,23 +153,51 @@ def main():
         seed_ids = {row["person_id"] for row in cur.fetchall()}
         print(f"  Skipping {len(seed_ids)} seed/profiled players")
 
-    # ── Load top 5 league players grouped by club ────────────────────────
-    league_filter = (args.league,) if args.league else TOP5
+    # ── Load players grouped by club ────────────────────────────────────
+    all_leagues = args.league and args.league.lower() == "all"
+    prod_ready_mode = args.prod_ready
+    league_filter = None if (all_leagues or prod_ready_mode) else ((args.league,) if args.league else TOP5)
     club_filter = args.club
 
-    query = """
-        SELECT pe.id, pe.name, pp.position, pp.level, pp.archetype,
-               pe.date_of_birth, c.clubname, c.league_name,
-               n.name as nation_name,
-               ps.scouting_notes
-        FROM people pe
-        JOIN clubs c ON c.id = pe.club_id
-        LEFT JOIN player_profiles pp ON pp.person_id = pe.id
-        LEFT JOIN player_status ps ON ps.person_id = pe.id
-        LEFT JOIN nations n ON n.id = pe.nation_id
-        WHERE c.league_name IN %s AND pe.active = true
-    """
-    params: list = [league_filter]
+    if prod_ready_mode:
+        # Only fetch players that have ALL prod data except scouting_notes
+        query = """
+            SELECT pe.id, pe.name, pp.position, pp.level, pp.archetype,
+                   pe.date_of_birth, c.clubname, c.league_name,
+                   n.name as nation_name,
+                   ps.scouting_notes
+            FROM people pe
+            JOIN clubs c ON c.id = pe.club_id
+            JOIN player_profiles pp ON pp.person_id = pe.id
+            LEFT JOIN player_status ps ON ps.person_id = pe.id
+            LEFT JOIN nations n ON n.id = pe.nation_id
+            JOIN player_personality pn ON pn.person_id = pe.id
+            JOIN player_market pm ON pm.person_id = pe.id
+            WHERE pe.active = true
+            AND pe.name IS NOT NULL AND pe.date_of_birth IS NOT NULL
+            AND pp.position IS NOT NULL AND pp.archetype IS NOT NULL
+            AND pp.blueprint IS NOT NULL AND pp.level IS NOT NULL AND pp.overall IS NOT NULL
+            AND pm.market_value_tier IS NOT NULL
+            AND (ps.scouting_notes IS NULL OR LENGTH(ps.scouting_notes) <= 20)
+        """
+        params: list = []
+    else:
+        query = """
+            SELECT pe.id, pe.name, pp.position, pp.level, pp.archetype,
+                   pe.date_of_birth, c.clubname, c.league_name,
+                   n.name as nation_name,
+                   ps.scouting_notes
+            FROM people pe
+            JOIN clubs c ON c.id = pe.club_id
+            LEFT JOIN player_profiles pp ON pp.person_id = pe.id
+            LEFT JOIN player_status ps ON ps.person_id = pe.id
+            LEFT JOIN nations n ON n.id = pe.nation_id
+            WHERE pe.active = true
+        """
+        params: list = []
+        if not all_leagues:
+            query += " AND c.league_name IN %s"
+            params.append(league_filter)
     if club_filter:
         query += " AND c.clubname = %s"
         params.append(club_filter)

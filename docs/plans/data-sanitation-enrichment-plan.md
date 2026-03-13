@@ -31,7 +31,7 @@ Priority 1 is getting the data clean and rich enough to promote more players to 
 
 - **Cost:** Free
 - **What:** Extend admin `/admin` page with per-field completeness heatmap, stale data flags (last updated > 90 days), cross-source consistency checks (StatsBomb vs Understat vs FBRef for same player)
-- **Where:** `apps/player-editor/src/app/admin/`
+- **Where:** `apps/web/src/app/admin/`
 - **Impact:** Makes gaps visible, prioritises enrichment work
 - **Effort:** M
 

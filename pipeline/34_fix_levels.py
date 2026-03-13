@@ -76,38 +76,45 @@ TIER_FLOOR = {1: 78, 2: 75, 3: 72, 4: 70}
 # Level ceiling for non-elite players at lower tiers
 TIER_CEILING = {3: 87, 4: 84}
 
-# League tier caps — players at non-tiered clubs get capped by their league quality
-# Tier A: top 5 leagues (no cap applied here — handled by club tiers)
-TOP_5_LEAGUES = {
-    "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
-}
-# Tier B: strong leagues — cap at 86
-TIER_B_LEAGUES = {
-    "Liga Portugal", "Eredivisie", "Scottish Premiership",
-    "Campeonato Brasileiro Série A", "Liga MX", "Saudi Pro League",
-    "Süper Lig", "Belgian Pro League", "Austrian Bundesliga",
-}
-# Tier C: decent leagues — cap at 80
-TIER_C_LEAGUES = {
-    "Major League Soccer", "Danish Superliga", "Swiss Super League",
-    "Ekstraklasa", "Russian Premier League", "Ukrainian Premier League",
-    "Croatian First Football League", "Serbian SuperLiga",
-    "Czech First League", "Greek Super League",
-    "Campeonato Brasileiro Série B", "Argentine Primera División",
-    "Championship", "2. Bundesliga", "Serie B", "Segunda División",
-    "Ligue 2",
-}
-# Everything else: cap at 74
-
-LEAGUE_CAP = {}
-for lg in TIER_B_LEAGUES:
-    LEAGUE_CAP[lg] = 86
-for lg in TIER_C_LEAGUES:
-    LEAGUE_CAP[lg] = 80
-# Default for unknown leagues = 74
-
 # Women's team indicators
-WOMENS_INDICATORS = {"Women", "WFC", "Femení", "Féminin", "Frauen"}
+WOMENS_INDICATORS = {"Women", "WFC", "Femení", "Féminin", "Frauen", "Feminino",
+                     "Femminile", "Femenino", "Kvinner", "Kvinnor", "Dames"}
+
+# League tier mapping — controls level caps for non-club-tiered players
+# Tier A: no cap (top-5 leagues)
+# Tier B: cap 88 (strong non-top-5)
+# Tier C: cap 82 (second divisions, smaller leagues)
+LEAGUE_TIERS = {
+    # Tier A — top 5, no cap applied
+    "A": {
+        "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
+    },
+    # Tier B — strong leagues, cap at 88
+    "B": {
+        "Liga Portugal", "Eredivisie", "Süper Lig", "Saudi Pro League",
+        "Scottish Premiership", "Belgian Pro League", "Super League Greece",
+        "Campeonato Brasileiro Série A", "Major League Soccer",
+        "Argentine Primera División", "Russian Premier League",
+        "Ukrainian Premier League", "Austrian Bundesliga", "Swiss Super League",
+        "Danish Superliga", "Norwegian Eliteserien", "Swedish Allsvenskan",
+        "Czech First League", "Croatian Football League",
+    },
+    # Tier C — second divisions / smaller leagues, cap at 82
+    "C": {
+        "LaLiga 2", "Serie B", "2. Bundesliga", "Ligue 2", "Championship",
+        "Liga MX", "3. Liga", "Superettan", "Seconde Ligue",
+        "Vrouwen Eredivisie", "Derde Divisie",
+        "2005–06 Serie C1",  # historic / data artifact
+    },
+}
+LEAGUE_TO_TIER = {}
+for lt, leagues in LEAGUE_TIERS.items():
+    for lg in leagues:
+        LEAGUE_TO_TIER[lg] = lt
+
+LEAGUE_TIER_CAP = {"B": 88, "C": 82}
+# Unknown league (NULL) with no club tier → cap at 85
+UNKNOWN_LEAGUE_CAP = 85
 
 
 def is_womens_team(club_name: str) -> bool:
@@ -180,12 +187,23 @@ def main():
             nulls.append((pid, f"women's team ({club}) L={level}→NULL"))
             continue
 
-        # ── Fix 3: Lower-league/reserve players rated too high ───
-        # Players at non-tiered clubs get capped by their league quality
-        if level and not tier and league and league not in TOP_5_LEAGUES:
-            cap = LEAGUE_CAP.get(league, 74)
-            if level > cap:
-                fixes.append((pid, cap, f"{name} at {club} ({league}): L={level}→{cap} (league cap)"))
+        # ── Fix 3: League-tier level caps ────────────────────────
+        # Only applies to players NOT at a club-tiered team (tiers 1-4 handled by Fix 5/6)
+        if level and not tier:
+            lt = LEAGUE_TO_TIER.get(league) if league else None
+            if lt == "C" and level > LEAGUE_TIER_CAP["C"]:
+                fixes.append((pid, LEAGUE_TIER_CAP["C"],
+                    f"{name} at {club} ({league}): L={level}→{LEAGUE_TIER_CAP['C']} (tier C league)"))
+                continue
+            if lt == "B" and level > LEAGUE_TIER_CAP["B"]:
+                fixes.append((pid, LEAGUE_TIER_CAP["B"],
+                    f"{name} at {club} ({league}): L={level}→{LEAGUE_TIER_CAP['B']} (tier B league)"))
+                continue
+            if lt is None and level > UNKNOWN_LEAGUE_CAP:
+                # Unknown league — cap conservatively but don't nuke
+                fixes.append((pid, UNKNOWN_LEAGUE_CAP,
+                    f"{name} at {club} ({league or '??'}): L={level}→{UNKNOWN_LEAGUE_CAP} (unknown league)"))
+
                 continue
 
         # ── Fix 4: Known lower-division English clubs rated too high ──

@@ -681,7 +681,7 @@ The tier is a first-class filter on the player list page:
 
 ## 6. Component Inventory
 
-All new components required, with props and data dependencies. Components live in `apps/player-editor/components/`.
+All new components required, with props and data dependencies. Components live in `apps/web/components/`.
 
 ### Core Display Components
 

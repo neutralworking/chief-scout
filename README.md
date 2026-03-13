@@ -25,7 +25,7 @@ chief-scout/
 │   └── sql/                    # Schema migrations
 │
 ├── apps/
-│   └── player-editor/          # Next.js player editing UI (Supabase-backed)
+│   └── web/          # Next.js player editing UI (Supabase-backed)
 │       └── app/admin/          # Admin panel: import, pipeline status, data health
 │
 ├── imports/                    # CSV data files (Real Players Active, clubs, etc.)
@@ -59,7 +59,7 @@ make pipeline
 ### Environment variables
 
 - **Root `.env.local`**: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `POSTGRES_DSN`, `GEMINI_API_KEY`
-- **`apps/player-editor/.env.local`**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, plus backend keys
+- **`apps/web/.env.local`**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, plus backend keys
 
 ## Pipeline
 

@@ -6,13 +6,13 @@ You are the **DevOps Engineer** for Chief Scout. You are the gatekeeper of crede
 Read these files to understand the environment:
 - `/home/user/chief-scout/CLAUDE.md` — project schema, env vars, security notes
 - `/home/user/chief-scout/pipeline/config.py` — how pipeline loads credentials
-- `/home/user/chief-scout/apps/player-editor/.env.example` — Next.js env template
+- `/home/user/chief-scout/apps/web/.env.example` — Next.js env template
 
 ## Service Inventory
 
 | Service | Purpose | Auth Method | Key Location |
 |---------|---------|-------------|--------------|
-| **Supabase** (fnvlemkbhohyouhjebwf) | Database, API, Auth | Service key + URL | `.env.local` (root + apps/player-editor/) |
+| **Supabase** (fnvlemkbhohyouhjebwf) | Database, API, Auth | Service key + URL | `.env.local` (root + apps/web/) |
 | **GitHub** (neutralworking/chief-scout) | Source control, CI, PRs | `GH_TOKEN` env var or `gh auth` | Environment variable |
 | **Claude Code** | AI assistant sessions | OAuth token | `CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR` |
 | **Gemini** | News tagging (script 12) | API key | `GEMINI_API_KEY` in `.env.local` |
@@ -23,7 +23,7 @@ Read these files to understand the environment:
 ```
 chief-scout/
 ├── .env.local                          ← Pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY)
-├── apps/player-editor/.env.local       ← Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*)
+├── apps/web/.env.local       ← Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*)
 └── .env.example                        ← Template (committed, no real values)
 ```
 
@@ -52,7 +52,7 @@ find /home/user/chief-scout -name ".env*" -not -path "*node_modules*"
 cd /home/user/chief-scout/pipeline && python3 -c "from config import SUPABASE_URL, POSTGRES_DSN; print(f'URL: {SUPABASE_URL[:30]}...'); print(f'DSN: {bool(POSTGRES_DSN)}')"
 
 # Check if Next.js has credentials
-grep -c "SUPABASE" /home/user/chief-scout/apps/player-editor/.env.local 2>/dev/null || echo "No .env.local found"
+grep -c "SUPABASE" /home/user/chief-scout/apps/web/.env.local 2>/dev/null || echo "No .env.local found"
 
 # Check GitHub auth
 gh auth status
@@ -69,7 +69,7 @@ cp .env.example .env.local
 # Then fill in: SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN
 
 # App .env.local (for Next.js)
-cp apps/player-editor/.env.example apps/player-editor/.env.local
+cp apps/web/.env.example apps/web/.env.local
 # Then fill in: SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
@@ -141,16 +141,16 @@ Never start building against an external service without confirming it's reachab
 When debugging build or deploy issues, check for missing environment variables FIRST:
 - Never assume env vars exist in all environments (local, Vercel, CI)
 - Cross-reference `process.env.*` references in `src/` against actual env files
-- Verify Vercel env vars match local: `npx vercel env ls --cwd apps/player-editor`
+- Verify Vercel env vars match local: `npx vercel env ls --cwd apps/web`
 
 ## Common Issues
 
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
-| `supabaseServer` is `null` | Missing `.env.local` in `apps/player-editor/` | Copy from `.env.example`, fill in keys |
+| `supabaseServer` is `null` | Missing `.env.local` in `apps/web/` | Copy from `.env.example`, fill in keys |
 | Pipeline "ERROR: SUPABASE_URL required" | Missing root `.env.local` | Copy from `.env.example`, fill in keys |
 | `gh: command not found` | gh CLI not installed | `apt-get install -y gh` |
 | `gh auth` fails | No `GH_TOKEN` in environment | Check `env \| grep GH_TOKEN` |
 | "old project" warnings | Using `njulrlyfiamklxptvlun` ref | Switch to `fnvlemkbhohyouhjebwf` |
 | RLS permission denied | Using anon key server-side | Use service role key in server components |
-| Next.js shows no data | `SUPABASE_SERVICE_KEY` missing | Add to `apps/player-editor/.env.local` |
+| Next.js shows no data | `SUPABASE_SERVICE_KEY` missing | Add to `apps/web/.env.local` |

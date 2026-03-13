@@ -8,6 +8,30 @@ export function AdminActions() {
   const [cardsRefreshing, setCardsRefreshing] = useState(false);
   const [cardsResult, setCardsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Admin login state
+  const [adminUser, setAdminUser] = useState("");
+  const [adminPass, setAdminPass] = useState("");
+  const [adminLoggedIn, setAdminLoggedIn] = useState(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("network_admin") === "1";
+    return false;
+  });
+  const [loginError, setLoginError] = useState("");
+
+  const handleAdminLogin = () => {
+    if (adminUser === "admin" && adminPass === "0.123456789") {
+      sessionStorage.setItem("network_admin", "1");
+      setAdminLoggedIn(true);
+      setLoginError("");
+    } else {
+      setLoginError("Invalid credentials");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem("network_admin");
+    setAdminLoggedIn(false);
+  };
+
   // SQL Runner state
   const [sql, setSql] = useState("");
   const [sqlRunning, setSqlRunning] = useState(false);
@@ -134,6 +158,52 @@ export function AdminActions() {
 
   return (
     <div className="space-y-4">
+      {/* Admin Login */}
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
+          Network Access
+        </h2>
+        {adminLoggedIn ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-[var(--color-accent-tactical)]">Logged in as admin</span>
+            <span className="text-xs text-[var(--text-muted)]">Edit mode enabled on /network</span>
+            <button
+              onClick={handleAdminLogout}
+              className="ml-auto px-3 py-1 rounded text-xs font-semibold bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-wrap">
+            <input
+              type="text"
+              placeholder="Username"
+              value={adminUser}
+              onChange={(e) => setAdminUser(e.target.value)}
+              className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-tactical)] transition-colors w-36"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={adminPass}
+              onChange={(e) => setAdminPass(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+              className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-accent-tactical)] transition-colors w-36"
+            />
+            <button
+              onClick={handleAdminLogin}
+              className="px-4 py-1.5 rounded bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] text-sm font-semibold hover:bg-[var(--color-accent-tactical)]/30 transition-colors"
+            >
+              Login
+            </button>
+            {loginError && (
+              <span className="text-xs text-[var(--color-pursuit-priority)]">{loginError}</span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Pipeline Actions */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg p-6">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-4">

@@ -16,7 +16,7 @@ Chief Scout is a football scouting intelligence platform with a **mature data fo
 - Comprehensive game design documentation (Director of Football)
 
 **What's not built:**
-- The Next.js app (`apps/player-editor/` is empty)
+- The Next.js app (`apps/web/` is empty)
 - Authentication, billing, deployment
 - Any user-facing interface whatsoever
 

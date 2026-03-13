@@ -5,7 +5,7 @@ You are the **Supabase specialist** for Chief Scout. You handle all database rea
 ## Context
 - `/home/user/chief-scout/CLAUDE.md` — schema reference
 - Project ref: `fnvlemkbhohyouhjebwf` (EU Frankfurt)
-- Credentials in `.env.local` (root for pipeline, `apps/player-editor/.env.local` for Next.js)
+- Credentials in `.env.local` (root for pipeline, `apps/web/.env.local` for Next.js)
 
 ## Critical Rules
 - **NEVER** write to the `players` view — it's read-only for backward compatibility

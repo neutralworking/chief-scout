@@ -18,7 +18,7 @@
 **Size:** S
 
 ### 2. Dashboard MVP
-**Description:** `docs/Dashboard.md` contains a 300+ line UI/UX spec. Build a minimal web dashboard covering the core scouting workflow. Already 80% built as player-editor.
+**Description:** `docs/Dashboard.md` contains a 300+ line UI/UX spec. Build a minimal web dashboard covering the core scouting workflow. Already 80% built as web.
 **Acceptance Criteria:**
 - Player search with filters (position, age, league, attributes)
 - Player profile view (attributes, scouting notes, stats)
@@ -38,7 +38,7 @@
 **Size:** S
 
 ### 4. Add Authentication (Supabase Auth)
-**Description:** Required for public deployment. Add Supabase Auth to protect the player-editor app.
+**Description:** Required for public deployment. Add Supabase Auth to protect the web app.
 **Acceptance Criteria:**
 - Login/signup flow with Supabase Auth
 - Protected routes require authentication
@@ -56,7 +56,7 @@
 **Size:** M
 
 ### 6. Deploy to Vercel
-**Description:** Ship the product. Deploy player-editor to Vercel with environment variables configured.
+**Description:** Ship the product. Deploy web to Vercel with environment variables configured.
 **Acceptance Criteria:**
 - Production deployment on Vercel
 - Environment variables configured (Supabase, Stripe)

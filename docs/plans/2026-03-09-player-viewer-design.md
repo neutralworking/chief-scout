@@ -9,7 +9,7 @@ Web-based scouting dashboard for browsing, searching, and analyzing player data 
 
 ## Stack
 
-- **Framework**: Next.js 15 App Router + Turbopack (in `apps/player-editor/`)
+- **Framework**: Next.js 15 App Router + Turbopack (in `apps/web/`)
 - **Styling**: Tailwind CSS, dark theme
 - **Charts**: Recharts (radar, bar, gauges)
 - **Data**: Supabase JS client, server components for data fetching

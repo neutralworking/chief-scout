@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       break;
     case "value":
     default:
-      query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
+      query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
       break;
   }
 

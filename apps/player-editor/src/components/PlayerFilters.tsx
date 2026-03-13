@@ -130,11 +130,9 @@ export function PlayerFilters() {
           onChange={(e) => updateParam("sort", e.target.value)}
           className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-personality)] cursor-pointer"
         >
-          <option value="value">Sort: Value (High→Low)</option>
-          <option value="pursuit">Sort: Pursuit Status</option>
-          <option value="level">Sort: Level (High→Low)</option>
-          <option value="peak">Sort: Peak (High→Low)</option>
-          <option value="name">Sort: Name (A→Z)</option>
+          <option value="value">Sort: CS Value</option>
+          <option value="level">Sort: Level</option>
+          <option value="name">Sort: Name</option>
           <option value="position">Sort: Position</option>
         </select>
 

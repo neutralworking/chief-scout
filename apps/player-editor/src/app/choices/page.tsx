@@ -14,8 +14,8 @@ interface Category {
 }
 
 export const metadata = {
-  title: "Football Choices — Chief Scout",
-  description: "Build your All-Time XI. See how your picks compare.",
+  title: "Gaffer — Chief Scout",
+  description: "Make the calls a manager would. Build your footballing identity.",
 };
 
 export default async function ChoicesPage() {
@@ -43,9 +43,9 @@ export default async function ChoicesPage() {
       </Link>
 
       <div className="text-center mb-3 sm:mb-6">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight mb-1">Football Choices</h1>
+        <h1 className="text-xl sm:text-3xl font-bold tracking-tight mb-1">Gaffer</h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-          Build your All-Time XI. See how your picks compare.
+          Make the calls. Build your identity.
         </p>
       </div>
 

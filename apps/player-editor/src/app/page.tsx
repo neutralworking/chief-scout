@@ -328,12 +328,12 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2">
           <Link href="/choices" className="glass rounded-xl p-6 block h-full hover:bg-[var(--bg-elevated)] transition-colors group relative overflow-hidden">
             <div className="relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)]">Football Choices</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)]">Gaffer</span>
               <h2 className="text-xl font-bold tracking-tight mt-1 group-hover:text-[var(--accent-personality)] transition-colors">
-                Build Your Footballing Identity
+                Make the Calls. Build Your Identity.
               </h2>
               <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
-                Pick between legends, debate GOATs, and discover your footballing personality through quick-fire comparisons.
+                Transfer decisions, bench calls, pub debates — make the choices a manager would and discover your footballing identity.
               </p>
               <div className="flex items-center gap-3 mt-4">
                 <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[var(--accent-personality)]/20 text-[var(--accent-personality)]">

@@ -1,7 +1,7 @@
 {
-  "name": "Football Choices",
-  "short_name": "Choices",
-  "description": "Pick your favourites. Build your footballing identity.",
+  "name": "Gaffer",
+  "short_name": "Gaffer",
+  "description": "Make the calls a manager would. Build your footballing identity.",
   "start_url": "/choices",
   "display": "standalone",
   "background_color": "#0a0a0f",

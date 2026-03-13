@@ -13,8 +13,8 @@ interface Category {
 }
 
 const TABS = [
-  { id: "xi", label: "All-Time XI" },
-  { id: "trivia", label: "Choices" },
+  { id: "xi", label: "Dream XI" },
+  { id: "trivia", label: "Quick Fire" },
 ] as const;
 
 type Tab = (typeof TABS)[number]["id"];

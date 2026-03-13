@@ -111,6 +111,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   let featured: FeaturedProfile | null = null;
   let featuredReason: FeaturedReason = "discovery";
+  let featuredPool: FeaturedProfile[] = [];
 
   // Tier 1: DOF picks — Priority/Interested pursuit targets, daily rotation
   const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
@@ -120,6 +121,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   if (dofPool.length > 0) {
     featured = dofPool[dailySeed() % dofPool.length];
     featuredReason = "dof_pick";
+    featuredPool = dofPool;
   }
 
   // Tier 2: News trending — sentiment swing (controversial/talked-about)
@@ -169,6 +171,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     if (candidates.length > 0) {
       featured = candidates[dailySeed() % candidates.length];
       featuredReason = "discovery";
+      featuredPool = candidates;
     }
   }
 
@@ -273,7 +276,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     };
   }
 
-  return { featured, featuredReason, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
+  return { featured, featuredReason, featuredPool, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -307,7 +310,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
+  const { featured, featuredReason, featuredPool, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
 
   return (
     <div className="space-y-4">
@@ -316,7 +319,7 @@ export default async function DashboardPage() {
         {/* Featured Player — 3 cols */}
         <div className="lg:col-span-3">
           {featured ? (
-            <FeaturedPlayer player={featured} reason={featuredReason} />
+            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
           ) : (
             <div className="glass rounded-xl p-6">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>

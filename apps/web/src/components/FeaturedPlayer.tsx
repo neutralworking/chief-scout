@@ -71,12 +71,28 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
   discovery: { label: "Discovery", color: "var(--accent-personality)" },
 };
 
-export function FeaturedPlayer({ player, reason }: { player: FeaturedPlayerData; reason?: string }) {
+export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { player: FeaturedPlayerData; reason?: string; pool?: FeaturedPlayerData[] }) {
+  const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
+  const [poolIndex, setPoolIndex] = useState(() => {
+    const idx = pool.findIndex((p) => p.person_id === initialPlayer.person_id);
+    return idx >= 0 ? idx : 0;
+  });
+
+  const player = currentPlayer;
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
   const personality = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
+  const canCycle = pool.length > 1;
+
+  const nextFeatured = () => {
+    if (!canCycle) return;
+    const next = (poolIndex + 1) % pool.length;
+    setPoolIndex(next);
+    setCurrentPlayer(pool[next]);
+    setRadarData(null);
+  };
 
   const age = player.dob
     ? Math.floor((Date.now() - new Date(player.dob).getTime()) / 31557600000)
@@ -87,6 +103,7 @@ export function FeaturedPlayer({ player, reason }: { player: FeaturedPlayerData;
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   useEffect(() => {
+    setSelectedPos(player.position ?? "CM");
     fetch(`/api/players/${player.person_id}/radar`)
       .then((r) => r.json())
       .then((d) => {
@@ -145,6 +162,14 @@ export function FeaturedPlayer({ player, reason }: { player: FeaturedPlayerData;
               <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
                 {reasonInfo.label}
               </span>
+            )}
+            {canCycle && (
+              <button
+                onClick={nextFeatured}
+                className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors ml-auto"
+              >
+                Next &rarr;
+              </button>
             )}
           </div>
           <Link href={`/players/${player.person_id}`} className="group">

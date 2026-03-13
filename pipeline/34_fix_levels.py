@@ -96,7 +96,7 @@ def main():
 
     # ── Load all players with levels ─────────────────────────────────────
     cur.execute("""
-        SELECT pe.id, pe.name, pp.level, pp.position, pp.archetype,
+        SELECT pe.id, pe.name, pp.level, pp.peak, pp.overall, pp.position, pp.archetype,
                c.clubname, c.league_name, pe.date_of_birth,
                ps.scouting_notes
         FROM people pe
@@ -128,12 +128,20 @@ def main():
         club = p["clubname"]
         league = p["league_name"]
         name = p["name"]
-
-        # Skip players with good bios — their levels were manually set
-        if pid in good_bio_ids:
-            continue
+        peak = p.get("peak")
 
         tier = CLUB_TO_TIER.get(club)
+
+        # ── Fix 0: Garbage levels — year suffixes from RSG import ────────
+        # Levels < 30 are year suffixes (2014→14), not real levels.
+        # Null these out so 33_gemini_profiles.py can re-infer via LLM.
+        if level and level < 30:
+            nulls.append((pid, f"{name} at {club}: L={level}→NULL (year-suffix)"))
+            continue
+
+        # Skip players with good bios for remaining heuristic fixes
+        if pid in good_bio_ids:
+            continue
 
         # ── Fix 1: Women's team players rated as men's ────────────
         if is_womens_team(club) and level and level > 75:
@@ -142,21 +150,14 @@ def main():
             nulls.append((pid, f"women's team ({club}) L={level}→NULL"))
             continue
 
-        # ── Fix 2: Pipeline garbage levels (L=10-20) ─────────────
-        if level and level < 25 and tier and tier <= 2:
-            # Players at elite/strong clubs with L=10-20 are pipeline bugs
-            # Set to a reasonable default based on tier
-            default = {1: 79, 2: 76}[tier]
-            fixes.append((pid, default, f"{name} at {club}: L={level}→{default} (pipeline bug)"))
-            continue
-
         # ── Fix 3: Lower-league/reserve players rated too high ───
-        # Players at non-top-5 league clubs with suspiciously high levels
-        if level and level >= 85 and not tier:
-            # Not at a known club but rated elite — likely wrong
-            if league and league not in ("Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"):
-                fixes.append((pid, 72, f"{name} at {club} ({league}): L={level}→72 (non-top-5)"))
-                continue
+        # DISABLED — too aggressive, catches world-class players at Saudi/Turkish clubs
+        # and clubs with wrong league_name data (e.g. Celtic → Cabo Verde)
+        # TODO: re-enable with smarter logic once league data is cleaned
+        # if level and level >= 85 and not tier:
+        #     if league and league not in ("Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"):
+        #         fixes.append((pid, 72, f"{name} at {club} ({league}): L={level}→72 (non-top-5)"))
+        #         continue
 
         # ── Fix 4: Known lower-division English clubs rated too high ──
         LOWER_ENGLISH = {

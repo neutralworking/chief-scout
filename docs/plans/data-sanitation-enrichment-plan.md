@@ -376,36 +376,125 @@ This adds 4 columns to `people`: `total_goals`, `awards`, `contract_expiry_date`
 
 ## G. LLM-Powered Pipeline Enhancements (What to Build)
 
-### G1. Batch Profile Generator (`31_llm_profiles.py`)
+### G1. Batch Profile Generator (`33_gemini_profiles.py`) — EXISTS, BLOCKED
 
 - **Input:** Player's attribute grades + career history + news sentiment
-- **Output:** Blueprint text, scouting notes, archetype rationale
+- **Output:** Level (1-99), scouting bio, per club batch
 - **Model:** Gemini Flash (cheap) with Sonnet/Pro fallback for edge cases
 - **Approach:** Structured JSON output with SACROSANCT-compliant archetypes
-- **Target:** Fill blueprint + scouting_notes for 500+ players in one run (~$2-5)
+- **Target:** Fill scouting_notes for 500+ players in one run (~$2-5)
+- **Status:** Script exists. Blocked on Gemini free tier quota (limit: 0 RPM as of 2026-03-13). Needs paid tier or multi-provider fallback
+- **Existing scripts:** `33_gemini_profiles.py` (levels + bios), `35_manual_profiles.py` (DOF curated, 267 applied)
 
-### G2. Personality Inference (`32_llm_personality.py`)
+### G2. Personality Inference — CRITICAL PATH
 
 - **Input:** Career trajectory (loyalty/mobility), news sentiment, playing style attributes
 - **Output:** MBTI dimension scores (ei/sn/tf/jp), competitiveness, coachability
 - **Model:** Gemini Pro or Claude Haiku (needs reasoning about personality)
-- **Validation:** Cross-check against 50 manually-scored players for calibration
+- **Validation:** Cross-check against 104 existing personality records for calibration
 - **Target:** Fill personality for 500+ players (~$3-10)
+- **Status:** Only 104 personality records exist (from seed + DOF). This is the #1 north star blocker
+- **Existing script:** `32_dof_profiles.py` covers 98 seed players only
 
-### G3. Smart Name Matching (`pipeline/lib/llm_match.py`)
+### G3. Blueprint Generator — CRITICAL PATH
+
+- **Input:** Attribute grades (9,445 players have 20+), position, archetype
+- **Output:** Blueprint text (e.g. "Maestro", "Pressing Machine", "Ball-Playing Defender")
+- **Model:** Any LLM — structured classification from attribute profile
+- **Target:** Fill blueprint for 4,700+ players who have archetype but no blueprint
+- **Status:** Only 49 blueprints exist. 4,772 archetypes exist. Gap is massive
+- **Could be deterministic:** Blueprint could be derived from archetype + top attributes without LLM
+
+### G4. Smart Name Matching (`pipeline/lib/llm_match.py`)
 
 - **Input:** Unmatched player name + club + nationality from external source
 - **Output:** Best match from people table or "no match" with confidence
 - **Model:** Groq/Llama (fast, cheap) — handles transliteration, nicknames, accent variations
 - **Target:** Resolve 30+ currently unmatched players across sources
 
-### G4. Data Quality Auditor
+### G5. Data Quality Auditor
 
 - **Input:** Full player record across all 6 tables
 - **Output:** Quality score (0-100), list of suspicious values, suggested corrections
 - **Model:** Gemini Flash (structured output)
 - **Run:** As post-pipeline validation step, flags records for human review
 - **Target:** Catch the ~5-10% of records with plausible-but-wrong data
+
+---
+
+## H. North Star Gap Analysis (as of 2026-03-13)
+
+Full profile = people + profiles + personality + market + status + 20+ attribute grades.
+
+| Table | Rows | North Star Requirement | Gap |
+|---|---|---|---|
+| `people` | 20,180 | name, DOB, height, foot, nation, club | Mostly populated |
+| `player_profiles` | 19,335 | position, archetype, blueprint, level, overall | **blueprint: only 49** (archetype: 4,772) |
+| `player_personality` | **104** | MBTI scores + competitiveness + coachability | **Critical: only 104/20,180** |
+| `player_market` | 19,473 | market_value_tier, true_mvt, scarcity_score | Mostly populated |
+| `player_status` | varies | pursuit_status, scouting_notes | **scouting_notes: 1,720** |
+| `attribute_grades` | 9,445 with 20+ | 20+ grades per player | Good coverage |
+
+### What's Actually Blocking Tier 1?
+
+**49 players** currently qualify as full profiles. To hit 200+:
+
+1. **Personality (104 → 500+)** — biggest gap, needs LLM or heuristic inference
+2. **Blueprint (49 → 500+)** — could be deterministic from archetype + attributes
+3. **Scouting notes (1,720 → fine)** — already decent, Gemini can fill rest
+4. **Archetype (4,772 → fine)** — good coverage
+5. **Market data (19,473 → fine)** — already populated
+
+### Fastest Path to 200+ Full Profiles
+
+| Step | Script | Action | Impact |
+|---|---|---|---|
+| 1 | New `38_infer_personality.py` | Heuristic personality from attributes + career | 104 → 2,000+ |
+| 2 | New `39_infer_blueprints.py` | Deterministic blueprint from archetype + top attributes | 49 → 4,000+ |
+| 3 | `33_gemini_profiles.py` | Fill scouting notes (needs Gemini paid or fallback) | 1,720 → 3,000+ |
+| 4 | `40_promote_to_prod.py --dry-run` | Check how many now qualify | Target: 200+ |
+
+Steps 1-2 are **free, no LLM needed**, and could push north star from 49 → 200+ today.
+
+---
+
+## I. Multi-Provider LLM Strategy
+
+Gemini free tier is unreliable (quota exhausts quickly, limit drops to 0 RPM). Pipeline scripts need fallback chains.
+
+### Recommended Provider Priority
+
+| Priority | Provider | Model | Cost | Best For | RPM (Free) |
+|---|---|---|---|---|---|
+| 1 | **Groq** | Llama 3.3 70B | Free / $0.59/1M | Fast batch processing, extraction | 30 |
+| 2 | **Gemini** | 2.0 Flash | Free / $0.10/1M in | Structured JSON, high volume | 15 (when available) |
+| 3 | **Gemini** | 2.5 Pro | Free preview | Complex reasoning, personality | 5 |
+| 4 | **Claude** | Haiku 4.5 | $0.80/1M in | Quality narratives, batch API 50% off | Paid only |
+| 5 | **Together.ai** | Llama 3.3 70B | $0.60/1M | Overflow when Groq exhausted | Paid only |
+
+### Implementation: `pipeline/lib/llm_router.py`
+
+Build a universal LLM router that all pipeline scripts use:
+
+```python
+from lib.llm_router import call_llm
+
+result = call_llm(
+    prompt="...",
+    model_preference="fast",  # fast|quality|cheap
+    json_mode=True,
+    max_retries=3,
+)
+```
+
+The router automatically:
+- Tries providers in priority order
+- Falls back on 429/quota errors
+- Logs cost per call for tracking
+- Supports `json_mode=True` for structured output
+- Caches results to avoid re-processing on retry
+
+This replaces the per-script Gemini init pattern and makes every script resilient to any single provider going down.
 
 ---
 
@@ -417,3 +506,6 @@ After implementation:
 - [ ] Check admin dashboard coverage percentages — should show improvement
 - [ ] Run `python pipeline/40_promote_to_prod.py --dry-run` — more players should qualify for Tier 1
 - [ ] Spot-check 10 random players for data completeness across all 6 tables
+- [ ] Verify `38_infer_personality.py` output correlates with 104 manually-scored players
+- [ ] Verify `39_infer_blueprints.py` output matches 49 existing blueprints
+- [ ] Test LLM router fallback chain: kill Gemini key → verify Groq picks up

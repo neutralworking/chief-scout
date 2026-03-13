@@ -26,7 +26,7 @@ import feedparser
 import psycopg2
 from psycopg2.extras import execute_values
 
-from config import POSTGRES_DSN, GEMINI_API_KEY, GROQ_API_KEY
+from config import POSTGRES_DSN, GEMINI_API_KEY
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 
@@ -78,6 +78,31 @@ RSS_SOURCES = {
     },
     "90min": {
         "url": "https://www.90min.com/posts.rss",
+        "category": "general",
+    },
+    # ── Additional feeds (B9 expansion) ──────────────────────────────────
+    "lequipe_football": {
+        "url": "https://www.lequipe.fr/rss/actu_rss_Football.xml",
+        "category": "league_fra",
+    },
+    "bild_fussball": {
+        "url": "https://www.bild.de/rss-feeds/rss3-20telegraaf1-fussball-20telegraaf1-39542498,dzBildregion=,sortByDate=,teaserfall=.bild.xml",
+        "category": "league_ger",
+    },
+    "abola": {
+        "url": "https://www.abola.pt/rss/index.aspx",
+        "category": "league_por",
+    },
+    "goal_com": {
+        "url": "https://www.goal.com/feeds/en/news",
+        "category": "general",
+    },
+    "teamtalk": {
+        "url": "https://www.teamtalk.com/feed",
+        "category": "general",
+    },
+    "football365": {
+        "url": "https://www.football365.com/feed",
         "category": "general",
     },
 }

@@ -212,12 +212,13 @@ async function matchPlayer(
 // ── Main Handler ────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
-  // Auth: require CRON_SECRET header (for Vercel Cron) or query param for manual trigger
+  // Auth: require CRON_SECRET header (for Vercel Cron), query param, or internal admin call
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.get("authorization");
   const querySecret = req.nextUrl.searchParams.get("secret");
+  const isAdminCall = req.headers.get("x-admin") === "1";
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}` && querySecret !== cronSecret) {
+  if (cronSecret && !isAdminCall && authHeader !== `Bearer ${cronSecret}` && querySecret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

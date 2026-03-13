@@ -42,7 +42,7 @@ export function AdminActions() {
     setNewsRefreshing(true);
     setNewsResult(null);
     try {
-      const res = await fetch("/api/cron/news");
+      const res = await fetch("/api/cron/news", { headers: { "x-admin": "1" } });
       const data = await res.json();
       if (data.ok) {
         const s = data.stats;

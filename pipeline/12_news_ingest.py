@@ -89,9 +89,21 @@ RSS_SOURCES = {
         "url": "https://www.bild.de/rss-feeds/rss3-20telegraaf1-fussball-20telegraaf1-39542498,dzBildregion=,sortByDate=,teaserfall=.bild.xml",
         "category": "league_ger",
     },
+    "gazzetta_football": {
+        "url": "https://www.gazzetta.it/rss/Calcio.xml",
+        "category": "league_ita",
+    },
     "abola": {
         "url": "https://www.abola.pt/rss/index.aspx",
         "category": "league_por",
+    },
+    "as_football": {
+        "url": "https://as.com/rss/en/football.xml",
+        "category": "league_esp",
+    },
+    "rmc_sport": {
+        "url": "https://rmcsport.bfmtv.com/rss/football/",
+        "category": "league_fra",
     },
     "goal_com": {
         "url": "https://www.goal.com/feeds/en/news",
@@ -104,6 +116,10 @@ RSS_SOURCES = {
     "football365": {
         "url": "https://www.football365.com/feed",
         "category": "general",
+    },
+    "kicker_football": {
+        "url": "https://rss.kicker.de/news/fussball",
+        "category": "league_ger",
     },
 }
 

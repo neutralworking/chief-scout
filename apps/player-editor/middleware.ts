@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/pricing", "/api", "/players", "/clubs", "/leagues", "/formations", "/news", "/choices", "/admin", "/squad", "/rankings", "/scout-pad", "/_next", "/favicon.ico"];
+const PUBLIC_PATHS = ["/", "/login", "/pricing", "/api", "/players", "/clubs", "/leagues", "/formations", "/news", "/free-agents", "/choices", "/admin", "/squad", "/rankings", "/scout-pad", "/_next", "/favicon.ico"];
 
 /** Routes only available on staging — blocked in production */
 const STAGING_ONLY_ROUTES = ["/admin", "/editor", "/scout-pad", "/squad"];

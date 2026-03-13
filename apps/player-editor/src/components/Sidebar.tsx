@@ -14,7 +14,8 @@ const ALL_NAV_ITEMS = [
   { label: "Leagues", href: "/leagues" },
   { label: "Formations", href: "/formations" },
   { label: "News Feed", href: "/news" },
-  { label: "Choices", href: "/choices" },
+  { label: "Free Agents", href: "/free-agents" },
+  { label: "Gaffer", href: "/choices" },
   { label: "Editor", href: "/editor", stagingOnly: true },
   { label: "Admin", href: "/admin", stagingOnly: true },
 ];

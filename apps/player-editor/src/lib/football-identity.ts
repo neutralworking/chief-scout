@@ -1,9 +1,9 @@
 /**
- * football-identity.ts — Map dimension scores → named footballing identity.
+ * football-identity.ts — Map dimension scores → manager archetype + taste profile.
  *
  * Each of the 6 dimensions is 0-100 (50 = neutral).
- * The primary axis (furthest from 50) determines the archetype name.
- * A secondary modifier adds flavour.
+ * The primary axis (furthest from 50) determines the manager archetype.
+ * A secondary modifier adds flavour: "You manage like Wenger — with a moneyball streak"
  */
 
 export interface IdentityDimensions {
@@ -16,47 +16,48 @@ export interface IdentityDimensions {
   era_bias?: string;
 }
 
-interface IdentityArchetype {
+interface ManagerArchetype {
   name: string;
   tagline: string;
   dimension: keyof Omit<IdentityDimensions, "era_bias">;
   direction: "high" | "low";
 }
 
-const ARCHETYPES: IdentityArchetype[] = [
-  // High = flair side, Low = function side
-  { name: "The Entertainer", tagline: "You'd rather lose 4-3 than win 1-0", dimension: "flair_vs_function", direction: "high" },
-  { name: "The Pragmatist", tagline: "Results are the only aesthetic", dimension: "flair_vs_function", direction: "low" },
-  // High = youth, Low = experience
-  { name: "The Dream Builder", tagline: "Every academy kid could be the next Messi", dimension: "youth_vs_experience", direction: "high" },
-  { name: "The Proven Hand", tagline: "You don't gamble with your starting XI", dimension: "youth_vs_experience", direction: "low" },
-  // High = attack, Low = defense
-  { name: "The Risk Taker", tagline: "Defence wins trophies, but goals win hearts", dimension: "attack_vs_defense", direction: "high" },
-  { name: "The Guardian", tagline: "Clean sheets are beautiful", dimension: "attack_vs_defense", direction: "low" },
-  // High = loyalty, Low = ambition
-  { name: "The Romantic", tagline: "Football without loyalty is just business", dimension: "loyalty_vs_ambition", direction: "high" },
-  { name: "The Empire Builder", tagline: "The best deserve the biggest stages", dimension: "loyalty_vs_ambition", direction: "low" },
-  // High = stats, Low = eye test
-  { name: "The Analyst", tagline: "If it can't be measured, it doesn't exist", dimension: "stats_vs_eye_test", direction: "high" },
-  { name: "The Purist", tagline: "You know quality — no spreadsheet needed", dimension: "stats_vs_eye_test", direction: "low" },
-  // High = domestic, Low = global
-  { name: "The Patriot", tagline: "Your league, your players, your way", dimension: "domestic_vs_global", direction: "high" },
-  { name: "The Globetrotter", tagline: "Talent has no passport", dimension: "domestic_vs_global", direction: "low" },
+const ARCHETYPES: ManagerArchetype[] = [
+  // flair (high) vs function (low)
+  { name: "The Guardiola", tagline: "The process IS the trophy", dimension: "flair_vs_function", direction: "high" },
+  { name: "The Sacchi", tagline: "The system makes the player", dimension: "flair_vs_function", direction: "low" },
+  // youth (high) vs experience (low)
+  { name: "The Wenger", tagline: "You see potential where others see risk", dimension: "youth_vs_experience", direction: "high" },
+  { name: "The Capello", tagline: "Experience is non-negotiable", dimension: "youth_vs_experience", direction: "low" },
+  // attack (high) vs defense (low)
+  { name: "The Bielsa", tagline: "Attack is a state of mind", dimension: "attack_vs_defense", direction: "high" },
+  { name: "The Mourinho", tagline: "Results. Everything else is noise.", dimension: "attack_vs_defense", direction: "low" },
+  // loyalty (high) vs ambition (low)
+  { name: "The Ferguson", tagline: "You build dynasties, not squads", dimension: "loyalty_vs_ambition", direction: "high" },
+  { name: "The Levy", tagline: "Every player has a price", dimension: "loyalty_vs_ambition", direction: "low" },
+  // stats (high) vs eye test (low)
+  { name: "The Beane", tagline: "The numbers don't lie", dimension: "stats_vs_eye_test", direction: "high" },
+  { name: "The Clough", tagline: "You know a player when you see one", dimension: "stats_vs_eye_test", direction: "low" },
+  // domestic (high) vs global (low)
+  { name: "The Pulis", tagline: "You know your league inside out", dimension: "domestic_vs_global", direction: "high" },
+  { name: "The Michels", tagline: "Football is universal", dimension: "domestic_vs_global", direction: "low" },
 ];
 
 const MODIFIERS: Record<string, { high: string; low: string }> = {
-  flair_vs_function: { high: "Creative", low: "Disciplined" },
-  youth_vs_experience: { high: "Progressive", low: "Traditional" },
-  attack_vs_defense: { high: "Attacking", low: "Defensive" },
-  loyalty_vs_ambition: { high: "Romantic", low: "Ambitious" },
-  domestic_vs_global: { high: "Local", low: "Global" },
-  stats_vs_eye_test: { high: "Analytical", low: "Instinctive" },
+  flair_vs_function: { high: "with a flair for the beautiful game", low: "who gets results" },
+  youth_vs_experience: { high: "who backs youth", low: "who trusts experience" },
+  attack_vs_defense: { high: "with an attacking instinct", low: "with a defensive edge" },
+  loyalty_vs_ambition: { high: "with a romantic side", low: "with ruthless ambition" },
+  domestic_vs_global: { high: "with local roots", low: "with a global eye" },
+  stats_vs_eye_test: { high: "with a moneyball streak", low: "who trusts the eye test" },
 };
 
 export function computeIdentity(dims: IdentityDimensions): {
   name: string;
   tagline: string;
   modifier: string;
+  summary: string;
   primaryDimension: string;
   secondaryDimension: string;
 } {
@@ -83,10 +84,14 @@ export function computeIdentity(dims: IdentityDimensions): {
   const secDirection = secondary.value >= 50 ? "high" : "low";
   const modifier = MODIFIERS[secondary.dimension]?.[secDirection] ?? "";
 
+  // Human-readable summary: "You manage like Wenger — who backs youth"
+  const summary = `You manage like ${archetype.name.replace("The ", "")} — ${modifier}`;
+
   return {
     name: archetype.name,
     tagline: archetype.tagline,
     modifier,
+    summary,
     primaryDimension: primary.dimension,
     secondaryDimension: secondary.dimension,
   };

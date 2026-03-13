@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 
 interface Category {
@@ -278,21 +279,25 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           />
 
           {/* Results + next / Pass button */}
-          <div className="mt-6 flex items-center justify-center gap-3 animate-fadeIn">
+          <div className="mt-6 flex flex-col items-center gap-3 animate-fadeIn">
             {results ? (
               <>
-                <span className="text-xs text-[var(--text-muted)]">
-                  {currentQuestion.total_votes + 1} votes
-                </span>
-                {!autoAdvance && (
-                  <button
-                    ref={nextBtnRef}
-                    onClick={nextQuestion}
-                    className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
-                  >
-                    Next Question →
-                  </button>
-                )}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-[var(--text-muted)]">
+                    {currentQuestion.total_votes + 1} votes
+                  </span>
+                  {!autoAdvance && (
+                    <button
+                      ref={nextBtnRef}
+                      onClick={nextQuestion}
+                      className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      Next Question →
+                    </button>
+                  )}
+                </div>
+                {/* Contextual cross-sell CTA */}
+                <CrossSellCTA category={currentQuestion.category?.slug} tags={currentQuestion.tags} />
               </>
             ) : (
               <button
@@ -470,4 +475,36 @@ function OptionGrid({
         })}
     </div>
   );
+}
+
+// ── Cross-sell CTA ────────────────────────────────────────────────────────────
+
+function CrossSellCTA({ category, tags }: { category?: string | null; tags?: string[] | null }) {
+  const tagSet = new Set(tags ?? []);
+  const isFreeAgent = tagSet.has("free-agent") || category === "transfer";
+  const isScouting = category === "scouting";
+
+  if (isFreeAgent) {
+    return (
+      <Link
+        href="/free-agents"
+        className="text-[11px] text-[var(--accent-personality)] hover:underline transition-colors"
+      >
+        See all free agents available this summer &rarr;
+      </Link>
+    );
+  }
+
+  if (isScouting) {
+    return (
+      <Link
+        href="/players"
+        className="text-[11px] text-[var(--accent-tactical)] hover:underline transition-colors"
+      >
+        Browse full player profiles &rarr;
+      </Link>
+    );
+  }
+
+  return null;
 }

@@ -9,6 +9,7 @@ import { ScoutPad } from "@/components/ScoutPad";
 import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
+import { PlayerShortlists } from "@/components/PlayerShortlists";
 
 interface IntelligenceCard {
   person_id: number;
@@ -386,6 +387,8 @@ export default async function PlayerDetailPage({
               news={news}
             />
           )}
+
+          <PlayerShortlists personId={player.person_id} />
         </div>
       </div>
     </div>

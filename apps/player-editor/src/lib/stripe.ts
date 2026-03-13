@@ -13,9 +13,9 @@ function getStripe() {
 export { getStripe };
 
 export const TIER_LIMITS = {
-  free: { playerLimit: 500, showArchetypes: false, apiAccess: false },
-  scout: { playerLimit: null, showArchetypes: true, apiAccess: false },
-  pro: { playerLimit: null, showArchetypes: true, apiAccess: true },
+  free: { playerLimit: 500, showArchetypes: false, apiAccess: false, shortlists: false },
+  scout: { playerLimit: null, showArchetypes: true, apiAccess: false, shortlists: true },
+  pro: { playerLimit: null, showArchetypes: true, apiAccess: true, shortlists: true },
 } as const;
 
 export type Tier = keyof typeof TIER_LIMITS;

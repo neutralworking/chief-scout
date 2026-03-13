@@ -143,14 +143,14 @@ export function AdminActions() {
           <button
             onClick={refreshNews}
             disabled={newsRefreshing}
-            className="px-4 py-1.5 rounded bg-[var(--accent-tactical)] text-[var(--bg-base)] text-sm font-semibold disabled:opacity-40 hover:brightness-110 transition-all"
+            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-emerald-500 transition-colors cursor-pointer"
           >
             {newsRefreshing ? "Refreshing..." : "Refresh News"}
           </button>
           <button
             onClick={refreshCards}
             disabled={cardsRefreshing}
-            className="px-4 py-1.5 rounded bg-[var(--accent-personality)] text-[var(--bg-base)] text-sm font-semibold disabled:opacity-40 hover:brightness-110 transition-all"
+            className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-amber-500 transition-colors cursor-pointer"
           >
             {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
           </button>

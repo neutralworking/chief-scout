@@ -37,39 +37,49 @@ FORCE = args.force
 
 TOP5 = ("Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1")
 
-GEMINI_PROMPT = """You are a professional football scout. Rate each player in this squad.
+GEMINI_PROMPT = """You are a top-level football scout writing for a discerning audience. Think James Richardson's tone — warm but incisive, deeply knowledgeable, never bland. Your scouting notes should read like a football obsessive talking to another football obsessive.
 
 Club: {club_name} ({league})
 
 For each player, provide:
-- **level**: Current ability rating 1-99 using this scale:
-  - 93-99: Generational (Mbappé, Haaland tier)
-  - 90-92: World class (top 30 players globally)
-  - 87-89: Elite (international starter, top club key player)
-  - 84-86: Very good (solid top-5 league starter)
-  - 80-83: Good (regular starter at mid-table top-5 league club)
-  - 75-79: Decent (squad player at top-5 league club, or lower-league starter)
-  - 70-74: Below average for top-5 leagues (backup, young prospect, or lower-league)
-  - 60-69: Developing / lower division quality
-  - Below 60: Youth / amateur
-- **bio**: 1-2 sentence scouting report. What makes this player distinctive? Playing style, strengths, weaknesses, trajectory. Be specific and opinionated — not generic.
+- **level**: Current ability rating 1-99. This is how good they are RIGHT NOW — current form and role, not reputation or age.
+
+CALIBRATION ANCHORS (2025-26 season):
+  95+ Generational peak (prime Messi/Ronaldo tier — almost nobody active)
+  93-94 Best in the world at their position (Haaland, Mbappé, Vinicius Jr.)
+  91-92 Ballon d'Or contender, top 10-15 globally (Salah, Rodri, Bellingham)
+  89-90 World class — elite international starter, top-club cornerstone (Saka, Rice, Saliba, Pedri)
+  87-88 Excellent — regular international, key player at a big club (Havertz, Madueke, Calafiori)
+  84-86 Very good — nailed-on starter at a top-5 league club, or breakout young talent playing senior international football (Lewis-Skelly, Nwaneri if playing Europa League level)
+  81-83 Good — solid top-5 league starter, dependable (Merino, Trossard)
+  78-80 Decent — squad rotation at a big club, or starter at a mid/lower table side
+  74-77 Functional — depth option, or lower-league quality starter
+  70-73 Fringe — backup, young prospect not yet at senior level, or lower-league regular
+  65-69 Developing — academy graduate getting minutes, lower-division
+  60-64 Raw — youth player with potential but limited senior exposure
+  Below 60 Youth/amateur — no meaningful senior football yet
+
+KEY: If a young player is PLAYING regular senior football at a high level (international caps, European competition), rate them on what they're doing NOW, not their age. A teenager starting in the Europa League is not a 58.
+
+- **bio**: 2-3 sentences of scouting insight. Be specific about what the player DOES — how they move, where they operate, what they offer that others don't. Name a weakness. Use proper football language (half-spaces, progressive carries, inverted runs, etc.). Avoid generic praise. Every sentence must end with proper punctuation. Write complete, grammatically correct sentences.
 
 Players to rate:
 {player_list}
 
-IMPORTANT:
-- Use the FULL scale. Most top-5 league starters should be 80-86. Only genuinely elite players get 87+.
-- Be honest about lower-division or women's league players who happen to be at these clubs — rate them appropriately, typically 60-75.
-- Youth/reserve players should be 55-72 depending on potential.
-- The bio should sound like a real scout, not a Wikipedia summary. Focus on what they DO on the pitch.
+CRITICAL RULES:
+- Rate on CURRENT ability and form, not age or reputation. A 19-year-old England international is 84+, not 65.
+- Do NOT be overly conservative. Use the full scale. A key player at a title-challenging club is 87+, not 84.
+- Lower-division, women's league, or reserve players at these clubs: rate them honestly, typically 60-75.
+- The bio must be OPINIONATED. Say what a player can't do, not just what they can. "Lovely on the ball but you wouldn't want him defending a set piece" is better than "talented midfielder with good passing."
+- Proper punctuation throughout. Every sentence ends with a full stop.
 
-Respond with a JSON array, one object per player, in the same order:
+Respond as a JSON array, one object per player, same order as input:
 [
   {{"name": "Player Name", "level": 85, "bio": "Scouting report here."}},
   ...
 ]
 
-JSON only, no markdown fences, no extra text.
+JSON only, no markdown fences, no commentary.
 """
 
 BATCH_SIZE = 25  # Players per LLM call

@@ -26,11 +26,33 @@ The old monolithic `players` table has been split. A **`players` view** exists f
 - Market data → `player_market` (key: `person_id`)
 - Identity data → `people` (key: `id`)
 
-## Environment
-- Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY)
-- `apps/player-editor/.env.local`: Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*)
-- Vercel env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GEMINI_API_KEY, CRON_SECRET
-- Both local env files point to the `fnvlemkbhohyouhjebwf` project
+## Environments (Staging / Production)
+
+| | Staging | Production |
+|---|---|---|
+| **Purpose** | Internal tools, data entry, pipeline work | Public-facing product + marketing |
+| **Supabase** | `fnvlemkbhohyouhjebwf` (EU Frankfurt) | Separate prod project (TBD) |
+| **Vercel** | Preview/staging deployment | Production deployment |
+| **NEXT_PUBLIC_APP_ENV** | `staging` (default) | `production` |
+| **Routes** | All routes available | No `/admin`, `/editor`, `/scout-pad`, `/squad` |
+| **Data** | All players (WIP + finished) | **Tier 1 only** — complete profiles |
+
+### Data promotion rule
+Only players with ALL of these populated go to prod:
+- `people`: name, DOB, height, foot, nation, club
+- `player_profiles`: position, archetype, blueprint, level, overall
+- `player_personality`: MBTI scores + competitiveness + coachability
+- `player_market`: market_value_tier, true_mvt, scarcity_score
+- `player_status`: pursuit_status, scouting_notes
+- `attribute_grades`: 20+ grades
+
+Use `python pipeline/40_promote_to_prod.py --dry-run` to preview, then run without `--dry-run` to push.
+
+### Environment variables
+- Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY, PROD_SUPABASE_URL, PROD_SUPABASE_SERVICE_KEY)
+- `apps/player-editor/.env.local`: Next.js credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_*, NEXT_PUBLIC_APP_ENV)
+- Vercel staging: SUPABASE_URL, SUPABASE_SERVICE_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, GEMINI_API_KEY, CRON_SECRET
+- Vercel prod: Same as staging but pointing to prod Supabase + `NEXT_PUBLIC_APP_ENV=production`
 
 ## Security
 - Old project (`njulrlyfiamklxptvlun`) has compromised keys in git history — do NOT use
@@ -66,6 +88,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `28_statsbomb_grades.py` → StatsBomb event data → `attribute_grades` (source='statsbomb')
 - `29_scouting_tags.py` → Auto-assign scouting tags based on player data (attributes, career, news sentiment)
 - `30_squad_roles.py` → DOF-level squad role assessment
+- `40_promote_to_prod.py` → Promote Tier 1 players to production Supabase. Only complete profiles (all 6 tables + 20+ attributes). Flags: `--dry-run`, `--list`, `--player`, `--force`
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |

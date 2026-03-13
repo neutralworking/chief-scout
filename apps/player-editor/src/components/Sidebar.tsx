@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { getFeatureFlags } from "@/lib/features";
+import { isProduction } from "@/lib/env";
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { label: "Dashboard", href: "/", exact: true },
   { label: "Players", href: "/players" },
   { label: "Clubs", href: "/clubs" },
@@ -14,9 +15,13 @@ const NAV_ITEMS = [
   { label: "Formations", href: "/formations" },
   { label: "News Feed", href: "/news" },
   { label: "Choices", href: "/choices" },
-  { label: "Editor", href: "/editor" },
-  { label: "Admin", href: "/admin" },
+  { label: "Editor", href: "/editor", stagingOnly: true },
+  { label: "Admin", href: "/admin", stagingOnly: true },
 ];
+
+const NAV_ITEMS = isProduction()
+  ? ALL_NAV_ITEMS.filter((item) => !("stagingOnly" in item && item.stagingOnly))
+  : ALL_NAV_ITEMS;
 
 const POSITION_SHORTCUTS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"];
 

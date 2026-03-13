@@ -60,7 +60,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
 
   const { data: club } = await supabaseServer
     .from("clubs")
-    .select("id, clubname, league_tier, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, nations(name)")
+    .select("id, clubname, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, nations(name)")
     .eq("id", clubId)
     .single();
 

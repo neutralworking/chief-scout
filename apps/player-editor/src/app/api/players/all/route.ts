@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const full = searchParams.get("full");
   const q = searchParams.get("q");
   const sort = searchParams.get("sort") ?? "value";
-  const limit = Math.min(Number(searchParams.get("limit") || 20), 100);
+  const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
   const offset = Number(searchParams.get("offset") || 0);
 
   let query = supabase.from("player_intelligence_card").select(SELECT);

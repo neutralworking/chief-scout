@@ -18,10 +18,10 @@ export async function GET(req: NextRequest) {
   const full = searchParams.get("full");
   const q = searchParams.get("q");
   const sort = searchParams.get("sort") ?? "value";
-  const limit = Math.min(Number(searchParams.get("limit") || 60), 200);
+  const limit = Math.min(Number(searchParams.get("limit") || 20), 100);
   const offset = Number(searchParams.get("offset") || 0);
 
-  let query = supabase.from("player_intelligence_card").select(SELECT, { count: "estimated" });
+  let query = supabase.from("player_intelligence_card").select(SELECT);
 
   // Server-side filters
   if (position) query = query.eq("position", position);
@@ -55,11 +55,13 @@ export async function GET(req: NextRequest) {
 
   query = query.range(offset, offset + limit - 1);
 
-  const { data, error, count } = await query;
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ players: data ?? [], total: count ?? 0 });
+  const players = data ?? [];
+  // Return hasMore flag instead of total count (avoids expensive count query on view)
+  return NextResponse.json({ players, hasMore: players.length === limit });
 }

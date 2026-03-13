@@ -25,6 +25,7 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 POSTGRES_DSN = os.environ.get("POSTGRES_DSN", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # Common paths
 REPO_ROOT = Path(__file__).resolve().parent.parent

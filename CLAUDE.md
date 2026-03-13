@@ -43,7 +43,7 @@ Only players with ALL of these populated go to prod:
 - `player_profiles`: position, archetype, blueprint, level, overall
 - `player_personality`: MBTI scores + competitiveness + coachability
 - `player_market`: market_value_tier, true_mvt, scarcity_score
-- `player_status`: pursuit_status, scouting_notes
+- `player_status`: scouting_notes (pursuit_status optional)
 - `attribute_grades`: 20+ grades
 
 Use `python pipeline/40_promote_to_prod.py --dry-run` to preview, then run without `--dry-run` to push.

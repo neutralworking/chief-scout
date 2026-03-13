@@ -55,58 +55,67 @@ PROD_KEY = os.environ.get("PROD_SUPABASE_SERVICE_KEY", "")
 MIN_ATTRIBUTES = 20
 
 
+def _fetch_all(query_builder):
+    """Paginate through supabase-py's 1000-row default limit."""
+    PAGE = 1000
+    rows = []
+    offset = 0
+    while True:
+        page = query_builder.range(offset, offset + PAGE - 1).execute().data
+        rows.extend(page)
+        if len(page) < PAGE:
+            break
+        offset += PAGE
+    return rows
+
+
+def _fetch_ids_batched(staging, table, id_col, ids, select="person_id", extra_filters=None):
+    """Fetch rows in batches of 500 IDs (Supabase IN limit)."""
+    BATCH = 500
+    rows = []
+    for i in range(0, len(ids), BATCH):
+        batch = ids[i : i + BATCH]
+        q = staging.table(table).select(select).in_(id_col, batch)
+        if extra_filters:
+            q = extra_filters(q)
+        rows.extend(_fetch_all(q))
+    return rows
+
+
 def get_prod_ready_players(staging):
     """Find all Tier 1 players with complete data across all tables."""
 
     # Get Tier 1 profiles (archetype is not null)
-    profiles = (
+    profiles = _fetch_all(
         staging.table("player_profiles")
         .select("person_id")
         .not_.is_("archetype", "null")
-        .execute()
-        .data
     )
     tier1_ids = [r["person_id"] for r in profiles]
     if not tier1_ids:
         return []
 
     # Check personality exists
-    personality = (
-        staging.table("player_personality")
-        .select("person_id")
-        .in_("person_id", tier1_ids)
-        .execute()
-        .data
-    )
+    personality = _fetch_ids_batched(staging, "player_personality", "person_id", tier1_ids)
     has_personality = {r["person_id"] for r in personality}
 
     # Check market exists
-    market = (
-        staging.table("player_market")
-        .select("person_id")
-        .in_("person_id", tier1_ids)
-        .execute()
-        .data
-    )
+    market = _fetch_ids_batched(staging, "player_market", "person_id", tier1_ids)
     has_market = {r["person_id"] for r in market}
 
-    # Check status exists
-    status = (
-        staging.table("player_status")
-        .select("person_id")
-        .in_("person_id", tier1_ids)
-        .execute()
-        .data
+    # Check status exists (scouting_notes required, pursuit_status optional)
+    def status_filters(q):
+        return q.not_.is_("scouting_notes", "null").neq("scouting_notes", "")
+
+    status = _fetch_ids_batched(
+        staging, "player_status", "person_id", tier1_ids,
+        select="person_id", extra_filters=status_filters,
     )
     has_status = {r["person_id"] for r in status}
 
     # Check attribute count per player
-    grades = (
-        staging.table("attribute_grades")
-        .select("player_id")
-        .in_("player_id", tier1_ids)
-        .execute()
-        .data
+    grades = _fetch_ids_batched(
+        staging, "attribute_grades", "player_id", tier1_ids, select="player_id",
     )
     attr_counts: dict[int, int] = {}
     for r in grades:

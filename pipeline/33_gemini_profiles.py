@@ -73,7 +73,7 @@ JSON only, no markdown fences, no extra text.
 """
 
 BATCH_SIZE = 25  # Players per LLM call
-INTER_CLUB_DELAY = 2  # Seconds between clubs (lower with router fallback)
+INTER_CLUB_DELAY = 4  # Seconds between clubs (Groq free tier: 30 RPM)
 
 
 def call_llm_squad(router, club_name: str, league: str, players: list[dict]) -> list[dict] | None:
@@ -102,11 +102,14 @@ def call_llm_squad(router, club_name: str, league: str, players: list[dict]) -> 
     parsed = result.parsed
     if isinstance(parsed, list):
         return parsed
-    # Groq json_mode wraps in an object — look for array inside
     if isinstance(parsed, dict):
+        # Groq json_mode wraps in an object — look for array inside
         for v in parsed.values():
             if isinstance(v, list):
                 return v
+        # Single player returned as a flat dict with name/level/bio
+        if "name" in parsed and "level" in parsed:
+            return [parsed]
     return None
 
 
@@ -207,8 +210,9 @@ def main():
     total_updated = 0
     total_errors = 0
 
-    for (club_name, league), players in sorted(clubs_to_process.items()):
-        print(f"\n  {club_name} ({league}) — {len(players)} players")
+    for club_idx, ((club_name, league), players) in enumerate(sorted(clubs_to_process.items())):
+        print(f"\n  [{club_idx+1}/{len(clubs_to_process)}] {club_name} ({league}) — {len(players)} players")
+        router.reset_disabled()  # re-enable providers that hit rate limits on previous club
 
         # Prepare player data for Gemini
         player_data = []
@@ -243,7 +247,12 @@ def main():
 
             results = call_llm_squad(router, club_name, league, batch)
             if not results:
-                print(f"    ERROR: Gemini returned nothing for batch {i//BATCH_SIZE + 1}")
+                print(f"    WARN: No results for batch {i//BATCH_SIZE + 1} — waiting 30s before retry")
+                time.sleep(30)
+                router.reset_disabled()
+                results = call_llm_squad(router, club_name, league, batch)
+            if not results:
+                print(f"    ERROR: Still no results for batch {i//BATCH_SIZE + 1}, skipping")
                 total_errors += len(batch)
                 continue
 

@@ -18,10 +18,10 @@ export async function GET(req: NextRequest) {
   const full = searchParams.get("full");
   const q = searchParams.get("q");
   const sort = searchParams.get("sort") ?? "value";
-  const limit = Math.min(Number(searchParams.get("limit") || 200), 1000);
+  const limit = Math.min(Number(searchParams.get("limit") || 60), 200);
   const offset = Number(searchParams.get("offset") || 0);
 
-  let query = supabase.from("player_intelligence_card").select(SELECT, { count: "exact" });
+  let query = supabase.from("player_intelligence_card").select(SELECT, { count: "estimated" });
 
   // Server-side filters
   if (position) query = query.eq("position", position);

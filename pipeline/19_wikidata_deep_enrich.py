@@ -1,12 +1,14 @@
 """
 19_wikidata_deep_enrich.py — Deep enrichment from Wikidata.
 
-Pulls 5 high-value properties for players who have wikidata_id set:
+Pulls 7 high-value properties for players who have wikidata_id set:
   P27  → citizenship (dual nationality)
   P54  → full career history with dates
   P413 → playing position
   P18  → image (Wikimedia Commons URL)
   P2446 → Transfermarkt ID
+  P6509 → total goals scored (career)
+  P166  → awards received (Ballon d'Or, Golden Boot, etc.)
 
 Also backfills P19 (place of birth) onto people.place_of_birth.
 
@@ -23,6 +25,7 @@ Usage:
     python 19_wikidata_deep_enrich.py --force                # re-enrich even if data exists
 """
 import argparse
+import json
 import sys
 import time
 import unicodedata
@@ -228,6 +231,8 @@ def phase_identity(qid_map: dict):
            ?image
            ?transfermarkt
            ?birthplace ?birthplaceLabel
+           ?totalGoals
+           ?award ?awardLabel
     WHERE {{
       VALUES ?player {{ {values} }}
       OPTIONAL {{ ?player wdt:P27 ?citizenship . }}
@@ -235,6 +240,8 @@ def phase_identity(qid_map: dict):
       OPTIONAL {{ ?player wdt:P18 ?image . }}
       OPTIONAL {{ ?player wdt:P2446 ?transfermarkt . }}
       OPTIONAL {{ ?player wdt:P19 ?birthplace . }}
+      OPTIONAL {{ ?player wdt:P6509 ?totalGoals . }}
+      OPTIONAL {{ ?player wdt:P166 ?award . }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
     }}
     """
@@ -253,6 +260,8 @@ def phase_identity(qid_map: dict):
                 "image": None,
                 "transfermarkt_id": None,
                 "birthplace": None,
+                "total_goals": None,
+                "awards": [],
             }
 
         d = player_data[qid]
@@ -282,6 +291,19 @@ def phase_identity(qid_map: dict):
         # P19 birthplace
         if not d["birthplace"] and "birthplaceLabel" in row and row["birthplaceLabel"]["value"]:
             d["birthplace"] = row["birthplaceLabel"]["value"]
+
+        # P6509 total goals
+        if not d["total_goals"] and "totalGoals" in row and row["totalGoals"]["value"]:
+            try:
+                d["total_goals"] = int(row["totalGoals"]["value"])
+            except (ValueError, TypeError):
+                pass
+
+        # P166 awards
+        if "awardLabel" in row and row["awardLabel"]["value"]:
+            award_label = row["awardLabel"]["value"]
+            if award_label not in d["awards"]:
+                d["awards"].append(award_label)
 
     return player_data
 
@@ -365,6 +387,8 @@ stats = {
     "transfermarkt_set": 0,
     "positions_set": 0,
     "birthplace_set": 0,
+    "goals_set": 0,
+    "awards_set": 0,
 }
 
 for i in range(0, len(players), BATCH_SIZE):
@@ -417,6 +441,16 @@ for i in range(0, len(players), BATCH_SIZE):
                 params.append(pos_str)
                 stats["positions_set"] += 1
 
+            if data["total_goals"] is not None:
+                updates.append("total_goals = %s")
+                params.append(data["total_goals"])
+                stats["goals_set"] += 1
+
+            if data["awards"]:
+                updates.append("awards = %s")
+                params.append(json.dumps(data["awards"]))
+                stats["awards_set"] += 1
+
             if updates and not DRY_RUN:
                 updates.append("updated_at = now()")
                 sql = f"UPDATE people SET {', '.join(updates)} WHERE id = %s"
@@ -428,7 +462,9 @@ for i in range(0, len(players), BATCH_SIZE):
                 print(f"    {pname}: image={'Y' if data['image'] else 'N'}, "
                       f"tm={data['transfermarkt_id'] or 'N'}, "
                       f"pos={'/'.join(data['positions']) if data['positions'] else 'N'}, "
-                      f"birth={data['birthplace'] or 'N'}")
+                      f"birth={data['birthplace'] or 'N'}, "
+                      f"goals={data['total_goals'] or 'N'}, "
+                      f"awards={len(data['awards'])} found")
 
             # P27 citizenships → player_nationalities
             for nation_label, nation_qid in data["citizenships"]:
@@ -501,6 +537,8 @@ print(f"  Images set:          {stats['images_set']}")
 print(f"  Transfermarkt IDs:   {stats['transfermarkt_set']}")
 print(f"  Positions set:       {stats['positions_set']}")
 print(f"  Birthplaces set:     {stats['birthplace_set']}")
+print(f"  Total goals set:     {stats['goals_set']}")
+print(f"  Awards set:          {stats['awards_set']}")
 print(f"  Nationalities added: {stats['nationalities_added']}")
 print(f"  Career entries:      {stats['career_entries_added']}")
 if DRY_RUN:

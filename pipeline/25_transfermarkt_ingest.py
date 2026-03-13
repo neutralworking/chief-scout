@@ -264,6 +264,8 @@ for tm_player in tm_players:
 
     market_value = tm_player.get("market_value_in_eur")
     highest_value = tm_player.get("highest_market_value_in_eur")
+    contract_expiry = tm_player.get("contract_expiration_date", "")
+    agent_name = tm_player.get("agent_name", "")
 
     if not market_value:
         continue
@@ -274,16 +276,26 @@ for tm_player in tm_players:
     except (ValueError, TypeError):
         continue
 
-    market_updates.append((person_id, mv, hv))
+    # Parse contract expiry (format varies: YYYY-MM-DD or DD.MM.YYYY)
+    parsed_expiry = None
+    if contract_expiry:
+        for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%m/%d/%Y"):
+            try:
+                parsed_expiry = datetime.strptime(contract_expiry[:10], fmt).strftime("%Y-%m-%d")
+                break
+            except (ValueError, TypeError):
+                continue
+
+    market_updates.append((person_id, mv, hv, parsed_expiry, agent_name or None))
 
     if LIMIT and len(market_updates) >= LIMIT:
         break
 
 # Deduplicate by person_id (keep highest market value)
 deduped: dict[int, tuple] = {}
-for pid, mv, hv in market_updates:
+for pid, mv, hv, expiry, agent in market_updates:
     if pid not in deduped or mv > deduped[pid][1]:
-        deduped[pid] = (pid, mv, hv)
+        deduped[pid] = (pid, mv, hv, expiry, agent)
 market_updates = list(deduped.values())
 
 print(f"  {len(market_updates):,} players with market values to update")
@@ -299,8 +311,27 @@ if market_updates and not DRY_RUN:
                 highest_market_value_eur = EXCLUDED.highest_market_value_eur,
                 market_value_date = CURRENT_DATE,
                 updated_at = now()
-        """, [(pid, mv, hv, datetime.now().date()) for pid, mv, hv in chunk])
+        """, [(pid, mv, hv, datetime.now().date()) for pid, mv, hv, _, _ in chunk])
     print(f"  Updated {len(market_updates):,} player_market rows")
+
+    # Update contract expiry + agent on people table (if data available)
+    contract_updates = [(expiry, agent, pid) for pid, _, _, expiry, agent in market_updates
+                        if expiry or agent]
+    if contract_updates:
+        for expiry, agent, pid in contract_updates:
+            updates = []
+            params = []
+            if expiry:
+                updates.append("contract_expiry_date = %s")
+                params.append(expiry)
+            if agent:
+                updates.append("agent_name = %s")
+                params.append(agent)
+            if updates:
+                params.append(pid)
+                cur.execute(f"UPDATE people SET {', '.join(updates)} WHERE id = %s", params)
+        print(f"  Updated {len(contract_updates):,} contract/agent records on people")
+
 elif market_updates:
     print(f"  [DRY RUN] Would update {len(market_updates):,} rows")
 

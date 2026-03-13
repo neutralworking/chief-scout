@@ -1,0 +1,90 @@
+name: Scheduled Pipeline Runs
+
+on:
+  schedule:
+    # News ingest: daily at 06:00 UTC
+    - cron: '0 6 * * *'
+    # Wikidata enrichment: weekly on Sunday at 03:00 UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      scripts:
+        description: 'Comma-separated script names to run (e.g. "news,wikidata,transfermarkt")'
+        required: false
+        default: 'news'
+      dry_run:
+        description: 'Dry run (no writes)'
+        type: boolean
+        default: false
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+  POSTGRES_DSN: ${{ secrets.POSTGRES_DSN }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd pipeline
+          pip install -r requirements.txt 2>/dev/null || pip install psycopg2-binary requests feedparser python-dotenv google-generativeai
+
+      - name: Determine scripts to run
+        id: scripts
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "scripts=${{ github.event.inputs.scripts }}" >> $GITHUB_OUTPUT
+            echo "dry_run=${{ github.event.inputs.dry_run }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 6 * * *" ]; then
+            echo "scripts=news" >> $GITHUB_OUTPUT
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 3 * * 0" ]; then
+            echo "scripts=wikidata,transfermarkt,data-quality" >> $GITHUB_OUTPUT
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run news ingest
+        if: contains(steps.scripts.outputs.scripts, 'news')
+        working-directory: pipeline
+        run: |
+          DRY_FLAG=$( [ "${{ steps.scripts.outputs.dry_run }}" = "true" ] && echo "--dry-run" || echo "" )
+          python 12_news_ingest.py $DRY_FLAG --limit 50
+
+      - name: Run Wikidata deep enrich
+        if: contains(steps.scripts.outputs.scripts, 'wikidata')
+        working-directory: pipeline
+        run: |
+          DRY_FLAG=$( [ "${{ steps.scripts.outputs.dry_run }}" = "true" ] && echo "--dry-run" || echo "" )
+          python 19_wikidata_deep_enrich.py $DRY_FLAG --limit 200
+
+      - name: Run Transfermarkt ingest
+        if: contains(steps.scripts.outputs.scripts, 'transfermarkt')
+        working-directory: pipeline
+        run: |
+          DRY_FLAG=$( [ "${{ steps.scripts.outputs.dry_run }}" = "true" ] && echo "--dry-run" || echo "" )
+          python 25_transfermarkt_ingest.py $DRY_FLAG --latest-only
+
+      - name: Run data quality audit
+        if: contains(steps.scripts.outputs.scripts, 'data-quality')
+        working-directory: pipeline
+        run: |
+          python 37_data_sanitize.py --audit --enrich
+
+      - name: Run data integrity tests
+        if: contains(steps.scripts.outputs.scripts, 'data-quality')
+        working-directory: pipeline
+        run: |
+          pip install pytest
+          python -m pytest tests/test_data_integrity.py -v --tb=short || true

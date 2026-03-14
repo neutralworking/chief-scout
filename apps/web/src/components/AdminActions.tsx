@@ -14,6 +14,8 @@ export function AdminActions() {
   const [valLimit, setValLimit] = useState("");
   const [pipelineRunning, setPipelineRunning] = useState("");
   const [pipelineResult, setPipelineResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [gafferRunning, setGafferRunning] = useState(false);
+  const [gafferResult, setGafferResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Admin login state
   const [adminUser, setAdminUser] = useState("");
@@ -85,6 +87,27 @@ export function AdminActions() {
       setNewsResult({ type: "error", text: String(e) });
     }
     setNewsRefreshing(false);
+  };
+
+  const reseedGaffer = async () => {
+    setGafferRunning(true);
+    setGafferResult(null);
+    try {
+      const res = await fetch("/api/admin/reseed-gaffer", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        const parts = [];
+        if (data.deleted_categories > 0) parts.push(`removed ${data.deleted_categories} old categories`);
+        if (data.deleted_questions > 0) parts.push(`removed ${data.deleted_questions} orphan questions`);
+        parts.push(`${data.remaining_categories} categories, ${data.active_questions} active questions`);
+        setGafferResult({ type: "success", text: parts.join(" · ") });
+      } else {
+        setGafferResult({ type: "error", text: data.error ?? "Failed" });
+      }
+    } catch (e) {
+      setGafferResult({ type: "error", text: String(e) });
+    }
+    setGafferRunning(false);
   };
 
   const runSql = async () => {
@@ -231,6 +254,13 @@ export function AdminActions() {
           >
             {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
           </button>
+          <button
+            onClick={reseedGaffer}
+            disabled={gafferRunning}
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-purple-500 transition-colors cursor-pointer"
+          >
+            {gafferRunning ? "Cleaning..." : "Clean Gaffer Categories"}
+          </button>
           <span className="text-xs text-[var(--text-muted)]">Run after pipeline changes</span>
         </div>
         {/* Compute Pipeline */}
@@ -348,6 +378,11 @@ export function AdminActions() {
         {pipelineResult && (
           <p className={`mt-3 text-sm ${pipelineResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-teal-400"}`}>
             {pipelineResult.text}
+          </p>
+        )}
+        {gafferResult && (
+          <p className={`mt-3 text-sm ${gafferResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-purple-400"}`}>
+            {gafferResult.text}
           </p>
         )}
       </div>

@@ -44,8 +44,6 @@ export function AdminActions() {
   // Pipeline actions state
   const [newsRefreshing, setNewsRefreshing] = useState(false);
   const [newsResult, setNewsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [cardsRefreshing, setCardsRefreshing] = useState(false);
-  const [cardsResult, setCardsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [pipelineRunning, setPipelineRunning] = useState("");
   const [pipelineResult, setPipelineResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [valForce, setValForce] = useState(false);
@@ -151,17 +149,6 @@ export function AdminActions() {
     setNewsRefreshing(false);
   };
 
-  const refreshCards = async () => {
-    setCardsRefreshing(true);
-    setCardsResult(null);
-    try {
-      const res = await fetch("/api/admin/refresh-cards", { method: "POST" });
-      const data = await res.json();
-      if (data.ok) setCardsResult({ type: "success", text: "Player cards refreshed" });
-      else setCardsResult({ type: "error", text: data.error ?? "Failed" });
-    } catch (e) { setCardsResult({ type: "error", text: String(e) }); }
-    setCardsRefreshing(false);
-  };
 
   // ── SQL Runner ────────────────────────────────────────────────────────────
 
@@ -403,10 +390,6 @@ export function AdminActions() {
               className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-emerald-500 transition-colors cursor-pointer">
               {newsRefreshing ? "Refreshing..." : "Refresh News"}
             </button>
-            <button onClick={refreshCards} disabled={cardsRefreshing}
-              className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-amber-500 transition-colors cursor-pointer">
-              {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
-            </button>
           </div>
 
           {/* Compute Pipeline */}
@@ -483,9 +466,6 @@ export function AdminActions() {
           {/* Result messages */}
           {newsResult && (
             <p className={`mt-3 text-xs ${newsResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-accent-tactical)]"}`}>{newsResult.text}</p>
-          )}
-          {cardsResult && (
-            <p className={`mt-2 text-xs ${cardsResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-accent-tactical)]"}`}>{cardsResult.text}</p>
           )}
           {pipelineResult && (
             <p className={`mt-2 text-xs ${pipelineResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-teal-400"}`}>{pipelineResult.text}</p>

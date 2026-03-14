@@ -56,6 +56,15 @@ for slug, name, desc, icon, sort_order in GAFFER_CATEGORIES:
         ON CONFLICT (slug) DO UPDATE SET name = %s, description = %s, icon = %s, sort_order = %s
     """, (slug, name, desc, icon, sort_order, name, desc, icon, sort_order))
 
+# Remove old categories that aren't in the current Gaffer set
+gaffer_slugs = [c[0] for c in GAFFER_CATEGORIES]
+cur.execute("""
+    DELETE FROM fc_categories WHERE slug != ALL(%s)
+""", (gaffer_slugs,))
+deleted = cur.rowcount
+if deleted:
+    print(f"  Removed {deleted} old categories")
+
 # ── Questions data ────────────────────────────────────────────────────────────
 # Format: (category_slug, question_text, subtitle, difficulty, tags, options)
 # Options: (name, subtitle, dimension_weights) — all questions get weights

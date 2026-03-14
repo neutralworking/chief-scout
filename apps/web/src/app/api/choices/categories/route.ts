@@ -21,7 +21,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Get question counts per category
+  // Get question counts per category, only return categories with questions
   const categories = [];
   for (const cat of data ?? []) {
     const { count } = await sb
@@ -30,10 +30,13 @@ export async function GET() {
       .eq("category_id", cat.id)
       .eq("active", true);
 
-    categories.push({
-      ...cat,
-      question_count: count ?? 0,
-    });
+    const questionCount = count ?? 0;
+    if (questionCount > 0) {
+      categories.push({
+        ...cat,
+        question_count: questionCount,
+      });
+    }
   }
 
   return NextResponse.json({ categories });

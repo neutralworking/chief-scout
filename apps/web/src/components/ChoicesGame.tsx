@@ -101,7 +101,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fcUserId]);
 
   const submitVote = async (optionId: number) => {
     if (!currentQuestion || chosenId !== null) return;

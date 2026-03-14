@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
     .order("published_at", { ascending: false })
     .limit(limit);
 
+  // Always exclude empty headlines
+  query = query.neq("headline", "").not("headline", "is", null);
   if (storyType) query = query.eq("story_type", storyType);
   if (storyIds) query = query.in("id", storyIds);
 

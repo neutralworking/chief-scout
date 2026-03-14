@@ -34,19 +34,33 @@ const STORY_TYPES = [
   "international",
 ];
 
+const STORY_TYPE_STYLE: Record<string, string> = {
+  transfer: "bg-[var(--color-accent-personality)]/15 text-[var(--color-accent-personality)]",
+  injury: "bg-[var(--color-sentiment-negative)]/15 text-[var(--color-sentiment-negative)]",
+  performance: "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)]",
+  tactical: "bg-[var(--color-accent-mental)]/15 text-[var(--color-accent-mental)]",
+  contract: "bg-[var(--color-accent-physical)]/15 text-[var(--color-accent-physical)]",
+  discipline: "bg-[var(--color-sentiment-negative)]/15 text-[var(--color-sentiment-negative)]",
+  international: "bg-[var(--color-accent-technical)]/15 text-[var(--color-accent-technical)]",
+};
+
 const SENTIMENT_DOT: Record<string, string> = {
-  positive: "bg-[var(--sentiment-positive)]",
-  negative: "bg-[var(--sentiment-negative)]",
-  neutral: "bg-[var(--sentiment-neutral)]",
+  positive: "bg-[var(--color-sentiment-positive)]",
+  negative: "bg-[var(--color-sentiment-negative)]",
+  neutral: "bg-[var(--color-sentiment-neutral)]",
 };
 
-const SENTIMENT_PILL: Record<string, string> = {
-  positive: "bg-[var(--sentiment-positive)]/15 text-[var(--sentiment-positive)] ring-1 ring-[var(--sentiment-positive)]/20",
-  negative: "bg-[var(--sentiment-negative)]/15 text-[var(--sentiment-negative)] ring-1 ring-[var(--sentiment-negative)]/20",
-  neutral: "bg-[var(--bg-elevated)] text-[var(--text-muted)]",
+const SOURCE_LABEL: Record<string, string> = {
+  bbc_football: "BBC",
+  guardian_football: "Guardian",
+  skysports_football: "Sky",
+  espn_fc: "ESPN",
+  fourfourtwo: "442",
+  football_italia: "FI",
+  "90min": "90min",
 };
 
-// Reaction labels vary by story type to feel contextual
+// Reaction labels vary by story type
 const REACTION_LABELS: Record<string, Record<Reaction, string>> = {
   transfer: { fire: "Big move", love: "Great signing", gutted: "Gutted", shocked: "No way" },
   injury: { fire: "Huge blow", love: "Speedy recovery", gutted: "Gutted", shocked: "Not again" },
@@ -63,7 +77,7 @@ function getReactionLabel(storyType: string | null, reaction: Reaction): string 
   return labels[reaction];
 }
 
-// SVG icons for each reaction — small inline, 14px
+// Inline SVG icons — 14px
 function FireIcon({ active }: { active: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,7 +111,7 @@ function LoveIcon({ active }: { active: boolean }) {
 function GuttedIcon({ active }: { active: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="1.5" fill={active ? "#6366f1" + "22" : "none"} />
+      <circle cx="12" cy="12" r="10" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="1.5" fill={active ? "#6366f122" : "none"} />
       <path d="M8 15s1.5-2 4-2 4 2 4 2" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="1.5" strokeLinecap="round" />
       <line x1="9" y1="9" x2="9.01" y2="9" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
       <line x1="15" y1="9" x2="15.01" y2="9" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
@@ -108,7 +122,7 @@ function GuttedIcon({ active }: { active: boolean }) {
 function ShockedIcon({ active }: { active: boolean }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="1.5" fill={active ? "#06b6d4" + "22" : "none"} />
+      <circle cx="12" cy="12" r="10" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="1.5" fill={active ? "#06b6d422" : "none"} />
       <circle cx="12" cy="16" r="1.5" fill={active ? "#06b6d4" : "currentColor"} />
       <line x1="9" y1="9" x2="9.01" y2="9" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
       <line x1="15" y1="9" x2="15.01" y2="9" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
@@ -148,6 +162,20 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
+function dateGroup(dateStr: string): string {
+  const now = new Date();
+  const then = new Date(dateStr);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const storyDay = new Date(then.getFullYear(), then.getMonth(), then.getDate());
+
+  if (storyDay.getTime() >= today.getTime()) return "Today";
+  if (storyDay.getTime() >= yesterday.getTime()) return "Yesterday";
+  const diffDays = Math.floor((today.getTime() - storyDay.getTime()) / 86400000);
+  if (diffDays < 7) return "This Week";
+  return then.toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+}
+
 function ReactionBar({
   storyId,
   storyType,
@@ -162,7 +190,7 @@ function ReactionBar({
   onVote: (storyId: string, reaction: Reaction) => void;
 }) {
   return (
-    <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-[var(--border-subtle)]">
+    <div className="flex items-center gap-0.5">
       {REACTIONS.map((reaction) => {
         const Icon = REACTION_ICONS[reaction];
         const active = userReaction === reaction;
@@ -216,7 +244,7 @@ export default function NewsPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (typeFilter) params.set("type", typeFilter);
-    params.set("limit", "50");
+    params.set("limit", "80");
 
     try {
       const res = await fetch(`/api/news?${params}`);
@@ -237,12 +265,11 @@ export default function NewsPage() {
   }, [fetchNews]);
 
   const handleVote = useCallback(async (storyId: string, reaction: Reaction) => {
-    if (votingStory) return; // prevent double-clicks
+    if (votingStory) return;
     setVotingStory(storyId);
 
     const isToggleOff = userVotes[storyId] === reaction;
 
-    // Optimistic update
     setUserVotes((prev) => {
       const next = { ...prev };
       if (isToggleOff) {
@@ -286,7 +313,6 @@ export default function NewsPage() {
         });
       }
     } catch {
-      // Revert on error — refetch
       fetchNews();
     } finally {
       setVotingStory(null);
@@ -299,144 +325,176 @@ export default function NewsPage() {
     tagsByStory.get(tag.story_id)!.push(tag);
   }
 
-  function storySentiment(storyId: string): string | null {
-    const storyTags = tagsByStory.get(storyId);
-    if (!storyTags || storyTags.length === 0) return null;
-    const counts: Record<string, number> = {};
-    for (const t of storyTags) {
-      const s = t.sentiment ?? "neutral";
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  // Filter out stories with empty headlines
+  const validStories = stories.filter((s) => s.headline && s.headline.trim().length > 0);
+
+  // Group stories by date
+  const grouped = new Map<string, NewsStory[]>();
+  for (const story of validStories) {
+    const group = story.published_at ? dateGroup(story.published_at) : "Undated";
+    if (!grouped.has(group)) grouped.set(group, []);
+    grouped.get(group)!.push(story);
+  }
+
+  // Count stories with tagged players
+  const taggedCount = validStories.filter((s) => tagsByStory.has(s.id)).length;
+
+  // Count story types
+  const typeCounts = new Map<string, number>();
+  for (const s of validStories) {
+    const t = s.story_type ?? "other";
+    typeCounts.set(t, (typeCounts.get(t) ?? 0) + 1);
   }
 
   return (
-    <div className="space-y-3">
+    <div>
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">News Feed</h1>
-        <p className="text-xs text-[var(--text-secondary)] mb-3">
-          {stories.length > 0 ? `${stories.length} stories` : "Latest scouting intelligence"}
+      <div className="mb-4">
+        <h1 className="text-lg font-bold tracking-tight mb-0.5">News Intelligence</h1>
+        <p className="text-[11px] text-[var(--text-secondary)] mb-3">
+          {validStories.length} stories
+          {taggedCount > 0 && <> &middot; {taggedCount} with player links</>}
         </p>
+
+        {/* Type filter pills */}
         <div className="flex gap-1.5 flex-wrap">
           <button
             onClick={() => setTypeFilter("")}
-            className={`text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full transition-colors ${
+            className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
               typeFilter === ""
-                ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
-                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
+                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
             }`}
           >
             All
           </button>
-          {STORY_TYPES.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full transition-colors ${
-                typeFilter === t
-                  ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+          {STORY_TYPES.map((t) => {
+            const count = typeCounts.get(t) ?? 0;
+            return (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(typeFilter === t ? "" : t)}
+                className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors capitalize ${
+                  typeFilter === t
+                    ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
+                    : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+                }`}
+              >
+                {t}
+                {count > 0 && (
+                  <span className="ml-1 font-mono text-[9px] opacity-60">{count}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Stories */}
       {loading ? (
-        <p className="text-sm text-[var(--text-muted)] py-8 text-center">Loading...</p>
-      ) : stories.length === 0 ? (
+        <div className="glass rounded-xl py-12 text-center">
+          <p className="text-sm text-[var(--text-muted)]">Loading...</p>
+        </div>
+      ) : validStories.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center">
           <p className="text-sm text-[var(--text-muted)]">No stories found.</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
-          {stories.map((story) => {
-            const storyTags = tagsByStory.get(story.id) ?? [];
-            const sentiment = storySentiment(story.id);
-            const counts = voteCounts[story.id] ?? { fire: 0, love: 0, gutted: 0, shocked: 0 };
+        <div className="space-y-4">
+          {[...grouped.entries()].map(([group, groupStories]) => (
+            <div key={group}>
+              <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2 px-1">
+                {group}
+              </h2>
+              <div className="space-y-1">
+                {groupStories.map((story) => {
+                  const storyTags = tagsByStory.get(story.id) ?? [];
+                  const counts = voteCounts[story.id] ?? { fire: 0, love: 0, gutted: 0, shocked: 0 };
+                  const hasReactions = Object.values(counts).some((c) => c > 0);
 
-            return (
-              <article key={story.id} className="glass rounded-xl p-3 lg:p-2.5">
-                {/* Top row: type + sentiment + time */}
-                <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                  {story.story_type && (
-                    <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-[var(--accent-tactical)]/15 text-[var(--accent-tactical)]">
-                      {story.story_type}
-                    </span>
-                  )}
-                  {sentiment && (
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded capitalize ${SENTIMENT_PILL[sentiment] ?? SENTIMENT_PILL.neutral}`}>
-                      {sentiment}
-                    </span>
-                  )}
-                  <span className="ml-auto text-[10px] text-[var(--text-muted)] font-mono">
-                    {story.published_at ? timeAgo(story.published_at) : ""}
-                  </span>
-                </div>
+                  return (
+                    <article key={story.id} className="glass rounded-lg p-3 group/story">
+                      <div className="flex gap-3">
+                        {/* Main content */}
+                        <div className="flex-1 min-w-0">
+                          {/* Headline */}
+                          <div className="text-sm font-semibold leading-snug mb-1 line-clamp-2">
+                            {story.url ? (
+                              <a
+                                href={story.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[var(--text-primary)] hover:text-white transition-colors"
+                              >
+                                {story.headline}
+                              </a>
+                            ) : (
+                              <span className="text-[var(--text-primary)]">{story.headline}</span>
+                            )}
+                          </div>
 
-                {/* Headline */}
-                <div className="text-sm font-semibold leading-snug mb-1 line-clamp-2">
-                  {story.url ? (
-                    <a
-                      href={story.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[var(--text-primary)] hover:underline"
-                    >
-                      {story.headline}
-                    </a>
-                  ) : (
-                    story.headline
-                  )}
-                </div>
+                          {/* Summary */}
+                          {story.summary && (
+                            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-1.5">
+                              {story.summary}
+                            </p>
+                          )}
 
-                {/* Summary */}
-                {story.summary && (
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-2">
-                    {story.summary}
-                  </p>
-                )}
+                          {/* Meta row: type pill + tagged players + source + time */}
+                          <div className="flex items-center flex-wrap gap-1.5">
+                            {story.story_type && (
+                              <span className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded ${STORY_TYPE_STYLE[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)]"}`}>
+                                {story.story_type}
+                              </span>
+                            )}
 
-                {/* Tagged players + source */}
-                {(storyTags.length > 0 || story.source) && (
-                  <div className="flex items-center flex-wrap gap-1.5">
-                    {storyTags.map((tag) => {
-                      const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
-                      return (
-                        <Link
-                          key={tag.player_id}
-                          href={`/players/${tag.player_id}`}
-                          className="inline-flex items-center gap-1 text-[10px] lg:text-[11px] font-medium px-2 lg:px-2.5 py-0.5 lg:py-1 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
-                          {tag.name}
-                        </Link>
-                      );
-                    })}
-                    {story.source && (
-                      <span className="ml-auto text-[9px] text-[var(--text-muted)] opacity-70">
-                        {story.source}
-                      </span>
-                    )}
-                  </div>
-                )}
+                            {storyTags.map((tag) => {
+                              const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
+                              return (
+                                <Link
+                                  key={tag.player_id}
+                                  href={`/players/${tag.player_id}`}
+                                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+                                  {tag.name}
+                                </Link>
+                              );
+                            })}
 
-                {/* Reaction voting */}
-                <ReactionBar
-                  storyId={story.id}
-                  storyType={story.story_type}
-                  counts={counts}
-                  userReaction={userVotes[story.id] ?? null}
-                  onVote={handleVote}
-                />
-              </article>
-            );
-          })}
+                            <span className="ml-auto flex items-center gap-2 shrink-0">
+                              {story.source && (
+                                <span className="text-[9px] text-[var(--text-muted)] font-medium">
+                                  {SOURCE_LABEL[story.source] ?? story.source}
+                                </span>
+                              )}
+                              {story.published_at && (
+                                <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                                  {timeAgo(story.published_at)}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Reactions — show if there are existing reactions, otherwise show on hover */}
+                          <div className={`mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] ${hasReactions ? "" : "opacity-0 group-hover/story:opacity-100"} transition-opacity`}>
+                            <ReactionBar
+                              storyId={story.id}
+                              storyType={story.story_type}
+                              counts={counts}
+                              userReaction={userVotes[story.id] ?? null}
+                              onVote={handleVote}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

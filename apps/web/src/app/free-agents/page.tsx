@@ -4,9 +4,9 @@ import { PlayerCard as PlayerCardType, POSITIONS, computeAge } from "@/lib/types
 import Link from "next/link";
 
 export const metadata = {
-  title: "Free Agents — Chief Scout",
+  title: "Free Agents & Expiring Contracts — Chief Scout",
   description:
-    "The definitive free agent list. Full scouting intelligence on every available player.",
+    "Every available player and expiring contract. Full scouting intelligence — position, archetype, personality, valuation.",
 };
 
 interface FreeAgentPlayer extends PlayerCardType {
@@ -107,7 +107,7 @@ export default async function FreeAgentsPage() {
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
-            Free Agents
+            Free Agents &amp; Expiring Contracts
           </h1>
           <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[var(--accent-tactical)]/20 text-[var(--accent-tactical)]">
             {totalCount} available

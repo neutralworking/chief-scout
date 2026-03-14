@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 
 interface NewsStory {
@@ -20,6 +20,9 @@ interface PlayerTag {
   confidence: number | null;
   name: string;
 }
+
+type Reaction = "fire" | "love" | "gutted" | "shocked";
+type VoteCounts = Record<string, Record<Reaction, number>>;
 
 const STORY_TYPES = [
   "transfer",
@@ -43,6 +46,95 @@ const SENTIMENT_PILL: Record<string, string> = {
   neutral: "bg-[var(--bg-elevated)] text-[var(--text-muted)]",
 };
 
+// Reaction labels vary by story type to feel contextual
+const REACTION_LABELS: Record<string, Record<Reaction, string>> = {
+  transfer: { fire: "Big move", love: "Great signing", gutted: "Gutted", shocked: "No way" },
+  injury: { fire: "Huge blow", love: "Speedy recovery", gutted: "Gutted", shocked: "Not again" },
+  performance: { fire: "On fire", love: "Class", gutted: "Poor", shocked: "Unreal" },
+  tactical: { fire: "Genius", love: "Love it", gutted: "Risky", shocked: "Bold" },
+  contract: { fire: "Deserved", love: "Locked in", gutted: "Overpaid", shocked: "Wow" },
+  discipline: { fire: "Drama", love: "Fair enough", gutted: "Harsh", shocked: "Shocking" },
+  international: { fire: "Called up", love: "Proud", gutted: "Snubbed", shocked: "Surprise" },
+  default: { fire: "Hot", love: "Love it", gutted: "Gutted", shocked: "Shocked" },
+};
+
+function getReactionLabel(storyType: string | null, reaction: Reaction): string {
+  const labels = REACTION_LABELS[storyType ?? ""] ?? REACTION_LABELS.default;
+  return labels[reaction];
+}
+
+// SVG icons for each reaction — small inline, 14px
+function FireIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 2C9.5 6.5 6 8.5 6 13c0 3.31 2.69 6 6 6s6-2.69 6-6c0-2-1-4-2-5.5-.5.5-1 1.5-1 2.5 0 0-1.5-2-1.5-4S12 2 12 2z"
+        fill={active ? "#f59e0b" : "none"}
+        stroke={active ? "#f59e0b" : "currentColor"}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function LoveIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z"
+        fill={active ? "#ef4444" : "none"}
+        stroke={active ? "#ef4444" : "currentColor"}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function GuttedIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="1.5" fill={active ? "#6366f1" + "22" : "none"} />
+      <path d="M8 15s1.5-2 4-2 4 2 4 2" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="9" y1="9" x2="9.01" y2="9" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
+      <line x1="15" y1="9" x2="15.01" y2="9" stroke={active ? "#6366f1" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ShockedIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="1.5" fill={active ? "#06b6d4" + "22" : "none"} />
+      <circle cx="12" cy="16" r="1.5" fill={active ? "#06b6d4" : "currentColor"} />
+      <line x1="9" y1="9" x2="9.01" y2="9" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
+      <line x1="15" y1="9" x2="15.01" y2="9" stroke={active ? "#06b6d4" : "currentColor"} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const REACTION_ICONS: Record<Reaction, (props: { active: boolean }) => React.ReactNode> = {
+  fire: FireIcon,
+  love: LoveIcon,
+  gutted: GuttedIcon,
+  shocked: ShockedIcon,
+};
+
+const REACTIONS: Reaction[] = ["fire", "love", "gutted", "shocked"];
+
+function getUserId(): string {
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem("cs_user_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("cs_user_id", id);
+  }
+  return id;
+}
+
 function timeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -56,11 +148,69 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
+function ReactionBar({
+  storyId,
+  storyType,
+  counts,
+  userReaction,
+  onVote,
+}: {
+  storyId: string;
+  storyType: string | null;
+  counts: Record<Reaction, number>;
+  userReaction: Reaction | null;
+  onVote: (storyId: string, reaction: Reaction) => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-[var(--border-subtle)]">
+      {REACTIONS.map((reaction) => {
+        const Icon = REACTION_ICONS[reaction];
+        const active = userReaction === reaction;
+        const count = counts[reaction] ?? 0;
+        const label = getReactionLabel(storyType, reaction);
+
+        return (
+          <button
+            key={reaction}
+            onClick={() => onVote(storyId, reaction)}
+            title={label}
+            className={`
+              group flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] transition-all
+              ${active
+                ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]/50"
+              }
+            `}
+          >
+            <Icon active={active} />
+            {count > 0 && (
+              <span className={`font-mono text-[9px] ${active ? "text-[var(--text-secondary)]" : ""}`}>
+                {count}
+              </span>
+            )}
+            <span className="hidden group-hover:inline text-[8px] font-medium tracking-wide uppercase">
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function NewsPage() {
   const [stories, setStories] = useState<NewsStory[]>([]);
   const [tags, setTags] = useState<PlayerTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
+  const [voteCounts, setVoteCounts] = useState<VoteCounts>({});
+  const [userVotes, setUserVotes] = useState<Record<string, Reaction>>({});
+  const [votingStory, setVotingStory] = useState<string | null>(null);
+  const userIdRef = useRef("");
+
+  useEffect(() => {
+    userIdRef.current = getUserId();
+  }, []);
 
   const fetchNews = useCallback(async () => {
     setLoading(true);
@@ -73,6 +223,7 @@ export default function NewsPage() {
       const data = await res.json();
       setStories(data.stories ?? []);
       setTags(data.tags ?? []);
+      setVoteCounts(data.voteCounts ?? {});
     } catch {
       setStories([]);
       setTags([]);
@@ -84,6 +235,63 @@ export default function NewsPage() {
   useEffect(() => {
     fetchNews();
   }, [fetchNews]);
+
+  const handleVote = useCallback(async (storyId: string, reaction: Reaction) => {
+    if (votingStory) return; // prevent double-clicks
+    setVotingStory(storyId);
+
+    const isToggleOff = userVotes[storyId] === reaction;
+
+    // Optimistic update
+    setUserVotes((prev) => {
+      const next = { ...prev };
+      if (isToggleOff) {
+        delete next[storyId];
+      } else {
+        next[storyId] = reaction;
+      }
+      return next;
+    });
+
+    setVoteCounts((prev) => {
+      const base = prev[storyId] ?? { fire: 0, love: 0, gutted: 0, shocked: 0 };
+      const storyCounts = { ...base };
+      const oldReaction = userVotes[storyId];
+      if (oldReaction) storyCounts[oldReaction] = Math.max(0, storyCounts[oldReaction] - 1);
+      if (!isToggleOff) storyCounts[reaction] = storyCounts[reaction] + 1;
+      return { ...prev, [storyId]: storyCounts };
+    });
+
+    try {
+      const res = await fetch("/api/news/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userIdRef.current,
+          story_id: storyId,
+          reaction,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVoteCounts((prev) => ({ ...prev, [storyId]: data.counts }));
+        setUserVotes((prev) => {
+          const next = { ...prev };
+          if (data.userReaction) {
+            next[storyId] = data.userReaction;
+          } else {
+            delete next[storyId];
+          }
+          return next;
+        });
+      }
+    } catch {
+      // Revert on error — refetch
+      fetchNews();
+    } finally {
+      setVotingStory(null);
+    }
+  }, [votingStory, userVotes, fetchNews]);
 
   const tagsByStory = new Map<string, PlayerTag[]>();
   for (const tag of tags) {
@@ -150,6 +358,7 @@ export default function NewsPage() {
           {stories.map((story) => {
             const storyTags = tagsByStory.get(story.id) ?? [];
             const sentiment = storySentiment(story.id);
+            const counts = voteCounts[story.id] ?? { fire: 0, love: 0, gutted: 0, shocked: 0 };
 
             return (
               <article key={story.id} className="glass rounded-xl p-3 lg:p-2.5">
@@ -216,6 +425,15 @@ export default function NewsPage() {
                     )}
                   </div>
                 )}
+
+                {/* Reaction voting */}
+                <ReactionBar
+                  storyId={story.id}
+                  storyType={story.story_type}
+                  counts={counts}
+                  userReaction={userVotes[story.id] ?? null}
+                  onVote={handleVote}
+                />
               </article>
             );
           })}

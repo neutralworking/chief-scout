@@ -176,6 +176,7 @@ def main():
             ch.end_date,
             ch.is_loan,
             ch.sort_order,
+            ch.team_type,
             c.league_name AS league
         FROM player_career_history ch
         LEFT JOIN clubs c ON c.id = ch.club_id
@@ -220,7 +221,11 @@ def main():
             stats["skipped_empty"] += 1
             continue
 
-        # Distinct clubs (by club_name or club_id, excluding loans for count purposes)
+        # Split entries by team type — only senior clubs count for metrics
+        senior_entries = [e for e in entries if e.get("team_type") in ("senior_club", None)]
+        national_entries = [e for e in entries if e.get("team_type") == "national_team"]
+
+        # Distinct senior clubs (by club_name or club_id)
         all_clubs = set()
         loan_count = 0
         leagues = set()
@@ -228,7 +233,7 @@ def main():
         tenures = []
         current_club_yrs = None
 
-        for e in entries:
+        for e in senior_entries:
             club_key = e["club_id"] or e["club_name"]
             if club_key:
                 all_clubs.add(club_key)
@@ -251,10 +256,14 @@ def main():
 
         clubs_count = len(all_clubs)
         leagues_count = len(leagues)
+        international_teams = len(set(
+            (e["club_id"] or e["club_name"]) for e in national_entries
+            if e["club_id"] or e["club_name"]
+        ))
 
-        # Career span
-        starts = [e["start_date"] for e in entries if e["start_date"]]
-        ends = [e["end_date"] for e in entries if e["end_date"]]
+        # Career span (senior clubs only)
+        starts = [e["start_date"] for e in senior_entries if e["start_date"]]
+        ends = [e["end_date"] for e in senior_entries if e["end_date"]]
         if starts:
             career_start = min(starts)
             career_end = max(ends) if ends else TODAY

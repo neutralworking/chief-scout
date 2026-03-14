@@ -125,7 +125,7 @@ export default async function PlayerDetailPage({
       .limit(1),
     supabaseServer
       .from("player_career_history")
-      .select("club_name, club_id, start_date, end_date, is_loan, sort_order")
+      .select("club_name, club_id, start_date, end_date, is_loan, sort_order, team_type")
       .eq("person_id", playerId)
       .order("sort_order", { ascending: true }),
     supabaseServer
@@ -172,7 +172,7 @@ export default async function PlayerDetailPage({
     });
   }
 
-  const careerEntries = (careerResult.data ?? []) as Array<{ club_name: string; club_id: number | null; start_date: string | null; end_date: string | null; is_loan: boolean }>;
+  const careerEntries = (careerResult.data ?? []) as Array<{ club_name: string; club_id: number | null; start_date: string | null; end_date: string | null; is_loan: boolean; team_type: string | null }>;
   const careerMetrics = metricsResult.data as { clubs_count: number; loan_count: number; career_years: number; avg_tenure_yrs: number; loyalty_score: number; mobility_score: number; trajectory: string | null } | null;
 
   const playerTags = (playerTagsResult.data ?? []).map((r: Record<string, unknown>) => {

@@ -7,6 +7,7 @@ input types.
 """
 
 from __future__ import annotations
+from datetime import date as _date_type
 
 from datetime import date
 from typing import Optional
@@ -42,7 +43,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
     cur.execute("""
         SELECT p.id, p.name, p.date_of_birth, p.height_cm, p.preferred_foot,
                p.club_id, c.clubname as club_name,
-               n.name as nation_name
+               n.name as nation_name, p.contract_expiry_date
         FROM people p
         LEFT JOIN clubs c ON c.id = p.club_id
         LEFT JOIN nations n ON n.id = p.nation_id
@@ -141,8 +142,21 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
     trajectory = career_row[0] if career_row else None
 
     # ── Contract years estimation ─────────────────────────────────────────────
+    # Prefer contract_expiry_date (from people table) over contract_tag
+    contract_years = None
+    expiry = person.get("contract_expiry_date")
+    if expiry:
+        if isinstance(expiry, str):
+            try:
+                expiry = _date_type.fromisoformat(expiry)
+            except ValueError:
+                expiry = None
+        if expiry:
+            delta = (expiry - _date_type.today()).days / 365.25
+            contract_years = max(0.0, round(delta, 1))
 
-    contract_years = _estimate_contract_years(status_data.get("contract_tag"))
+    if contract_years is None:
+        contract_years = _estimate_contract_years(status_data.get("contract_tag"))
 
     # ── Tags (from player_tags) ───────────────────────────────────────────────
 
@@ -320,4 +334,6 @@ def _estimate_contract_years(contract_tag: str | None) -> float:
         "Six Months": 0.5,
         "Expired": 0.0,
     }
-    return mapping.get(contract_tag or "One Year Left", 2.0)
+    if not contract_tag:
+        return 3.0  # Unknown contract → assume mid-range (neutral)
+    return mapping.get(contract_tag, 2.0)

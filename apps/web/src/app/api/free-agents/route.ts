@@ -76,6 +76,8 @@ export async function GET(req: NextRequest) {
     .select(SELECT)
     .in("person_id", idArray);
 
+  // Only show active players (filter out retired)
+  query = query.eq("active", true);
   if (position) query = query.eq("position", position);
 
   switch (sort) {

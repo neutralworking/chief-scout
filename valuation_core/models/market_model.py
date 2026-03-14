@@ -171,14 +171,17 @@ def estimate_market_value(
         level_ability_gap = max(0, expected_ability - ability_central)
 
     if confidence_state == "very_low":
-        lam = min(lam, 0.15)
+        lam = min(lam, 0.10)
     elif confidence_state == "low":
-        lam = min(lam, 0.30)
+        lam = min(lam, 0.25)
     elif confidence_state == "medium":
-        lam = min(lam, 0.45)
-    elif confidence_state == "high" and level_ability_gap > 20:
-        # High confidence but grades miscalibrated — blend more toward level
-        lam = min(lam, 0.35)
+        lam = min(lam, 0.40)
+
+    # Sanity override: when grades are wildly miscalibrated, reduce further
+    if level_ability_gap > 30:
+        lam = min(lam, 0.05)  # effectively ignore scout value
+    elif level_ability_gap > 20:
+        lam = min(lam, 0.15)
 
     central = lam * scout_value + (1 - lam) * data_value
 

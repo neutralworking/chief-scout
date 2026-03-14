@@ -11,6 +11,7 @@ export interface CareerEntry {
   end_date: string | null;
   is_loan: boolean;
   club_id: number | null;
+  team_type: string | null;
 }
 
 export interface CareerMetrics {
@@ -87,6 +88,11 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
   const [tab, setTab] = useState<Tab>(hasCareer ? "career" : "moments");
   const [momentsExpanded, setMomentsExpanded] = useState(false);
 
+  // Separate entries by team type
+  const seniorEntries = entries.filter((e) => !e.team_type || e.team_type === "senior_club");
+  const internationalEntries = entries.filter((e) => e.team_type === "national_team");
+  const youthEntries = entries.filter((e) => e.team_type === "youth" || e.team_type === "reserve");
+
   if (!hasCareer && !hasMoments) return null;
 
   // Sort moments chronologically (earliest first)
@@ -150,47 +156,28 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
             </div>
           )}
 
-          {/* Compact timeline */}
-          <div className="relative ml-2 max-h-[280px] overflow-y-auto pb-1">
-            <div className="absolute left-0 top-1 bottom-1 w-px bg-[var(--border-subtle)]" />
-            <div className="space-y-0">
-              {entries.map((e, i) => {
-                const isActive = !e.end_date;
-                return (
-                  <div key={i} className="relative pl-5 pb-3 last:pb-0">
-                    <div
-                      className="absolute left-0 top-[5px] w-2 h-2 rounded-full -translate-x-[3.5px] border-[1.5px]"
-                      style={{
-                        borderColor: isActive ? "var(--accent-tactical)" : e.is_loan ? "var(--accent-physical)" : "var(--text-secondary)",
-                        backgroundColor: isActive ? "var(--accent-tactical)" : "transparent",
-                        boxShadow: isActive ? "0 0 6px rgba(34,197,94,0.4)" : undefined,
-                      }}
-                    />
-                    <div className="flex items-baseline justify-between gap-2">
-                      <div className="min-w-0 flex items-center gap-1.5">
-                        {e.club_id ? (
-                          <Link href={`/clubs/${e.club_id}`} className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent-tactical)] transition-colors truncate">
-                            {e.club_name}
-                          </Link>
-                        ) : (
-                          <span className="text-xs font-medium text-[var(--text-primary)] truncate">{e.club_name}</span>
-                        )}
-                        {e.is_loan && (
-                          <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded text-[var(--accent-physical)] bg-[var(--accent-physical)]/10">Loan</span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-[var(--text-muted)] shrink-0 font-mono">
-                        {calcDuration(e.start_date, e.end_date)}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-[var(--text-muted)]">
-                      {formatDate(e.start_date)} — {formatDate(e.end_date)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Senior club career timeline */}
+          <CareerTimeline entries={seniorEntries} />
+
+          {/* International section */}
+          {internationalEntries.length > 0 && (
+            <details className="mt-3">
+              <summary className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] cursor-pointer hover:text-[var(--text-secondary)] transition-colors mb-2">
+                International ({internationalEntries.length})
+              </summary>
+              <CareerTimeline entries={internationalEntries} accent="var(--accent-mental)" />
+            </details>
+          )}
+
+          {/* Youth / Reserve section */}
+          {youthEntries.length > 0 && (
+            <details className="mt-3">
+              <summary className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)] transition-colors mb-2">
+                Academy &amp; Youth ({youthEntries.length})
+              </summary>
+              <CareerTimeline entries={youthEntries} accent="var(--text-muted)" />
+            </details>
+          )}
         </div>
       )}
 
@@ -244,6 +231,53 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function CareerTimeline({ entries, accent }: { entries: CareerEntry[]; accent?: string }) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="relative ml-2 max-h-[280px] overflow-y-auto pb-1">
+      <div className="absolute left-0 top-1 bottom-1 w-px bg-[var(--border-subtle)]" />
+      <div className="space-y-0">
+        {entries.map((e, i) => {
+          const isActive = !e.end_date;
+          const activeColor = accent ?? "var(--accent-tactical)";
+          return (
+            <div key={i} className="relative pl-5 pb-3 last:pb-0">
+              <div
+                className="absolute left-0 top-[5px] w-2 h-2 rounded-full -translate-x-[3.5px] border-[1.5px]"
+                style={{
+                  borderColor: isActive ? activeColor : e.is_loan ? "var(--accent-physical)" : "var(--text-secondary)",
+                  backgroundColor: isActive ? activeColor : "transparent",
+                  boxShadow: isActive ? `0 0 6px ${activeColor}66` : undefined,
+                }}
+              />
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="min-w-0 flex items-center gap-1.5">
+                  {e.club_id ? (
+                    <Link href={`/clubs/${e.club_id}`} className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent-tactical)] transition-colors truncate">
+                      {e.club_name}
+                    </Link>
+                  ) : (
+                    <span className="text-xs font-medium text-[var(--text-primary)] truncate">{e.club_name}</span>
+                  )}
+                  {e.is_loan && (
+                    <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded text-[var(--accent-physical)] bg-[var(--accent-physical)]/10">Loan</span>
+                  )}
+                </div>
+                <span className="text-[10px] text-[var(--text-muted)] shrink-0 font-mono">
+                  {calcDuration(e.start_date, e.end_date)}
+                </span>
+              </div>
+              <div className="text-[10px] text-[var(--text-muted)]">
+                {formatDate(e.start_date)} — {formatDate(e.end_date)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

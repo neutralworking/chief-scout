@@ -71,5 +71,24 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ stories: stories ?? [], tags });
+  // Fetch vote counts for returned stories
+  let voteCounts: Record<string, Record<string, number>> = {};
+
+  if (ids.length > 0) {
+    const { data: votes } = await supabaseServer
+      .from("news_story_votes")
+      .select("story_id, reaction")
+      .in("story_id", ids);
+
+    if (votes) {
+      for (const v of votes) {
+        if (!voteCounts[v.story_id]) {
+          voteCounts[v.story_id] = { fire: 0, love: 0, gutted: 0, shocked: 0 };
+        }
+        voteCounts[v.story_id][v.reaction] = (voteCounts[v.story_id][v.reaction] ?? 0) + 1;
+      }
+    }
+  }
+
+  return NextResponse.json({ stories: stories ?? [], tags, voteCounts });
 }

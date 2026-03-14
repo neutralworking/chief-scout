@@ -23,7 +23,7 @@ async function getUserPreferences(): Promise<Record<string, unknown> | null> {
 }
 
 interface NewsStoryWithTags {
-  id: number;
+  id: string;
   headline: string;
   url: string | null;
   published_at: string | null;
@@ -191,7 +191,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   }
 
   // News stories
-  const rawNews = (newsResult.data ?? []) as Array<{ id: number; headline: string; url: string | null; published_at: string | null; summary: string | null; story_type: string | null }>;
+  const rawNews = (newsResult.data ?? []) as Array<{ id: string; headline: string; url: string | null; published_at: string | null; summary: string | null; story_type: string | null }>;
 
   // Get tags for news stories
   const storyIds = rawNews.map((s) => s.id);
@@ -204,9 +204,9 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .in("story_id", storyIds);
 
     if (tagData) {
-      const tagMap = new Map<number, Array<{ player_id: number; name: string; sentiment: string | null }>>();
+      const tagMap = new Map<string, Array<{ player_id: number; name: string; sentiment: string | null }>>();
       for (const t of tagData as Array<Record<string, unknown>>) {
-        const storyId = t.story_id as number;
+        const storyId = t.story_id as string;
         const playerId = t.player_id as number;
         const sentiment = t.sentiment as string | null;
         const people = t.people as { name: string } | { name: string }[] | null;
@@ -363,6 +363,9 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-2.5 overflow-y-auto flex-1 -mr-2 pr-2">
+            {news.length === 0 && (
+              <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
+            )}
             {news.map((story, i) => (
               <div key={story.id} className={`flex gap-3 ${i === 0 ? "pb-3 border-b border-[var(--border-subtle)]" : ""}`}>
                 <span className="text-[10px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">

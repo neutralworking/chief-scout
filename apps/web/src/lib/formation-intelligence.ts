@@ -75,6 +75,14 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Awareness", "Positioning", "Anticipation", "Interceptions"],
     reference: "The Baresi role — reads danger before it develops, covers space intelligently",
   },
+  "Ball-Carrying CB": {
+    archetypes: ["Cover", "Dribbler", "Passer"],
+    personalities: ["ANLC", "ANSP", "INLC"],
+    minLevel: 13,
+    positions: ["CD"],
+    keyAttributes: ["Carries", "Composure", "Pass Range", "Pace"],
+    reference: "The Van Dijk / Dias role — steps out, carries into midfield, progressive passing from deep",
+  },
 
   // ── WD ──────────────────────────────────────────────────────────────────
   "Inverted Full-Back": {
@@ -163,13 +171,29 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Vision", "Creativity", "Pass Accuracy", "First Touch"],
     reference: "The Silva role — drifts inside from wide, creates from half-spaces",
   },
+  "Wide Provider": {
+    archetypes: ["Passer", "Engine", "Controller"],
+    personalities: ["ANSP", "ANLP", "AXSP"],
+    minLevel: 12,
+    positions: ["WM", "WF"],
+    keyAttributes: ["Crossing", "Pass Range", "Vision", "Pass Accuracy"],
+    reference: "The Beckham role — touchline hugger, precision delivery, set-piece weapon",
+  },
+  "Direct Winger": {
+    archetypes: ["Sprinter", "Dribbler", "Engine"],
+    personalities: ["IXSC", "IXSP", "AXSC"],
+    minLevel: 11,
+    positions: ["WM", "WF"],
+    keyAttributes: ["Pace", "Take-ons", "Acceleration", "Carries"],
+    reference: "The Giggs role — beats his man, stretches the defence, direct and unpredictable",
+  },
   "Traditional Winger": {
     archetypes: ["Sprinter", "Dribbler", "Passer"],
     personalities: ["IXSC", "AXSC", "IXSP"],
     minLevel: 11,
     positions: ["WM", "WF"],
     keyAttributes: ["Pace", "Crossing", "Take-ons", "Acceleration"],
-    reference: "The Beckham role — hugs the touchline, delivers precision crosses",
+    reference: "The classic wide man — width, delivery, and direct running",
   },
 
   // ── AM ──────────────────────────────────────────────────────────────────
@@ -256,6 +280,32 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     positions: ["CF"],
     keyAttributes: ["Stamina", "Short Range", "Heading", "Movement"],
     reference: "The Benzema role — does everything, all-round threat across all phases",
+  },
+  "Pressing Forward": {
+    archetypes: ["Engine", "Destroyer", "Striker"],
+    personalities: ["ANSC", "INSC", "AXSC"],
+    minLevel: 12,
+    positions: ["CF", "WF"],
+    keyAttributes: ["Pressing", "Stamina", "Intensity", "Tackling"],
+    reference: "The Firmino role — defends from the front, triggers the press, sacrifices for the team",
+  },
+  "Raumdeuter": {
+    archetypes: ["Cover", "Striker", "Engine"],
+    personalities: ["ANSC", "INSC", "ANLC"],
+    minLevel: 13,
+    positions: ["CF", "AM", "WF"],
+    keyAttributes: ["Anticipation", "Movement", "Positioning", "Awareness"],
+    reference: "The Muller role — space interpreter, arrives in the box with perfect timing, reads the game",
+  },
+
+  // ── DM (additional) ──────────────────────────────────────────────────────
+  "Destroyer-Creator": {
+    archetypes: ["Destroyer", "Controller", "Passer"],
+    personalities: ["ANLC", "ANSC", "INLC"],
+    minLevel: 14,
+    positions: ["DM", "CM"],
+    keyAttributes: ["Tackling", "Pass Range", "Composure", "Interceptions"],
+    reference: "The Vieira / Yaya Touré role — does everything, tackles AND creates, box to box from deep",
   },
 };
 
@@ -399,8 +449,8 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Deep Playmaker", blueprint: "Scholes", demand: "Switches play, long-range passing, arrives late in the box" },
       ],
       WM: [
-        { role: "Traditional Winger", blueprint: "Beckham", demand: "Hugs the right touchline, delivers crosses, set-piece specialist" },
-        { role: "Traditional Winger", blueprint: "Giggs", demand: "Dribbles past full-backs, stretches play, direct and unpredictable" },
+        { role: "Wide Provider", blueprint: "Beckham", demand: "Hugs the right touchline, delivers crosses, set-piece specialist, vision from wide" },
+        { role: "Direct Winger", blueprint: "Giggs", demand: "Beats full-backs 1v1, dribbles past men, stretches play, direct and unpredictable" },
       ],
       CF: [
         { role: "Poacher", blueprint: "Solskjær", demand: "Lives on the shoulder, clinical inside the six-yard box, fox in the box" },

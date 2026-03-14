@@ -1,5 +1,7 @@
 // Football Choices Service Worker — offline-first for game pages
-const CACHE_NAME = "fc-v1";
+// Next.js hashed assets (_next/static/) don't need SW caching — the hash IS the cache key.
+// Only cache page navigations and the manifest for offline support.
+const CACHE_NAME = "fc-v2";
 const PRECACHE_URLS = ["/choices", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -26,6 +28,11 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Don't intercept Next.js hashed assets — browser cache handles these
+  if (url.pathname.startsWith("/_next/")) {
+    return;
+  }
+
   // Network-first for API calls
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(
@@ -34,26 +41,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for static assets
-  if (
-    url.pathname.match(/\.(js|css|png|jpg|svg|woff2?)$/) ||
-    url.pathname === "/manifest.json"
-  ) {
-    event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request).then((response) => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-            return response;
-          })
-      )
-    );
-    return;
-  }
-
-  // Network-first for pages
+  // Network-first for pages, fall back to cache for offline
   event.respondWith(
     fetch(request)
       .then((response) => {

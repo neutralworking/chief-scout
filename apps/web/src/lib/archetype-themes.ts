@@ -10,7 +10,7 @@
  *   Helvetica business card: clean lines, neutral palette, sharp borders
  *   Personality traits: Analytical, structured, disciplined, relentless
  *
- * "Showman" — The Showman (AXLC), The Maverick (IXSC), The Spark-types
+ * "Warrior" — The Warrior (AXLC), The Maverick (IXSC), The Livewire (IXLC)
  *   Carnival: vibrant gradients, rounded shapes, bold color pops
  *   Personality traits: Flair-driven, occasion-fuelled, confrontational
  *
@@ -34,12 +34,12 @@ const PERSONALITY_THEME_MAP: Record<string, CardTheme> = {
   // General — structured, disciplined, business-like
   ANLC: "general",     // The General
   ANSC: "general",     // The Machine
-  INSC: "general",     // The Hunter
+  INSC: "general",     // The Blade
 
-  // Showman — flair, carnival, feeds off atmosphere
-  AXLC: "showman",     // The Showman
+  // Warrior — flair, carnival, feeds off atmosphere
+  AXLC: "showman",     // The Warrior
   IXSC: "showman",     // The Maverick
-  IXLC: "showman",     // The Provocateur
+  IXLC: "showman",     // The Livewire
 
   // Maestro — elegant, composed, silk
   INSP: "maestro",     // The Maestro

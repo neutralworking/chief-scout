@@ -10,9 +10,9 @@ import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 
 const PERSONALITY_NAMES: Record<string, string> = {
   ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
-  AXLC: "Showman", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
+  AXLC: "Warrior", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
   AXSC: "Enforcer", AXSP: "Technician", AXLP: "Orchestrator", INLP: "Guardian",
-  INSC: "Hunter", IXLC: "Provocateur", IXLP: "Playmaker", ANSP: "Professor",
+  INSC: "Blade", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
 };
 
 export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {

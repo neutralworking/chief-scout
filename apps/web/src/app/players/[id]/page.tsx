@@ -82,9 +82,9 @@ interface FBRefStat {
 
 const PERSONALITY_NAMES: Record<string, string> = {
   ANLC: "The General", IXSP: "The Genius", ANSC: "The Machine", INLC: "The Captain",
-  AXLC: "The Showman", INSP: "The Maestro", ANLP: "The Conductor", IXSC: "The Maverick",
+  AXLC: "The Warrior", INSP: "The Maestro", ANLP: "The Conductor", IXSC: "The Maverick",
   AXSC: "The Enforcer", AXSP: "The Technician", AXLP: "The Orchestrator", INLP: "The Guardian",
-  INSC: "The Hunter", IXLC: "The Provocateur", IXLP: "The Playmaker", ANSP: "The Professor",
+  INSC: "The Blade", IXLC: "The Livewire", IXLP: "The Playmaker", ANSP: "The Professor",
 };
 
 export default async function PlayerDetailPage({

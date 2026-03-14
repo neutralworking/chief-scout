@@ -327,7 +327,7 @@ export function AdminActions() {
               />
               Force
             </label>
-            <span className="text-[10px] text-[var(--text-muted)]">Cron: daily 7am UTC</span>
+            <span className="text-[10px] text-[var(--text-muted)]">Cron: 7am + 7pm UTC</span>
           </div>
         </div>
         {newsResult && (

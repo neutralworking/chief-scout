@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const storyType = searchParams.get("type");
   const playerId = searchParams.get("player");
-  const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
+  const limit = Math.min(Number(searchParams.get("limit") || 80), 200);
 
   let storyIds: string[] | null = null;
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       .eq("player_id", playerId);
 
     if (!tags || tags.length === 0) {
-      return NextResponse.json({ stories: [], tags: [] });
+      return NextResponse.json({ stories: [], tags: [], trackedPlayers: {} });
     }
     storyIds = tags.map((t) => t.story_id);
   }
@@ -46,7 +46,19 @@ export async function GET(req: NextRequest) {
 
   // Fetch player tags for returned stories
   const ids = (stories ?? []).map((s) => s.id);
-  let tags: Array<{ story_id: string; player_id: number; sentiment: string | null; confidence: number | null; name: string }> = [];
+  let tags: Array<{
+    story_id: string;
+    player_id: number;
+    sentiment: string | null;
+    confidence: number | null;
+    name: string;
+    pursuit_status: string | null;
+    position: string | null;
+    club: string | null;
+  }> = [];
+
+  // Map of player_id → pursuit data for tracked players
+  const trackedPlayers: Record<number, { name: string; pursuit_status: string; position: string | null; club: string | null }> = {};
 
   if (ids.length > 0) {
     const { data: rawTags } = await supabaseServer
@@ -56,20 +68,61 @@ export async function GET(req: NextRequest) {
 
     if (rawTags && rawTags.length > 0) {
       const personIds = [...new Set(rawTags.map((t) => t.player_id))];
-      const { data: people } = await supabaseServer
-        .from("people")
-        .select("id, name")
-        .in("id", personIds);
+
+      // Fetch people + pursuit status + profile in parallel
+      const [peopleResult, statusResult, profileResult] = await Promise.all([
+        supabaseServer.from("people").select("id, name").in("id", personIds),
+        supabaseServer.from("player_status").select("person_id, pursuit_status").in("person_id", personIds).not("pursuit_status", "is", null).not("pursuit_status", "eq", "Pass"),
+        supabaseServer.from("player_profiles").select("person_id, position").in("person_id", personIds),
+      ]);
 
       const nameMap = new Map<number, string>();
-      if (people) {
-        for (const p of people) nameMap.set(p.id, p.name);
+      if (peopleResult.data) {
+        for (const p of peopleResult.data) nameMap.set(p.id, p.name);
+      }
+
+      const pursuitMap = new Map<number, string>();
+      if (statusResult.data) {
+        for (const s of statusResult.data) pursuitMap.set(s.person_id, s.pursuit_status);
+      }
+
+      const positionMap = new Map<number, string>();
+      if (profileResult.data) {
+        for (const p of profileResult.data) positionMap.set(p.person_id, p.position);
+      }
+
+      // Get club names for tracked players
+      const trackedIds = [...pursuitMap.keys()];
+      const clubMap = new Map<number, string>();
+      if (trackedIds.length > 0) {
+        const { data: clubData } = await supabaseServer
+          .from("people")
+          .select("id, clubs(clubname)")
+          .in("id", trackedIds);
+        if (clubData) {
+          for (const p of clubData as any[]) {
+            if (p.clubs?.clubname) clubMap.set(p.id, p.clubs.clubname);
+          }
+        }
       }
 
       tags = rawTags.map((t) => ({
         ...t,
         name: nameMap.get(t.player_id) ?? "Unknown",
+        pursuit_status: pursuitMap.get(t.player_id) ?? null,
+        position: positionMap.get(t.player_id) ?? null,
+        club: clubMap.get(t.player_id) ?? null,
       }));
+
+      // Build tracked players summary
+      for (const [pid, status] of pursuitMap) {
+        trackedPlayers[pid] = {
+          name: nameMap.get(pid) ?? "Unknown",
+          pursuit_status: status,
+          position: positionMap.get(pid) ?? null,
+          club: clubMap.get(pid) ?? null,
+        };
+      }
     }
   }
 
@@ -92,5 +145,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ stories: stories ?? [], tags, voteCounts });
+  return NextResponse.json({ stories: stories ?? [], tags, trackedPlayers, voteCounts });
 }

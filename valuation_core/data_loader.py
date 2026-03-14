@@ -41,7 +41,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
 
     cur.execute("""
         SELECT p.id, p.name, p.date_of_birth, p.height_cm, p.preferred_foot,
-               p.club_id, c.name as club_name,
+               p.club_id, c.clubname as club_name,
                n.name as nation_name
         FROM people p
         LEFT JOIN clubs c ON c.id = p.club_id
@@ -147,7 +147,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
     # ── Tags (from player_tags) ───────────────────────────────────────────────
 
     cur.execute("""
-        SELECT t.name
+        SELECT t.tag_name
         FROM player_tags pt
         JOIN tags t ON t.id = pt.tag_id
         WHERE pt.player_id = %s
@@ -166,7 +166,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
 
     league = None
     if person.get("club_id"):
-        cur.execute("SELECT league FROM clubs WHERE id = %s", (person["club_id"],))
+        cur.execute("SELECT league_name FROM clubs WHERE id = %s", (person["club_id"],))
         league_row = cur.fetchone()
         if league_row:
             league = league_row[0]

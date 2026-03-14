@@ -18,7 +18,6 @@ interface Profile {
   overall: number | null;
   archetype: string | null;
   blueprint: string | null;
-  best_role: string | null;
 }
 
 interface Status {
@@ -40,9 +39,9 @@ interface NetworkPlayer {
   preferred_foot: string | null;
   height_cm: number | null;
   clubs: Club;
-  player_profiles: Profile[];
-  player_status: Status[];
-  player_market: Market[];
+  player_profiles: Profile | Profile[] | null;
+  player_status: Status | Status[] | null;
+  player_market: Market | Market[] | null;
   grades: Record<string, number>;
 }
 
@@ -92,6 +91,12 @@ const PURSUIT_COLORS: Record<string, string> = {
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────
+
+// Supabase returns objects for 1-to-1 relations, arrays for 1-to-many
+function unwrap<T>(val: T | T[] | null | undefined): T | undefined {
+  if (!val) return undefined;
+  return Array.isArray(val) ? val[0] : val;
+}
 
 function age(dob: string | null): string {
   if (!dob) return "?";
@@ -207,6 +212,7 @@ export default function NetworkPage() {
   const [players, setPlayers] = useState<NetworkPlayer[]>([]);
   const [leagues, setLeagues] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [leagueFilter, setLeagueFilter] = useState("");
   const [clubFilter, setClubFilter] = useState("");
   const [editMode, setEditMode] = useState(false);
@@ -235,10 +241,22 @@ export default function NetworkPage() {
 
     try {
       const res = await fetch(`/api/network?${params}`);
+      if (!res.ok) {
+        const body = await res.text();
+        let msg = `API error (${res.status})`;
+        try { msg = JSON.parse(body).error ?? msg; } catch { /* not JSON */ }
+        console.error("[network]", msg);
+        setError(msg);
+        setPlayers([]);
+        return;
+      }
       const data = await res.json();
+      setError(null);
       setPlayers(data.players ?? []);
       setLeagues(data.leagues ?? []);
-    } catch {
+    } catch (err) {
+      console.error("[network] fetch failed:", err);
+      setError("Failed to load players");
       setPlayers([]);
     } finally {
       setLoading(false);
@@ -286,12 +304,12 @@ export default function NetworkPage() {
             return { ...p, grades: { ...p.grades, [field]: value as number } };
           }
           if (table === "player_profiles") {
-            const profile = p.player_profiles[0] ?? {} as Profile;
-            return { ...p, player_profiles: [{ ...profile, [field]: value }] };
+            const profile = unwrap(p.player_profiles) ?? {} as Profile;
+            return { ...p, player_profiles: { ...profile, [field]: value } };
           }
           if (table === "player_status") {
-            const status = p.player_status[0] ?? {} as Status;
-            return { ...p, player_status: [{ ...status, [field]: value }] };
+            const status = unwrap(p.player_status) ?? {} as Status;
+            return { ...p, player_status: { ...status, [field]: value } };
           }
           return p;
         })
@@ -395,6 +413,16 @@ export default function NetworkPage() {
       {/* Player Table */}
       {loading ? (
         <p className="text-sm text-[var(--text-muted)] py-8 text-center">Loading...</p>
+      ) : error ? (
+        <div className="glass rounded-xl p-8 text-center">
+          <p className="text-sm text-[var(--color-pursuit-priority)]">{error}</p>
+          <button
+            onClick={() => { setError(null); fetchPlayers(); }}
+            className="mt-3 text-xs px-3 py-1.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       ) : players.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center">
           <p className="text-sm text-[var(--text-muted)]">No players found.</p>
@@ -432,8 +460,8 @@ export default function NetworkPage() {
               </thead>
               <tbody>
                 {players.map((player) => {
-                  const profile = player.player_profiles?.[0];
-                  const status = player.player_status?.[0];
+                  const profile = unwrap(player.player_profiles);
+                  const status = unwrap(player.player_status);
 
                   return (
                     <tr
@@ -553,9 +581,9 @@ export default function NetworkPage() {
       {/* ── Player Detail Modal ──────────────────────────────────────── */}
       {selectedPlayer && (() => {
         const p = selectedPlayer;
-        const profile = p.player_profiles?.[0];
-        const status = p.player_status?.[0];
-        const market = p.player_market?.[0];
+        const profile = unwrap(p.player_profiles);
+        const status = unwrap(p.player_status);
+        const market = unwrap(p.player_market);
 
         return (
           <div
@@ -619,7 +647,6 @@ export default function NetworkPage() {
                     <ModalField label="Peak" value={profile?.peak} field="peak" table="player_profiles" playerId={p.id} editMode={editMode} onSave={handleSave} type="number" min={1} max={99} />
                     <ModalField label="Archetype" value={profile?.archetype} field="archetype" table="player_profiles" playerId={p.id} editMode={editMode} onSave={handleSave} />
                     <ModalField label="Blueprint" value={profile?.blueprint} field="blueprint" table="player_profiles" playerId={p.id} editMode={editMode} onSave={handleSave} />
-                    <ModalField label="Best Role" value={profile?.best_role} field="best_role" table="player_profiles" playerId={p.id} editMode={editMode} onSave={handleSave} />
                     <ModalField label="Preferred Foot" value={p.preferred_foot} field="preferred_foot" table="people" playerId={p.id} editMode={editMode} onSave={handleSave} options={["Right", "Left", "Both"]} />
                     <ModalField label="Height (cm)" value={p.height_cm} field="height_cm" table="people" playerId={p.id} editMode={editMode} onSave={handleSave} type="number" min={140} max={220} />
                     <ModalField label="Date of Birth" value={p.date_of_birth} field="date_of_birth" table="people" playerId={p.id} editMode={editMode} onSave={handleSave} />

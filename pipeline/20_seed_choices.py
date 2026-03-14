@@ -57,7 +57,20 @@ for slug, name, desc, icon, sort_order in GAFFER_CATEGORIES:
     """, (slug, name, desc, icon, sort_order, name, desc, icon, sort_order))
 
 # Remove old categories that aren't in the current Gaffer set
+# Must delete questions/options referencing old categories first (FK constraint)
 gaffer_slugs = [c[0] for c in GAFFER_CATEGORIES]
+cur.execute("""
+    DELETE FROM fc_options WHERE question_id IN (
+        SELECT q.id FROM fc_questions q
+        JOIN fc_categories c ON c.id = q.category_id
+        WHERE c.slug != ALL(%s)
+    )
+""", (gaffer_slugs,))
+cur.execute("""
+    DELETE FROM fc_questions WHERE category_id IN (
+        SELECT id FROM fc_categories WHERE slug != ALL(%s)
+    )
+""", (gaffer_slugs,))
 cur.execute("""
     DELETE FROM fc_categories WHERE slug != ALL(%s)
 """, (gaffer_slugs,))

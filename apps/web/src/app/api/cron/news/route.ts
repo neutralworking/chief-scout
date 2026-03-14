@@ -189,7 +189,7 @@ async function matchPlayer(
     const ids = contains.map((c) => c.id);
     const { data: withClub } = await supabase
       .from("people")
-      .select("id, clubs!inner(clubname)")
+      .select("id, clubs!people_club_id_fkey!inner(clubname)")
       .in("id", ids)
       .ilike("clubs.clubname", `%${club}%`)
       .limit(5);

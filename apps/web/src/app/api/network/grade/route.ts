@@ -1,15 +1,10 @@
+import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.SUPABASE_URL ?? "";
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 
 export async function POST(request: Request) {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseServer) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-
-  const sb = createClient(supabaseUrl, supabaseKey);
   const { player_id, attribute, scout_grade } = await request.json();
 
   if (!player_id || !attribute) {
@@ -17,7 +12,7 @@ export async function POST(request: Request) {
   }
 
   // Upsert the grade
-  const { error } = await sb
+  const { error } = await supabaseServer
     .from("attribute_grades")
     .upsert(
       { player_id, attribute, scout_grade, source: "network", updated_at: new Date().toISOString() },

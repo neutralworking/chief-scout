@@ -112,6 +112,7 @@ Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`
 |---|---|---|
 | `/ceo` | CEO | Business strategy, commercial decisions, product-market fit |
 | `/dof` | Director of Football | Transfer strategy, squad building, player valuation, market timing |
+| `/football-historian` | Football Historian | Tactical evolution, formation philosophy, role lineage, player-system fit, historical analysis |
 | `/marketing` | Head of Marketing | Brand, content, community, growth, launch strategy |
 | `/project-manager` | Project Manager | Task decomposition, sequencing, scope estimation |
 | `/design-manager` | Architect | Schema design, migrations, architecture review |

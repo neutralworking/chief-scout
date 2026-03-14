@@ -1,4 +1,5 @@
 import { supabaseServer } from "@/lib/supabase-server";
+import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
 import { NextResponse } from "next/server";
 
 // 13 SACROSANCT playing models, each averaging 4 core attributes
@@ -40,68 +41,45 @@ const POSITION_WEIGHTS: Record<string, Record<string, number>> = {
   CF:  { Striker: 1.0, Target: 0.7, Sprinter: 0.6, Powerhouse: 0.5, Dribbler: 0.4, Creator: 0.3 },
 };
 
-// Tactical roles with primary + secondary model
-const TACTICAL_ROLES: Record<string, { position: string; primary: string; secondary: string }[]> = {
-  GK:  [
-    { position: "GK", primary: "GK", secondary: "Cover" },
-    { position: "GK", primary: "GK", secondary: "Passer" },
-  ],
-  CD:  [
-    { position: "CD", primary: "Destroyer", secondary: "Cover" },
-    { position: "CD", primary: "Cover", secondary: "Passer" },
-    { position: "CD", primary: "Destroyer", secondary: "Commander" },
-    { position: "CD", primary: "Cover", secondary: "Dribbler" },
-  ],
-  WD:  [
-    { position: "WD", primary: "Engine", secondary: "Dribbler" },
-    { position: "WD", primary: "Cover", secondary: "Passer" },
-    { position: "WD", primary: "Engine", secondary: "Sprinter" },
-  ],
-  DM:  [
-    { position: "DM", primary: "Cover", secondary: "Destroyer" },
-    { position: "DM", primary: "Controller", secondary: "Passer" },
-    { position: "DM", primary: "Destroyer", secondary: "Engine" },
-  ],
-  CM:  [
-    { position: "CM", primary: "Controller", secondary: "Passer" },
-    { position: "CM", primary: "Engine", secondary: "Cover" },
-    { position: "CM", primary: "Passer", secondary: "Creator" },
-  ],
-  WM:  [
-    { position: "WM", primary: "Dribbler", secondary: "Passer" },
-    { position: "WM", primary: "Engine", secondary: "Sprinter" },
-    { position: "WM", primary: "Creator", secondary: "Dribbler" },
-  ],
-  AM:  [
-    { position: "AM", primary: "Creator", secondary: "Dribbler" },
-    { position: "AM", primary: "Controller", secondary: "Creator" },
-    { position: "AM", primary: "Dribbler", secondary: "Striker" },
-  ],
-  WF:  [
-    { position: "WF", primary: "Dribbler", secondary: "Sprinter" },
-    { position: "WF", primary: "Striker", secondary: "Dribbler" },
-    { position: "WF", primary: "Sprinter", secondary: "Creator" },
-  ],
-  CF:  [
-    { position: "CF", primary: "Striker", secondary: "Target" },
-    { position: "CF", primary: "Target", secondary: "Powerhouse" },
-    { position: "CF", primary: "Striker", secondary: "Sprinter" },
-    { position: "CF", primary: "Dribbler", secondary: "Striker" },
-    { position: "CF", primary: "Creator", secondary: "Striker" },
-  ],
-};
+// ── Build TACTICAL_ROLES and ROLE_NAMES dynamically from ROLE_INTELLIGENCE ──
+// This replaces the old hardcoded dictionaries with the single source of truth.
 
-const ROLE_NAMES: Record<string, Record<string, string>> = {
-  GK:  { "GK+Cover": "Shot Stopper", "GK+Passer": "Sweeper Keeper" },
-  CD:  { "Destroyer+Cover": "Stopper", "Cover+Passer": "Ball-Playing CB", "Destroyer+Commander": "Enforcer", "Cover+Dribbler": "Ball-Carrier" },
-  WD:  { "Engine+Dribbler": "Overlapping FB", "Cover+Passer": "Inverted FB", "Engine+Sprinter": "Wing-Back" },
-  DM:  { "Cover+Destroyer": "Anchor", "Controller+Passer": "Regista", "Destroyer+Engine": "Ball Winner" },
-  CM:  { "Controller+Passer": "Deep Playmaker", "Engine+Cover": "Box-to-Box", "Passer+Creator": "Mezzala" },
-  WM:  { "Dribbler+Passer": "Wide Playmaker", "Engine+Sprinter": "Traditional Winger", "Creator+Dribbler": "Inside Forward" },
-  AM:  { "Creator+Dribbler": "Trequartista", "Controller+Creator": "Advanced Playmaker", "Dribbler+Striker": "Shadow Striker" },
-  WF:  { "Dribbler+Sprinter": "Inside Forward", "Striker+Dribbler": "Wide Forward", "Sprinter+Creator": "Inverted Winger" },
-  CF:  { "Striker+Target": "Target Man", "Target+Powerhouse": "Complete Forward", "Striker+Sprinter": "Poacher", "Dribbler+Striker": "False 9", "Creator+Striker": "Deep-Lying Forward" },
-};
+interface TacticalRoleEntry {
+  position: string;
+  primary: string;
+  secondary: string;
+  roleName: string;
+  keyAttributes: string[];
+}
+
+const TACTICAL_ROLES: Record<string, TacticalRoleEntry[]> = {};
+const ROLE_NAMES: Record<string, Record<string, string>> = {};
+
+for (const [roleName, intel] of Object.entries(ROLE_INTELLIGENCE)) {
+  const primary = intel.archetypes[0];
+  const secondary = intel.archetypes[1] ?? intel.archetypes[0];
+
+  for (const pos of intel.positions) {
+    if (!TACTICAL_ROLES[pos]) TACTICAL_ROLES[pos] = [];
+    if (!ROLE_NAMES[pos]) ROLE_NAMES[pos] = {};
+
+    TACTICAL_ROLES[pos].push({
+      position: pos,
+      primary,
+      secondary,
+      roleName,
+      keyAttributes: intel.keyAttributes ?? [],
+    });
+
+    const key = `${primary}+${secondary}`;
+    // If the same archetype combo already exists for this position, use a
+    // disambiguated key so we don't overwrite. The lookup in role scoring
+    // uses roleName directly anyway, so ROLE_NAMES is only a fallback.
+    if (!ROLE_NAMES[pos][key]) {
+      ROLE_NAMES[pos][key] = roleName;
+    }
+  }
+}
 
 // Source priority for fallback scoring (higher = preferred)
 // For each attribute, we use the score from the highest-priority source that has data.
@@ -247,8 +225,19 @@ export async function GET(
     );
   }
 
-  // ── Role fit scores ──
-  const roleScores: Record<string, Array<{ name: string; primary: string; secondary: string; score: number }>> = {};
+  // ── Role fit scores (built from ROLE_INTELLIGENCE) ──
+  const roleScores: Record<string, Array<{
+    name: string;
+    primary: string;
+    secondary: string;
+    score: number;
+    keyAttributes: Array<{
+      attribute: string;
+      score: number | null;
+      importance: "key";
+    }>;
+  }>> = {};
+
   for (const [pos, roles] of Object.entries(TACTICAL_ROLES)) {
     roleScores[pos] = roles.map((r) => {
       const pScore = modelScores[r.primary] ?? 0;
@@ -261,9 +250,24 @@ export async function GET(
       }
       score = Math.round(score);
 
-      const key = `${r.primary}+${r.secondary}`;
-      const name = ROLE_NAMES[pos]?.[key] ?? `${r.primary}/${r.secondary}`;
-      return { name, primary: r.primary, secondary: r.secondary, score };
+      // Key attribute scores for this role
+      const keyAttrScores = (r.keyAttributes).map((attr) => {
+        const normalized = attr.toLowerCase().replace(/[\s-]+/g, "_");
+        const aliased = ATTR_ALIASES[normalized] ?? normalized;
+        return {
+          attribute: attr,
+          score: attrScores.get(aliased) ?? null,
+          importance: "key" as const,
+        };
+      });
+
+      return {
+        name: r.roleName,
+        primary: r.primary,
+        secondary: r.secondary,
+        score,
+        keyAttributes: keyAttrScores,
+      };
     }).sort((a, b) => b.score - a.score);
   }
 

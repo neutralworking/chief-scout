@@ -36,6 +36,7 @@ interface TrackedPlayer {
   level: number | null;
   archetype: string | null;
   pursuit_status: string | null;
+  personality_type: string | null;
 }
 
 export default async function FormationsPage() {
@@ -64,7 +65,7 @@ export default async function FormationsPage() {
     supabaseServer.from("formation_slots").select("formation_id, position, slot_count, slot_label, role_id"),
     supabaseServer
       .from("player_intelligence_card")
-      .select("person_id, name, position, club, level, archetype, pursuit_status")
+      .select("person_id, name, position, club, level, archetype, pursuit_status, personality_type")
       .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"])
       .order("level", { ascending: false }),
   ]);

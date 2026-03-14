@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { scorePlayerForRole, getRoleReference } from "@/lib/formation-intelligence";
 
 interface FormationSlot {
   formation_id: number;
@@ -29,6 +30,7 @@ interface TrackedPlayer {
   level: number | null;
   archetype: string | null;
   pursuit_status: string | null;
+  personality_type: string | null;
 }
 
 interface FormationDetailProps {
@@ -129,11 +131,17 @@ function bestPlayerForRole(
   if (available.length === 0) return null;
   if (!role) return available[0]; // highest level (already sorted)
 
-  // Score by archetype match
+  // Use role intelligence for scoring (archetype + personality + position + level threshold)
   const scored = available.map((p) => {
-    let score = p.level ?? 0;
-    if (p.archetype === role.primary_archetype) score += 100;
-    else if (p.archetype === role.secondary_archetype) score += 50;
+    const score = scorePlayerForRole(
+      {
+        level: p.level,
+        archetype: p.archetype,
+        personality_type: p.personality_type,
+        position: p.position,
+      },
+      role.name
+    );
     return { player: p, score };
   });
   scored.sort((a, b) => b.score - a.score);
@@ -306,37 +314,49 @@ export function FormationDetail({
                         </span>
                       </div>
                       <div className="ml-4 space-y-1.5">
-                        {posAssignments.map(({ slot, player }, i) => (
-                          <div key={i} className="border-l-2 border-[var(--border-subtle)] pl-3 py-0.5">
-                            {/* Role */}
-                            <div className="text-[10px] text-[var(--text-muted)]">
-                              {slot.role ? slot.role.name : `${pos} #${slot.index + 1}`}
-                              {slot.role?.description && (
-                                <span className="ml-1 text-[var(--text-muted)]/60">— {slot.role.description}</span>
+                        {posAssignments.map(({ slot, player }, i) => {
+                          const roleRef = slot.role ? getRoleReference(slot.role.name) : null;
+                          return (
+                            <div key={i} className="border-l-2 border-[var(--border-subtle)] pl-3 py-0.5">
+                              {/* Role */}
+                              <div className="text-[10px] text-[var(--text-muted)]">
+                                {slot.role ? slot.role.name : `${pos} #${slot.index + 1}`}
+                                {slot.role?.description && (
+                                  <span className="ml-1 text-[var(--text-muted)]/60">— {slot.role.description}</span>
+                                )}
+                              </div>
+                              {/* Historical reference */}
+                              {roleRef && (
+                                <div className="text-[9px] italic text-[var(--color-accent-tactical)] mt-0.5">
+                                  {roleRef}
+                                </div>
+                              )}
+                              {/* Assigned player */}
+                              {player ? (
+                                <Link
+                                  href={`/players/${player.person_id}`}
+                                  className="flex items-center gap-2 text-xs hover:text-white transition-colors mt-0.5"
+                                >
+                                  <span className="text-[var(--text-primary)] font-medium">{player.name}</span>
+                                  {player.level != null && (
+                                    <span className="text-[10px] font-mono text-[var(--text-muted)]">Lvl {player.level}</span>
+                                  )}
+                                  {player.archetype && (
+                                    <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>
+                                  )}
+                                  {player.personality_type && (
+                                    <span className="text-[9px] font-mono text-[var(--color-accent-personality)]">{player.personality_type}</span>
+                                  )}
+                                  {player.club && (
+                                    <span className="text-[9px] text-[var(--text-muted)]">{player.club}</span>
+                                  )}
+                                </Link>
+                              ) : (
+                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">No tracked player</p>
                               )}
                             </div>
-                            {/* Assigned player */}
-                            {player ? (
-                              <Link
-                                href={`/players/${player.person_id}`}
-                                className="flex items-center gap-2 text-xs hover:text-white transition-colors mt-0.5"
-                              >
-                                <span className="text-[var(--text-primary)] font-medium">{player.name}</span>
-                                {player.level != null && (
-                                  <span className="text-[10px] font-mono text-[var(--text-muted)]">Lvl {player.level}</span>
-                                )}
-                                {player.archetype && (
-                                  <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>
-                                )}
-                                {player.club && (
-                                  <span className="text-[9px] text-[var(--text-muted)]">{player.club}</span>
-                                )}
-                              </Link>
-                            ) : (
-                              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">No tracked player</p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );

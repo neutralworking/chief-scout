@@ -28,7 +28,7 @@ function levelColor(level: number | null): string {
   return "text-[var(--text-secondary)]";
 }
 
-function ageGroup(age: number | null): string {
+function ageGroup(age: number | null): "academy" | "developing" | "prime" | "veteran" | "unknown" {
   if (age == null) return "unknown";
   if (age <= 21) return "academy";
   if (age <= 25) return "developing";
@@ -36,19 +36,12 @@ function ageGroup(age: number | null): string {
   return "veteran";
 }
 
-const AGE_GROUP_LABELS: Record<string, string> = {
-  academy: "U21",
-  developing: "22-25",
-  prime: "26-29",
-  veteran: "30+",
-};
-
-const AGE_GROUP_COLORS: Record<string, string> = {
-  academy: "bg-blue-500/20 text-blue-400",
-  developing: "bg-green-500/20 text-green-400",
-  prime: "bg-amber-500/20 text-amber-400",
-  veteran: "bg-red-500/20 text-red-400",
-};
+const AGE_GROUPS = [
+  { key: "academy", label: "U21", color: "bg-blue-500/30", textColor: "text-blue-400" },
+  { key: "developing", label: "22-25", color: "bg-green-500/30", textColor: "text-green-400" },
+  { key: "prime", label: "26-29", color: "bg-amber-500/30", textColor: "text-amber-400" },
+  { key: "veteran", label: "30+", color: "bg-red-500/30", textColor: "text-red-400" },
+] as const;
 
 export default async function ClubDetailPage({ params }: ClubPageProps) {
   const { id } = await params;
@@ -78,7 +71,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   const logoUrl = (club as any).logo_url;
   const wikidataId = (club as any).wikidata_id;
 
-  // Fetch players via people → intelligence card
+  // Fetch players
   const { data: peopleData } = await supabaseServer
     .from("people")
     .select("id")
@@ -97,7 +90,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
     players = (playersData ?? []) as ClubPlayer[];
   }
 
-  // --- Computed squad analysis ---
+  // Computed analysis
   const ages = players.map((p) => computeAge(p.dob)).filter((a): a is number => a !== null);
   const avgAge = ages.length > 0 ? (ages.reduce((a, b) => a + b, 0) / ages.length) : null;
   const levels = players.map((p) => p.level).filter((l): l is number => l !== null);
@@ -111,20 +104,20 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
     positionGroups[pos] = players.filter((p) => p.position === pos);
   }
 
-  // Age profile
-  const ageGroups: Record<string, ClubPlayer[]> = { academy: [], developing: [], prime: [], veteran: [], unknown: [] };
+  // Age profile counts
+  const ageCounts: Record<string, number> = { academy: 0, developing: 0, prime: 0, veteran: 0 };
   for (const p of players) {
     const ag = ageGroup(computeAge(p.dob));
-    ageGroups[ag].push(p);
+    if (ag !== "unknown") ageCounts[ag]++;
   }
 
-  // Transfer gaps: positions with < 2 players
+  // Transfer gaps
   const gaps = POSITIONS.filter((pos) => (positionGroups[pos]?.length ?? 0) < 2);
 
-  // Key players: top 5 by level
+  // Key players
   const keyPlayers = players.filter((p) => p.level != null).slice(0, 5);
 
-  // Archetype distribution
+  // Archetypes
   const archetypeCounts: Record<string, number> = {};
   for (const p of players) {
     if (p.archetype) {
@@ -133,19 +126,12 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   }
   const archetypeEntries = Object.entries(archetypeCounts).sort((a, b) => b[1] - a[1]);
 
-  // Nations in squad
-  const nationCounts: Record<string, number> = {};
-  for (const p of players) {
-    if (p.nation) {
-      nationCounts[p.nation] = (nationCounts[p.nation] ?? 0) + 1;
-    }
-  }
-  const nationEntries = Object.entries(nationCounts).sort((a, b) => b[1] - a[1]);
+  const maxAgeCount = Math.max(...Object.values(ageCounts), 1);
 
   return (
     <div className="space-y-2">
-      <Link href="/clubs" className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block">
-        &larr; Clubs
+      <Link href={leagueName ? `/clubs?league=${encodeURIComponent(leagueName)}` : "/clubs"} className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block">
+        &larr; {leagueName || "Clubs"}
       </Link>
 
       {/* Header */}
@@ -171,7 +157,6 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
               </div>
             )}
           </div>
-          {/* External links */}
           <div className="flex items-center gap-2 shrink-0">
             {wikidataId && (
               <a href={`https://www.wikidata.org/wiki/${wikidataId}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Wiki</a>
@@ -179,7 +164,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           </div>
         </div>
 
-        {/* Key metrics row */}
+        {/* Metrics */}
         <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-6 gap-y-2">
           <div>
             <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Squad</span>
@@ -218,7 +203,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           {keyPlayers.length > 0 && (
             <div className="glass rounded-xl p-3 sm:p-4">
               <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Key Players</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 {keyPlayers.map((p) => {
                   const age = computeAge(p.dob);
                   const posColor = POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60";
@@ -239,9 +224,9 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
             </div>
           )}
 
-          {/* Two-column layout */}
+          {/* Two-column: Positional Depth + Squad Profile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-            {/* Left: Position Depth */}
+            {/* Positional Depth */}
             <div className="glass rounded-xl p-3 sm:p-4">
               <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Positional Depth</h2>
               <div className="space-y-2.5">
@@ -276,31 +261,31 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
               </div>
             </div>
 
-            {/* Right: Age Profile + Gaps + Archetypes + Nations */}
-            <div className="space-y-2">
+            {/* Squad Profile — merged card */}
+            <div className="glass rounded-xl p-3 sm:p-4 space-y-4">
               {/* Age Profile */}
-              <div className="glass rounded-xl p-3 sm:p-4">
+              <div>
                 <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Age Profile</h2>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["academy", "developing", "prime", "veteran"] as const).map((ag) => {
-                    const count = ageGroups[ag].length;
-                    const pct = players.length > 0 ? Math.round((count / players.length) * 100) : 0;
+                <div className="space-y-1.5">
+                  {AGE_GROUPS.map(({ key, label, color, textColor }) => {
+                    const count = ageCounts[key];
+                    const pct = maxAgeCount > 0 ? Math.round((count / maxAgeCount) * 100) : 0;
                     return (
-                      <div key={ag} className="text-center">
-                        <div className={`text-lg font-mono font-bold ${AGE_GROUP_COLORS[ag].split(" ")[1]}`}>{count}</div>
-                        <div className="text-[9px] text-[var(--text-muted)]">{AGE_GROUP_LABELS[ag]}</div>
-                        <div className="mt-1 h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
-                          <div className={`h-full rounded-full ${AGE_GROUP_COLORS[ag].split(" ")[0]}`} style={{ width: `${pct}%` }} />
+                      <div key={key} className="flex items-center gap-2">
+                        <span className="text-[10px] text-[var(--text-muted)] w-10">{label}</span>
+                        <div className="flex-1 h-2 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+                          <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
                         </div>
+                        <span className={`text-xs font-mono font-bold w-5 text-right ${textColor}`}>{count}</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Transfer Gaps */}
+              {/* Transfer Needs */}
               {gaps.length > 0 && (
-                <div className="glass rounded-xl p-3 sm:p-4 border-l-2 border-l-[var(--sentiment-negative)]">
+                <div className="pt-3 border-t border-[var(--border-subtle)]">
                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Transfer Needs</h2>
                   <div className="flex flex-wrap gap-1.5">
                     {gaps.map((pos) => {
@@ -319,18 +304,18 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                 </div>
               )}
 
-              {/* Archetypes */}
+              {/* Playing Styles */}
               {archetypeEntries.length > 0 && (
-                <div className="glass rounded-xl p-3 sm:p-4">
+                <div className="pt-3 border-t border-[var(--border-subtle)]">
                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Playing Styles</h2>
                   <div className="space-y-1.5">
-                    {archetypeEntries.slice(0, 8).map(([archetype, count]) => {
+                    {archetypeEntries.slice(0, 6).map(([archetype, count]) => {
                       const pct = Math.round((count / players.length) * 100);
                       return (
                         <div key={archetype} className="flex items-center gap-2">
                           <span className="text-[10px] text-[var(--text-secondary)] w-28 truncate">{archetype}</span>
                           <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
-                            <div className="h-full rounded-full bg-[var(--accent-tactical)]/40" style={{ width: `${pct}%` }} />
+                            <div className="h-full rounded-full bg-[var(--color-accent-tactical)]/40" style={{ width: `${Math.max(pct, 5)}%` }} />
                           </div>
                           <span className="text-[10px] font-mono text-[var(--text-muted)] w-4 text-right">{count}</span>
                         </div>
@@ -339,27 +324,10 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                   </div>
                 </div>
               )}
-
-              {/* Nationalities */}
-              {nationEntries.length > 0 && (
-                <div className="glass rounded-xl p-3 sm:p-4">
-                  <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Nationalities</h2>
-                  <div className="flex flex-wrap gap-1">
-                    {nationEntries.slice(0, 12).map(([nation, count]) => (
-                      <span key={nation} className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
-                        {nation} <span className="font-mono text-[var(--text-muted)]">{count}</span>
-                      </span>
-                    ))}
-                    {nationEntries.length > 12 && (
-                      <span className="text-[10px] px-1.5 py-0.5 text-[var(--text-muted)]">+{nationEntries.length - 12}</span>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Full Squad Table */}
+          {/* Full Squad */}
           <div className="glass rounded-xl p-3 sm:p-4">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Full Squad</h2>
             <div className="overflow-x-auto">
@@ -370,7 +338,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                     <th className="text-left py-1.5 font-medium">Pos</th>
                     <th className="text-right py-1.5 font-medium">Age</th>
                     <th className="text-right py-1.5 font-medium">Lvl</th>
-                    <th className="text-left py-1.5 font-medium hidden sm:table-cell">Archetype</th>
+                    <th className="text-left py-1.5 font-medium">Archetype</th>
                     <th className="text-left py-1.5 font-medium hidden md:table-cell">Role</th>
                     <th className="text-left py-1.5 font-medium hidden lg:table-cell">Nation</th>
                   </tr>
@@ -393,7 +361,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                         </td>
                         <td className="py-1.5 text-right text-xs font-mono text-[var(--text-secondary)]">{age ?? "–"}</td>
                         <td className={`py-1.5 text-right text-xs font-mono font-bold ${levelColor(p.level)}`}>{p.level ?? "–"}</td>
-                        <td className="py-1.5 text-[10px] text-[var(--text-secondary)] hidden sm:table-cell">{p.archetype ?? "–"}</td>
+                        <td className="py-1.5 text-[10px] text-[var(--text-secondary)]">{p.archetype ?? "–"}</td>
                         <td className="py-1.5 text-[10px] text-[var(--text-muted)] hidden md:table-cell">
                           {p.squad_role ? p.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : "–"}
                         </td>

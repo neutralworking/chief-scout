@@ -6,29 +6,30 @@ import Link from "next/link";
 interface ClubRow {
   id: number;
   name: string;
-  nation: string | null;
   league_name: string | null;
   player_count: number;
+  avg_level: number | null;
 }
 
-const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+function levelColor(level: number | null): string {
+  if (level == null) return "text-[var(--text-muted)]";
+  if (level >= 83) return "text-amber-400";
+  if (level >= 78) return "text-green-400";
+  if (level >= 73) return "text-[var(--text-primary)]";
+  return "text-[var(--text-secondary)]";
+}
 
 export function ClubsList({
   clubs,
   leagues,
-  countries,
   initialLeague = "",
-  initialCountry = "",
 }: {
   clubs: ClubRow[];
   leagues: string[];
-  countries: string[];
   initialLeague?: string;
-  initialCountry?: string;
 }) {
   const [search, setSearch] = useState("");
   const [league, setLeague] = useState(initialLeague);
-  const [country, setCountry] = useState(initialCountry);
 
   const filtered = useMemo(() => {
     let list = clubs;
@@ -39,33 +40,30 @@ export function ClubsList({
     if (league) {
       list = list.filter((c) => c.league_name === league);
     }
-    if (country) {
-      list = list.filter((c) => c.nation === country);
-    }
-    return list;
-  }, [clubs, search, league, country]);
-
-  // Group by first letter for alpha jump
-  const letterSet = useMemo(() => {
-    const s = new Set<string>();
-    for (const c of filtered) {
-      const first = c.name[0]?.toUpperCase();
-      if (first) s.add(first);
-    }
-    return s;
-  }, [filtered]);
+    // Sort by avg level desc (clubs with data first)
+    return list.sort((a, b) => (b.avg_level ?? 0) - (a.avg_level ?? 0));
+  }, [clubs, search, league]);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight mb-1">Clubs</h1>
-      <p className="text-xs text-[var(--text-secondary)] mb-4">
+      <Link href="/leagues" className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block mb-2">
+        &larr; Leagues
+      </Link>
+
+      <div className="flex items-baseline gap-3 mb-1">
+        <h1 className="text-lg font-bold tracking-tight">Clubs</h1>
+        {league && (
+          <span className="text-xs text-[var(--color-accent-personality)]">{league}</span>
+        )}
+      </div>
+      <p className="text-[11px] text-[var(--text-secondary)] mb-4">
         {filtered.length === clubs.length
           ? `${clubs.length.toLocaleString()} clubs`
           : `${filtered.length.toLocaleString()} of ${clubs.length.toLocaleString()} clubs`}
       </p>
 
       {/* Filters */}
-      <div className="glass rounded-xl p-4 mb-4 flex flex-col sm:flex-row gap-3">
+      <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={search}
@@ -83,19 +81,9 @@ export function ClubsList({
             <option key={l} value={l}>{l}</option>
           ))}
         </select>
-        <select
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm"
-        >
-          <option value="">All Countries</option>
-          {countries.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        {(search || league || country) && (
+        {(search || league) && (
           <button
-            onClick={() => { setSearch(""); setLeague(""); setCountry(""); }}
+            onClick={() => { setSearch(""); setLeague(""); }}
             className="px-3 py-1.5 rounded border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             Clear
@@ -103,82 +91,80 @@ export function ClubsList({
         )}
       </div>
 
-      {/* Alpha jump */}
-      <div className="flex flex-wrap gap-1 mb-4">
-        {ALPHA.map((letter) => {
-          const hasClubs = letterSet.has(letter);
-          return hasClubs ? (
-            <a
-              key={letter}
-              href={`#letter-${letter}`}
-              className="w-7 h-7 flex items-center justify-center rounded text-xs font-mono font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] hover:bg-[var(--color-accent-personality)]/20 transition-colors"
-            >
-              {letter}
-            </a>
-          ) : (
-            <span
-              key={letter}
-              className="w-7 h-7 flex items-center justify-center rounded text-xs font-mono text-[var(--text-muted)]/30"
-            >
-              {letter}
-            </span>
-          );
-        })}
-      </div>
-
-      {/* Club table */}
-      <div className="glass rounded-xl overflow-hidden">
+      {/* Mobile: card list / Desktop: table */}
+      {/* Desktop table */}
+      <div className="glass rounded-xl overflow-hidden hidden sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-              <th className="text-left py-2.5 px-4 font-medium">Club</th>
-              <th className="text-left py-2.5 px-4 font-medium hidden sm:table-cell">League</th>
-              <th className="text-left py-2.5 px-4 font-medium hidden md:table-cell">Country</th>
-              <th className="text-right py-2.5 px-4 font-medium w-20">Players</th>
+            <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+              <th className="text-left py-2 px-4 font-medium">Club</th>
+              <th className="text-left py-2 px-4 font-medium">League</th>
+              <th className="text-right py-2 px-4 font-medium w-20">Players</th>
+              <th className="text-right py-2 px-4 font-medium w-20">Avg Lvl</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((club, i) => {
-              const first = club.name[0]?.toUpperCase();
-              const prevFirst = i > 0 ? filtered[i - 1].name[0]?.toUpperCase() : null;
-              const showAnchor = first !== prevFirst;
-
-              return (
-                <tr
-                  key={club.id}
-                  id={showAnchor ? `letter-${first}` : undefined}
-                  className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors"
-                >
-                  <td className="py-2 px-4">
-                    <Link
-                      href={`/clubs/${club.id}`}
-                      className="text-[var(--text-primary)] hover:text-white transition-colors"
-                    >
-                      {club.name}
-                    </Link>
-                    {/* Show league/country inline on mobile */}
-                    {(club.league_name || club.nation) && (
-                      <span className="sm:hidden text-xs text-[var(--text-muted)] ml-2">
-                        {club.league_name || club.nation}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden sm:table-cell">
-                    {club.league_name || "–"}
-                  </td>
-                  <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden md:table-cell">
-                    {club.nation || "–"}
-                  </td>
-                  <td className="py-2 px-4 text-right font-mono text-[var(--text-muted)]">
-                    {club.player_count || "–"}
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.map((club) => (
+              <tr
+                key={club.id}
+                className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors"
+              >
+                <td className="py-2 px-4">
+                  <Link
+                    href={`/clubs/${club.id}`}
+                    className="text-[var(--text-primary)] hover:text-white transition-colors"
+                  >
+                    {club.name}
+                  </Link>
+                </td>
+                <td className="py-2 px-4 text-xs text-[var(--text-secondary)]">
+                  {club.league_name || "–"}
+                </td>
+                <td className="py-2 px-4 text-right font-mono text-[var(--text-muted)]">
+                  {club.player_count}
+                </td>
+                <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(club.avg_level)}`}>
+                  {club.avg_level != null ? club.avg_level.toFixed(1) : "–"}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         {filtered.length === 0 && (
           <div className="py-8 text-center text-sm text-[var(--text-muted)]">
+            No clubs match your filters.
+          </div>
+        )}
+      </div>
+
+      {/* Mobile: card list */}
+      <div className="sm:hidden space-y-1">
+        {filtered.map((club) => (
+          <Link
+            key={club.id}
+            href={`/clubs/${club.id}`}
+            className="glass rounded-lg p-3 flex items-center justify-between hover:border-[var(--color-accent-personality)]/30 transition-colors block"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{club.name}</p>
+              <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{club.league_name || "Unknown"}</p>
+            </div>
+            <div className="flex items-center gap-4 shrink-0 ml-3">
+              <div className="text-right">
+                <p className="text-xs font-mono text-[var(--text-muted)]">{club.player_count}</p>
+                <p className="text-[9px] text-[var(--text-muted)]">players</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm font-mono font-bold ${levelColor(club.avg_level)}`}>
+                  {club.avg_level != null ? club.avg_level.toFixed(1) : "–"}
+                </p>
+                <p className="text-[9px] text-[var(--text-muted)]">avg lvl</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+        {filtered.length === 0 && (
+          <div className="glass rounded-xl py-8 text-center text-sm text-[var(--text-muted)]">
             No clubs match your filters.
           </div>
         )}

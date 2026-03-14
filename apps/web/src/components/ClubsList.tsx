@@ -11,6 +11,15 @@ interface ClubRow {
   avg_level: number | null;
 }
 
+const TOP_LEAGUES = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
+const LEAGUE_SHORT: Record<string, string> = {
+  "Premier League": "PL",
+  "La Liga": "Liga",
+  "Serie A": "SA",
+  "Bundesliga": "BL",
+  "Ligue 1": "L1",
+};
+
 function levelColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 83) return "text-amber-400";
@@ -40,8 +49,13 @@ export function ClubsList({
     if (league) {
       list = list.filter((c) => c.league_name === league);
     }
-    // Sort by avg level desc (clubs with data first)
-    return list.sort((a, b) => (b.avg_level ?? 0) - (a.avg_level ?? 0));
+    // Sort: weighted score = avg_level * min(squad_size, 15) / 15
+    // This prevents 1-player clubs from topping the list
+    return list.sort((a, b) => {
+      const scoreA = (a.avg_level ?? 0) * Math.min(a.player_count, 15) / 15;
+      const scoreB = (b.avg_level ?? 0) * Math.min(b.player_count, 15) / 15;
+      return scoreB - scoreA;
+    });
   }, [clubs, search, league]);
 
   return (
@@ -56,13 +70,36 @@ export function ClubsList({
           <span className="text-xs text-[var(--color-accent-personality)]">{league}</span>
         )}
       </div>
-      <p className="text-[11px] text-[var(--text-secondary)] mb-4">
+      <p className="text-[11px] text-[var(--text-secondary)] mb-3">
         {filtered.length === clubs.length
           ? `${clubs.length.toLocaleString()} clubs`
           : `${filtered.length.toLocaleString()} of ${clubs.length.toLocaleString()} clubs`}
       </p>
 
-      {/* Filters */}
+      {/* Top league quick pills */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        <button
+          onClick={() => setLeague("")}
+          className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
+            league === "" ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30" : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+          }`}
+        >
+          All
+        </button>
+        {TOP_LEAGUES.map((lg) => (
+          <button
+            key={lg}
+            onClick={() => setLeague(league === lg ? "" : lg)}
+            className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
+              league === lg ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30" : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+            }`}
+          >
+            {LEAGUE_SHORT[lg] || lg}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + league dropdown */}
       <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <input
           type="text"
@@ -91,7 +128,6 @@ export function ClubsList({
         )}
       </div>
 
-      {/* Mobile: card list / Desktop: table */}
       {/* Desktop table */}
       <div className="glass rounded-xl overflow-hidden hidden sm:block">
         <table className="w-full text-sm">
@@ -137,7 +173,7 @@ export function ClubsList({
         )}
       </div>
 
-      {/* Mobile: card list */}
+      {/* Mobile card list */}
       <div className="sm:hidden space-y-1">
         {filtered.map((club) => (
           <Link

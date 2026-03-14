@@ -42,103 +42,30 @@ interface LeagueRow {
   country: string | null;
   clubCount: number;
   playerCount: number;
-  withLevel: number;
+  avgLevel: number | null;
 }
 
 export default async function LeaguesPage() {
   if (!supabaseServer) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-4">Leagues</h1>
+        <h1 className="text-lg font-bold mb-4">Leagues</h1>
         <p className="text-sm text-[var(--text-secondary)]">Supabase not configured.</p>
       </div>
     );
   }
 
-  // Fetch clubs with league_name
-  const clubs: any[] = [];
-  {
-    const PAGE = 1000;
-    let from = 0;
-    let more = true;
-    while (more) {
-      const { data: page } = await supabaseServer
-        .from("clubs")
-        .select("id, league_name")
-        .not("league_name", "is", null)
-        .order("league_name")
-        .range(from, from + PAGE - 1);
-      clubs.push(...(page ?? []));
-      more = (page?.length ?? 0) === PAGE;
-      from += PAGE;
-    }
-  }
+  // Single RPC call
+  const { data: statsData } = await supabaseServer.rpc("get_league_stats");
 
-  // Player counts per club (from people table)
-  const clubPlayerCount = new Map<number, number>();
-  {
-    const PAGE = 1000;
-    let from = 0;
-    let more = true;
-    while (more) {
-      const { data: page } = await supabaseServer
-        .from("people")
-        .select("club_id")
-        .eq("active", true)
-        .not("club_id", "is", null)
-        .range(from, from + PAGE - 1);
-      for (const p of page ?? []) {
-        clubPlayerCount.set(p.club_id, (clubPlayerCount.get(p.club_id) ?? 0) + 1);
-      }
-      more = (page?.length ?? 0) === PAGE;
-      from += PAGE;
-    }
-  }
-
-  // Level counts per club (from people → player_profiles)
-  const clubLevelCount = new Map<number, number>();
-  {
-    const PAGE = 1000;
-    let from = 0;
-    let more = true;
-    while (more) {
-      const { data: page } = await supabaseServer
-        .from("people")
-        .select("club_id, player_profiles(level)")
-        .eq("active", true)
-        .not("club_id", "is", null)
-        .range(from, from + PAGE - 1);
-      for (const p of page ?? []) {
-        const profile = (p as any).player_profiles;
-        if (profile?.level != null) {
-          clubLevelCount.set(p.club_id, (clubLevelCount.get(p.club_id) ?? 0) + 1);
-        }
-      }
-      more = (page?.length ?? 0) === PAGE;
-      from += PAGE;
-    }
-  }
-
-  // Group by league
-  const leagueMap = new Map<string, { clubCount: number; playerCount: number; withLevel: number }>();
-  for (const club of clubs) {
-    const name = club.league_name as string;
-    // Skip junk leagues
-    if (name.includes("(duplicate)")) continue;
-    const existing = leagueMap.get(name) ?? { clubCount: 0, playerCount: 0, withLevel: 0 };
-    existing.clubCount++;
-    existing.playerCount += clubPlayerCount.get(club.id) ?? 0;
-    existing.withLevel += clubLevelCount.get(club.id) ?? 0;
-    leagueMap.set(name, existing);
-  }
-
-  // Build rows, filter to leagues with ≥1 player
-  const allLeagues: LeagueRow[] = Array.from(leagueMap.entries())
-    .filter(([, data]) => data.playerCount > 0)
-    .map(([name, data]) => ({
-      name,
-      country: LEAGUE_COUNTRY[name] ?? null,
-      ...data,
+  const allLeagues: LeagueRow[] = ((statsData ?? []) as any[])
+    .filter((s: any) => s.player_count > 0)
+    .map((s: any) => ({
+      name: s.league_name,
+      country: LEAGUE_COUNTRY[s.league_name] ?? null,
+      clubCount: Number(s.club_count),
+      playerCount: Number(s.player_count),
+      avgLevel: s.avg_level != null ? Number(s.avg_level) : null,
     }));
 
   const top5 = TOP_5
@@ -207,8 +134,15 @@ export default async function LeaguesPage() {
   );
 }
 
+function levelColor(level: number | null): string {
+  if (level == null) return "text-[var(--text-muted)]";
+  if (level >= 80) return "text-amber-400";
+  if (level >= 75) return "text-green-400";
+  if (level >= 70) return "text-[var(--text-primary)]";
+  return "text-[var(--text-secondary)]";
+}
+
 function LeagueCard({ league }: { league: LeagueRow }) {
-  const coveragePct = league.playerCount > 0 ? Math.round((league.withLevel / league.playerCount) * 100) : 0;
   return (
     <Link
       href={`/clubs?league=${encodeURIComponent(league.name)}`}
@@ -220,19 +154,16 @@ function LeagueCard({ league }: { league: LeagueRow }) {
       {league.country && (
         <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{league.country}</p>
       )}
-      <div className="flex items-center gap-3 mt-2 text-[10px] text-[var(--text-secondary)]">
-        <span><span className="font-mono">{league.clubCount}</span> clubs</span>
-        <span><span className="font-mono">{league.playerCount}</span> players</span>
+      <div className="flex items-center justify-between mt-2">
+        <div className="text-[10px] text-[var(--text-secondary)]">
+          <span className="font-mono">{league.clubCount}</span> clubs &middot; <span className="font-mono">{league.playerCount}</span> players
+        </div>
+        {league.avgLevel != null && (
+          <span className={`text-sm font-mono font-bold ${levelColor(league.avgLevel)}`}>
+            {league.avgLevel.toFixed(1)}
+          </span>
+        )}
       </div>
-      <div className="mt-2 h-1 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
-        <div
-          className="h-full rounded-full bg-[var(--color-accent-tactical)]"
-          style={{ width: `${coveragePct}%` }}
-        />
-      </div>
-      <p className="text-[9px] text-[var(--text-muted)] mt-0.5">
-        {coveragePct}% with level data
-      </p>
     </Link>
   );
 }

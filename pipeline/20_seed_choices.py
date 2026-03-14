@@ -1467,6 +1467,102 @@ QUESTIONS = [
        {"stats_vs_eye_test": 10, "flair_vs_function": 5}),
       ("Who cares — comparing eras is pointless", "Enjoy both for what they are",
        {"flair_vs_function": -5, "stats_vs_eye_test": -5})]),
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # HISTORIAN'S TACTICAL QUESTIONS — control_vs_chaos dimension (2026-03-14)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ── DUGOUT — tactical philosophy ──────────────────────────────────────────
+
+    ("dugout", "Your centre-backs are quick but not great in the air. Where do you set your defensive line?",
+     None, 2, ["tactical", "philosophy"],
+     [("High line, squeeze the pitch", "Sacchi, Guardiola, Nagelsmann — compress space, dominate territory",
+       {"control_vs_chaos": 15, "attack_vs_defense": 10, "flair_vs_function": -5}),
+      ("Drop deep, invite them on", "Mourinho, Simeone, Dyche — absorb pressure, strike on the break",
+       {"control_vs_chaos": -15, "attack_vs_defense": -10, "flair_vs_function": -10}),
+      ("Depends on the opponent", "Pragmatic — read the game, adapt the line",
+       {"control_vs_chaos": -5, "stats_vs_eye_test": 10}),
+      ("Flexible — high in possession, drop in transition", "Klopp's hybrid — best of both worlds",
+       {"control_vs_chaos": 5, "flair_vs_function": 5, "attack_vs_defense": 5})]),
+
+    ("dugout", "Opposition goalkeeper has the ball. What are your forwards doing?",
+     None, 2, ["tactical", "pressing"],
+     [("Pressing immediately — force errors, win it high", "Klopp's Dortmund, Rangnick's RB Leipzig",
+       {"control_vs_chaos": -10, "attack_vs_defense": 15, "flair_vs_function": 5}),
+      ("Holding shape, waiting for the trigger pass", "Conte's low block — patience, then counter",
+       {"control_vs_chaos": -15, "attack_vs_defense": -10, "flair_vs_function": -10}),
+      ("Pressing in a coordinated trap — let them play into our press", "Guardiola's positional pressing — controlled aggression",
+       {"control_vs_chaos": 15, "attack_vs_defense": 5, "stats_vs_eye_test": 10}),
+      ("Man-marking their centre-backs — chaos from the front", "Bielsa's mad science — relentless, reckless, glorious",
+       {"control_vs_chaos": -10, "flair_vs_function": 15, "attack_vs_defense": 15})]),
+
+    ("dugout", "How do you want your team to play out from the back?",
+     None, 2, ["tactical", "build-up"],
+     [("Short, always — even under pressure", "Guardiola, de Zerbi — the ball is safest at your feet",
+       {"control_vs_chaos": 20, "flair_vs_function": 10, "stats_vs_eye_test": 10}),
+      ("Long and direct to the front man", "Allardyce, Dyche, Pulis — bypass the press, win the second ball",
+       {"control_vs_chaos": -15, "flair_vs_function": -15, "attack_vs_defense": 10}),
+      ("Mixed — short when they let us, long when they press", "Ancelotti pragmatism — read the moment, choose the method",
+       {"control_vs_chaos": 5, "stats_vs_eye_test": 5}),
+      ("Through the thirds — bypass midfield, find the 10", "Conte's vertical passing — direct but not long",
+       {"control_vs_chaos": -5, "flair_vs_function": 5, "attack_vs_defense": 5})]),
+
+    ("dugout", "Your team is struggling to break down a deep block. How do you create space?",
+     None, 2, ["tactical", "attacking"],
+     [("Wide play — stretch them ear to ear, deliver crosses", "Traditional English approach — Moyes at Everton, Allardyce's Blackburn",
+       {"control_vs_chaos": -5, "flair_vs_function": -10, "attack_vs_defense": 10}),
+      ("Half-space overloads — mezzalas, inverted wingers, positional rotations", "Guardiola, Nagelsmann — the geometry of space",
+       {"control_vs_chaos": 15, "flair_vs_function": 10, "stats_vs_eye_test": 10}),
+      ("Individual brilliance — give it to your best dribbler and let him go", "The Neymar school — chaos creates what systems cannot",
+       {"control_vs_chaos": -15, "flair_vs_function": 20, "stats_vs_eye_test": -10}),
+      ("Set pieces — work on them relentlessly, they're worth 10+ goals a season", "The post-2018 analytics revolution — dead balls win titles",
+       {"control_vs_chaos": 5, "stats_vs_eye_test": 15, "flair_vs_function": -10})]),
+
+    ("dugout", "You've just won the ball in your own half. What's the first thought?",
+     None, 2, ["tactical", "transition"],
+     [("Counter-attack immediately — vertical, fast, ruthless", "Mourinho's Inter, Klopp's Dortmund — strike before they reset",
+       {"control_vs_chaos": -15, "attack_vs_defense": 15, "flair_vs_function": 10}),
+      ("Secure possession first — patience, reset, build again", "Guardiola's City, Xavi's Barca — the ball is the weapon",
+       {"control_vs_chaos": 20, "attack_vs_defense": -5, "flair_vs_function": -5}),
+      ("It depends who's on the ball — playmaker plays, centre-back goes long", "Pragmatic — read the situation, not the manual",
+       {"control_vs_chaos": 0, "stats_vs_eye_test": 10}),
+      ("Spring the trap — we press so high we're already in their half", "Bielsa, Rangnick — transition IS the system",
+       {"control_vs_chaos": -10, "attack_vs_defense": 15, "flair_vs_function": 10})]),
+
+    ("dugout", "Do you want your deepest midfielder to be a destroyer or a creator?",
+     None, 2, ["tactical", "midfield"],
+     [("Destroyer — protect the back four at all costs", "Makelele, Kante, Casemiro — the shield that frees the sword",
+       {"control_vs_chaos": -10, "attack_vs_defense": -15, "flair_vs_function": -10}),
+      ("Creator — the game flows through him", "Pirlo, Busquets, Rodri — tempo, vision, control",
+       {"control_vs_chaos": 15, "flair_vs_function": 10, "attack_vs_defense": 5}),
+      ("Both — a Vieira, a Yaya Toure, someone who does everything", "The complete midfielder — rare but transformative",
+       {"control_vs_chaos": 5, "flair_vs_function": 15, "attack_vs_defense": 5}),
+      ("Neither — play a double pivot and share the burden", "The modern pragmatic solution — spread the risk",
+       {"control_vs_chaos": 5, "stats_vs_eye_test": 10, "flair_vs_function": -10})]),
+
+    # ── DREAM XI — tactical history ───────────────────────────────────────────
+
+    ("dream-xi", "Greatest tactical innovation in football history?",
+     None, 2, ["goat", "tactical", "history"],
+     [("Total Football — Michels' Ajax, Cruyff's philosophy", "Every player plays every position. Football as fluid art.",
+       {"control_vs_chaos": 10, "flair_vs_function": 20, "domestic_vs_global": -15}),
+      ("The W-M formation — Herbert Chapman's revolution", "The shape that created modern football. Arsenal in the 1930s.",
+       {"control_vs_chaos": 10, "stats_vs_eye_test": 10, "flair_vs_function": -10}),
+      ("Catenaccio — Herrera's Inter, the art of the lock", "Defensive perfection. Italy's gift to tactical football.",
+       {"control_vs_chaos": -15, "attack_vs_defense": -15, "domestic_vs_global": -10}),
+      ("Gegenpressing — Klopp and Rangnick's pressing revolution", "Win the ball back in 6 seconds. The modern game's defining idea.",
+       {"control_vs_chaos": -10, "attack_vs_defense": 15, "flair_vs_function": 5})]),
+
+    ("dream-xi", "Who changed the game more — Sacchi, Cruyff, or Guardiola?",
+     None, 2, ["goat", "tactical", "management"],
+     [("Arrigo Sacchi", "Never played professionally, revolutionised defending. Coordinated pressing, the offside trap as art.",
+       {"control_vs_chaos": 15, "flair_vs_function": -10, "stats_vs_eye_test": 15, "domestic_vs_global": -10}),
+      ("Johan Cruyff", "Total Football as player AND manager. Created La Masia, created Barcelona's DNA.",
+       {"control_vs_chaos": 15, "flair_vs_function": 20, "youth_vs_experience": 15, "domestic_vs_global": -10}),
+      ("Pep Guardiola", "Took Cruyff's ideas and perfected them. Tiki-taka, positional play, the false 9.",
+       {"control_vs_chaos": 20, "flair_vs_function": 15, "stats_vs_eye_test": 10}),
+      ("None of them — Rinus Michels invented it all and they're footnotes", "The General. Without Michels, none of them exist.",
+       {"control_vs_chaos": 10, "flair_vs_function": 10, "domestic_vs_global": -15})]),
 ]
 
 # ── Resolve category IDs ────────────────────────────────────────────────────

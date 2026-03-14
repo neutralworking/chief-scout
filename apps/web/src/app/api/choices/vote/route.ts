@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   // Increment user total votes + apply dimension scoring
   const { data: currentUser } = await sb
     .from("fc_users")
-    .select("total_votes, flair_vs_function, youth_vs_experience, attack_vs_defense, loyalty_vs_ambition, domestic_vs_global, stats_vs_eye_test")
+    .select("total_votes, flair_vs_function, youth_vs_experience, attack_vs_defense, loyalty_vs_ambition, domestic_vs_global, stats_vs_eye_test, control_vs_chaos")
     .eq("id", user_id)
     .single();
 
@@ -103,6 +103,7 @@ export async function POST(request: Request) {
       const dimensions = [
         "flair_vs_function", "youth_vs_experience", "attack_vs_defense",
         "loyalty_vs_ambition", "domestic_vs_global", "stats_vs_eye_test",
+        "control_vs_chaos",
       ] as const;
 
       for (const dim of dimensions) {

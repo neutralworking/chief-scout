@@ -62,6 +62,7 @@ export async function GET() {
     loyalty_vs_ambition: profile.loyalty_vs_ambition,
     domestic_vs_global: profile.domestic_vs_global,
     stats_vs_eye_test: profile.stats_vs_eye_test,
+    control_vs_chaos: profile.control_vs_chaos,
     era_bias: profile.era_bias,
   };
 

@@ -27,6 +27,7 @@ interface ProfileData {
     loyalty_vs_ambition: number | null;
     domestic_vs_global: number | null;
     stats_vs_eye_test: number | null;
+    control_vs_chaos: number | null;
     era_bias: string | null;
   };
 }
@@ -206,6 +207,9 @@ export default function ProfilePage() {
           <IdentityBar label="Youth vs Experience" value={identity.youth_vs_experience} left="Youth" right="Experience" />
           <IdentityBar label="Attack vs Defense" value={identity.attack_vs_defense} left="Attack" right="Defense" />
           <IdentityBar label="Loyalty vs Ambition" value={identity.loyalty_vs_ambition} left="Loyalty" right="Ambition" />
+          <IdentityBar label="Domestic vs Global" value={identity.domestic_vs_global} left="Domestic" right="Global" />
+          <IdentityBar label="Stats vs Eye Test" value={identity.stats_vs_eye_test} left="Stats" right="Eye Test" />
+          <IdentityBar label="Control vs Chaos" value={identity.control_vs_chaos} left="Control" right="Chaos" />
           {identity.era_bias && (
             <div className="mt-3 text-center">
               <span className="text-xs text-[var(--text-muted)]">Era bias: </span>

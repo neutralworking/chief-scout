@@ -13,6 +13,7 @@ export interface IdentityDimensions {
   loyalty_vs_ambition: number;
   domestic_vs_global: number;
   stats_vs_eye_test: number;
+  control_vs_chaos: number;
   era_bias?: string;
 }
 
@@ -42,6 +43,9 @@ const ARCHETYPES: ManagerArchetype[] = [
   // domestic (high) vs global (low)
   { name: "The Pulis", tagline: "You know your league inside out", dimension: "domestic_vs_global", direction: "high" },
   { name: "The Michels", tagline: "Football is universal", dimension: "domestic_vs_global", direction: "low" },
+  // control (high) vs chaos (low)
+  { name: "The Cruyff", tagline: "Possession is the purest form of attack", dimension: "control_vs_chaos", direction: "high" },
+  { name: "The Simeone", tagline: "Let them have the ball — then strike", dimension: "control_vs_chaos", direction: "low" },
 ];
 
 const MODIFIERS: Record<string, { high: string; low: string }> = {
@@ -51,6 +55,7 @@ const MODIFIERS: Record<string, { high: string; low: string }> = {
   loyalty_vs_ambition: { high: "with a romantic side", low: "with ruthless ambition" },
   domestic_vs_global: { high: "with local roots", low: "with a global eye" },
   stats_vs_eye_test: { high: "with a moneyball streak", low: "who trusts the eye test" },
+  control_vs_chaos: { high: "who demands positional control", low: "who thrives in chaos" },
 };
 
 export function computeIdentity(dims: IdentityDimensions): {
@@ -64,6 +69,7 @@ export function computeIdentity(dims: IdentityDimensions): {
   const dimensions: (keyof Omit<IdentityDimensions, "era_bias">)[] = [
     "flair_vs_function", "youth_vs_experience", "attack_vs_defense",
     "loyalty_vs_ambition", "domestic_vs_global", "stats_vs_eye_test",
+    "control_vs_chaos",
   ];
 
   // Sort by distance from neutral (50)

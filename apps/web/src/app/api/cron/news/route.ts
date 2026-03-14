@@ -3,10 +3,10 @@ import { supabaseServer } from "@/lib/supabase-server";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const RSS_SOURCES: Record<string, { url: string; category: string }> = {
+const RSS_SOURCES: Record<string, { url: string; category: string; filterFootball?: boolean }> = {
   bbc_football: { url: "https://feeds.bbci.co.uk/sport/football/rss.xml", category: "general" },
   guardian_football: { url: "https://www.theguardian.com/football/rss", category: "general" },
-  skysports_football: { url: "https://www.skysports.com/rss/12040", category: "general" },
+  skysports_football: { url: "https://www.skysports.com/rss/12040", category: "general", filterFootball: true },
   espn_fc: { url: "https://www.espn.com/espn/rss/soccer/news", category: "general" },
   fourfourtwo: { url: "https://www.fourfourtwo.com/feeds/all", category: "general" },
   football_italia: { url: "https://football-italia.net/feed/", category: "league_ita" },
@@ -38,8 +38,12 @@ const MAX_PROCESS_BATCH = 15; // Gemini calls per cron run (rate limit friendly)
 
 // ── RSS Parsing ─────────────────────────────────────────────────────────────
 
+function stripCdata(text: string): string {
+  return text.replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, "$1");
+}
+
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").trim();
+  return stripCdata(html).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").trim();
 }
 
 interface RssItem {
@@ -272,6 +276,15 @@ export async function GET(req: NextRequest) {
         if (existingUrls.has(item.link)) {
           stats.skipped++;
           continue;
+        }
+        // Filter non-football stories from mixed-sport feeds
+        if (source.filterFootball) {
+          const url = item.link.toLowerCase();
+          const isFootball = url.includes("/football/") || url.includes("/soccer/") || url.includes("/premier-league/") || url.includes("/champions-league/");
+          if (!isFootball) {
+            stats.skipped++;
+            continue;
+          }
         }
         existingUrls.add(item.link);
         newStories.push({

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
-import { scorePlayerForRole, getRoleReference } from "@/lib/formation-intelligence";
+import { scorePlayerForRole, getRoleReference, getFormationBlueprint, getSlotBlueprint, type SlotBlueprint } from "@/lib/formation-intelligence";
 
 interface FormationSlot {
   formation_id: number;
@@ -62,12 +62,14 @@ interface ExpandedSlot {
   total: number; // total count for this position
   label: string;
   role: TacticalRole | null;
+  blueprint: SlotBlueprint | null; // formation-specific role + archetype player
 }
 
 function expandSlots(
   slots: FormationSlot[],
   rolesMap: Record<number, TacticalRole>,
-  rolesByPosition: Record<string, TacticalRole[]>
+  rolesByPosition: Record<string, TacticalRole[]>,
+  formationName: string
 ): ExpandedSlot[] {
   const expanded: ExpandedSlot[] = [];
 
@@ -91,10 +93,18 @@ function expandSlots(
       const posRoles = rolesByPosition[pos] ?? [];
 
       for (let i = 0; i < slot.slot_count; i++) {
-        // Assign role: explicit role_id first, then cycle through position roles
+        // Check for formation-specific blueprint first
+        const bp = getSlotBlueprint(formationName, pos, idx);
+
+        // Assign role: blueprint > explicit role_id > cycle through position roles
         let role: TacticalRole | null = null;
         if (slot.role_id) {
           role = rolesMap[slot.role_id] ?? null;
+        } else if (bp) {
+          // Find the matching tactical role by name from the blueprint
+          role = posRoles.find(r => r.name === bp.role)
+            ?? Object.values(rolesMap).find(r => r.name === bp.role)
+            ?? null;
         } else if (posRoles.length > 0) {
           role = posRoles[idx % posRoles.length];
         }
@@ -105,6 +115,7 @@ function expandSlots(
           total: totalCount,
           label: slot.slot_label ?? pos,
           role,
+          blueprint: bp,
         });
         idx++;
       }
@@ -158,7 +169,8 @@ export function FormationDetail({
 }: FormationDetailProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const expandedSlots = expandSlots(slots, rolesMap, rolesByPosition);
+  const formationBlueprint = getFormationBlueprint(formation.name);
+  const expandedSlots = expandSlots(slots, rolesMap, rolesByPosition, formation.name);
   const totalPlayers = expandedSlots.length;
 
   // Group expanded slots by position for pitch rendering
@@ -230,6 +242,11 @@ export function FormationDetail({
               </span>
             )}
           </div>
+          {formationBlueprint && (
+            <p className="text-[10px] text-[var(--color-accent-tactical)] mt-0.5">
+              {formationBlueprint.definedBy}
+            </p>
+          )}
           <div className="flex items-center gap-2 mt-0.5">
             {posSummary.map(({ pos, count }) => {
               const posColor = POSITION_COLORS[pos] ?? "bg-zinc-700/60";
@@ -251,6 +268,13 @@ export function FormationDetail({
       {/* Expanded */}
       {expanded && (
         <div className="border-t border-[var(--border-subtle)] p-4">
+          {/* Formation Blueprint Context */}
+          {formationBlueprint && (
+            <div className="mb-4 p-3 rounded-lg bg-[var(--bg-base)]/40 border border-[var(--color-accent-tactical)]/20">
+              <p className="text-xs font-semibold text-[var(--color-accent-tactical)]">{formationBlueprint.definedBy}</p>
+              <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-relaxed">{formationBlueprint.philosophy}</p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Pitch */}
             <div className="relative bg-[var(--bg-base)]/30 rounded-lg border border-[var(--border-subtle)] aspect-[3/4] overflow-hidden">
@@ -315,17 +339,25 @@ export function FormationDetail({
                       </div>
                       <div className="ml-4 space-y-1.5">
                         {posAssignments.map(({ slot, player }, i) => {
-                          const roleRef = slot.role ? getRoleReference(slot.role.name) : null;
+                          const bp = slot.blueprint;
+                          const roleRef = bp ? null : (slot.role ? getRoleReference(slot.role.name) : null);
                           return (
-                            <div key={i} className="border-l-2 border-[var(--border-subtle)] pl-3 py-0.5">
+                            <div key={i} className={`border-l-2 pl-3 py-0.5 ${bp ? "border-[var(--color-accent-tactical)]/40" : "border-[var(--border-subtle)]"}`}>
                               {/* Role */}
                               <div className="text-[10px] text-[var(--text-muted)]">
-                                {slot.role ? slot.role.name : `${pos} #${slot.index + 1}`}
-                                {slot.role?.description && (
+                                {bp ? bp.role : (slot.role ? slot.role.name : `${pos} #${slot.index + 1}`)}
+                                {!bp && slot.role?.description && (
                                   <span className="ml-1 text-[var(--text-muted)]/60">— {slot.role.description}</span>
                                 )}
                               </div>
-                              {/* Historical reference */}
+                              {/* Blueprint: archetype player + demand */}
+                              {bp && (
+                                <div className="mt-0.5">
+                                  <span className="text-[10px] font-semibold text-[var(--color-accent-personality)]">{bp.blueprint}</span>
+                                  <span className="text-[9px] text-[var(--text-muted)] ml-1.5">— {bp.demand}</span>
+                                </div>
+                              )}
+                              {/* Generic historical reference (only when no blueprint) */}
                               {roleRef && (
                                 <div className="text-[9px] italic text-[var(--color-accent-tactical)] mt-0.5">
                                   {roleRef}

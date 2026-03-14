@@ -86,7 +86,20 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         {/* Row 4: Market Value + Archetype + CSPER badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {player.director_valuation_meur != null ? (
+            {player.engine_value_p50 != null ? (
+              <span className="text-sm font-mono font-bold text-[var(--color-accent-tactical)]">
+                &euro;{player.engine_value_p50 >= 1_000_000
+                  ? `${(player.engine_value_p50 / 1_000_000).toFixed(1)}m`
+                  : player.engine_value_p50 >= 1_000
+                  ? `${(player.engine_value_p50 / 1_000).toFixed(0)}k`
+                  : `${player.engine_value_p50.toFixed(0)}`}
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 align-middle ${
+                  player.engine_confidence === "high" ? "bg-green-400" :
+                  player.engine_confidence === "medium" ? "bg-amber-400" :
+                  "bg-red-400"
+                }`} title={`${player.engine_confidence ?? "low"} confidence`} />
+              </span>
+            ) : player.director_valuation_meur != null ? (
               <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">
                 &euro;{player.director_valuation_meur}m
                 <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">CS</span>

@@ -11,6 +11,8 @@ import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
+import { ValuationPanel } from "@/components/ValuationPanel";
+import type { PlayerValuation } from "@/lib/types";
 
 interface IntelligenceCard {
   person_id: number;
@@ -100,7 +102,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -137,6 +139,13 @@ export default async function PlayerDetailPage({
       .from("player_tags")
       .select("tag_id, tags(tag_name, category)")
       .eq("player_id", playerId),
+    supabaseServer
+      .from("player_valuations")
+      .select("*")
+      .eq("person_id", playerId)
+      .order("evaluated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -179,6 +188,8 @@ export default async function PlayerDetailPage({
     const tag = r.tags as { tag_name: string; category: string } | null;
     return { tag_name: tag?.tag_name ?? "", category: tag?.category ?? "" };
   }).filter((t: { tag_name: string }) => t.tag_name);
+
+  const valuation = valuationResult.data as PlayerValuation | null;
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -273,7 +284,41 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* Market Value (Transfermarkt) */}
+          {/* Engine Valuation (priority) */}
+          {valuation?.market_value_p50 != null && (
+            <div>
+              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">
+                Valuation
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 align-middle ${
+                  valuation.overall_confidence === "high" ? "bg-green-400" :
+                  valuation.overall_confidence === "medium" ? "bg-amber-400" :
+                  "bg-red-400"
+                }`} />
+              </span>
+              <span className="text-sm font-mono font-bold text-[var(--color-accent-tactical)]">
+                &euro;{valuation.market_value_p50 >= 1_000_000
+                  ? `${(valuation.market_value_p50 / 1_000_000).toFixed(1)}m`
+                  : valuation.market_value_p50 >= 1_000
+                  ? `${(valuation.market_value_p50 / 1_000).toFixed(0)}k`
+                  : `${valuation.market_value_p50}`}
+              </span>
+              <span className="text-[9px] text-[var(--text-muted)] ml-1">
+                ({valuation.market_value_p10 != null && valuation.market_value_p90 != null
+                  ? `${valuation.market_value_p10 >= 1_000_000
+                      ? `€${(valuation.market_value_p10 / 1_000_000).toFixed(1)}m`
+                      : valuation.market_value_p10 >= 1_000
+                      ? `€${(valuation.market_value_p10 / 1_000).toFixed(0)}k`
+                      : `€${valuation.market_value_p10}`
+                    }–${valuation.market_value_p90 >= 1_000_000
+                      ? `€${(valuation.market_value_p90 / 1_000_000).toFixed(1)}m`
+                      : `€${(valuation.market_value_p90 / 1_000).toFixed(0)}k`
+                    }`
+                  : "–"})
+              </span>
+            </div>
+          )}
+
+          {/* Market Value (Transfermarkt) — always shown as reference */}
           {player.market_value_eur != null && (
             <div>
               <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Market Value <span className="normal-case opacity-60">(TM)</span></span>
@@ -297,8 +342,8 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* CS Value */}
-          {player.director_valuation_meur != null && (
+          {/* CS Value — only show if no engine valuation */}
+          {player.director_valuation_meur != null && valuation?.market_value_p50 == null && (
             <div>
               <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
               <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">&euro;{player.director_valuation_meur}m</span>
@@ -365,9 +410,12 @@ export default async function PlayerDetailPage({
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-        {/* Left: Stats + Radar + Personality */}
+        {/* Left: Valuation + Stats + Radar + Personality */}
         <div className="space-y-2">
-          {/* FBRef Stats — elevated to top of left column */}
+          {/* Valuation Panel */}
+          {valuation && <ValuationPanel valuation={valuation} />}
+
+          {/* FBRef Stats */}
           {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
 
           <PlayerRadar playerId={player.person_id} position={player.position} compact />

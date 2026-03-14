@@ -18,6 +18,51 @@ export interface PlayerCard {
   true_mvt: string | null;
   market_value_eur: number | null;
   director_valuation_meur: number | null;
+  // Engine valuation (joined from player_valuations)
+  engine_value_p50: number | null;
+  engine_confidence: string | null;
+}
+
+export interface PlayerValuation {
+  id: number;
+  person_id: number;
+  market_value_p10: number | null;
+  market_value_p25: number | null;
+  market_value_p50: number | null;
+  market_value_p75: number | null;
+  market_value_p90: number | null;
+  use_value_central: number | null;
+  contextual_fit_score: number | null;
+  system_archetype_fit: number | null;
+  system_threshold_fit: number | null;
+  system_personality_fit: number | null;
+  system_tag_compatibility: number | null;
+  squad_gap_fill: number | null;
+  scout_profile_pct: number | null;
+  performance_data_pct: number | null;
+  contract_age_pct: number | null;
+  market_context_pct: number | null;
+  personality_adj_pct: number | null;
+  style_fit_adj_pct: number | null;
+  profile_confidence: number | null;
+  data_coverage: number | null;
+  overall_confidence: string | null;
+  band_width_ratio: number | null;
+  disagreement_flag: boolean;
+  scout_anchored_value: number | null;
+  data_implied_value: number | null;
+  divergent_features: string[] | null;
+  disagreement_narrative: string | null;
+  stale_profile: boolean;
+  low_data_warning: boolean;
+  personality_risk_flags: string[] | null;
+  style_risk_flags: string[] | null;
+  mode: string | null;
+  target_position: string | null;
+  target_system: string | null;
+  model_version: string | null;
+  narrative: string | null;
+  evaluated_at: string | null;
 }
 
 export type Position =

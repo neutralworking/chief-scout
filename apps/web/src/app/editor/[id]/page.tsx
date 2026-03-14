@@ -6,6 +6,7 @@ import Link from "next/link";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
+const CONTRACT_TAGS = ["Long-Term", "One Year Left", "Six Months", "Expiring", "Free Agent", "Extension Talks"];
 const SQUAD_ROLES = ["Key Player", "Important Player", "Rotation", "Backup", "Youth", "Surplus"];
 const FEET = ["Right", "Left", "Both"];
 
@@ -35,6 +36,10 @@ interface PlayerData {
   height_cm: number | null;
   dob: string | null;
   hg: boolean | null;
+  contract_tag: string | null;
+  // Completeness fields (from intelligence card)
+  personality_type: string | null;
+  market_value_tier: string | null;
 }
 
 interface Tag {
@@ -49,6 +54,23 @@ interface PlayerTag {
   tag_id: number;
   tag_name: string;
   tag_category: string;
+}
+
+// Data completeness check items
+interface CompletenessItem {
+  label: string;
+  filled: boolean;
+}
+
+function getCompleteness(player: PlayerData): CompletenessItem[] {
+  return [
+    { label: "Position", filled: !!player.position },
+    { label: "Archetype", filled: !!player.archetype },
+    { label: "Level", filled: player.level != null },
+    { label: "Scouting Notes", filled: !!player.scouting_notes },
+    { label: "Personality", filled: !!player.personality_type },
+    { label: "Market Data", filled: !!player.market_value_tier },
+  ];
 }
 
 export default function PlayerEditorPage() {
@@ -73,10 +95,12 @@ export default function PlayerEditorPage() {
     setLoading(true);
     setError(null);
     try {
-      const [playerRes, tagsRes, playerTagsRes] = await Promise.all([
+      const [playerRes, tagsRes, playerTagsRes, statusRes] = await Promise.all([
         fetch(`/api/players/${personId}`),
         fetch("/api/tags"),
         fetch(`/api/players/${personId}/tags`),
+        // Fetch intelligence card data for contract_tag + completeness fields
+        fetch(`/api/admin/player-search?id=${personId}`),
       ]);
 
       if (!playerRes.ok) {
@@ -86,21 +110,63 @@ export default function PlayerEditorPage() {
       }
 
       const playerData = await playerRes.json();
-      setPlayer(playerData);
+
+      // Try to get contract_tag + completeness fields from intelligence card
+      let contractTag: string | null = null;
+      let personalityType: string | null = null;
+      let marketValueTier: string | null = null;
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        const match = (statusData.players ?? []).find((p: { person_id: number }) => p.person_id === personId);
+        if (match) {
+          contractTag = match.contract_tag ?? null;
+          personalityType = match.personality_type ?? null;
+          marketValueTier = match.market_value_tier ?? null;
+        }
+      }
+
+      const merged: PlayerData = {
+        person_id: playerData.id ?? personId,
+        name: playerData.name,
+        club: playerData.club,
+        nation: playerData.nation,
+        position: playerData.position,
+        secondary_position: playerData.secondary_position,
+        side: playerData.Side ?? playerData.side,
+        level: playerData.level,
+        peak: playerData.peak,
+        overall: playerData.overall,
+        archetype: playerData.archetype,
+        pursuit_status: playerData.pursuit_status,
+        scouting_notes: playerData.scouting_notes,
+        squad_role: playerData.squad_role,
+        blueprint: playerData.blueprint,
+        preferred_foot: playerData.preferred_foot,
+        height_cm: playerData.height_cm,
+        dob: playerData.date_of_birth ?? playerData.dob,
+        hg: playerData.hg,
+        contract_tag: contractTag,
+        personality_type: personalityType,
+        market_value_tier: marketValueTier,
+      };
+
+      setPlayer(merged);
       setProfile({
-        position: playerData.position ?? "",
-        secondary_position: playerData.secondary_position ?? "",
-        side: playerData.side ?? "",
-        level: playerData.level ?? "",
-        peak: playerData.peak ?? "",
-        overall: playerData.overall ?? "",
-        archetype: playerData.archetype ?? "",
-        pursuit_status: playerData.pursuit_status ?? "",
-        squad_role: playerData.squad_role ?? "",
-        blueprint: playerData.blueprint ?? "",
-        preferred_foot: playerData.preferred_foot ?? "",
-        height_cm: playerData.height_cm ?? "",
-        hg: playerData.hg ?? false,
+        position: merged.position ?? "",
+        secondary_position: merged.secondary_position ?? "",
+        side: merged.side ?? "",
+        level: merged.level ?? "",
+        peak: merged.peak ?? "",
+        overall: merged.overall ?? "",
+        archetype: merged.archetype ?? "",
+        pursuit_status: merged.pursuit_status ?? "",
+        contract_tag: merged.contract_tag ?? "",
+        scouting_notes: merged.scouting_notes ?? "",
+        squad_role: merged.squad_role ?? "",
+        blueprint: merged.blueprint ?? "",
+        preferred_foot: merged.preferred_foot ?? "",
+        height_cm: merged.height_cm ?? "",
+        hg: merged.hg ?? false,
       });
 
       if (tagsRes.ok) {
@@ -131,7 +197,6 @@ export default function PlayerEditorPage() {
         body: JSON.stringify({ tag_id: tagId }),
       });
       if (res.ok) {
-        // Reload player tags
         const pt = await fetch(`/api/players/${personId}/tags`);
         if (pt.ok) setPlayerTags(await pt.json());
       }
@@ -183,10 +248,12 @@ export default function PlayerEditorPage() {
         );
       }
 
-      // Save status fields
+      // Save status fields (pursuit_status, squad_role, scouting_notes, contract_tag)
       const statusUpdates: Record<string, unknown> = {};
       if (profile.pursuit_status) statusUpdates.pursuit_status = profile.pursuit_status;
       if (profile.squad_role !== undefined) statusUpdates.squad_role = profile.squad_role || null;
+      if (profile.scouting_notes !== undefined) statusUpdates.scouting_notes = profile.scouting_notes || null;
+      if (profile.contract_tag !== undefined) statusUpdates.contract_tag = profile.contract_tag || null;
 
       if (Object.keys(statusUpdates).length > 0) {
         promises.push(
@@ -250,6 +317,9 @@ export default function PlayerEditorPage() {
 
   if (!player) return null;
 
+  const completenessItems = getCompleteness(player);
+  const filledCount = completenessItems.filter((c) => c.filled).length;
+
   // Group tags by category
   const tagsByCategory = allTags.reduce<Record<string, Tag[]>>((acc, t) => {
     (acc[t.category] ??= []).push(t);
@@ -311,6 +381,49 @@ export default function PlayerEditorPage() {
         </div>
       </div>
 
+      {/* Data Completeness */}
+      <div className="glass rounded-xl p-4 mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Data Completeness</h2>
+          <span className="text-[10px] font-mono text-[var(--text-muted)]">{filledCount}/{completenessItems.length}</span>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {completenessItems.map((item) => (
+            <div
+              key={item.label}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[10px] font-medium ${
+                item.filled
+                  ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                  : "bg-red-500/10 text-red-400 border border-red-500/20"
+              }`}
+            >
+              <span className="text-xs">{item.filled ? "\u2713" : "\u2717"}</span>
+              {item.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Scouting */}
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Scouting</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+          <FieldSelect label="Pursuit Status" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
+          <FieldSelect label="Contract" value={String(profile.contract_tag ?? "")} options={CONTRACT_TAGS} onChange={(v) => setProfileField("contract_tag", v)} />
+          <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
+        </div>
+        <div>
+          <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Scouting Notes</label>
+          <textarea
+            value={String(profile.scouting_notes ?? "")}
+            onChange={(e) => setProfileField("scouting_notes", e.target.value)}
+            placeholder="Write scouting observations, strengths, weaknesses, tactical fit..."
+            rows={4}
+            className="w-full px-3 py-2 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors resize-y"
+          />
+        </div>
+      </div>
+
       {/* Profile */}
       <div className="glass rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Profile</h2>
@@ -325,15 +438,13 @@ export default function PlayerEditorPage() {
           <FieldNumber label="Height (cm)" value={profile.height_cm as number} onChange={(v) => setProfileField("height_cm", v)} min={140} max={220} />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-          <FieldSelect label="Pursuit" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
-          <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
-          <FieldCheckbox label="Homegrown" checked={!!profile.hg} onChange={(v) => setProfileField("hg", v)} />
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
           <FieldText label="Archetype" value={String(profile.archetype ?? "")} onChange={(v) => setProfileField("archetype", v)} />
           <FieldText label="Blueprint" value={String(profile.blueprint ?? "")} onChange={(v) => setProfileField("blueprint", v)} />
+        </div>
+
+        <div className="mt-3">
+          <FieldCheckbox label="Homegrown" checked={!!profile.hg} onChange={(v) => setProfileField("hg", v)} />
         </div>
       </div>
 
@@ -423,7 +534,7 @@ export default function PlayerEditorPage() {
               {error && <span className="text-red-400">{error}</span>}
               {saved && <span className="text-[var(--accent-tactical)]">Saved</span>}
               {!error && !saved && (
-                <span>{playerTags.length} tags · {player.position ?? "No position"}</span>
+                <span>{playerTags.length} tags · {player.position ?? "No position"} · {filledCount}/{completenessItems.length} fields</span>
               )}
             </div>
             <button
@@ -490,7 +601,7 @@ function FieldText({ label, value, onChange }: { label: string; value: string; o
 
 function FieldCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center gap-2 pt-4">
+    <div className="flex items-center gap-2 pt-1">
       <input
         type="checkbox"
         checked={checked}

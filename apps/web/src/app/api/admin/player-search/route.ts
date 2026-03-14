@@ -15,17 +15,38 @@ export async function GET(request: Request) {
   const q = searchParams.get("q") ?? "";
   const position = searchParams.get("position") ?? "";
   const missingData = searchParams.get("missing") === "1";
+  const idParam = searchParams.get("id");
+
+  const sb = createClient(supabaseUrl, supabaseKey);
+
+  const SELECT = "person_id, name, club, nation, position, level, pursuit_status, profile_tier, archetype, scouting_notes, personality_type, market_value_tier";
+
+  // Single-player lookup by ID (for editor detail completeness)
+  if (idParam) {
+    const pid = Number(idParam);
+    const [cardRes, statusRes] = await Promise.all([
+      sb.from("player_intelligence_card").select(SELECT).eq("person_id", pid).maybeSingle(),
+      sb.from("player_status").select("contract_tag").eq("person_id", pid).maybeSingle(),
+    ]);
+
+    if (cardRes.error) {
+      return NextResponse.json({ error: cardRes.error.message }, { status: 500 });
+    }
+
+    const player = cardRes.data
+      ? { ...cardRes.data, contract_tag: statusRes.data?.contract_tag ?? null }
+      : null;
+    return NextResponse.json({ players: player ? [player] : [] });
+  }
 
   // Require either a search query or a filter
   if (q.length < 2 && !position && !missingData) {
     return NextResponse.json({ players: [] });
   }
 
-  const sb = createClient(supabaseUrl, supabaseKey);
-
   let query = sb
     .from("player_intelligence_card")
-    .select("person_id, name, club, nation, position, level, pursuit_status, profile_tier, archetype, scouting_notes, personality_type, market_value_tier")
+    .select(SELECT)
     .order("level", { ascending: false, nullsFirst: false })
     .limit(40);
 

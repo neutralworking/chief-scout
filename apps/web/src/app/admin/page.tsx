@@ -25,6 +25,8 @@ async function getAdminData() {
     clubsWithWikidataResult,
     clubsWithStadiumResult,
     valuationsResult,
+    freeAgentsResult,
+    latestValuationResult,
   ] = await Promise.all([
     supabaseServer.from("people").select("id", { count: "exact", head: true }),
     supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).eq("profile_tier", 1),
@@ -47,9 +49,13 @@ async function getAdminData() {
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("stadium", "is", null),
     supabaseServer.from("player_valuations").select("id", { count: "exact", head: true }),
+    supabaseServer.from("people").select("id", { count: "exact", head: true }).not("contract_expiry_date", "is", null),
+    supabaseServer.from("player_valuations").select("evaluated_at").order("evaluated_at", { ascending: false }).limit(1),
   ]);
 
   const totalPlayers = totalPeopleResult.count ?? 0;
+
+  const latestValuationAt = latestValuationResult.data?.[0]?.evaluated_at ?? null;
 
   return {
     stats: {
@@ -57,6 +63,7 @@ async function getAdminData() {
       tier1Profiles: tier1Result.count ?? 0,
       fullProfiles: fullProfilesResult.count ?? 0,
       tracked: trackedResult.count ?? 0,
+      freeAgents: freeAgentsResult.count ?? 0,
     },
     coverage: {
       total: totalPlayers,
@@ -73,6 +80,7 @@ async function getAdminData() {
       understat: { matches: usMatchResult.count ?? 0, playerStats: usStatsResult.count ?? 0 },
     },
     valuations: valuationsResult.count ?? 0,
+    latestValuationAt,
     clubs: {
       total: clubsTotalResult.count ?? 0,
       withNation: clubsWithNationResult.count ?? 0,
@@ -112,7 +120,7 @@ export default async function AdminPage() {
     );
   }
 
-  const { stats, coverage, external, clubs, valuations } = data;
+  const { stats, coverage, external, clubs, valuations, latestValuationAt } = data;
 
   return (
     <div>
@@ -127,12 +135,13 @@ export default async function AdminPage() {
       {/* Quick Stats */}
       <div className="glass rounded-xl p-4 mb-4">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Stats</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           {[
             { label: "Total Players", value: stats.totalPlayers },
             { label: "Tier 1 Profiles", value: stats.tier1Profiles, tooltip: "Scout-assessed with archetype (tier 1)" },
             { label: "Full Profiles", value: stats.fullProfiles },
             { label: "Tracked", value: stats.tracked },
+            { label: "Free Agents", value: stats.freeAgents, tooltip: "Players with contract_expiry_date set" },
             { label: "News Stories", value: coverage.newsStories },
             { label: "News Tags", value: coverage.newsTags },
             { label: "Valuations", value: valuations },
@@ -177,6 +186,36 @@ export default async function AdminPage() {
             <p className="text-[10px] text-[var(--text-secondary)] mb-0.5">News Stories</p>
             <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.newsStories.toLocaleString()}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Pipeline Status */}
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Pipeline Status</h2>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-[var(--text-secondary)]">Valuations last computed</span>
+            <span className="text-xs font-mono text-[var(--text-primary)]">
+              {latestValuationAt
+                ? new Date(latestValuationAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                : "Never"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Actions</h2>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            disabled
+            title="Coming soon — will trigger Wikidata P413 position mapping"
+            className="px-4 py-2 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm font-semibold opacity-50 cursor-not-allowed"
+          >
+            Run Position Backfill
+          </button>
+          <span className="text-[9px] text-[var(--text-muted)]">Coming soon</span>
         </div>
       </div>
 

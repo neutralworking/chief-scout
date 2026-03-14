@@ -2,8 +2,9 @@
 31_wikipedia_style.py — Parse Wikipedia "Style of play" sections into style tags.
 
 Fetches Wikipedia articles for players with wikipedia_url, extracts the
-"Style of play" / "Playing style" section, sends to Gemini Flash to extract
-style descriptors, creates new tags as needed, then writes to player_tags.
+"Style of play" / "Playing style" section, sends to LLM router (Groq →
+Gemini → Anthropic fallback) to extract style descriptors, creates new
+tags as needed, then writes to player_tags.
 
 Usage:
     python 31_wikipedia_style.py                  # full run (players with level data first)
@@ -23,7 +24,8 @@ from typing import Optional
 
 import psycopg2
 
-from config import POSTGRES_DSN, GEMINI_API_KEY
+from config import POSTGRES_DSN
+from lib.llm_router import LLMRouter
 
 # ── CLI args ──────────────────────────────────────────────────────────────────
 
@@ -39,13 +41,19 @@ DRY_RUN = args.dry_run
 if not POSTGRES_DSN:
     print("ERROR: POSTGRES_DSN not set")
     sys.exit(1)
-if not GEMINI_API_KEY:
-    print("ERROR: GEMINI_API_KEY not set")
-    sys.exit(1)
 
 conn = psycopg2.connect(POSTGRES_DSN)
 conn.autocommit = True
 cur = conn.cursor()
+
+# ── Init LLM router ─────────────────────────────────────────────────────────
+
+router = LLMRouter(verbose=True)
+print(f"LLM providers available: {router.available_providers()}")
+
+if not router.available_providers():
+    print("ERROR: No LLM providers configured. Set GROQ_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY")
+    sys.exit(1)
 
 # ── Load existing style tags ─────────────────────────────────────────────────
 
@@ -54,10 +62,20 @@ style_tags: dict[str, int] = {row[1]: row[0] for row in cur.fetchall()}
 print(f"Existing style tags: {len(style_tags)} ({', '.join(style_tags.keys())})")
 
 
-def get_or_create_tag(tag_name: str) -> int:
-    """Get existing tag ID or create a new style tag."""
-    # Normalise tag name
+BLOCKED_TAGS = {
+    "Attacking Midfielder", "Central Defender", "Central Midfield",
+    "Defensive Midfielder", "Midfielder", "Offensive Full Back",
+    "Winger", "Second Striker", "Young Talent", "Special Player",
+    "Left Footed", "Right Footed", "Offensive Minded",
+}
+
+
+def get_or_create_tag(tag_name: str) -> Optional[int]:
+    """Get existing tag ID or create a new style tag. Returns None for blocked tags."""
     tag_name = tag_name.strip().title()
+
+    if tag_name in BLOCKED_TAGS:
+        return None
 
     if tag_name in style_tags:
         return style_tags[tag_name]
@@ -71,7 +89,7 @@ def get_or_create_tag(tag_name: str) -> int:
         """, (tag_name,))
         tag_id = cur.fetchone()[0]
     else:
-        tag_id = -1  # placeholder for dry run
+        tag_id = -1
 
     style_tags[tag_name] = tag_id
     print(f"    NEW TAG: {tag_name} (id={tag_id})")
@@ -134,16 +152,16 @@ STYLE_SECTION_NAMES = {
 
 
 def wiki_api(params: dict) -> Optional[dict]:
-    """Call Wikipedia API using urllib."""
+    """Call Wikipedia API."""
     base = "https://en.wikipedia.org/w/api.php"
     url = f"{base}?{urllib.parse.urlencode(params)}"
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "ChiefScout/1.0 (football scouting research; contact@example.com)"
+            "User-Agent": "ChiefScout/1.0 (football scouting research)"
         })
         with urllib.request.urlopen(req, timeout=15) as resp:
             return json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -155,7 +173,6 @@ def get_wikipedia_style_section(url: str) -> Optional[str]:
 
     title = match.group(1)
 
-    # Get sections list
     data = wiki_api({
         "action": "parse", "page": title, "prop": "sections", "format": "json"
     })
@@ -173,7 +190,6 @@ def get_wikipedia_style_section(url: str) -> Optional[str]:
     if style_idx is None:
         return None
 
-    # Fetch section content
     data2 = wiki_api({
         "action": "parse", "page": title, "prop": "wikitext",
         "section": style_idx, "format": "json"
@@ -202,9 +218,7 @@ def get_wikipedia_style_section(url: str) -> Optional[str]:
     return text[:2500]
 
 
-# ── Gemini Flash for tag extraction ──────────────────────────────────────────
-
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+# ── LLM prompt ───────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = f"""You are a football analyst. Given a Wikipedia "Style of play" section, extract
 concise style descriptors for this player. Use existing tags where they fit,
@@ -225,48 +239,32 @@ Rules:
 
 
 def classify_style(player_name: str, style_text: str) -> list[str]:
-    """Use Gemini Flash to extract style tags from text."""
-    payload = {
-        "contents": [{
-            "parts": [{"text": f"Player: {player_name}\n\nStyle of play:\n{style_text}"}]
-        }],
-        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-        "generationConfig": {
-            "temperature": 0.1,
-            "maxOutputTokens": 200,
-        }
-    }
+    """Use LLM router to extract style tags from text."""
+    prompt = f"Player: {player_name}\n\nStyle of play:\n{style_text}"
 
-    for attempt in range(4):
-        try:
-            req = urllib.request.Request(
-                GEMINI_URL,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+    result = router.call(
+        prompt,
+        json_mode=True,
+        system=SYSTEM_PROMPT,
+        preference="fast",
+    )
 
-            text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            text = text.strip("`").strip()
-            if text.startswith("json"):
-                text = text[4:].strip()
+    if not result or not result.parsed:
+        return []
 
-            tags = json.loads(text)
-            return [t.strip().title() for t in tags if isinstance(t, str) and len(t) > 1][:6]
-
-        except urllib.error.HTTPError as e:
-            if e.code == 429 and attempt < 3:
-                wait = (attempt + 1) * 15
-                print(f"[rate limited, waiting {wait}s]...", end=" ", flush=True)
-                time.sleep(wait)
-                continue
-            print(f"    Gemini error: {e}")
+    # Handle both flat array ["tag1", "tag2"] and wrapped {"styles": ["tag1"]}
+    data = result.parsed
+    if isinstance(data, dict):
+        # Find the first list value in the dict
+        for v in data.values():
+            if isinstance(v, list):
+                data = v
+                break
+        else:
             return []
-        except Exception as e:
-            print(f"    Gemini error: {e}")
-            return []
+
+    if isinstance(data, list):
+        return [t.strip().title() for t in data if isinstance(t, str) and len(t) > 1][:6]
 
     return []
 
@@ -300,6 +298,8 @@ for i, (person_id, name, wiki_url) in enumerate(players):
     for tag_name in tags:
         old_count = len(style_tags)
         tag_id = get_or_create_tag(tag_name)
+        if tag_id is None:
+            continue
         if len(style_tags) > old_count:
             new_tags_created += 1
         tag_ids.append((tag_name, tag_id))
@@ -316,8 +316,8 @@ for i, (person_id, name, wiki_url) in enumerate(players):
 
     total_tagged += 1
 
-    # Rate limit: Wikipedia is fine at ~2/sec, Gemini Flash free tier is 15 RPM
-    time.sleep(4)
+    # Small delay to respect Wikipedia rate limits
+    time.sleep(1)
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 
@@ -330,6 +330,8 @@ print(f"  New tags created: {new_tags_created}")
 print(f"  Total style tags: {len(style_tags)}")
 if DRY_RUN:
     print("  ** DRY RUN — no data written **")
+
+router.print_stats()
 
 cur.close()
 conn.close()

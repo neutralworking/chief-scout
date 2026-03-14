@@ -12,6 +12,8 @@ export function AdminActions() {
   const [valMode, setValMode] = useState("scout_dominant");
   const [valForce, setValForce] = useState(false);
   const [valLimit, setValLimit] = useState("");
+  const [pipelineRunning, setPipelineRunning] = useState("");
+  const [pipelineResult, setPipelineResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Admin login state
   const [adminUser, setAdminUser] = useState("");
@@ -231,37 +233,75 @@ export function AdminActions() {
           </button>
           <span className="text-xs text-[var(--text-muted)]">Run after pipeline changes</span>
         </div>
-        {/* Valuation Engine */}
+        {/* Compute Pipeline */}
         <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-          <div className="flex items-center gap-3 flex-wrap">
+          <p className="text-[10px] text-[var(--text-muted)] mb-3 uppercase tracking-wider font-semibold">Compute Pipeline</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {([
+              { key: "ratings", label: "Ratings", color: "bg-blue-600 hover:bg-blue-500" },
+              { key: "roles", label: "Squad Roles", color: "bg-teal-600 hover:bg-teal-500" },
+              { key: "valuations", label: "Valuations", color: "bg-violet-600 hover:bg-violet-500" },
+            ] as const).map(({ key, label, color }) => (
+              <button
+                key={key}
+                onClick={async () => {
+                  setPipelineRunning(key);
+                  setPipelineResult(null);
+                  try {
+                    const params = new URLSearchParams({ steps: key });
+                    if (valForce) params.set("force", "true");
+                    if (valLimit.trim()) params.set("limit", valLimit.trim());
+                    const res = await fetch(`/api/cron/pipeline?${params}`, { headers: { "x-admin": "1" } });
+                    const data = await res.json();
+                    const step = data.steps?.[0];
+                    if (data.ok && step) {
+                      const d = step.detail;
+                      const parts = Object.entries(d).filter(([k]) => k !== "errors").map(([k, v]) => `${k}: ${v}`);
+                      setPipelineResult({ type: "success", text: `${label} — ${parts.join(", ")} (${step.ms}ms)` });
+                    } else {
+                      setPipelineResult({ type: "error", text: step?.detail?.error ?? data.error ?? "Failed" });
+                    }
+                  } catch (e) {
+                    setPipelineResult({ type: "error", text: String(e) });
+                  }
+                  setPipelineRunning("");
+                }}
+                disabled={!!pipelineRunning || valRunning}
+                className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold disabled:opacity-40 transition-colors cursor-pointer ${color}`}
+              >
+                {pipelineRunning === key ? "Running..." : label}
+              </button>
+            ))}
+            <div className="w-px h-6 bg-[var(--border-subtle)]" />
             <button
               onClick={async () => {
-                setValRunning(true);
-                setValResult(null);
+                setPipelineRunning("all");
+                setPipelineResult(null);
                 try {
-                  const params = new URLSearchParams({ mode: valMode });
+                  const params = new URLSearchParams();
                   if (valForce) params.set("force", "true");
                   if (valLimit.trim()) params.set("limit", valLimit.trim());
-                  const res = await fetch(`/api/admin/valuation?${params}`, { method: "POST" });
+                  const res = await fetch(`/api/cron/pipeline?${params}`, { headers: { "x-admin": "1" } });
                   const data = await res.json();
                   if (data.ok) {
-                    setValResult({
-                      type: "success",
-                      text: `Valued ${data.valued} players, wrote ${data.written}${data.errors > 0 ? `, ${data.errors} errors` : ""}`,
-                    });
+                    const summary = (data.steps as { step: string; ms: number }[]).map((s) => `${s.step} (${s.ms}ms)`).join(" → ");
+                    setPipelineResult({ type: "success", text: `Full pipeline complete: ${summary}` });
                   } else {
-                    setValResult({ type: "error", text: data.error ?? "Failed" });
+                    const failedSteps = (data.steps as { step: string; status: string }[]).filter((s) => s.status === "error").map((s) => s.step);
+                    setPipelineResult({ type: "error", text: `Pipeline errors in: ${failedSteps.join(", ")}` });
                   }
                 } catch (e) {
-                  setValResult({ type: "error", text: String(e) });
+                  setPipelineResult({ type: "error", text: String(e) });
                 }
-                setValRunning(false);
+                setPipelineRunning("");
               }}
-              disabled={valRunning}
-              className="px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-violet-500 transition-colors cursor-pointer"
+              disabled={!!pipelineRunning || valRunning}
+              className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 via-teal-600 to-violet-600 text-white text-xs font-semibold disabled:opacity-40 hover:brightness-110 transition-all cursor-pointer"
             >
-              {valRunning ? "Valuing..." : "Run Valuations"}
+              {pipelineRunning === "all" ? "Running All..." : "Run Full Pipeline"}
             </button>
+          </div>
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
             <select
               value={valMode}
               onChange={(e) => setValMode(e.target.value)}
@@ -287,6 +327,7 @@ export function AdminActions() {
               />
               Force
             </label>
+            <span className="text-[10px] text-[var(--text-muted)]">Cron: daily 7am UTC</span>
           </div>
         </div>
         {newsResult && (
@@ -302,6 +343,11 @@ export function AdminActions() {
         {valResult && (
           <p className={`mt-3 text-sm ${valResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-violet-400"}`}>
             {valResult.text}
+          </p>
+        )}
+        {pipelineResult && (
+          <p className={`mt-3 text-sm ${pipelineResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-teal-400"}`}>
+            {pipelineResult.text}
           </p>
         )}
       </div>

@@ -342,13 +342,6 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* CS Value — only show if no engine valuation */}
-          {player.director_valuation_meur != null && valuation?.market_value_p50 == null && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">CS Value</span>
-              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">&euro;{player.director_valuation_meur}m</span>
-            </div>
-          )}
         </div>
       </div>
 

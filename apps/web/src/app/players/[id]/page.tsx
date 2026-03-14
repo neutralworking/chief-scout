@@ -10,6 +10,7 @@ import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
+import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
 
 interface IntelligenceCard {
   person_id: number;
@@ -187,12 +188,24 @@ export default async function PlayerDetailPage({
 
   return (
     <div className="space-y-2">
-      <Link
-        href="/players"
-        className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block"
-      >
-        &larr; Players
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/players"
+          className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block"
+        >
+          &larr; Players
+        </Link>
+        <PlayerQuickEdit player={{
+          person_id: player.person_id,
+          level: player.level,
+          position: player.position,
+          archetype: player.archetype,
+          blueprint: player.blueprint,
+          pursuit_status: player.pursuit_status,
+          squad_role: player.squad_role,
+          scouting_notes: player.scouting_notes,
+        }} />
+      </div>
 
       {/* Identity Bar — name, bio, ratings */}
       <div className="glass rounded-xl p-3 sm:p-4">

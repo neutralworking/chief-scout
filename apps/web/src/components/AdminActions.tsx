@@ -254,13 +254,6 @@ export function AdminActions() {
           >
             {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
           </button>
-          <button
-            onClick={reseedGaffer}
-            disabled={gafferRunning}
-            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-purple-500 transition-colors cursor-pointer"
-          >
-            {gafferRunning ? "Cleaning..." : "Clean Gaffer Categories"}
-          </button>
           <span className="text-xs text-[var(--text-muted)]">Run after pipeline changes</span>
         </div>
         {/* Compute Pipeline */}
@@ -380,8 +373,28 @@ export function AdminActions() {
             {pipelineResult.text}
           </p>
         )}
+      </div>
+
+      {/* Gaffer — Clean Categories */}
+      <div className="bg-[var(--bg-surface)] border-2 border-purple-600/30 rounded-lg p-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
+          Gaffer
+        </h2>
+        <div className="flex items-center gap-4 flex-wrap">
+          <button
+            onClick={reseedGaffer}
+            disabled={gafferRunning}
+            className="px-5 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-bold disabled:opacity-40 hover:bg-purple-500 transition-colors cursor-pointer"
+          >
+            {gafferRunning ? "Cleaning..." : "Clean Gaffer Categories"}
+          </button>
+          <p className="text-xs text-[var(--text-secondary)] max-w-sm">
+            Removes old categories (goat, positional, era, etc.) from the database.
+            Only keeps the 8 active Gaffer categories.
+          </p>
+        </div>
         {gafferResult && (
-          <p className={`mt-3 text-sm ${gafferResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-purple-400"}`}>
+          <p className={`mt-4 text-sm font-medium ${gafferResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-purple-400"}`}>
             {gafferResult.text}
           </p>
         )}

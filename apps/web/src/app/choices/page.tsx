@@ -27,7 +27,21 @@ export default async function ChoicesPage() {
         .from("fc_categories")
         .select("id, slug, name, description, icon, sort_order")
         .order("sort_order");
-      if (!error) categories = (data ?? []) as Category[];
+      if (!error && data) {
+        // Only include categories that have active questions
+        const filtered: Category[] = [];
+        for (const cat of data) {
+          const { count } = await supabaseServer
+            .from("fc_questions")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", cat.id)
+            .eq("active", true);
+          if ((count ?? 0) > 0) {
+            filtered.push(cat as Category);
+          }
+        }
+        categories = filtered;
+      }
     } catch {
       // Table may not exist yet — migrations 015/016 not applied
     }

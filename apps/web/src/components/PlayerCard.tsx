@@ -99,11 +99,6 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
                   "bg-red-400"
                 }`} title={`${player.engine_confidence ?? "low"} confidence`} />
               </span>
-            ) : player.director_valuation_meur != null ? (
-              <span className="text-sm font-mono font-bold text-[var(--accent-personality)]">
-                &euro;{player.director_valuation_meur}m
-                <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">CS</span>
-              </span>
             ) : player.market_value_eur != null ? (
               <span className="text-sm font-mono font-bold text-[var(--accent-tactical)]">
                 &euro;{player.market_value_eur >= 1_000_000

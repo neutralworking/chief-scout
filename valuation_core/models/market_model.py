@@ -158,6 +158,27 @@ def estimate_market_value(
         data_value = data_value * 0.6 + tm_value * 0.4
 
     # ── Blend scout and data values using λ ───────────────────────────────────
+    # Adjust λ based on confidence: when attribute data is poor, lean on level.
+    # Also apply a sanity check: if ability diverges wildly from level,
+    # the grade data is miscalibrated — reduce trust in scout value.
+    confidence_state = ability_estimate.get("confidence_state", "low")
+    ability_central = ability_estimate["central"]
+
+    # Sanity check: if level implies elite but ability says average, reduce λ
+    level_ability_gap = 0
+    if profile.level and profile.level >= 80:
+        expected_ability = profile.level * 0.85  # level 90 → expect ability ~76
+        level_ability_gap = max(0, expected_ability - ability_central)
+
+    if confidence_state == "very_low":
+        lam = min(lam, 0.15)
+    elif confidence_state == "low":
+        lam = min(lam, 0.30)
+    elif confidence_state == "medium":
+        lam = min(lam, 0.45)
+    elif confidence_state == "high" and level_ability_gap > 20:
+        # High confidence but grades miscalibrated — blend more toward level
+        lam = min(lam, 0.35)
 
     central = lam * scout_value + (1 - lam) * data_value
 

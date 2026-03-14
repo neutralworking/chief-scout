@@ -9,7 +9,6 @@ async function getAdminData() {
     tier1Result,
     fullProfilesResult,
     trackedResult,
-    // Coverage
     profilesResult,
     personalityResult,
     marketResult,
@@ -18,27 +17,20 @@ async function getAdminData() {
     wikidataResult,
     newsStoriesResult,
     newsTagsResult,
-    // External Data Sources — Understat
     usMatchResult,
     usStatsResult,
-    // Club coverage
     clubsTotalResult,
     clubsWithNationResult,
     clubsWithLeagueResult,
     clubsWithWikidataResult,
     clubsWithStadiumResult,
-    // Valuations
     valuationsResult,
   ] = await Promise.all([
-    // Quick Stats
     supabaseServer.from("people").select("id", { count: "exact", head: true }),
     supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).eq("profile_tier", 1),
     supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
-    supabaseServer
-      .from("player_intelligence_card")
-      .select("person_id", { count: "exact", head: true })
+    supabaseServer.from("player_intelligence_card").select("person_id", { count: "exact", head: true })
       .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]),
-    // Coverage — how many people have each table populated
     supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }),
     supabaseServer.from("player_personality").select("person_id", { count: "exact", head: true }),
     supabaseServer.from("player_market").select("person_id", { count: "exact", head: true }),
@@ -47,16 +39,13 @@ async function getAdminData() {
     supabaseServer.from("people").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
     supabaseServer.from("news_stories").select("id", { count: "exact", head: true }),
     supabaseServer.from("news_player_tags").select("id", { count: "exact", head: true }),
-    // External Data Sources — Understat
     supabaseServer.from("understat_matches").select("id", { count: "exact", head: true }),
     supabaseServer.from("understat_player_match_stats").select("id", { count: "exact", head: true }),
-    // Club coverage
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("nation_id", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("league_name", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("stadium", "is", null),
-    // Valuations
     supabaseServer.from("player_valuations").select("id", { count: "exact", head: true }),
   ]);
 
@@ -81,10 +70,7 @@ async function getAdminData() {
       newsTags: newsTagsResult.count ?? 0,
     },
     external: {
-      understat: {
-        matches: usMatchResult.count ?? 0,
-        playerStats: usStatsResult.count ?? 0,
-      },
+      understat: { matches: usMatchResult.count ?? 0, playerStats: usStatsResult.count ?? 0 },
     },
     valuations: valuationsResult.count ?? 0,
     clubs: {
@@ -101,15 +87,27 @@ function fmt(n: number): string {
   return n === 0 ? "\u2013" : n.toLocaleString();
 }
 
+function CoverageBar({ value, total }: { value: number; total: number }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+      <div className="h-full rounded-full transition-all"
+        style={{
+          width: `${pct}%`,
+          backgroundColor: pct >= 80 ? "var(--color-accent-tactical)" : pct >= 40 ? "var(--color-accent-physical)" : "var(--color-sentiment-negative)",
+        }} />
+    </div>
+  );
+}
+
 export default async function AdminPage() {
   const data = await getAdminData();
 
   if (!data) {
     return (
       <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Admin</h1>
-        <p className="text-sm text-[var(--text-secondary)] mb-6">Pipeline & Data Health</p>
-        <p className="text-sm text-[var(--text-secondary)]">Supabase not configured.</p>
+        <h1 className="text-lg font-bold tracking-tight mb-1">Admin</h1>
+        <p className="text-[11px] text-[var(--text-secondary)]">Supabase not configured.</p>
       </div>
     );
   }
@@ -118,23 +116,21 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight mb-1">Admin</h1>
-      <p className="text-sm text-[var(--text-secondary)] mb-6">Pipeline & Data Health</p>
+      <h1 className="text-lg font-bold tracking-tight mb-0.5">Admin</h1>
+      <p className="text-[11px] text-[var(--text-secondary)] mb-4">Pipeline, data health & operations</p>
 
-      {/* Admin Actions — Client Component */}
+      {/* Admin Actions — login-gated tools */}
       <div className="mb-6">
         <AdminActions />
       </div>
 
       {/* Quick Stats */}
-      <div className="glass rounded-xl p-6 mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
-          Quick Stats
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Stats</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {[
             { label: "Total Players", value: stats.totalPlayers },
-            { label: "Tier 1 Profiles", value: stats.tier1Profiles, tooltip: "Scout-assessed profiles with archetype assigned (profile_tier = 1)" },
+            { label: "Tier 1 Profiles", value: stats.tier1Profiles, tooltip: "Scout-assessed with archetype (tier 1)" },
             { label: "Full Profiles", value: stats.fullProfiles },
             { label: "Tracked", value: stats.tracked },
             { label: "News Stories", value: coverage.newsStories },
@@ -142,7 +138,7 @@ export default async function AdminPage() {
             { label: "Valuations", value: valuations },
           ].map(({ label, value, tooltip }) => (
             <div key={label}>
-              <p className="text-xs text-[var(--text-secondary)] mb-1" title={tooltip}>{label}{tooltip ? " \u24d8" : ""}</p>
+              <p className="text-[10px] text-[var(--text-secondary)] mb-0.5" title={tooltip}>{label}</p>
               <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
             </div>
           ))}
@@ -150,122 +146,82 @@ export default async function AdminPage() {
       </div>
 
       {/* Data Coverage */}
-      <div className="glass rounded-xl p-6 mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
-          Data Coverage
-        </h2>
-        <div className="space-y-3">
+      <div className="glass rounded-xl p-4 mb-4">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Data Coverage</h2>
+        <div className="space-y-2.5">
           {[
             { label: "Profiles", value: coverage.profiles },
             { label: "Personality", value: coverage.personality },
             { label: "Market Data", value: coverage.market },
             { label: "Status", value: coverage.status },
-            { label: "Wikidata Enriched", value: coverage.wikidata },
+            { label: "Wikidata", value: coverage.wikidata },
           ].map(({ label, value }) => {
             const pct = coverage.total > 0 ? Math.round((value / coverage.total) * 100) : 0;
             return (
               <div key={label}>
-                <div className="flex justify-between text-xs mb-1">
+                <div className="flex justify-between text-[11px] mb-0.5">
                   <span className="text-[var(--text-secondary)]">{label}</span>
                   <span className="font-mono text-[var(--text-primary)]">{value.toLocaleString()} / {coverage.total.toLocaleString()} ({pct}%)</span>
                 </div>
-                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: pct >= 80 ? "var(--color-accent-tactical)" : pct >= 40 ? "var(--color-accent-physical, #f59e0b)" : "var(--sentiment-negative, #ef4444)",
-                    }}
-                  />
-                </div>
+                <CoverageBar value={value} total={coverage.total} />
               </div>
             );
           })}
         </div>
-        <div className="mt-5 pt-4 border-t border-[var(--border-subtle)] grid grid-cols-2 gap-4">
+        <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-[var(--text-secondary)] mb-1">Attribute Grades (rows)</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5">Attribute Grades (rows)</p>
             <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.attributes.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs text-[var(--text-secondary)] mb-1">News Stories</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5">News Stories</p>
             <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.newsStories.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
-      {/* External Data Sources */}
-      <div className="glass rounded-xl p-6 mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
-          External Data Sources
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Understat */}
-          <div className="border-l-4 border-green-500 pl-4">
-            <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">Understat</p>
-            <div className="space-y-2">
-              {[
-                { label: "Matches", value: external.understat.matches },
-                { label: "Player Match Stats", value: external.understat.playerStats },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <span className="text-xs text-[var(--text-secondary)]">{label}</span>
-                  <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+      {/* External Data + Clubs — side by side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* External Data */}
+        <div className="glass rounded-xl p-4">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">External Data</h2>
+          <div className="space-y-2">
+            {[
+              { label: "Understat Matches", value: external.understat.matches },
+              { label: "Understat Player Stats", value: external.understat.playerStats },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-center justify-between">
+                <span className="text-[11px] text-[var(--text-secondary)]">{label}</span>
+                <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Club Coverage */}
+        <div className="glass rounded-xl p-4">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Club Coverage</h2>
+          <div className="space-y-2">
+            {[
+              { label: "Nation Linked", value: clubs.withNation, total: clubs.total },
+              { label: "League Assigned", value: clubs.withLeague, total: clubs.total },
+              { label: "Wikidata", value: clubs.withWikidata, total: clubs.total },
+              { label: "Stadium", value: clubs.withStadium, total: clubs.total },
+            ].map(({ label, value, total }) => {
+              const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+              return (
+                <div key={label}>
+                  <div className="flex justify-between text-[11px] mb-0.5">
+                    <span className="text-[var(--text-secondary)]">{label}</span>
+                    <span className="font-mono text-[var(--text-primary)]">{pct}%</span>
+                  </div>
+                  <CoverageBar value={value} total={total} />
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
-
-      {/* Club Coverage */}
-      <div className="glass rounded-xl p-6 mb-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-5">
-          Club Coverage
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-5">
-          {[
-            { label: "Total Clubs", value: clubs.total },
-            { label: "With Nation", value: clubs.withNation },
-            { label: "With League", value: clubs.withLeague },
-            { label: "Wikidata Enriched", value: clubs.withWikidata },
-            { label: "With Stadium", value: clubs.withStadium },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p className="text-xs text-[var(--text-secondary)] mb-1">{label}</p>
-              <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
-            </div>
-          ))}
-        </div>
-        <div className="space-y-3">
-          {[
-            { label: "Nation Linked", value: clubs.withNation, total: clubs.total },
-            { label: "League Assigned", value: clubs.withLeague, total: clubs.total },
-            { label: "Wikidata Enriched", value: clubs.withWikidata, total: clubs.total },
-            { label: "Stadium Data", value: clubs.withStadium, total: clubs.total },
-          ].map(({ label, value, total }) => {
-            const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-            return (
-              <div key={label}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-[var(--text-secondary)]">{label}</span>
-                  <span className="font-mono text-[var(--text-primary)]">{value.toLocaleString()} / {total.toLocaleString()} ({pct}%)</span>
-                </div>
-                <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: pct >= 80 ? "var(--color-accent-tactical)" : pct >= 40 ? "var(--color-accent-physical, #f59e0b)" : "var(--sentiment-negative, #ef4444)",
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
     </div>
   );
 }

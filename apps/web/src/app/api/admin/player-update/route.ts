@@ -28,6 +28,14 @@ export async function POST(request: Request) {
 
   const keyCol = table === "people" ? "id" : "person_id";
 
+  // Fetch old values for audit log
+  const { data: oldRow } = await sb
+    .from(table)
+    .select(Object.keys(updates).join(", "))
+    .eq(keyCol, person_id)
+    .maybeSingle();
+
+  // Perform the update
   const { error } = await sb
     .from(table)
     .update(updates)
@@ -35,6 +43,24 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Log changes to network_edits (best-effort, don't fail the request)
+  try {
+    const edits = Object.entries(updates).map(([field, newValue]) => ({
+      person_id,
+      field,
+      old_value: oldRow ? String((oldRow as unknown as Record<string, unknown>)[field] ?? "") : null,
+      new_value: newValue != null ? String(newValue) : null,
+      table_name: table,
+      user_id: "admin",
+    }));
+
+    if (edits.length > 0) {
+      await sb.from("network_edits").insert(edits);
+    }
+  } catch {
+    // Audit logging is best-effort
   }
 
   return NextResponse.json({ ok: true, person_id, table, updated: Object.keys(updates) });

@@ -27,6 +27,8 @@ async function getAdminData() {
     clubsWithLeagueResult,
     clubsWithWikidataResult,
     clubsWithStadiumResult,
+    // Valuations
+    valuationsResult,
   ] = await Promise.all([
     // Quick Stats
     supabaseServer.from("people").select("id", { count: "exact", head: true }),
@@ -54,6 +56,8 @@ async function getAdminData() {
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("league_name", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
     supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("stadium", "is", null),
+    // Valuations
+    supabaseServer.from("player_valuations").select("id", { count: "exact", head: true }),
   ]);
 
   const totalPlayers = totalPeopleResult.count ?? 0;
@@ -82,6 +86,7 @@ async function getAdminData() {
         playerStats: usStatsResult.count ?? 0,
       },
     },
+    valuations: valuationsResult.count ?? 0,
     clubs: {
       total: clubsTotalResult.count ?? 0,
       withNation: clubsWithNationResult.count ?? 0,
@@ -109,7 +114,7 @@ export default async function AdminPage() {
     );
   }
 
-  const { stats, coverage, external, clubs } = data;
+  const { stats, coverage, external, clubs, valuations } = data;
 
   return (
     <div>
@@ -134,6 +139,7 @@ export default async function AdminPage() {
             { label: "Tracked", value: stats.tracked },
             { label: "News Stories", value: coverage.newsStories },
             { label: "News Tags", value: coverage.newsTags },
+            { label: "Valuations", value: valuations },
           ].map(({ label, value, tooltip }) => (
             <div key={label}>
               <p className="text-xs text-[var(--text-secondary)] mb-1" title={tooltip}>{label}{tooltip ? " \u24d8" : ""}</p>

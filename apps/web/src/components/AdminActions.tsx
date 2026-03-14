@@ -7,6 +7,11 @@ export function AdminActions() {
   const [newsResult, setNewsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [cardsRefreshing, setCardsRefreshing] = useState(false);
   const [cardsResult, setCardsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [valRunning, setValRunning] = useState(false);
+  const [valResult, setValResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [valMode, setValMode] = useState("scout_dominant");
+  const [valForce, setValForce] = useState(false);
+  const [valLimit, setValLimit] = useState("");
 
   // Admin login state
   const [adminUser, setAdminUser] = useState("");
@@ -226,6 +231,64 @@ export function AdminActions() {
           </button>
           <span className="text-xs text-[var(--text-muted)]">Run after pipeline changes</span>
         </div>
+        {/* Valuation Engine */}
+        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={async () => {
+                setValRunning(true);
+                setValResult(null);
+                try {
+                  const params = new URLSearchParams({ mode: valMode });
+                  if (valForce) params.set("force", "true");
+                  if (valLimit.trim()) params.set("limit", valLimit.trim());
+                  const res = await fetch(`/api/admin/valuation?${params}`, { method: "POST" });
+                  const data = await res.json();
+                  if (data.ok) {
+                    setValResult({
+                      type: "success",
+                      text: `Valued ${data.valued} players, wrote ${data.written}${data.errors > 0 ? `, ${data.errors} errors` : ""}`,
+                    });
+                  } else {
+                    setValResult({ type: "error", text: data.error ?? "Failed" });
+                  }
+                } catch (e) {
+                  setValResult({ type: "error", text: String(e) });
+                }
+                setValRunning(false);
+              }}
+              disabled={valRunning}
+              className="px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-violet-500 transition-colors cursor-pointer"
+            >
+              {valRunning ? "Valuing..." : "Run Valuations"}
+            </button>
+            <select
+              value={valMode}
+              onChange={(e) => setValMode(e.target.value)}
+              className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)] outline-none"
+            >
+              <option value="scout_dominant">Scout Dominant</option>
+              <option value="balanced">Balanced</option>
+              <option value="data_dominant">Data Dominant</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Limit"
+              value={valLimit}
+              onChange={(e) => setValLimit(e.target.value)}
+              className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)] outline-none w-16"
+            />
+            <label className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={valForce}
+                onChange={(e) => setValForce(e.target.checked)}
+                className="accent-violet-500"
+              />
+              Force
+            </label>
+          </div>
+        </div>
         {newsResult && (
           <p className={`mt-3 text-sm ${newsResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-[var(--accent-tactical)]"}`}>
             {newsResult.text}
@@ -234,6 +297,11 @@ export function AdminActions() {
         {cardsResult && (
           <p className={`mt-3 text-sm ${cardsResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-[var(--accent-tactical)]"}`}>
             {cardsResult.text}
+          </p>
+        )}
+        {valResult && (
+          <p className={`mt-3 text-sm ${valResult.type === "error" ? "text-[var(--sentiment-negative)]" : "text-violet-400"}`}>
+            {valResult.text}
           </p>
         )}
       </div>

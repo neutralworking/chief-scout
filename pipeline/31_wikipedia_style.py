@@ -66,7 +66,52 @@ BLOCKED_TAGS = {
     "Attacking Midfielder", "Central Defender", "Central Midfield",
     "Defensive Midfielder", "Midfielder", "Offensive Full Back",
     "Winger", "Second Striker", "Young Talent", "Special Player",
-    "Left Footed", "Right Footed", "Offensive Minded",
+    "Left Footed", "Right Footed", "Offensive Minded", "Tall",
+    "Low Injury Prone", "Imposing Figure", "Strong", "Pacey",
+}
+
+# Map LLM synonyms to canonical tag names to prevent duplicate creation
+TAG_ALIASES: dict[str, str] = {
+    "Counter Attack": "Counter-Attack", "Counterattack": "Counter-Attack",
+    "Box-To-Box": "Box-to-Box",
+    "Mental Composure": "Composure", "Calmness Under Pressure": "Composure",
+    "Confidence": "Composure",
+    "Decision Making": "Tactical Intelligence", "Good Decision Making": "Tactical Intelligence",
+    "Precise Decision Making": "Tactical Intelligence", "Intelligence": "Tactical Intelligence",
+    "Game Reading": "Game Intelligence",
+    "Creative Player": "Vision", "Creativity": "Vision",
+    "Hard Working": "Work Rate", "Hardworking": "Work Rate", "Energetic": "Work Rate",
+    "Defensive Work Rate": "Work Rate", "Stamina": "Work Rate",
+    "Eye For Goal": "Finishing", "Clinical Finishing": "Finishing",
+    "Composed Finishing": "Finishing",
+    "Pressing Ability": "High Press", "Counter Press": "High Press",
+    "Free Kick Specialist": "Set Piece Threat", "Set Piece Specialist": "Set Piece Threat",
+    "Movement Off Ball": "Movement", "Intelligent Movement": "Movement",
+    "Clever Movement": "Movement",
+    "Direct Style": "Direct", "Dynamic Play": "Direct",
+    "Strong Positional Sense": "Positioning", "Positional Sense": "Positioning",
+    "Intelligent Positioning": "Positioning", "Positional Awareness": "Positioning",
+    "Defensive Positioning": "Defensive Awareness", "Interception": "Defensive Awareness",
+    "Lightning Reflexes": "Reflexes", "Quick Reflexes": "Reflexes",
+    "Elite Shot Stopper": "Shot Stopping", "Shot Stopper": "Shot Stopping",
+    "Physical Strength": "Strength", "Physical Power": "Strength",
+    "Strong Frame": "Strength", "Physical Ability": "Strength",
+    "Adaptability": "Versatility", "Tactical Versatility": "Versatility",
+    "Playmaking": "Playmaker",
+    "Vocal Leader": "Leadership", "Commanding Presence": "Leadership",
+    "Strong Personality": "Leadership",
+    "Winner": "Big Game Player", "Mentality": "Big Game Player",
+    "Ball Winning": "Ball Winner", "Strong Tackler": "Tackling Ability",
+    "Tackling": "Tackling Ability",
+    "Aggressive": "Aggressive Defender",
+    "Excellent Technique": "Technical Ability", "Technically Gifted": "Technical Ability",
+    "Accurate Passing": "Passing Ability", "Precise Passing": "Passing Ability",
+    "Clever Passing": "Passing Ability", "Penetrating Passes": "Passing Ability",
+    "Long Pass Accuracy": "Long Range Passing",
+    "Explosive Pace": "Pace", "Explosive Speed": "Pace", "Speed": "Pace",
+    "Quick": "Pace", "Pacey": "Pace",
+    "Agile Dribbling": "Dribbling", "Skilled Dribbling": "Dribbling",
+    "Aerial Dominance": "Aerial Ability",
 }
 
 
@@ -76,6 +121,9 @@ def get_or_create_tag(tag_name: str) -> Optional[int]:
 
     if tag_name in BLOCKED_TAGS:
         return None
+
+    # Resolve aliases to canonical names
+    tag_name = TAG_ALIASES.get(tag_name, tag_name)
 
     if tag_name in style_tags:
         return style_tags[tag_name]
@@ -215,26 +263,37 @@ def get_wikipedia_style_section(url: str) -> Optional[str]:
     if len(text) < 50:
         return None
 
-    return text[:2500]
+    return text[:4000]
 
 
 # ── LLM prompt ───────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = f"""You are a football analyst. Given a Wikipedia "Style of play" section, extract
-concise style descriptors for this player. Use existing tags where they fit,
-but create new descriptive tags when the text describes something not covered.
+SYSTEM_PROMPT = f"""You are an elite football scout building a scouting intelligence database.
+Given a Wikipedia "Style of play" section, extract the DEFINING style traits for this player.
+These tags define what the player is KNOWN FOR — their identity, not a list of everything mentioned.
 
-Existing tags (use these first if applicable):
-{', '.join(style_tags.keys())}
+CRITICAL — read the text carefully:
+- Only tag traits the player is KNOWN FOR or DEFINED BY, not things mentioned in passing
+- "Despite not being tall" does NOT mean tag Aerial Ability — it means the opposite
+- "In his earlier years he was fast" does NOT mean tag Pace — that's a past trait
+- "Can play on the counter" is NOT the same as "known for counter-attacking" — only tag defining traits
+- Qualifiers like "despite", "although", "not known for", "lacks" mean DO NOT tag that trait
+- If the text says a trait has declined, do NOT tag it unless the player adapted (tag the adaptation instead)
+- Physical traits should only be tagged if they are a CURRENT defining feature, not a historical one
+
+Existing tags (use these EXACTLY when they match — do NOT create synonyms):
+{', '.join(sorted(style_tags.keys()))}
 
 Rules:
-- Return a JSON array of tag name strings, e.g. ["Playmaker", "Long Range Passing", "Vision"]
+- Return a JSON array of tag name strings, e.g. ["Playmaker", "Set Piece Threat", "Vision"]
 - Each tag should be 1-3 words, Title Case
-- Use existing tag names exactly when they match
-- Create new tags for distinct traits clearly described in the text
-  (e.g. "Aerial Ability", "Long Range Shooting", "Dribbling", "Vision", "Leadership", "Versatility")
-- Maximum 6 tags per player
-- Only include traits with clear textual evidence
+- MUST use existing tag names when they match — do not invent synonyms
+- Only create a new tag if NO existing tag covers the trait
+- Tag technical, tactical, physical (current), and mental traits
+- Include negative traits if clearly stated (e.g. "Injury Prone", "Error Prone")
+- Do NOT tag positions (Winger, Midfielder, Striker, etc.)
+- Do NOT tag physical descriptions (Tall, Left Footed, Imposing)
+- Aim for 8-12 tags. Quality over quantity — every tag must be defensible
 - Return ONLY the JSON array, nothing else"""
 
 
@@ -264,7 +323,7 @@ def classify_style(player_name: str, style_text: str) -> list[str]:
             return []
 
     if isinstance(data, list):
-        return [t.strip().title() for t in data if isinstance(t, str) and len(t) > 1][:6]
+        return [t.strip().title() for t in data if isinstance(t, str) and len(t) > 1][:12]
 
     return []
 

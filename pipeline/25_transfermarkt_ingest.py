@@ -376,6 +376,15 @@ else:
     print(f"  {len(val_rows):,} total historical valuations for matched players")
 
 if val_rows and not DRY_RUN:
+    # Deduplicate by (person_id, date) — keep highest market value
+    val_deduped: dict[tuple, tuple] = {}
+    for row in val_rows:
+        key = (row[0], row[2])  # (person_id, date)
+        if key not in val_deduped or row[3] > val_deduped[key][3]:
+            val_deduped[key] = row
+    val_rows = list(val_deduped.values())
+    print(f"  Deduplicated to {len(val_rows):,} unique (person_id, date) pairs")
+
     written = 0
     for i in range(0, len(val_rows), CHUNK_SIZE):
         chunk = val_rows[i:i + CHUNK_SIZE]
@@ -405,6 +414,45 @@ if new_links and not DRY_RUN:
         update_count += cur.rowcount
     print(f"  Updated {update_count:,} people with transfermarkt_id")
 
+# ── Step 8: Set contract tags on player_status ───────────────────────────────
+
+print("\nStep 8: Setting contract tags...")
+
+today_str = datetime.now().strftime("%Y-%m-%d")
+current_year = datetime.now().year
+
+tag_updates = []
+for pid, _, _, expiry, _ in market_updates:
+    if not expiry:
+        continue
+    if expiry < today_str:
+        tag_updates.append((pid, "Free Agent"))
+    elif expiry[:4] == str(current_year):
+        tag_updates.append((pid, "Expiring"))
+    elif expiry[:4] == str(current_year + 1):
+        tag_updates.append((pid, "One Year Left"))
+
+if tag_updates and not DRY_RUN:
+    for pid, tag in tag_updates:
+        cur.execute("""
+            INSERT INTO player_status (person_id, contract_tag)
+            VALUES (%s, %s)
+            ON CONFLICT (person_id) DO UPDATE SET contract_tag = EXCLUDED.contract_tag
+        """, (pid, tag))
+    from collections import Counter as TagCounter
+    tag_counts = TagCounter(t for _, t in tag_updates)
+    print(f"  Set contract tags for {len(tag_updates):,} players")
+    for tag, count in tag_counts.most_common():
+        print(f"    {tag}: {count:,}")
+elif tag_updates:
+    from collections import Counter as TagCounter
+    tag_counts = TagCounter(t for _, t in tag_updates)
+    print(f"  [DRY RUN] Would set {len(tag_updates):,} contract tags")
+    for tag, count in tag_counts.most_common():
+        print(f"    {tag}: {count:,}")
+else:
+    print("  No contract tags to set")
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 
 print("\n=== Summary ===")
@@ -417,6 +465,7 @@ print(f"    - by name matching:    {matched_by_name:,}")
 print(f"  Unmatched:              {unmatched:,}")
 print(f"  Market values updated:  {len(market_updates):,}")
 print(f"  Valuations imported:    {len(val_rows):,}")
+print(f"  Contract tags set:      {len(tag_updates):,}")
 if DRY_RUN:
     print("  ** DRY RUN — no data written **")
 

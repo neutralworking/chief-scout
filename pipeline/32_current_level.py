@@ -89,6 +89,53 @@ FLOOR_FRACTION = 0.50
 # Growth base (16-year-old plays at this fraction of peak)
 GROWTH_BASE = 0.60
 
+# ── Playstyle decay modifier ─────────────────────────────────────────────────
+# Tags that indicate a physical game — these players decline faster
+PHYSICAL_TAGS = {
+    "Pace", "Acceleration", "Athleticism", "Strength", "Explosive Speed",
+    "Elite Agility", "Agility", "Counter-Attack", "Direct", "Pressing Ability",
+    "High Press", "Counter Press", "Overlapping Runs", "Box Runs",
+}
+
+# Tags that indicate a mental/technical game — these players decline slower
+MENTAL_TAGS = {
+    "Tactical Intelligence", "Game Intelligence", "Vision", "Composure",
+    "Playmaker", "Deep Lying Playmaker", "Regista", "Positional Awareness",
+    "Positioning", "Anticipation", "Ball Control", "Passing Ability",
+    "Tempo Control", "Ball Retention", "Leadership", "Discipline",
+    "Consistency", "Complete Defender", "Complete Goalkeeper",
+    "Distribution", "Ball Playing Ability", "Technical Ability",
+}
+
+
+def compute_decay_modifier(player_tags: set[str]) -> float:
+    """
+    Compute a decay rate modifier based on playstyle tags.
+
+    Returns a multiplier: <1.0 = slower decay (mental/technical player),
+    >1.0 = faster decay (physical player), 1.0 = neutral.
+
+    A player like Thiago Silva (Tactical Intelligence, Positional Awareness,
+    Complete Defender) gets ~0.6x decay. A pure pace merchant gets ~1.2x.
+    """
+    if not player_tags:
+        return 1.0
+
+    physical_count = len(player_tags & PHYSICAL_TAGS)
+    mental_count = len(player_tags & MENTAL_TAGS)
+    total = physical_count + mental_count
+
+    if total == 0:
+        return 1.0
+
+    # Ratio: 0.0 = all mental, 1.0 = all physical
+    physical_ratio = physical_count / total
+
+    # Map to modifier: all mental = 0.5x decay, all physical = 1.3x decay
+    # Neutral (50/50) = 1.0x
+    modifier = 0.5 + physical_ratio * 0.8
+    return modifier
+
 
 def compute_age(dob: date) -> float:
     """Compute age in years (fractional) from date of birth."""
@@ -100,9 +147,17 @@ def compute_age(dob: date) -> float:
     return age
 
 
-def age_curve_level(peak: int, age: int, position: str) -> float:
+def age_curve_level(peak: int, age: int, position: str,
+                    decay_modifier: float = 1.0) -> float:
     """Compute level from peak based on age and position curve."""
     peak_start, peak_end, decay_rate = POSITION_CURVES.get(position, DEFAULT_CURVE)
+
+    # Mental/technical players peak later and hold longer
+    # decay_modifier < 0.8 means strongly mental — extend peak window by 2 years
+    if decay_modifier < 0.8:
+        peak_end += 2
+    elif decay_modifier < 0.9:
+        peak_end += 1
     floor = peak * FLOOR_FRACTION
 
     if age < 16:
@@ -122,13 +177,14 @@ def age_curve_level(peak: int, age: int, position: str) -> float:
         # Peak window — no decay
         return float(peak)
 
-    # After peak window — decay
+    # After peak window — decay (modified by playstyle)
     years_past = age - peak_end
     total_decay = 0.0
+    effective_rate = decay_rate * decay_modifier
     for yr in range(1, years_past + 1):
         yr_age = peak_end + yr
         extra = 0.5 * max(0, yr_age - CLIFF_AGE) if yr_age > CLIFF_AGE else 0.0
-        total_decay += decay_rate + extra
+        total_decay += effective_rate + (extra * decay_modifier)
 
     level = peak - total_decay
     return max(level, floor)
@@ -275,6 +331,26 @@ def main():
     print(f"  Players with performance data: {len(perf_data)}")
     print(f"  Players with scout grades: {len(scout_data)}")
 
+    # ── Step 2b: Fetch style tags for playstyle-based decay ──────────────────
+
+    print("  Loading style tags...")
+    player_style_tags: dict[int, set[str]] = {}
+    for i in range(0, len(player_ids), chunk_size):
+        chunk = player_ids[i:i + chunk_size]
+        placeholders = ",".join(["%s"] * len(chunk))
+        cur.execute(f"""
+            SELECT pt.player_id, t.tag_name
+            FROM player_tags pt
+            JOIN tags t ON t.id = pt.tag_id
+            WHERE pt.player_id IN ({placeholders})
+              AND t.category = 'style'
+        """, chunk)
+        for pid, tag_name in cur.fetchall():
+            if pid not in player_style_tags:
+                player_style_tags[pid] = set()
+            player_style_tags[pid].add(tag_name)
+    print(f"  Players with style tags: {len(player_style_tags)}")
+
     # ── Step 3: Compute current levels ────────────────────────────────────────
 
     results = []
@@ -313,9 +389,11 @@ def main():
 
         age = compute_age(dob)
 
-        # Step 1: Age curve
+        # Step 1: Age curve (adjusted for playstyle)
         peak_start = POSITION_CURVES.get(position, DEFAULT_CURVE)[0]
-        curve_level = age_curve_level(peak, age, position)
+        tags = player_style_tags.get(pid, set())
+        decay_mod = compute_decay_modifier(tags)
+        curve_level = age_curve_level(peak, age, position, decay_mod)
 
         # Step 2: Performance adjustment
         # Uses percentile rank among peers — stat_score distributions vary wildly

@@ -15,6 +15,7 @@ const ALL_NAV_ITEMS = [
   { label: "Formations", href: "/formations" },
   { label: "News Feed", href: "/news" },
   { label: "Free Agents", href: "/free-agents" },
+  { label: "Transfers", href: "/transfers" },
   { label: "Gaffer", href: "/choices" },
   { label: "Network", href: "/network", stagingOnly: true },
   { label: "Editor", href: "/editor", stagingOnly: true },

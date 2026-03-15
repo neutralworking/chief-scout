@@ -13,6 +13,7 @@ const ALL_NAV_ITEMS = [
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },
   { label: "Formations", href: "/formations" },
+  { label: "Fixtures", href: "/fixtures" },
   { label: "News Feed", href: "/news" },
   { label: "Free Agents", href: "/free-agents" },
   { label: "Gaffer", href: "/choices" },

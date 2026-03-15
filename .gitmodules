@@ -1,3 +1,0 @@
-[submodule "transfer_availability"]
-	path = transfer_availability
-	url = https://github.com/neutralworking/availability.git

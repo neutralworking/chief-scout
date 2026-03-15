@@ -98,6 +98,8 @@ PHYSICAL_TAGS = {
 }
 
 # Tags that indicate a mental/technical game — these players decline slower
+# Includes technical skills (dribbling, finishing, set pieces) which are
+# coordination/muscle-memory, not athleticism — they hold with age
 MENTAL_TAGS = {
     "Tactical Intelligence", "Game Intelligence", "Vision", "Composure",
     "Playmaker", "Deep Lying Playmaker", "Regista", "Positional Awareness",
@@ -105,6 +107,10 @@ MENTAL_TAGS = {
     "Tempo Control", "Ball Retention", "Leadership", "Discipline",
     "Consistency", "Complete Defender", "Complete Goalkeeper",
     "Distribution", "Ball Playing Ability", "Technical Ability",
+    "Dribbling", "Finishing", "Close Control", "Tight Space Control",
+    "Set Piece Threat", "Crossing Ability", "Long Range Passing",
+    "Long Range Shooting", "Trickery", "Feinting", "Movement",
+    "Link Up Play", "Hold Up Play",
 }
 
 
@@ -115,8 +121,9 @@ def compute_decay_modifier(player_tags: set[str]) -> float:
     Returns a multiplier: <1.0 = slower decay (mental/technical player),
     >1.0 = faster decay (physical player), 1.0 = neutral.
 
-    A player like Thiago Silva (Tactical Intelligence, Positional Awareness,
-    Complete Defender) gets ~0.6x decay. A pure pace merchant gets ~1.2x.
+    A player like Thiago Silva (13 mental tags) gets ~0.45x decay.
+    A pure pace merchant with 3 tags gets ~1.3x.
+    Messi with 12 tags (11 mental) gets ~0.40x.
     """
     if not player_tags:
         return 1.0
@@ -131,10 +138,19 @@ def compute_decay_modifier(player_tags: set[str]) -> float:
     # Ratio: 0.0 = all mental, 1.0 = all physical
     physical_ratio = physical_count / total
 
-    # Map to modifier: all mental = 0.5x decay, all physical = 1.3x decay
-    # Neutral (50/50) = 1.0x
+    # Base modifier: all mental = 0.5x, all physical = 1.3x
     modifier = 0.5 + physical_ratio * 0.8
-    return modifier
+
+    # Tag depth bonus: more tags = more ways to contribute = slower decline
+    # 8+ mental/technical tags = extra 0.1 reduction (floor 0.35)
+    if mental_count >= 10:
+        modifier -= 0.15
+    elif mental_count >= 8:
+        modifier -= 0.10
+    elif mental_count >= 6:
+        modifier -= 0.05
+
+    return max(modifier, 0.35)
 
 
 def compute_age(dob: date) -> float:
@@ -427,7 +443,11 @@ def main():
             scout_adj = max(-4.0, min(4.0, scout_adj))
         age_adjusted = curve_level + perf_adj + activity_adj + scout_adj
 
-        if old_level == peak or old_level > peak:
+        if FORCE:
+            # --force: pure age curve with playstyle modifiers. Don't blend with
+            # old_level since it may be output from a previous run of this script.
+            new_level = age_adjusted
+        elif old_level == peak or old_level > peak:
             # Broken case: level was never decayed from peak. Use pure age curve.
             new_level = age_adjusted
         elif age < peak_start:

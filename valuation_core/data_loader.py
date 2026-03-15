@@ -22,6 +22,7 @@ from valuation_core.types import (
     AttributeGrade,
     ClubContext,
     Confidence,
+    DofAssessment,
     EvaluationContext,
     GradeType,
     PlayerProfile,
@@ -67,7 +68,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
     # ── Profile data ──────────────────────────────────────────────────────────
 
     cur.execute("""
-        SELECT position, level, archetype, profile_tier
+        SELECT position, level, archetype, profile_tier, best_role, best_role_score, xp_modifier
         FROM player_profiles
         WHERE person_id = %s
     """, (person_id,))
@@ -202,12 +203,16 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
         contract_years_remaining=contract_years,
         contract_tag=status_data.get("contract_tag"),
         transfer_fee_eur=market_data.get("transfer_fee_eur"),
+        market_value_eur=market_data.get("market_value_eur"),
         league=league,
         club=person.get("club_name"),
         club_id=person.get("club_id"),
         trajectory=trajectory,
         level=profile_data.get("level"),
+        best_role_score=profile_data.get("best_role_score"),
+        best_role=profile_data.get("best_role"),
         profile_tier=profile_data.get("profile_tier"),
+        xp_modifier=profile_data.get("xp_modifier"),
     )
 
 
@@ -323,6 +328,43 @@ def _determine_confidence(
         return Confidence.MEDIUM
 
     return Confidence.LOW
+
+
+def load_dof_assessment(person_id: int, conn) -> DofAssessment | None:
+    """Load the current DoF assessment for a player, if one exists."""
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT person_id, technical, physical, tactical, personality,
+               commercial, availability,
+               worth_right_team_meur, worth_any_team_meur,
+               confidence, usage_profile, summary
+        FROM dof_assessments
+        WHERE person_id = %s AND is_current = true
+    """, (person_id,))
+    row = cur.fetchone()
+
+    if not row:
+        cur.close()
+        return None
+
+    cols = [d[0] for d in cur.description]
+    d = dict(zip(cols, row))
+    cur.close()
+
+    return DofAssessment(
+        person_id=d["person_id"],
+        technical=d["technical"] or 5,
+        physical=d["physical"] or 5,
+        tactical=d["tactical"] or 5,
+        personality=d["personality"] or 5,
+        commercial=d["commercial"] or 5,
+        availability=d["availability"] or 5,
+        worth_right_team_meur=float(d["worth_right_team_meur"] or 0),
+        worth_any_team_meur=float(d["worth_any_team_meur"] or 0),
+        confidence=d["confidence"] or "informed",
+        usage_profile=d.get("usage_profile"),
+        summary=d.get("summary"),
+    )
 
 
 def _estimate_contract_years(contract_tag: str | None) -> float:

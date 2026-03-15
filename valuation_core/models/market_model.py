@@ -137,15 +137,21 @@ def estimate_market_value(
         * personality_mult
     )
 
-    # ── Data-implied value (from level/TM anchor if available) ────────────────
+    # ── Effective score: best_role_score capped by level ──────────────────────
+    # best_role_score = data-derived score in optimal role (0-100)
+    # level = editorial ceiling (1-99) — the best the player can possibly be
+    # effective_score = min(role_score, level) with condition modifiers
+
+    effective_score = _compute_effective_score(profile)
+
+    # ── Data-implied value (from effective score) ───────────────────────────
+    # The effective score is the primary value driver, replacing raw level
 
     data_value = scout_value  # default: same as scout
-    if profile.level is not None:
-        # Use existing CS Value formula as data anchor
-        from valuation_core.config import AGE_CURVES
-        level_base = _level_to_base_value(profile.level)
+    if effective_score is not None:
+        score_base = _level_to_base_value(effective_score)
         data_value = (
-            level_base * 1_000_000
+            score_base * 1_000_000
             * age_mult
             * contract_mult
             * scarcity_mult
@@ -153,23 +159,19 @@ def estimate_market_value(
         )
 
     if profile.transfer_fee_eur and profile.transfer_fee_eur > 0:
-        # If we have a TM anchor, blend it in
         tm_value = profile.transfer_fee_eur
         data_value = data_value * 0.6 + tm_value * 0.4
 
+    # ── Market value reality anchor ─────────────────────────────────────────
+    if profile.market_value_eur and profile.market_value_eur > 0:
+        mv_anchor = profile.market_value_eur
+        data_value = data_value * 0.5 + mv_anchor * 0.5
+
     # ── Blend scout and data values using λ ───────────────────────────────────
-    # Adjust λ based on confidence: when attribute data is poor, lean on level.
-    # Also apply a sanity check: if ability diverges wildly from level,
-    # the grade data is miscalibrated — reduce trust in scout value.
     confidence_state = ability_estimate.get("confidence_state", "low")
     ability_central = ability_estimate["central"]
 
-    # Sanity check: if level implies elite but ability says average, reduce λ
-    level_ability_gap = 0
-    if profile.level and profile.level >= 80:
-        expected_ability = profile.level * 0.85  # level 90 → expect ability ~76
-        level_ability_gap = max(0, expected_ability - ability_central)
-
+    # Adjust λ based on data confidence
     if confidence_state == "very_low":
         lam = min(lam, 0.10)
     elif confidence_state == "low":
@@ -177,11 +179,14 @@ def estimate_market_value(
     elif confidence_state == "medium":
         lam = min(lam, 0.40)
 
-    # Sanity override: when grades are wildly miscalibrated, reduce further
-    if level_ability_gap > 30:
-        lam = min(lam, 0.05)  # effectively ignore scout value
-    elif level_ability_gap > 20:
-        lam = min(lam, 0.15)
+    # Sanity check: if effective score implies elite but ability disagrees, reduce λ
+    if effective_score and effective_score >= 80:
+        expected_ability = effective_score * 0.85
+        level_ability_gap = max(0, expected_ability - ability_central)
+        if level_ability_gap > 30:
+            lam = min(lam, 0.05)
+        elif level_ability_gap > 20:
+            lam = min(lam, 0.15)
 
     central = lam * scout_value + (1 - lam) * data_value
 
@@ -257,6 +262,59 @@ def estimate_market_value(
             "personality_adj_pct": round((personality_mult - 1.0) * 100, 1),
         },
     }
+
+
+def _compute_effective_score(profile: PlayerProfile) -> int | None:
+    """
+    Compute the effective score that drives valuation.
+
+    Priority:
+      1. best_role_score (data-derived, from archetype fit to best tactical role)
+      2. level (editorial ceiling)
+
+    When both exist, we blend them rather than hard-min, because role scores
+    are systematically lower than levels due to incomplete attribute data.
+    Level is the ceiling — role_score cannot exceed it — but level also
+    provides signal about the player's true quality.
+
+    Blend: 60% role_score + 40% level, capped at level.
+    This means a player with role_score=74 and level=95 gets ~82,
+    not 74 (which would be a 21-point penalty for sparse data).
+
+    Condition modifiers reduce score below ceiling:
+      - Trajectory: declining players score lower
+      - Profile tier: skeleton profiles get penalised
+    """
+    role_score = profile.best_role_score
+    level = profile.level
+
+    if role_score is None and level is None:
+        return None
+
+    if role_score is not None and level is not None:
+        # Blend: role score is primary signal, level provides context
+        # Cap at level (ceiling)
+        blended = role_score * 0.6 + level * 0.4
+        effective = int(min(blended, level))
+    elif role_score is not None:
+        effective = role_score
+    else:
+        effective = level
+
+    # Condition modifiers
+    if profile.trajectory == "declining":
+        effective = max(effective - 5, 40)
+
+    if role_score is None and profile.profile_tier == 3:
+        effective = max(effective - 3, 40)
+
+    # XP modifier (career experience)
+    if profile.xp_modifier is not None and profile.xp_modifier != 0:
+        effective = max(effective + profile.xp_modifier, 40)
+        if level is not None:
+            effective = min(effective, level)  # never exceed ceiling
+
+    return effective
 
 
 def _level_to_base_value(level: int) -> float:

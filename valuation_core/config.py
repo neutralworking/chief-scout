@@ -10,11 +10,26 @@ from __future__ import annotations
 # ── Scout dominance parameter ─────────────────────────────────────────────────
 
 LAMBDA_MODES = {
+    "dof_anchor": 0.95,       # DoF assessment near-absolute authority
     "scout_dominant": 0.7,
     "balanced": 0.5,
     "data_dominant": 0.3,
 }
 DEFAULT_MODE = "scout_dominant"
+
+# DoF confidence → band width around DoF valuation
+DOF_CONFIDENCE_BANDS = {
+    "conviction": 0.10,   # ±10% around DoF valuation
+    "informed": 0.20,     # ±20%
+    "impression": 0.35,   # ±35%
+}
+
+# DoF commercial score → value multiplier
+DOF_COMMERCIAL_MULTIPLIER = {
+    10: 1.50, 9: 1.35, 8: 1.20, 7: 1.10,
+    6: 1.05, 5: 1.00, 4: 0.95, 3: 0.85,
+    2: 0.78, 1: 0.70,
+}
 
 # ── Confidence mappings ───────────────────────────────────────────────────────
 

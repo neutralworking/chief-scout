@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { ageCurveScore } from "@/lib/assessment/four-pillars";
+import { getCardTheme, CardTheme } from "@/lib/archetype-themes";
+import { MiniRadar } from "@/components/MiniRadar";
 import Link from "next/link";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
@@ -18,11 +20,26 @@ interface FreeAgent {
   position: string | null;
   level: number | null;
   archetype: string | null;
+  personality_type: string | null;
   pursuit_status: string | null;
   market_value_eur: number | null;
   contract_expiry_date: string | null;
   contract_tag: string | null;
+  fingerprint: number[] | null;
 }
+
+// Hex colors for radar polygon per theme
+const RADAR_COLORS: Record<CardTheme, string> = {
+  general: "#a1a1aa",
+  showman: "#e879f9",
+  maestro: "#fcd34d",
+  captain: "#f87171",
+  professor: "#60a5fa",
+  default: "#4ade80",
+};
+
+const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
+const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
 
 function levelColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
@@ -60,6 +77,7 @@ function FreeAgentsContent() {
   const tab = searchParams.get("tab") ?? "free";
   const position = searchParams.get("position") ?? "";
   const sort = searchParams.get("sort") ?? "level";
+  const isFreeTab = tab === "free";
 
   const updateParam = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -170,16 +188,17 @@ function FreeAgentsContent() {
               <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                 <th className="text-left py-2 px-4 font-medium w-12">Pos</th>
                 <th className="text-left py-2 px-4 font-medium">Player</th>
-                <th className="text-left py-2 px-4 font-medium">Club</th>
+                <th className="text-left py-2 px-4 font-medium">{isFreeTab ? "Last Club" : "Club"}</th>
                 <th className="text-left py-2 px-4 font-medium hidden lg:table-cell">Nation</th>
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
+                <th className="text-center py-2 px-4 font-medium w-20">Radar</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
                 <th className="text-right py-2 px-4 font-medium hidden lg:table-cell">Value</th>
                 <th className="text-right py-2 px-4 font-medium w-16 hidden lg:table-cell">
                   <span className="text-[var(--color-accent-physical)]">Phys</span>
                 </th>
                 <th className="text-right py-2 px-4 font-medium w-20">
-                  {tab === "free" ? "Status" : "Expires"}
+                  {isFreeTab ? "Status" : "Expires"}
                 </th>
                 <th className="text-right py-2 px-4 font-medium w-16">Level</th>
               </tr>
@@ -188,6 +207,8 @@ function FreeAgentsContent() {
               {players.map((player) => {
                 const age = computeAge(player.dob);
                 const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
+                const theme = getCardTheme(player.personality_type);
+                const radarColor = RADAR_COLORS[theme];
 
                 return (
                   <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
@@ -202,9 +223,30 @@ function FreeAgentsContent() {
                         {player.name}
                       </Link>
                     </td>
-                    <td className="py-2 px-4 text-xs text-[var(--text-secondary)]">{player.club || "–"}</td>
+                    <td className="py-2 px-4 text-xs text-[var(--text-secondary)]">
+                      {player.club ? (
+                        isFreeTab ? (
+                          <span className="text-[var(--text-muted)] italic">ex-{player.club}</span>
+                        ) : (
+                          player.club
+                        )
+                      ) : "–"}
+                    </td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.nation || "–"}</td>
                     <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-muted)]">{age ?? "–"}</td>
+                    <td className="py-2 px-4">
+                      {player.fingerprint && player.fingerprint.some((v) => v > 0) ? (
+                        <div className="flex justify-center">
+                          <MiniRadar
+                            values={player.fingerprint}
+                            size={48}
+                            color={radarColor}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 mx-auto" />
+                      )}
+                    </td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
                     <td className="py-2 px-4 text-right text-xs font-mono text-[var(--text-secondary)] hidden lg:table-cell">
                       {formatValue(player.market_value_eur)}
@@ -225,7 +267,7 @@ function FreeAgentsContent() {
                       })()}
                     </td>
                     <td className="py-2 px-4 text-right">
-                      {tab === "free" ? (
+                      {isFreeTab ? (
                         <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)]">
                           Free
                         </span>
@@ -252,25 +294,36 @@ function FreeAgentsContent() {
           {players.map((player) => {
             const age = computeAge(player.dob);
             const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
+            const theme = getCardTheme(player.personality_type);
+            const radarColor = RADAR_COLORS[theme];
 
             return (
               <Link key={player.person_id} href={`/players/${player.person_id}`}
-                className="glass rounded-lg p-3 flex items-center justify-between hover:border-[var(--color-accent-personality)]/30 transition-colors block">
-                <div className="flex items-center gap-2 min-w-0">
+                className="glass rounded-lg p-3 flex items-center gap-3 hover:border-[var(--color-accent-personality)]/30 transition-colors block">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                     {player.position ?? "–"}
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
                     <p className="text-[10px] text-[var(--text-muted)]">
-                      {player.club || "Unknown"}
+                      {player.club ? (isFreeTab ? `ex-${player.club}` : player.club) : "Unattached"}
                       {player.nation && ` · ${player.nation}`}
                       {age != null && ` · ${age}y`}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0 ml-3">
-                  {tab !== "free" && player.contract_expiry_date && (
+                {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
+                  <div className="shrink-0">
+                    <MiniRadar
+                      values={player.fingerprint}
+                      size={40}
+                      color={radarColor}
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-3 shrink-0">
+                  {!isFreeTab && player.contract_expiry_date && (
                     <span className="text-[9px] font-mono text-[var(--text-muted)]">
                       {formatExpiry(player.contract_expiry_date)}
                     </span>
@@ -303,7 +356,7 @@ function FreeAgentsContent() {
       {!loading && !error && players.length === 0 && (
         <div className="glass rounded-xl py-12 text-center">
           <p className="text-sm text-[var(--text-muted)]">
-            {tab === "free" ? "No free agents found." : `No contracts expiring in ${tab}.`}
+            {isFreeTab ? "No free agents found." : `No contracts expiring in ${tab}.`}
             {" "}Contract data may not be fully populated.
           </p>
         </div>

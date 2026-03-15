@@ -198,34 +198,41 @@ Tactical roles describe **where and how a player functions within a formation**.
 
 Each role has a **primary** and **secondary** archetype affinity. Players whose archetype matches the role's affinity are naturally suited to it. This is computed, not assigned.
 
-| Position | Role | Description | Primary | Secondary |
-|----------|------|-------------|---------|-----------|
-| GK | Sweeper Keeper | High line, distribution, commands area | GK | Passer |
-| GK | Shot Stopper | Traditional, reflexes, positioning | GK | Cover |
-| CD | Ball-Playing CB | Builds from the back, progressive passing | Cover | Passer |
-| CD | Stopper | Front-foot, aggressive, wins duels | Destroyer | Powerhouse |
-| CD | Sweeper | Last man, reads danger, covers space | Cover | Controller |
-| WD | Inverted Full-Back | Tucks inside in possession, creates overloads | Controller | Passer |
-| WD | Overlapping Full-Back | Wide + high, delivers crosses | Sprinter | Engine |
-| WD | Wing-Back | Full width, both phases, tireless | Engine | Dribbler |
-| DM | Regista | Deep playmaker, dictates tempo from deep | Controller | Passer |
-| DM | Anchor | Shields back four, positional discipline | Cover | Destroyer |
-| DM | Ball-Winner | Aggressive pressing, disrupts play | Destroyer | Engine |
-| CM | Mezzala | Half-space runner, arrives in box | Dribbler | Engine |
-| CM | Box-to-Box | Covers both ends, energy + tackles | Engine | Destroyer |
-| CM | Deep Playmaker | Receives deep, orchestrates | Controller | Passer |
-| WM | Wide Playmaker | Drifts inside, creates from half-spaces | Creator | Passer |
-| WM | Traditional Winger | Hugs touchline, crosses, direct | Sprinter | Passer |
-| AM | Trequartista | Free-roaming 10, unpredictable | Creator | Dribbler |
-| AM | Advanced Playmaker | Links midfield to attack, final third control | Controller | Creator |
-| AM | Shadow Striker | Late runs into box, second striker movement | Sprinter | Striker |
-| WF | Inside Forward | Cuts inside on opposite foot, shoots | Striker | Dribbler |
-| WF | Inverted Winger | Creates from inside, vision + technique | Creator | Dribbler |
-| WF | Wide Forward | Stretches defense, pace in behind | Sprinter | Striker |
-| CF | Target Man | Holds up play, aerial dominance | Target | Powerhouse |
-| CF | Poacher | Box presence, clinical finishing | Striker | Sprinter |
-| CF | False 9 | Drops deep, links play, creates space | Creator | Controller |
-| CF | Complete Forward | Does everything, all-round threat | Engine | Striker |
+Role names use the term the football world actually uses. If the word came from Italian, Spanish, Portuguese, German, French, or Argentine football culture and became THE word for that role, we use it. No FIFA/FM generic compound names.
+
+| Position | Role | Origin | Description | Primary | Secondary | Lineage |
+|----------|------|--------|-------------|---------|-----------|---------|
+| GK | Torwart | German | The traditional keeper — reflexes, positioning, commands area | GK | Cover | Banks → Zoff → Buffon → Courtois |
+| GK | Sweeper Keeper | English | High line, sweeps behind defence, commands with authority | GK | Passer | Higuita → Neuer |
+| GK | Ball-Playing GK | English | Distribution as a weapon — builds from back, short + long | GK | Controller | Ter Stegen → Ederson → Alisson |
+| CD | Libero | Italian | Builds from back, reads danger, progressive passing | Cover | Passer | Beckenbauer → Sammer → Stones |
+| CD | Vorstopper | German | "Front stopper" — aggressive, front-foot, wins duels | Destroyer | Powerhouse | Baresi → Nesta → Chiellini → Konaté |
+| CD | Sweeper | English | Last man, covers space, reads play two moves ahead | Cover | Controller | Sammer → Hummels → Marquinhos |
+| CD | Zagueiro | Brazilian | The commanding CB — physical dominance + vocal leadership | Destroyer | Commander | Lúcio → Thiago Silva → Van Dijk |
+| WD | Lateral | Portuguese | The attacking fullback — wide + high, delivers | Engine | Dribbler | Cafu → Dani Alves → TAA |
+| WD | Invertido | Spanish | Inverted FB — tucks inside in possession, becomes midfielder | Controller | Passer | Lahm (2013) → Cancelo → Rico Lewis |
+| WD | Carrilero | Spanish | "Lane runner" — full-width both phases, tireless shuttle | Engine | Sprinter | Facchetti → Zanetti → Hakimi |
+| DM | Sentinelle | French | The sentinel — shields back four, guards the gate | Cover | Destroyer | Makélélé → Busquets → Casemiro |
+| DM | Regista | Italian | Deep playmaker, dictates tempo from in front of defence | Controller | Passer | Gerson (1970) → Pirlo → Jorginho |
+| DM | Volante | Brazilian | "Steering wheel" — aggressive pressing, disrupts, recycles | Destroyer | Engine | Gattuso → Kanté → Caicedo |
+| CM | Metodista | Italian | "The methodist" — orchestrates with precision from central zone | Controller | Passer | Xavi → Kroos → Pedri |
+| CM | Tuttocampista | Italian | "All-pitch player" — covers ground end to end, arrives in box | Engine | Cover | Lampard → Gerrard → Bellingham |
+| CM | Mezzala | Italian | "Half-winger" — half-space runner, creates from narrow positions | Passer | Creator | Barella |
+| CM | Relayeur | French | "Relay player" — tireless shuttle, links phases | Engine | Destroyer | Valverde |
+| WM | Fantasista | Italian | The wide creator — drifts inside, creates from half-spaces | Creator | Passer | Silva → Bernardo → Foden |
+| WM | Winger | English | Touchline-hugging, direct, crosses — the oldest attacking role | Sprinter | Passer | Garrincha → Figo → Saka |
+| WM | Raumdeuter | German | "Space interpreter" — arrives in dangerous positions | Dribbler | Striker | Thomas Müller (self-coined) |
+| AM | Trequartista | Italian | The free-roaming 10, unpredictable genius | Creator | Dribbler | Baggio → Zidane → Messi |
+| AM | Enganche | Argentine | "The hook" — stands still, sees everything, the pivot | Controller | Creator | Maradona → Riquelme → Dybala |
+| AM | Seconda Punta | Italian | "Second striker" — late runs, between the lines | Dribbler | Striker | Del Piero → Müller → Havertz |
+| WF | Inside Forward | English | Cuts inside on opposite foot, shoots — term from W-M era | Dribbler | Sprinter | Robben → Salah → Yamal |
+| WF | Extremo | Portuguese | Wide attacker — stretches defence, pace weapon | Sprinter | Striker | Henry (wide) → Mbappé |
+| WF | Inventor | English | The creator who makes something from nothing | Creator | Dribbler | Rui Costa (wide) → Grealish |
+| CF | Prima Punta | Italian | "First striker" — holds up, aerial, reference point | Target | Powerhouse | Toni → Giroud → Dzeko |
+| CF | Complete Forward | English | Does everything — scores AND creates, the total striker | Striker | Creator | R9 → Van Basten → Benzema |
+| CF | Poacher | English | Goals, movement, instinct — lives in the box | Striker | Sprinter | Gerd Müller → Inzaghi → Haaland |
+| CF | Falso Nove | Spanish | Drops deep, links play, creates space for runners | Creator | Controller | Hidegkuti (1953) → Messi (2009) → Firmino |
+| CF | Seconda Punta | Italian | Between the lines, links midfield to attack | Dribbler | Striker | Totti → Griezmann → Dybala |
 
 ### Role Fit Scoring
 

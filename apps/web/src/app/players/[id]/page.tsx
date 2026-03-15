@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { PersonalityBadge } from "@/components/PersonalityBadge";
 import { CareerAndMoments } from "@/components/CareerAndMoments";
-import type { KeyMoment } from "@/components/CareerAndMoments";
+import type { KeyMoment, XpMilestone } from "@/components/CareerAndMoments";
 import { ScoutPad } from "@/components/ScoutPad";
 import type { NewsStory } from "@/components/ScoutPad";
 import { PlayerStats } from "@/components/PlayerStats";
@@ -32,6 +32,8 @@ interface IntelligenceCard {
   archetype: string | null;
   model_id: string | null;
   profile_tier: number | null;
+  best_role: string | null;
+  best_role_score: number | null;
   personality_type: string | null;
   pursuit_status: string | null;
   market_value_tier: string | null;
@@ -103,7 +105,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult, xpResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -147,6 +149,11 @@ export default async function PlayerDetailPage({
       .order("evaluated_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabaseServer
+      .from("player_xp")
+      .select("milestone_key, milestone_label, xp_value, milestone_date, source, details")
+      .eq("person_id", playerId)
+      .order("xp_value", { ascending: false }),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -191,6 +198,7 @@ export default async function PlayerDetailPage({
   }).filter((t: { tag_name: string }) => t.tag_name);
 
   const valuation = valuationResult.data as PlayerValuation | null;
+  const xpMilestones = (xpResult.data ?? []) as XpMilestone[];
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -236,6 +244,9 @@ export default async function PlayerDetailPage({
                 <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                   {player.position ?? "–"}
                 </span>
+                {player.best_role && (
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)] shrink-0">{player.best_role}</span>
+                )}
                 {!player.active && (
                   <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
                 )}
@@ -252,11 +263,25 @@ export default async function PlayerDetailPage({
             </div>
           </div>
 
-          {/* Level — headline number */}
-          {player.level != null && (
+          {/* Rating — role score (primary) with level ceiling */}
+          {(player.best_role_score != null || player.level != null) && (
             <div className="text-center shrink-0">
-              <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
-              <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
+              {player.best_role_score != null ? (
+                <>
+                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.best_role_score}</div>
+                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">
+                    Role Score
+                    {player.level != null && (
+                      <span className="text-[var(--text-muted)] ml-1">/ {player.level}</span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
+                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -438,7 +463,7 @@ export default async function PlayerDetailPage({
 
         {/* Right: Career & Moments + News */}
         <div className="space-y-2">
-          <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} />
+          <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 
           {news.length > 0 && (
             <ScoutPad

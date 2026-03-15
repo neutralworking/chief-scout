@@ -24,6 +24,7 @@ class Confidence(str, Enum):
 
 
 class ValuationMode(str, Enum):
+    DOF_ANCHOR = "dof_anchor"
     SCOUT_DOMINANT = "scout_dominant"
     BALANCED = "balanced"
     DATA_DOMINANT = "data_dominant"
@@ -35,6 +36,23 @@ class AttributeGrade:
     grade_type: GradeType
     confidence: Confidence
     stale: bool = False
+
+
+@dataclass
+class DofAssessment:
+    """Director of Football structured assessment."""
+    person_id: int
+    technical: int          # 1-10
+    physical: int
+    tactical: int
+    personality: int
+    commercial: int
+    availability: int
+    worth_right_team_meur: float    # millions EUR
+    worth_any_team_meur: float
+    confidence: str = "informed"    # conviction | informed | impression
+    usage_profile: Optional[str] = None
+    summary: Optional[str] = None
 
 
 @dataclass
@@ -66,6 +84,7 @@ class PlayerProfile:
     current_wage_weekly_eur: Optional[float] = None
     release_clause_eur: Optional[float] = None
     transfer_fee_eur: Optional[float] = None
+    market_value_eur: Optional[float] = None       # Transfermarkt / external market value
 
     # Career / meta
     league: Optional[str] = None
@@ -74,8 +93,11 @@ class PlayerProfile:
     national_team_status: Optional[str] = None  # "none" | "called_up" | "regular" | "star"
     trajectory: Optional[str] = None            # from career_metrics
     injury_days_2yr: Optional[int] = None
-    level: Optional[int] = None                 # editorial level (1-99)
+    level: Optional[int] = None                 # editorial level (1-99) — ceiling
+    best_role_score: Optional[int] = None       # best role score (0-100) — primary value driver
+    best_role: Optional[str] = None             # best tactical role name
     profile_tier: Optional[int] = None          # 1=scout-assessed, 2=data-derived, 3=skeleton
+    xp_modifier: Optional[int] = None           # -5 to +8, career experience modifier
 
     # Performance metrics (per-90, from FBref/StatsBomb)
     performance: dict[str, float] = field(default_factory=dict)

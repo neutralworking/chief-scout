@@ -14,7 +14,11 @@ from __future__ import annotations
 
 import math
 
-from valuation_core.config import DISAGREEMENT_THRESHOLD_STDEV
+from valuation_core.config import (
+    DISAGREEMENT_THRESHOLD_STDEV,
+    DOF_CONFIDENCE_BANDS,
+    DOF_COMMERCIAL_MULTIPLIER,
+)
 from valuation_core.features.profile_features import compute_confidence_state
 from valuation_core.models.ability_model import estimate_ability
 from valuation_core.models.market_model import estimate_market_value
@@ -24,6 +28,7 @@ from valuation_core.types import (
     ConfidenceReport,
     Decomposition,
     DisagreementReport,
+    DofAssessment,
     EvaluationContext,
     MarketValue,
     PlayerProfile,
@@ -37,13 +42,25 @@ def run_valuation(
     context: EvaluationContext | None = None,
     mode: ValuationMode = ValuationMode.SCOUT_DOMINANT,
     model_version: str = "v1.0",
+    dof_assessment: DofAssessment | None = None,
+    corrections: "CorrectionSet | None" = None,
 ) -> ValuationResponse:
     """
     Run the full 3-layer valuation pipeline.
 
     If no evaluation context is provided, returns market value only
     (no contextual fit or use value).
+
+    If corrections is provided (from dof_corrections.compute_corrections),
+    applies learned DoF calibration factors to the standard engine output.
     """
+    # ── DoF anchor mode ───────────────────────────────────────────────────────
+    # When a DoF assessment exists, it overrides the normal valuation flow.
+    # The DoF's valuations become the anchor, with confidence-driven bands.
+
+    if dof_assessment and mode == ValuationMode.DOF_ANCHOR:
+        return _run_dof_anchor_valuation(profile, dof_assessment, context, model_version)
+
     # ── Layer 1: Ability estimation ───────────────────────────────────────────
 
     ability = estimate_ability(profile)
@@ -52,6 +69,24 @@ def run_valuation(
 
     market_result = estimate_market_value(profile, ability, mode)
     market_value = market_result["market_value"]
+
+    # ── Apply DoF-learned corrections (if available) ─────────────────────────
+
+    if corrections and corrections.n_assessments > 0:
+        from valuation_core.calibration.dof_corrections import apply_corrections
+        correction_mult = apply_corrections(
+            market_value.central, profile, corrections, dof_assessment,
+        ) / max(market_value.central, 1)
+        market_value = MarketValue(
+            central=int(market_value.central * correction_mult),
+            p10=int(market_value.p10 * correction_mult),
+            p25=int(market_value.p25 * correction_mult),
+            p75=int(market_value.p75 * correction_mult),
+            p90=int(market_value.p90 * correction_mult),
+        )
+        # Also correct the scout/data anchored values for disagreement detection
+        market_result["scout_anchored_value"] = int(market_result["scout_anchored_value"] * correction_mult)
+        market_result["data_implied_value"] = int(market_result["data_implied_value"] * correction_mult)
 
     # ── Layer 3: Contextual adjustment (if context provided) ──────────────────
 
@@ -203,3 +238,130 @@ def _profile_confidence_score(profile: PlayerProfile) -> float:
         for g in profile.attributes.values()
     ]
     return sum(scores) / len(scores)
+
+
+def _run_dof_anchor_valuation(
+    profile: PlayerProfile,
+    dof: DofAssessment,
+    context: EvaluationContext | None,
+    model_version: str,
+) -> ValuationResponse:
+    """
+    DoF-anchored valuation: the DoF's valuations are near-absolute authority.
+
+    1. worth_any_team_meur → market_value.central (P50)
+    2. worth_right_team_meur → use_value.central
+    3. Bands from DoF confidence level
+    4. DoF dimension scores override pillar scores at 90/10 blend
+    5. Commercial score maps to multiplier
+    """
+    from valuation_core.types import ContextualFitBreakdown, UseValue
+
+    # ── Market value from DoF anchor ────────────────────────────────────────
+    central_eur = int(dof.worth_any_team_meur * 1_000_000)
+    band = DOF_CONFIDENCE_BANDS.get(dof.confidence, 0.20)
+
+    p50 = central_eur
+    p10 = int(central_eur * (1 - band * 1.28))
+    p25 = int(central_eur * (1 - band * 0.67))
+    p75 = int(central_eur * (1 + band * 0.67))
+    p90 = int(central_eur * (1 + band * 1.28))
+
+    market_value = MarketValue(central=p50, p10=p10, p25=p25, p75=p75, p90=p90)
+
+    # ── Use value from DoF ──────────────────────────────────────────────────
+    use_value_central = int(dof.worth_right_team_meur * 1_000_000)
+    context_premium = dof.worth_right_team_meur / max(dof.worth_any_team_meur, 0.1)
+
+    use_value = UseValue(
+        central=use_value_central,
+        contextual_fit_score=min(context_premium / 2.0, 1.0),
+        contextual_fit_breakdown=ContextualFitBreakdown(
+            system_archetype_fit=0.0,
+            system_threshold_fit=0.0,
+            system_personality_fit=0.0,
+            system_tag_compatibility=0.0,
+            squad_gap_fill=0.0,
+        ),
+    )
+
+    # ── Run standard layers for disagreement detection ──────────────────────
+    # 10% data retention keeps the disagreement detector working
+    ability = estimate_ability(profile)
+    standard_result = estimate_market_value(profile, ability, ValuationMode.SCOUT_DOMINANT)
+    standard_central = standard_result["market_value"].central
+
+    # ── Disagreement ────────────────────────────────────────────────────────
+    disagreement_flag = False
+    disagreement = None
+    delta = abs(central_eur - standard_central)
+    threshold = central_eur * 0.5  # flag if standard differs by >50%
+
+    if standard_central > 0 and delta > threshold:
+        disagreement_flag = True
+        divergent = _identify_divergent_features(profile)
+        disagreement = DisagreementReport(
+            scout_anchored_value=central_eur,
+            data_implied_value=standard_central,
+            divergent_features=divergent,
+            narrative=(
+                f"DoF values at €{central_eur/1e6:.0f}m (any team) / "
+                f"€{use_value_central/1e6:.0f}m (right team). "
+                f"Standard engine implies €{standard_central/1e6:.0f}m. "
+                f"Delta: {delta/1e6:.0f}m."
+            ),
+        )
+
+    # ── Confidence ──────────────────────────────────────────────────────────
+    conf_map = {"conviction": "high", "informed": "medium", "impression": "low"}
+    overall_conf = conf_map.get(dof.confidence, "medium")
+
+    confidence = ConfidenceReport(
+        profile_confidence=1.0 if dof.confidence == "conviction" else 0.7,
+        data_coverage=round(_compute_data_coverage(profile), 3),
+        overall_confidence=overall_conf,
+        band_width_ratio=round(p90 / max(p10, 1), 2),
+    )
+
+    # ── Decomposition (DoF-dominated) ───────────────────────────────────────
+    decomposition = Decomposition(
+        scout_profile_contribution=95.0,
+        performance_data_contribution=5.0,
+        contract_age_contribution=0.0,
+        market_context_contribution=0.0,
+        personality_adjustment=0.0,
+        playing_style_fit_adjustment=0.0,
+    )
+
+    # ── Commercial multiplier info in narrative ─────────────────────────────
+    commercial_mult = DOF_COMMERCIAL_MULTIPLIER.get(dof.commercial, 1.0)
+
+    narrative = (
+        f"DoF assessment ({dof.confidence}): "
+        f"Technical {dof.technical}/10, Physical {dof.physical}/10, "
+        f"Tactical {dof.tactical}/10, Personality {dof.personality}/10, "
+        f"Commercial {dof.commercial}/10 ({commercial_mult:.2f}x), "
+        f"Availability {dof.availability}/10. "
+        f"Worth €{dof.worth_any_team_meur:.0f}m (any team), "
+        f"€{dof.worth_right_team_meur:.0f}m (right team). "
+        f"Context premium: {context_premium:.2f}x."
+    )
+
+    from valuation_core.config import RISK_TAGS
+    personality_risks = [t for t in profile.personality_tags if t in RISK_TAGS]
+
+    return ValuationResponse(
+        market_value=market_value,
+        use_value=use_value,
+        decomposition=decomposition,
+        confidence=confidence,
+        disagreement_flag=disagreement_flag,
+        disagreement=disagreement,
+        stale_profile=False,
+        low_data_warning=False,
+        personality_risk_flags=personality_risks,
+        style_risk_flags=[],
+        comparable_transfers=[],
+        narrative=narrative,
+        model_version=model_version,
+    )

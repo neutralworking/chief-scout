@@ -34,10 +34,20 @@ export interface KeyMoment {
   source_url: string | null;
 }
 
+export interface XpMilestone {
+  milestone_key: string;
+  milestone_label: string;
+  xp_value: number;
+  milestone_date: string | null;
+  source: string;
+  details: Record<string, unknown> | null;
+}
+
 interface Props {
   entries: CareerEntry[];
   metrics: CareerMetrics | null;
   moments: KeyMoment[];
+  xpMilestones?: XpMilestone[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,13 +88,14 @@ function trajectoryColor(t: string | null): string {
   return "var(--text-secondary)";
 }
 
-type Tab = "career" | "moments";
+type Tab = "career" | "moments" | "xp";
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function CareerAndMoments({ entries, metrics, moments }: Props) {
+export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] }: Props) {
   const hasMoments = moments.length > 0;
   const hasCareer = entries.length > 0;
+  const hasXp = xpMilestones.length > 0;
   const [tab, setTab] = useState<Tab>(hasCareer ? "career" : "moments");
   const [momentsExpanded, setMomentsExpanded] = useState(false);
 
@@ -93,7 +104,12 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
   const internationalEntries = entries.filter((e) => e.team_type === "national_team");
   const youthEntries = entries.filter((e) => e.team_type === "youth" || e.team_type === "reserve");
 
-  if (!hasCareer && !hasMoments) return null;
+  if (!hasCareer && !hasMoments && !hasXp) return null;
+
+  // XP totals
+  const xpTotal = xpMilestones.reduce((sum, m) => sum + m.xp_value, 0);
+  const xpClamped = Math.max(-5, Math.min(8, xpTotal));
+  const sortedXp = [...xpMilestones].sort((a, b) => b.xp_value - a.xp_value);
 
   // Sort moments chronologically (earliest first)
   const sortedMoments = [...moments].sort((a, b) => {
@@ -106,6 +122,7 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
   const tabs: { key: Tab; label: string; count?: number }[] = [];
   if (hasCareer) tabs.push({ key: "career", label: "Career" });
   if (hasMoments) tabs.push({ key: "moments", label: "Key Moments", count: moments.length });
+  if (hasXp) tabs.push({ key: "xp", label: `XP (${xpClamped >= 0 ? "+" : ""}${xpClamped})` });
 
   const MOMENT_LIMIT = 8;
   const visibleMoments = momentsExpanded ? sortedMoments : sortedMoments.slice(0, MOMENT_LIMIT);
@@ -229,6 +246,42 @@ export function CareerAndMoments({ entries, metrics, moments }: Props) {
               {momentsExpanded ? "Show Less" : `See All (${sortedMoments.length}) →`}
             </button>
           )}
+        </div>
+      )}
+
+      {/* XP tab */}
+      {tab === "xp" && hasXp && (
+        <div>
+          <div className="flex flex-wrap gap-3 mb-3 text-center">
+            <MiniStat label="Total XP" value={`${xpClamped >= 0 ? "+" : ""}${xpClamped}`} color={xpClamped > 0 ? "var(--accent-tactical)" : xpClamped < 0 ? "#ef4444" : "var(--text-primary)"} />
+            <MiniStat label="Milestones" value={xpMilestones.length} />
+            <MiniStat label="Buffs" value={xpMilestones.filter(m => m.xp_value > 0).length} color="var(--accent-tactical)" />
+            <MiniStat label="Debuffs" value={xpMilestones.filter(m => m.xp_value < 0).length} color="#ef4444" />
+          </div>
+          <div className="space-y-0.5 max-h-[320px] overflow-y-auto">
+            {sortedXp.map((m) => (
+              <div
+                key={m.milestone_key}
+                className="flex gap-2 items-center px-2 py-1.5 -mx-2 rounded-md"
+              >
+                <span
+                  className="text-[10px] font-mono font-bold shrink-0 w-7 text-center rounded px-1 py-0.5"
+                  style={{
+                    color: m.xp_value > 0 ? "var(--accent-tactical)" : "#ef4444",
+                    backgroundColor: m.xp_value > 0 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+                  }}
+                >
+                  {m.xp_value > 0 ? "+" : ""}{m.xp_value}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium truncate block">{m.milestone_label}</span>
+                </div>
+                {m.milestone_date && (
+                  <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatDate(m.milestone_date)}</span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -21,6 +21,8 @@ export interface PlayerCard {
   // Engine valuation (joined from player_valuations)
   engine_value_p50: number | null;
   engine_confidence: string | null;
+  // Radar fingerprint: [DEF, CRE, ATK, PWR, PAC, DRV] for outfield, [STP, CMD, SWP, DST] for GK
+  fingerprint?: number[] | null;
 }
 
 export interface PlayerValuation {

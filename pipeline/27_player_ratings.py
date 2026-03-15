@@ -105,17 +105,62 @@ POSITION_WEIGHTS = {
     "CF":  {"Striker": 1.0, "Target": 0.7, "Sprinter": 0.6, "Powerhouse": 0.5, "Dribbler": 0.4, "Creator": 0.3},
 }
 
-# Tactical roles with primary + secondary model (mirrors radar route.ts)
+# Tactical roles — each name is the term the football world actually uses.
+# If the word came from Italian, Spanish, Portuguese, German, French, or
+# Argentine football culture and became THE word for that role, we use it.
+# No FIFA/FM generic compound names.
+#
+# Lineage in SACROSANCT System 4.
 TACTICAL_ROLES = {
-    "GK":  [("GK", "Cover", "Shot Stopper"), ("GK", "Passer", "Sweeper Keeper")],
-    "CD":  [("Destroyer", "Cover", "Stopper"), ("Cover", "Passer", "Ball-Playing CB"), ("Destroyer", "Commander", "Enforcer"), ("Cover", "Dribbler", "Ball-Carrier")],
-    "WD":  [("Engine", "Dribbler", "Overlapping FB"), ("Cover", "Passer", "Inverted FB"), ("Engine", "Sprinter", "Wing-Back")],
-    "DM":  [("Cover", "Destroyer", "Anchor"), ("Controller", "Passer", "Regista"), ("Destroyer", "Engine", "Ball Winner")],
-    "CM":  [("Controller", "Passer", "Deep Playmaker"), ("Engine", "Cover", "Box-to-Box"), ("Passer", "Creator", "Mezzala")],
-    "WM":  [("Dribbler", "Passer", "Wide Playmaker"), ("Engine", "Sprinter", "Traditional Winger"), ("Creator", "Dribbler", "Inside Forward")],
-    "AM":  [("Creator", "Dribbler", "Trequartista"), ("Controller", "Creator", "Advanced Playmaker"), ("Dribbler", "Striker", "Shadow Striker")],
-    "WF":  [("Dribbler", "Sprinter", "Inside Forward"), ("Striker", "Dribbler", "Wide Forward"), ("Sprinter", "Creator", "Inverted Winger")],
-    "CF":  [("Striker", "Target", "Target Man"), ("Target", "Powerhouse", "Complete Forward"), ("Striker", "Sprinter", "Poacher"), ("Dribbler", "Striker", "False 9"), ("Creator", "Striker", "Deep-Lying Forward")],
+    "GK": [
+        ("GK", "Cover",   "Torwart"),             # German: the traditional keeper. Kahn, Buffon, Courtois
+        ("GK", "Passer",  "Sweeper Keeper"),       # Neuer: high line, sweeps behind, commands area
+        ("GK", "Controller", "Ball-Playing GK"),   # Ederson, Ter Stegen: distribution as a weapon
+    ],
+    "CD": [
+        ("Cover", "Passer",     "Libero"),         # Beckenbauer → Stones: builds from back, reads danger
+        ("Destroyer", "Powerhouse", "Vorstopper"), # German: "front stopper" — Baresi, Chiellini, Konaté
+        ("Cover", "Controller",  "Sweeper"),        # Sammer → Hummels → Marquinhos: last man, reads play
+        ("Destroyer", "Commander", "Zagueiro"),     # Brazilian: the commanding CB — Lúcio, Thiago Silva
+    ],
+    "WD": [
+        ("Engine", "Dribbler",  "Lateral"),        # Portuguese/Spanish: the attacking fullback. Cafu, TAA
+        ("Controller", "Passer","Invertido"),       # Spanish: inverted FB. Lahm 2013 → Cancelo → Rico Lewis
+        ("Engine", "Sprinter",  "Carrilero"),       # Spanish: "lane runner" — Facchetti, Zanetti, Hakimi
+    ],
+    "DM": [
+        ("Cover", "Destroyer",  "Sentinelle"),     # French: the sentinel. Makélélé → Casemiro. Guards the gate
+        ("Controller", "Passer","Regista"),         # Gerson → Pirlo → Jorginho: tempo dictator from deep
+        ("Destroyer", "Engine", "Volante"),         # Brazilian: "steering wheel" — Gattuso, Kanté, Caicedo
+    ],
+    "CM": [
+        ("Controller", "Passer","Metodista"),       # Italian: "the methodist" — Xavi, Kroos, Pedri
+        ("Engine", "Cover",     "Tuttocampista"),   # Italian: "all-pitch player" — Lampard, Gerrard, Bellingham
+        ("Passer", "Creator",   "Mezzala"),         # Italian: "half-winger" — Barella. Half-space creator
+        ("Engine", "Destroyer", "Relayeur"),        # French: "relay" — Valverde. Links phases, tireless shuttle
+    ],
+    "WM": [
+        ("Creator", "Passer",   "Fantasista"),      # Italian: the wide creator. Silva, Bernardo, Foden
+        ("Sprinter", "Passer",  "Winger"),          # Garrincha, Figo, Saka. The oldest attacking role
+        ("Dribbler", "Striker", "Raumdeuter"),      # German: "space interpreter" — Müller coined it himself
+    ],
+    "AM": [
+        ("Creator", "Dribbler", "Trequartista"),    # Baggio → Zidane → Messi: the free-roaming 10
+        ("Controller", "Creator","Enganche"),        # Argentine: the hook. Riquelme → Dybala. Sees everything
+        ("Dribbler", "Striker", "Seconda Punta"),    # Italian: "second striker" — Del Piero, Havertz
+    ],
+    "WF": [
+        ("Dribbler", "Sprinter","Inside Forward"),   # Robben → Salah → Yamal. Historical English term from W-M era
+        ("Sprinter", "Striker", "Extremo"),           # Portuguese: the wide attacker — Henry, Mbappé
+        ("Creator", "Dribbler", "Inventor"),          # the creator who makes something from nothing — Grealish
+    ],
+    "CF": [
+        ("Target", "Powerhouse","Prima Punta"),      # Italian: "first striker" — Toni, Giroud. Holds up, aerial
+        ("Striker", "Sprinter", "Poacher"),           # Gerd Müller → Inzaghi → Haaland. Goals, movement, instinct
+        ("Striker", "Creator",   "Complete Forward"), # R9, Van Basten, Benzema. Scores AND creates — the total striker
+        ("Creator", "Controller","Falso Nove"),       # Hidegkuti 1953 → Messi 2009 → Firmino
+        ("Dribbler", "Striker", "Seconda Punta"),     # Totti → Griezmann. Between the lines
+    ],
 }
 
 # Position weights for overall calculation (which compounds matter per position)
@@ -226,10 +271,13 @@ def compute_overall(compound_scores, position, level=None, peak=None):
 
 
 def compute_best_role(model_scores, position):
-    """Compute the best tactical role for a player based on model scores and position."""
+    """Compute the best tactical role and its score for a player.
+
+    Returns (role_name, role_score) where role_score is 0-100.
+    """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
-        return None
+        return None, 0
 
     best_role = None
     best_score = -1
@@ -241,7 +289,7 @@ def compute_best_role(model_scores, position):
             best_score = score
             best_role = name
 
-    return best_role
+    return best_role, round(best_score)
 
 
 def has_differentiated_data(model_scores):
@@ -362,7 +410,7 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        best_role = compute_best_role(model_scores, position)
+        best_role, best_role_score = compute_best_role(model_scores, position)
 
         results.append({
             "person_id": pid,
@@ -372,6 +420,7 @@ def main():
             "position": position,
             "level": level,
             "best_role": best_role,
+            "best_role_score": best_role_score,
             "technical_score": compound_scores.get("Technical"),
             "physical_score": compound_scores.get("Physical"),
         })
@@ -405,7 +454,7 @@ def main():
             name = name_row[0] if name_row else f"#{r['person_id']}"
             compounds = ", ".join(f"{k}={v}" for k, v in r["compound_scores"].items())
             level_str = f" lvl={r['level']}" if r['level'] else ""
-            role_str = f" role={r['best_role']}" if r.get('best_role') else ""
+            role_str = f" role={r['best_role']}({r['best_role_score']})" if r.get('best_role') else ""
             print(f"    {name:25s} {r['position']:3s}  overall={r['overall']:2d}"
                   f"{level_str}{role_str}  [{compounds}]")
 
@@ -427,6 +476,8 @@ def main():
                 update["physical_score"] = r["physical_score"]
             if r.get("best_role"):
                 update["best_role"] = r["best_role"]
+            if r.get("best_role_score"):
+                update["best_role_score"] = r["best_role_score"]
             profile_updates.append(update)
 
         for i in range(0, len(profile_updates), CHUNK_SIZE):

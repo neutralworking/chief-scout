@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import DofAssessmentSection from "./DofAssessmentSection";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
@@ -447,6 +448,9 @@ export default function PlayerEditorPage() {
           <FieldCheckbox label="Homegrown" checked={!!profile.hg} onChange={(v) => setProfileField("hg", v)} />
         </div>
       </div>
+
+      {/* DoF Assessment */}
+      <DofAssessmentSection personId={personId} />
 
       {/* Tags */}
       <div className="glass rounded-xl p-4 mb-4">

@@ -6,7 +6,21 @@ import {
   POSITION_COLORS,
 } from "@/lib/types";
 import { PersonalityBadge } from "@/components/PersonalityBadge";
-import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
+import { getCardTheme, THEME_STYLES, CardTheme } from "@/lib/archetype-themes";
+import { MiniRadar } from "@/components/MiniRadar";
+
+// Hex colors for radar polygon per theme (matches theme accent)
+const RADAR_COLORS: Record<CardTheme, string> = {
+  general: "#a1a1aa",   // zinc-400
+  showman: "#e879f9",   // fuchsia-400
+  maestro: "#fcd34d",   // amber-300
+  captain: "#f87171",   // red-400
+  professor: "#60a5fa", // blue-400
+  default: "#4ade80",   // green-400
+};
+
+const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
+const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
 
 const PERSONALITY_NAMES: Record<string, string> = {
   ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
@@ -115,6 +129,19 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           </div>
           <PersonalityBadge personalityType={player.personality_type} size="mini" />
         </div>
+
+        {/* Row 5: MiniRadar fingerprint */}
+        {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
+          <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
+            <MiniRadar
+              values={player.fingerprint}
+              size={72}
+              color={RADAR_COLORS[theme]}
+              labels={player.position === "GK" ? GK_LABELS : OUTFIELD_LABELS}
+              showLabels
+            />
+          </div>
+        )}
       </div>
     </Link>
   );

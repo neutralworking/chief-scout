@@ -42,8 +42,24 @@ function stripCdata(text: string): string {
   return text.replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, "$1");
 }
 
+function decodeEntities(text: string): string {
+  // Decode numeric entities (&#8217; &#x2019; etc.)
+  let result = text.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)));
+  result = result.replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)));
+  // Decode named entities
+  const ENTITIES: Record<string, string> = {
+    amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ",
+    rsquo: "\u2019", lsquo: "\u2018", rdquo: "\u201D", ldquo: "\u201C",
+    mdash: "\u2014", ndash: "\u2013", hellip: "\u2026", euro: "\u20AC",
+    pound: "\u00A3", deg: "\u00B0", copy: "\u00A9", reg: "\u00AE",
+    "#39": "'",
+  };
+  result = result.replace(/&([a-zA-Z0-9#]+);/g, (match, name) => ENTITIES[name] ?? match);
+  return result;
+}
+
 function stripHtml(html: string): string {
-  return stripCdata(html).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").trim();
+  return decodeEntities(stripCdata(html).replace(/<[^>]+>/g, "")).trim();
 }
 
 interface RssItem {

@@ -2,7 +2,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score";
 
 // 13 SACROSANCT playing models → 4 core attributes each (mirrors radar route)
 const MODEL_ATTRIBUTES: Record<string, string[]> = {

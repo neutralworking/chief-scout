@@ -7,6 +7,7 @@ export interface PlayerCard {
   active: boolean;
   nation: string | null;
   club: string | null;
+  club_id: number | null;
   position: string | null;
   level: number | null;
   archetype: string | null;
@@ -18,6 +19,9 @@ export interface PlayerCard {
   true_mvt: string | null;
   market_value_eur: number | null;
   director_valuation_meur: number | null;
+  // Role score system
+  best_role: string | null;
+  best_role_score: number | null;
   // Engine valuation (joined from player_valuations)
   engine_value_p50: number | null;
   engine_confidence: string | null;

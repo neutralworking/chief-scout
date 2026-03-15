@@ -58,11 +58,15 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
             </h3>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            {player.level != null && (
-              <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none">
+            {player.best_role_score != null ? (
+              <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none" title={player.best_role ?? "Role Score"}>
+                {player.best_role_score}
+              </span>
+            ) : player.level != null ? (
+              <span className="text-lg font-mono font-bold text-[var(--text-muted)] leading-none" title="Legacy level">
                 {player.level}
               </span>
-            )}
+            ) : null}
             {showPursuit && player.pursuit_status && (
               <span
                 className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
@@ -75,7 +79,18 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
 
         {/* Row 2: Club, Nation, Age */}
         <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-3">
-          {player.club && <span className="truncate">{player.club}</span>}
+          {player.club && (
+            player.club_id ? (
+              <span
+                className="truncate hover:text-[var(--text-primary)] transition-colors"
+                onClick={(e) => { e.preventDefault(); window.location.href = `/clubs/${player.club_id}`; }}
+              >
+                {player.club}
+              </span>
+            ) : (
+              <span className="truncate">{player.club}</span>
+            )
+          )}
           {player.nation && (
             <>
               <span className="text-[var(--text-muted)]">·</span>
@@ -90,10 +105,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Personality */}
-        {mentalLabel && (
+        {/* Row 3: Personality + Best Role */}
+        {(mentalLabel || player.best_role) && (
           <div className="flex items-center gap-3 text-[10px] mb-3">
-            <span className="text-purple-400 font-medium">{mentalLabel}</span>
+            {mentalLabel && <span className="text-purple-400 font-medium">{mentalLabel}</span>}
+            {player.best_role && (
+              <>
+                {mentalLabel && <span className="text-[var(--text-muted)]">·</span>}
+                <span className="text-[var(--color-accent-tactical)] font-medium">{player.best_role}</span>
+              </>
+            )}
           </div>
         )}
 

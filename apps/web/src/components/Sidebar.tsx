@@ -12,7 +12,7 @@ const ALL_NAV_ITEMS = [
   { label: "Players", href: "/players" },
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },
-  { label: "Formations", href: "/formations" },
+  { label: "Formations", href: "/formations", stagingOnly: true },
   { label: "Fixtures", href: "/fixtures" },
   { label: "News Feed", href: "/news" },
   { label: "Free Agents", href: "/free-agents" },

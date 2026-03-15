@@ -20,6 +20,7 @@ SELECT
   p.place_of_birth,
   p.transfermarkt_id,
   p.wikidata_position,
+  p.club_id,
 
   n.name              AS nation,
   c.clubname          AS club,

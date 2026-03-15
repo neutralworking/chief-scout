@@ -53,7 +53,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
 
   const { data: club } = await supabaseServer
     .from("clubs")
-    .select("id, clubname, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, nations(name)")
+    .select("id, clubname, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, philosophy_id, nations(name), tactical_philosophies(name, slug)")
     .eq("id", clubId)
     .single();
 
@@ -70,6 +70,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   const shortName = (club as any).short_name;
   const logoUrl = (club as any).logo_url;
   const wikidataId = (club as any).wikidata_id;
+  const philosophyData = (club as any).tactical_philosophies;
 
   // Fetch players
   const { data: peopleData } = await supabaseServer
@@ -155,6 +156,14 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
               <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
                 {stadium}{stadiumCapacity ? ` (${stadiumCapacity.toLocaleString()})` : ""}
               </div>
+            )}
+            {philosophyData && (
+              <Link
+                href="/tactics"
+                className="inline-block text-[9px] font-medium px-1.5 py-0.5 rounded mt-1 bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30 hover:bg-[var(--color-accent-tactical)]/25 transition-colors"
+              >
+                {philosophyData.name}
+              </Link>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">

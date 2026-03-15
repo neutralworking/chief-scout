@@ -112,6 +112,18 @@ TAG_ALIASES: dict[str, str] = {
     "Quick": "Pace", "Pacey": "Pace",
     "Agile Dribbling": "Dribbling", "Skilled Dribbling": "Dribbling",
     "Aerial Dominance": "Aerial Ability",
+    "Physicality": "Strength",
+    "Ball Winning Ability": "Ball Winner",
+    "Precise Decision-Making": "Tactical Intelligence",
+    "Technique": "Technical Ability",
+    "Attacking Intelligence": "Vision", "Creativity": "Vision",
+    "Intelligent Attacking Runs": "Movement",
+    "Elegant Play": "Technical Ability",
+    "Change Of Pace": "Acceleration",
+    "Communication": "Leadership", "Authority": "Leadership",
+    "Commanding Presence": "Leadership",
+    "Explosive Speed": "Pace",
+    "Intelligent Movement": "Movement",
 }
 
 
@@ -366,6 +378,16 @@ for i, (person_id, name, wiki_url) in enumerate(players):
     print(f"-> {', '.join(t[0] for t in tag_ids)}")
 
     if not DRY_RUN:
+        # On --force, replace old style tags with new ones (delete stale, add fresh)
+        if args.force:
+            new_tag_ids = {t[1] for t in tag_ids}
+            cur.execute("""
+                DELETE FROM player_tags
+                WHERE player_id = %s AND tag_id IN (
+                    SELECT id FROM tags WHERE category = 'style'
+                ) AND tag_id != ALL(%s)
+            """, (person_id, list(new_tag_ids)))
+
         for tag_name, tag_id in tag_ids:
             cur.execute("""
                 INSERT INTO player_tags (player_id, tag_id)

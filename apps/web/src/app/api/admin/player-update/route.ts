@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { person_id, table, updates } = body as {
     person_id: number;
-    table: "player_status" | "player_profiles" | "player_market" | "people";
+    table: "player_status" | "player_profiles" | "player_market" | "people" | "player_personality";
     updates: Record<string, unknown>;
   };
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing person_id, table, or updates" }, { status: 400 });
   }
 
-  const ALLOWED_TABLES = ["player_status", "player_profiles", "player_market", "people"];
+  const ALLOWED_TABLES = ["player_status", "player_profiles", "player_market", "people", "player_personality"];
   if (!ALLOWED_TABLES.includes(table)) {
     return NextResponse.json({ error: `Table ${table} not allowed` }, { status: 400 });
   }

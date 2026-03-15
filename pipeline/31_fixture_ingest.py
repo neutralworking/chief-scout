@@ -12,8 +12,10 @@ Requires FOOTBALL_DATA_API_KEY in .env / .env.local
 Free tier: 10 requests/minute — built-in throttle.
 """
 import argparse
+import re
 import sys
 import time
+import unicodedata
 from datetime import datetime, timezone
 
 import requests
@@ -83,89 +85,162 @@ sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 # ── Club name matching ─────────────────────────────────────────────────────────
 
-def load_clubs():
-    """Load all clubs from Supabase for name matching."""
-    result = sb.table("clubs").select("id, clubname, short_name").execute()
-    clubs = {}
-    for row in result.data or []:
-        name = (row.get("clubname") or "").strip().lower()
-        short = (row.get("short_name") or "").strip().lower()
-        if name:
-            clubs[name] = row["id"]
-        if short:
-            clubs[short] = row["id"]
-    return clubs
-
-def normalize_team_name(name: str) -> str:
-    """Normalize team name for matching."""
+def _strip_suffixes(name: str) -> str:
+    """Strip common club suffixes/prefixes and normalize unicode for comparison."""
     n = name.lower().strip()
-    # Common suffixes/prefixes to strip
-    for suffix in [" fc", " cf", " sc", " ac", " ss"]:
+    # Normalize unicode (é→e, ü→u, etc.) for consistent matching
+    n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode("ascii")
+    # Strip trailing year tags like "FC 1909", "1848", "1901", "1907", "1913"
+    n = re.sub(r"\s+\d{4}\s*$", "", n).strip()
+    # Strip common suffixes
+    for suffix in [" fc", " cf", " sc", " ac", " ss", " bc", " cfc",
+                   " wfc", " w.f.c", " w.f.c.", " calcio"]:
         if n.endswith(suffix):
             n = n[:-len(suffix)].strip()
-    # Common mappings
-    ALIASES = {
-        "wolverhampton wanderers": "wolves",
-        "west ham united": "west ham",
-        "tottenham hotspur": "tottenham",
-        "newcastle united": "newcastle",
-        "nottingham forest": "nott'm forest",
-        "leicester city": "leicester",
-        "manchester city": "man city",
-        "manchester united": "man united",
-        "brighton & hove albion": "brighton",
-        "afc bournemouth": "bournemouth",
-        "crystal palace": "crystal palace",
-        "atlético de madrid": "atletico madrid",
-        "atletico de madrid": "atletico madrid",
-        "real sociedad de fútbol": "real sociedad",
-        "rc celta de vigo": "celta vigo",
-        "rcd espanyol de barcelona": "espanyol",
-        "deportivo alavés": "alaves",
-        "ca osasuna": "osasuna",
-        "borussia dortmund": "dortmund",
-        "borussia mönchengladbach": "monchengladbach",
-        "bayer 04 leverkusen": "bayer leverkusen",
-        "rb leipzig": "rb leipzig",
-        "eintracht frankfurt": "eintracht frankfurt",
-        "1. fc union berlin": "union berlin",
-        "vfb stuttgart": "stuttgart",
-        "vfl wolfsburg": "wolfsburg",
-        "sc freiburg": "freiburg",
-        "fc augsburg": "augsburg",
-        "1. fsv mainz 05": "mainz",
-        "1899 hoffenheim": "hoffenheim",
-        "vfl bochum 1848": "bochum",
-        "fc bayern münchen": "bayern munich",
-        "as roma": "roma",
-        "ssc napoli": "napoli",
-        "inter milan": "inter",
-        "ac milan": "milan",
-        "atalanta bc": "atalanta",
-        "paris saint-germain": "psg",
-        "olympique de marseille": "marseille",
-        "olympique lyonnais": "lyon",
-        "as monaco": "monaco",
-        "stade rennais": "rennes",
-        "rc lens": "lens",
-        "losc lille": "lille",
-    }
+    # Strip common prefixes (only short known ones to avoid over-stripping)
+    for prefix in ["fc ", "ac ", "as ", "ssc ", "ss ", "sc ", "rc ", "afc ",
+                    "rcd ", "acf ", "us ", "ud ", "cd ", "ca ", "sv ", "aj ",
+                    "club "]:
+        if n.startswith(prefix):
+            n = n[len(prefix):].strip()
+    return n
+
+
+# Maps football-data.org names (after suffix-stripping) → DB clubname (lowercased).
+# Only needed when the API name fundamentally differs from the DB name.
+ALIASES = {
+    # Premier League — API names after _strip_suffixes → DB clubname (lowercased)
+    "brighton & hove albion": "brighton",
+    "brighton and hove albion": "brighton",
+    # La Liga
+    "atletico de madrid": "atletico madrid",
+    "real sociedad de futbol": "real sociedad",
+    "celta de vigo": "celta vigo",
+    "espanyol de barcelona": "espanyol",
+    "deportivo alaves": "alaves",
+    "real betis balompie": "real betis",
+    "las palmas": "las palmas",
+    "rayo vallecano de madrid": "rayo vallecano",
+    "ca osasuna": "osasuna",
+    # Bundesliga
+    "bayer 04 leverkusen": "bayer leverkusen",
+    "1. fc union berlin": "union berlin",
+    "1. fc heidenheim": "heidenheim",
+    "1. fsv mainz 05": "mainz 05",
+    "1899 hoffenheim": "tsg hoffenheim",
+    "vfb stuttgart": "stuttgart",
+    "bayern munchen": "bayern munich",
+    "werder bremen": "werder bremen",
+    # Serie A
+    "internazionale milano": "inter",
+    "inter milan": "inter",
+    "parma calcio": "parma",
+    # Ligue 1
+    "paris saint-germain": "paris st. germain",
+    "paris saint germain": "paris st. germain",
+    "olympique de marseille": "marseille",
+    "olympique lyonnais": "lyon",
+    "olympique marseille": "marseille",
+    "stade rennais": "rennes",
+    "stade brestois": "stade brestois",
+    "losc lille": "lille",
+    "montpellier hsc": "hsc montpellier",
+    "stade de reims": "reims",
+    "saint-etienne": "saint-etienne",
+    "strasbourg alsace": "strasbourg",
+    "clermont foot": "clermont foot",
+    "angers sco": "angers",
+}
+
+
+def load_clubs():
+    """Load all clubs from Supabase for name matching.
+
+    Builds a lookup dict keyed on multiple normalized variants of each club name,
+    so both API-side and DB-side names can be matched after normalization.
+    Paginates to fetch all rows (Supabase default limit is 1000).
+    """
+    all_rows = []
+    page_size = 1000
+    offset = 0
+    while True:
+        result = (
+            sb.table("clubs")
+            .select("id, clubname, short_name")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        batch = result.data or []
+        all_rows.extend(batch)
+        if len(batch) < page_size:
+            break
+        offset += page_size
+
+    clubs = {}
+    # Two passes: first non-women's clubs, then women's (so men's teams take priority
+    # on colliding stripped keys like "liverpool" from both "Liverpool" and "Liverpool WFC").
+    women_suffixes = ("wfc", "women", "w.f.c", "w.f.c.", "femeni", "feminin", "femenino")
+    for row in all_rows:
+        cid = row["id"]
+        cname = (row.get("clubname") or "").strip().lower()
+        if any(cname.endswith(s) for s in women_suffixes):
+            continue
+        for field in ("clubname", "short_name"):
+            raw = (row.get(field) or "").strip()
+            if not raw:
+                continue
+            # Raw lowercase — always store (last writer wins, but exact names are unique)
+            clubs[raw.lower()] = cid
+            # Stripped version — first writer wins to prefer canonical entries
+            # (e.g. "Barcelona" id=411 before "Barcelona SC" id=413)
+            stripped = _strip_suffixes(raw)
+            if stripped and stripped not in clubs:
+                clubs[stripped] = cid
+    # Second pass: women's clubs (only fill in keys not already taken)
+    for row in all_rows:
+        cid = row["id"]
+        cname = (row.get("clubname") or "").strip().lower()
+        if not any(cname.endswith(s) for s in women_suffixes):
+            continue
+        for field in ("clubname", "short_name"):
+            raw = (row.get(field) or "").strip()
+            if not raw:
+                continue
+            key = raw.lower()
+            if key not in clubs:
+                clubs[key] = cid
+            stripped = _strip_suffixes(raw)
+            if stripped and stripped not in clubs:
+                clubs[stripped] = cid
+    return clubs
+
+
+def normalize_team_name(name: str) -> str:
+    """Normalize a football-data.org team name for matching."""
+    n = _strip_suffixes(name)
     return ALIASES.get(n, n)
+
 
 def match_club(team_name: str, club_lookup: dict) -> int | None:
     """Try to match a football-data.org team name to a clubs.id."""
     normalized = normalize_team_name(team_name)
-    # Direct match
+    # Direct match on normalized name
     if normalized in club_lookup:
         return club_lookup[normalized]
     # Try the raw lowercase name
     raw = team_name.lower().strip()
     if raw in club_lookup:
         return club_lookup[raw]
-    # Partial match — if the normalized name is contained in a club name
+    # Try suffix-stripped version of raw name (without alias lookup)
+    stripped = _strip_suffixes(team_name)
+    if stripped in club_lookup:
+        return club_lookup[stripped]
+    # Partial match — if the normalized name is contained in a club name or vice versa
+    # Both sides must be at least 4 chars to avoid spurious matches (e.g. "Ba" in "Bayer")
     for club_name, club_id in club_lookup.items():
-        if normalized in club_name or club_name in normalized:
-            return club_id
+        if len(normalized) >= 4 and len(club_name) >= 4:
+            if normalized in club_name or club_name in normalized:
+                return club_id
     return None
 
 # ── Fetch fixtures ─────────────────────────────────────────────────────────────

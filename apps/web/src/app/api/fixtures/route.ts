@@ -10,13 +10,13 @@ export async function GET(req: NextRequest) {
   const competition = searchParams.get("competition");
   const clubId = searchParams.get("club");
   const days = parseInt(searchParams.get("days") ?? "30", 10);
-  const status = searchParams.get("status") ?? "SCHEDULED";
+  const status = searchParams.get("status");
 
   // Build query
   let query = supabaseServer
     .from("fixtures")
     .select("*")
-    .eq("status", status)
+    .in("status", status ? [status] : ["SCHEDULED", "TIMED"])
     .gte("utc_date", new Date().toISOString())
     .lte("utc_date", new Date(Date.now() + days * 86400000).toISOString())
     .order("utc_date", { ascending: true });

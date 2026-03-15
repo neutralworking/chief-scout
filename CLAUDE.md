@@ -19,6 +19,7 @@ The old monolithic `players` table has been split. A **`players` view** exists f
 | `attribute_grades` | Per-attribute scores | player_id, attribute, scout_grade, stat_score |
 | `player_tags` | Tag associations | player_id → tags(id) |
 | `player_field_sources` | Verified data provenance | player_id, field, value, confirmed |
+| `player_trait_scores` | Behavioral/tactical traits | player_id, trait, category, severity (1-10), source |
 
 **Write rules**: Never write to the `players` view. Target the specific table:
 - Profile data → `player_profiles` (key: `person_id`)
@@ -186,6 +187,7 @@ CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_s
 | `/free-agents` | Free agent list with full scouting intelligence |
 | `/squad` | Squad builder |
 | `/scout-pad` | Scout pad |
+| `/api/players/[id]/assessment` | Four-pillar assessment scores (Technical, Tactical, Mental, Physical) |
 | `/admin` | Pipeline & data health dashboard |
 
 ## CSS Variables

@@ -12,6 +12,7 @@ import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
 import { ValuationPanel } from "@/components/ValuationPanel";
+import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import type { PlayerValuation } from "@/lib/types";
 
 interface IntelligenceCard {
@@ -400,6 +401,9 @@ export default async function PlayerDetailPage({
           </div>
         </div>
       )}
+
+      {/* Four-Pillar Assessment */}
+      <FourPillarDashboard playerId={player.person_id} />
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">

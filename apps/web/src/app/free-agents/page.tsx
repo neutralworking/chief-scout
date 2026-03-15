@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
+import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import Link from "next/link";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
@@ -174,6 +175,9 @@ function FreeAgentsContent() {
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
                 <th className="text-right py-2 px-4 font-medium hidden lg:table-cell">Value</th>
+                <th className="text-right py-2 px-4 font-medium w-16 hidden lg:table-cell">
+                  <span className="text-[var(--color-accent-physical)]">Phys</span>
+                </th>
                 <th className="text-right py-2 px-4 font-medium w-20">
                   {tab === "free" ? "Status" : "Expires"}
                 </th>
@@ -204,6 +208,21 @@ function FreeAgentsContent() {
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
                     <td className="py-2 px-4 text-right text-xs font-mono text-[var(--text-secondary)] hidden lg:table-cell">
                       {formatValue(player.market_value_eur)}
+                    </td>
+                    <td className="py-2 px-4 text-right hidden lg:table-cell">
+                      {(() => {
+                        const playerAge = computeAge(player.dob);
+                        const curve = ageCurveScore(player.position, playerAge);
+                        return (
+                          <span className={`text-[10px] font-mono font-bold ${
+                            curve >= 80 ? "text-[var(--color-accent-physical)]" :
+                            curve >= 60 ? "text-[var(--text-secondary)]" :
+                            "text-[var(--text-muted)]"
+                          }`}>
+                            {curve}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-2 px-4 text-right">
                       {tab === "free" ? (

@@ -4,15 +4,17 @@
 
 ---
 
-## Overview: Three Systems, Three Questions
+## Overview: Five Systems
 
 | System | Question | Storage | Mutability | Assessment |
 |--------|----------|---------|------------|------------|
 | **Personality** | WHO is this player? | `player_personality` | Slow — character changes over years | Scout observation, behavioral inference |
 | **Archetype** | HOW does this player play? | `player_profiles` | Medium — evolves with age/role | Attribute scores, statistical analysis |
 | **Status** | WHAT is their current state? | `player_status` | Fast — changes week-to-week | News, match data, reports |
+| **Tactical Roles** | WHERE do they fit in a formation? | `tactical_roles` | Stable — role definitions evolve slowly | Archetype + personality + position matching |
+| **Four-Pillar Assessment** | OVERALL — how do they score? | Computed (API) | Real-time — recomputed on access | Technical + Tactical + Mental + Physical (25% each) |
 
-These are **not interchangeable**. A Commander archetype can have any personality type. A General personality can play as any archetype. Status tags describe the now, not the forever.
+These are **not interchangeable**. A Commander archetype can have any personality type. A General personality can play as any archetype. Status tags describe the now, not the forever. The four-pillar assessment synthesizes all systems into a unified score.
 
 ---
 
@@ -243,6 +245,106 @@ Normalized to 0-100. A score ≥ 70 = strong fit, 50-69 = adequate, < 50 = poor 
 
 ---
 
+## System 5: Four-Pillar Assessment (OVERALL)
+
+The unified assessment framework that synthesizes all other systems into four equally-weighted pillars (25% each), producing a single 0-100 overall score per player.
+
+### The Four Pillars
+
+| Pillar | Question | Color | CSS Variable | Primary Sources |
+|--------|----------|-------|-------------|-----------------|
+| **Technical** | How good are they? | Purple | `--color-accent-technical` | `attribute_grades` → 13 model scores → position-weighted compound |
+| **Tactical** | How do they fit systems? | Green | `--color-accent-tactical` | Role fit + flexibility + trait profile |
+| **Mental** | Who are they psychologically? | Blue | `--color-accent-mental` | Personality-role alignment + strength + stability |
+| **Physical** | Are they available & durable? | Gold | `--color-accent-physical` | Age curve + availability (FBRef minutes) + trajectory |
+
+### Pillar Computation
+
+#### Technical (Purple)
+- Position-weighted average of the 13 archetype model scores (from `POSITION_WEIGHTS`)
+- Level-anchored: blended with `player_profiles.level` based on data quality weight
+- Data quality weight ranges from 0.3 (EAFC-only) to 1.0 (scout-assessed)
+
+#### Tactical (Green)
+- **Role Fit (40%)**: Best tactical role score (from `scorePlayerForRole()`)
+- **Flexibility (30%)**: Count of viable roles (score > 40% of max). 1 role=20, 3-4=50, 6+=80
+- **Trait Profile (30%)**: Severity-scored traits matched against role demands via `TRAIT_ROLE_IMPACT`
+
+#### Mental (Blue)
+- **Personality-Role Alignment (50%)**: How well personality type matches best-fit role's personality preferences
+- **Mental Strength (30%)**: `(competitiveness + coachability) / 2` from `player_personality`
+- **Mental Stability (20%)**: From `player_status.mental_tag` (Sharp=100, Confident=75, Low=40, Fragile=15)
+
+#### Physical (Gold)
+- **Availability (40%)**: Minutes played / possible minutes from `fbref_player_season_stats` (last 3 seasons, recency-weighted)
+- **Age Curve (35%)**: Position-specific peak windows. Within peak=100, each year below: -8, above: -10. Min 20.
+- **Trajectory (25%)**: From `career_metrics.trajectory` (rising=90, peak=80, declining=35)
+- **NOT speed/strength** — those are in Technical via Sprinter/Powerhouse models
+
+### Age Curve Peak Windows
+
+| Position | Peak Start | Peak End |
+|----------|-----------|----------|
+| GK | 27 | 34 |
+| CD | 26 | 32 |
+| WD | 25 | 30 |
+| DM | 26 | 32 |
+| CM | 25 | 31 |
+| WM | 24 | 29 |
+| AM | 24 | 30 |
+| WF | 24 | 29 |
+| CF | 25 | 31 |
+
+### Trait Severity System
+
+Traits stored in `player_trait_scores` with severity 1-10. Categories:
+
+| Category | Traits |
+|----------|--------|
+| **Style** | flamboyant, direct, patient, elegant |
+| **Physical** | long_throws, aerial_threat, endurance |
+| **Tactical** | press_resistant, progressive_carrier, set_piece_specialist, positional_discipline, high_press, counter_attack_threat, build_up_contributor |
+| **Behavioral** | big_game_player, inconsistent, clutch, hot_headed, quiet_leader |
+
+Trait × Role impact is defined in `trait-role-impact.ts`. Positive impact = trait helps in this role, negative = hinders.
+
+### Commercial/Career Modifier
+
+Not a pillar — applied as a 0.7x to 1.5x multiplier on valuation:
+- News buzz + sentiment from `news_sentiment_agg`
+- Contract situation (months remaining)
+- Trajectory premium/discount
+
+### Confidence Levels
+
+| Level | Meaning |
+|-------|---------|
+| **high** | All 4 pillars have real data sources |
+| **medium** | 3 of 4 pillars have real data |
+| **low** | 2 or fewer pillars have real data |
+
+### Per-Screen Display Guidelines
+
+| Screen | Pillar Focus | Display |
+|--------|-------------|---------|
+| Player Detail | All 4 pillars | Full dashboard with expandable breakdowns |
+| Player List | Overall + spark bars | 4 micro-bars (purple/green/blue/gold) |
+| Free Agents | Physical + Overall | Physical pillar score column (age curve + availability) |
+| Formations | Tactical + Mental | Personality-role alignment indicator per assigned player |
+| Editor | All (organized by pillar) | Technical (attributes), Tactical (traits), Mental (personality), Physical (fitness/contract) |
+
+### API
+
+`GET /api/players/[id]/assessment` returns `FullAssessment`:
+- `pillars`: `{ technical, tactical, mental, physical, overall, confidence }`
+- `technical`: Model scores, position score, data weight, sources
+- `tactical`: Role fit, best role, flexibility, viable role count, trait profile
+- `mental`: Personality-role alignment, mental strength, stability, personality type, mental tag
+- `physical`: Availability, age curve, trajectory, age, trajectory label
+- `commercial`: Multiplier, buzz, sentiment, contract months, trajectory bonus
+
+---
+
 ## System Interactions
 
 ### Personality × Archetype
@@ -267,6 +369,15 @@ Personality and archetype are orthogonal. Any personality can appear with any ar
 | Joga Bonito | I (Instinctive) + S (Soloist) | Creative freedom, individual expression |
 | Catenaccio | A (Analytical) + N (Intrinsic) + L (Leader) | Disciplined shape + vocal organization |
 
+### Pillar Interactions
+
+| Interaction | Effect | Example |
+|-------------|--------|---------|
+| **Mental × Tactical** | Personality-role alignment boosts/penalizes tactical fit | Leader + Controller = strong Libero. Maverick in Anchor role = penalty |
+| **Technical × Tactical** | `keyAttributes` per role enables precision fit | High Dribbler who lacks First Touch fails as Mezzala |
+| **Physical × Value** | Age curve directly modifies commercial value | Veteran with strong Analytical personality gets intelligence bonus |
+| **Traits × Roles** | Trait severity scores differentiate within archetypes | Two Controllers score differently for Regista if one is press_resistant:8 |
+
 ### Status × Pursuit
 
 Status tags inform pursuit decisions:
@@ -286,6 +397,7 @@ Status tags inform pursuit decisions:
 | Attributes | `attribute_grades` | `player_id` (FK → people) | Per-attribute scout_grade, stat_score |
 | Tags | `player_tags` | `player_id` (FK → people) | Generic tag associations |
 | Sources | `player_field_sources` | `player_id` (FK → people) | Data provenance |
+| Traits | `player_trait_scores` | `player_id` (FK → people) | Per-trait severity (1-10), category, source |
 
 ### Key Views
 

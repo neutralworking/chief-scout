@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
-import { scorePlayerForRole, getRoleReference, getFormationBlueprint, getSlotBlueprint, type SlotBlueprint } from "@/lib/formation-intelligence";
+import { scorePlayerForRole, getRoleReference, getFormationBlueprint, getSlotBlueprint, ROLE_INTELLIGENCE, type SlotBlueprint } from "@/lib/formation-intelligence";
 
 interface FormationSlot {
   formation_id: number;
@@ -376,7 +376,17 @@ export function FormationDetail({
                                   {player.archetype && (
                                     <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>
                                   )}
-                                  {player.personality_type && (
+                                  {player.personality_type && slot.role && (() => {
+                                    const intel = ROLE_INTELLIGENCE[slot.role!.name];
+                                    const pIdx = intel?.personalities.indexOf(player.personality_type!) ?? -1;
+                                    const alignColor = pIdx === 0 ? "text-green-400" : pIdx === 1 ? "text-amber-400" : pIdx === 2 ? "text-[var(--color-accent-personality)]" : "text-[var(--text-muted)]";
+                                    return (
+                                      <span className={`text-[9px] font-mono font-bold ${alignColor}`} title={pIdx >= 0 ? `Personality fit: ${pIdx === 0 ? "ideal" : pIdx === 1 ? "good" : "fair"}` : "Personality mismatch"}>
+                                        {player.personality_type}
+                                      </span>
+                                    );
+                                  })()}
+                                  {player.personality_type && !slot.role && (
                                     <span className="text-[9px] font-mono text-[var(--color-accent-personality)]">{player.personality_type}</span>
                                   )}
                                   {player.club && (

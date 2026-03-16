@@ -81,7 +81,23 @@ MODEL_ATTRIBUTES = {
     "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
     "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
     "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    "GK":          ["agility", "footwork", "handling", "reactions"],
+    "GK":          ["reactions", "anticipation", "awareness", "composure"],
+}
+
+# Fallback aliases: when the primary attribute is missing, try these instead.
+# Only used if the primary has zero data. Keeps models functional with sparse data.
+ATTRIBUTE_ALIASES = {
+    "unpredictability": "skills",       # flair/tricks proxy
+    "guile":            "creativity",   # cunning ≈ creativity
+    "decisions":        "composure",    # decision-making under pressure
+    "communication":    "leadership",   # vocal ≈ captain material
+    "concentration":    "awareness",    # focus ≈ spatial awareness
+    "drive":            "intensity",    # motivation ≈ work rate
+    "versatility":      "stamina",      # engine coverage ≈ fitness
+    "discipline":       "marking",      # tactical discipline ≈ positional
+    "blocking":         "tackling",     # defensive action proxy
+    "clearances":       "heading",      # aerial clearances ≈ heading
+    "duels":            "aggression",   # physical contests ≈ aggression
 }
 
 # 4 compound groupings
@@ -197,25 +213,38 @@ def _safe(val):
     return val
 
 
-def compute_model_scores(grades):
+def compute_model_scores(grades, level=None):
     """Compute model scores (0-100) from best-source attribute grades.
 
     scout_grade uses a 1-20 scale; stat_score uses a 1-10 scale.
     Both are normalised to 0-20 before averaging.
+
+    Returns (anchored_scores, raw_scores):
+      - anchored_scores: blended with level when data is thin — used for
+        compound/overall calculations where we want to avoid penalising
+        players with incomplete data.
+      - raw_scores: pure data-driven scores — used for role selection where
+        inflated thin-data models would distort role fit.
     """
     # Build best-grade-per-attribute map (prefer highest-priority source)
-    # Exclude eafc_inferred — flat 10/10 junk data inflates all scores
     best = {}  # attr -> (normalised_score_0_20, priority)
     for g in grades:
         source = g.get("source", "")
-        if source == "eafc_inferred":
-            continue  # skip — all values are flat 10, useless for differentiation
         attr = g["attribute"].lower().replace(" ", "_")
         # Normalise to 0-20 scale regardless of source
+        # scout_grade: already 1-20
+        # stat_score scale varies by source:
+        #   - scout_assessment: scout_grade 1-20
+        #   - understat/computed: stat_score 1-10
+        #   - statsbomb: stat_score 1-20
+        #   - eafc_inferred: stat_score 1-20 (re-imported from EA FC 25)
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20, clamped
+            if source in ("statsbomb", "eafc_inferred"):
+                score_20 = min(g["stat_score"], 20)  # already 1-20
+            else:
+                score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20
         else:
             continue
         priority = SOURCE_PRIORITY.get(source, 0)
@@ -223,16 +252,48 @@ def compute_model_scores(grades):
         if existing is None or priority > existing[1]:
             best[attr] = (score_20, priority)
 
-    # Compute each model score
-    model_scores = {}
+    # Level-derived anchor: what a player of this level "should" score
+    # Conservative: level itself, not inflated. A level 85 player anchors at 85.
+    level_anchor = min(level, 95) if level else None
+
+    # Compute each model score — both raw and anchored variants
+    #
+    # Coverage penalty: if only 2 of 4 attributes are present, the average
+    # is unreliable. We penalise by scaling toward a conservative midpoint (50)
+    # proportional to missing data. This prevents 2 maxed attrs from scoring 90.
+    #
+    # Formula: raw_score = avg * 4.5 (maps 0-20 → 0-90)
+    #          coverage  = attrs_found / attrs_total
+    #          penalised = raw_score * coverage + 50 * (1 - coverage)
+    #
+    # So 4/4 attrs → pure score. 2/4 → 50% score + 50% midpoint. 1/4 → 75% midpoint.
+    anchored_scores = {}
+    raw_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
-        values = [best[a][0] for a in attrs if a in best]
+        # Try each attribute, falling back to alias if primary is missing
+        values = []
+        for a in attrs:
+            if a in best:
+                values.append(best[a][0])
+            elif ATTRIBUTE_ALIASES.get(a) in best:
+                values.append(best[ATTRIBUTE_ALIASES[a]][0])
         if values:
             avg = sum(values) / len(values)
-            # Convert from 0-20 to 0-100, cap at 99 (no perfect scores)
-            model_scores[model] = round(min(avg * 5, 99))
+            full_score = min(avg * 5, 99)
 
-    return model_scores
+            # Coverage penalty for thin data
+            coverage = len(values) / len(attrs)
+            raw_score = full_score * coverage + 50 * (1 - coverage)
+            raw_scores[model] = round(raw_score)
+
+            # Anchored version: blend with level when data is thin (<3 of 4 attrs)
+            anchored = raw_score
+            if level_anchor and len(values) < 3:
+                data_weight = len(values) / len(attrs)
+                anchored = raw_score * data_weight + level_anchor * (1 - data_weight)
+            anchored_scores[model] = round(anchored)
+
+    return anchored_scores, raw_scores
 
 
 def compute_compound_scores(model_scores):
@@ -399,13 +460,14 @@ def main():
             stats["skipped_no_position"] += 1
             continue
 
-        model_scores = compute_model_scores(grades)
+        anchored_scores, raw_scores = compute_model_scores(grades, level=profile.get("level"))
 
-        if not has_differentiated_data(model_scores):
+        if not has_differentiated_data(anchored_scores):
             stats["skipped_flat"] += 1
             continue
 
-        compound_scores = compute_compound_scores(model_scores)
+        # Anchored scores for compound/overall (tolerant of thin data)
+        compound_scores = compute_compound_scores(anchored_scores)
 
         position = profile["position"]
         level = profile.get("level")
@@ -422,12 +484,13 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        best_role, best_role_score = compute_best_role(model_scores, position)
+        # Raw scores for role selection (no level inflation distorting role fit)
+        best_role, best_role_score = compute_best_role(raw_scores, position)
 
         results.append({
             "person_id": pid,
             "overall": overall,
-            "model_scores": model_scores,
+            "model_scores": anchored_scores,
             "compound_scores": compound_scores,
             "position": position,
             "level": level,
@@ -500,6 +563,20 @@ def main():
             stats["updated_overall"] += len(chunk)
 
         print(f"\n  Updated player_profiles.overall: {stats['updated_overall']}")
+
+        # Clear stale best_role_score for players that were skipped (flat/no data)
+        # These keep old inflated scores from previous runs
+        processed_ids = [r["person_id"] for r in results]
+        if processed_ids:
+            cur.execute("""
+                UPDATE player_profiles
+                SET best_role_score = NULL, best_role = NULL
+                WHERE best_role_score IS NOT NULL
+                AND person_id NOT IN %s
+            """, (tuple(processed_ids),))
+            stale_cleared = cur.rowcount
+            if stale_cleared:
+                print(f"  Cleared stale best_role_score: {stale_cleared} players")
 
         # Write compound scores as attribute_grades (source='computed')
         # stat_score is 0-20 scale, so convert from 0-100

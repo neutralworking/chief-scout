@@ -125,7 +125,7 @@ def find_csv_files() -> list[Path]:
         return [p] if p.exists() else []
     if not DATA_DIR.exists():
         return []
-    return sorted(DATA_DIR.glob("*.csv")) + sorted(DATA_DIR.glob("*.CSV"))
+    return sorted(DATA_DIR.rglob("*.csv")) + sorted(DATA_DIR.rglob("*.CSV"))
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

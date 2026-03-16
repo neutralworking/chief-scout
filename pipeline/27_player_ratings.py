@@ -81,20 +81,21 @@ MODEL_ATTRIBUTES = {
     "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
     "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
     "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    "GK":          ["reactions", "anticipation", "awareness", "composure"],
+    "GK":          ["positioning", "awareness", "pass_range", "throwing"],
 }
 
 # Fallback aliases: when the primary attribute is missing, try these instead.
 # Only used if the primary has zero data. Keeps models functional with sparse data.
+# IMPORTANT: aliases must not map to another attribute already in the same model,
+# or the model will double-count. Each alias should be a distinct proxy.
 ATTRIBUTE_ALIASES = {
-    "unpredictability": "skills",       # flair/tricks proxy
-    "guile":            "creativity",   # cunning ≈ creativity
-    "decisions":        "composure",    # decision-making under pressure
+    "unpredictability": "take_ons",     # flair proxy (skills is in Dribbler, avoid double-count)
+    "guile":            "through_balls", # cunning ≈ incisive passing
+    "decisions":        "positioning",  # decision-making ≈ reading the game
     "communication":    "leadership",   # vocal ≈ captain material
-    "concentration":    "awareness",    # focus ≈ spatial awareness
+    "concentration":    "discipline",   # focus ≈ discipline (not awareness — already in Cover)
     "drive":            "intensity",    # motivation ≈ work rate
     "versatility":      "stamina",      # engine coverage ≈ fitness
-    "discipline":       "marking",      # tactical discipline ≈ positional
     "blocking":         "tackling",     # defensive action proxy
     "clearances":       "heading",      # aerial clearances ≈ heading
     "duels":            "aggression",   # physical contests ≈ aggression
@@ -243,6 +244,11 @@ def compute_model_scores(grades, level=None):
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
             if source in ("statsbomb", "eafc_inferred"):
                 score_20 = min(g["stat_score"], 20)  # already 1-20
+            elif source == "understat":
+                # Understat clusters high (9-10 for any decent player).
+                # Compress: 10→17, 8→14, 5→9. Prevents understat-only
+                # players from scoring as if they had elite scout grades.
+                score_20 = min(g["stat_score"] * 1.7, 17)
             else:
                 score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20
         else:
@@ -258,32 +264,36 @@ def compute_model_scores(grades, level=None):
 
     # Compute each model score — both raw and anchored variants
     #
-    # Coverage penalty: if only 2 of 4 attributes are present, the average
-    # is unreliable. We penalise by scaling toward a conservative midpoint (50)
-    # proportional to missing data. This prevents 2 maxed attrs from scoring 90.
+    # Coverage confidence: with fewer attributes, we're less certain of the
+    # model score. Light penalty for 3/4 (trustworthy), moderate for 2/4,
+    # heavy for 1/4 (single data point).
     #
-    # Formula: raw_score = avg * 4.5 (maps 0-20 → 0-90)
-    #          coverage  = attrs_found / attrs_total
-    #          penalised = raw_score * coverage + 50 * (1 - coverage)
-    #
-    # So 4/4 attrs → pure score. 2/4 → 50% score + 50% midpoint. 1/4 → 75% midpoint.
+    # Confidence map: 4/4 → 1.0, 3/4 → 0.95, 2/4 → 0.85, 1/4 → 0.70
+    COVERAGE_CONFIDENCE = {4: 1.0, 3: 0.95, 2: 0.85, 1: 0.70}
+
     anchored_scores = {}
     raw_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
         # Try each attribute, falling back to alias if primary is missing
+        # Track which underlying attrs we've used to prevent double-counting
         values = []
+        used_attrs = set()
         for a in attrs:
             if a in best:
                 values.append(best[a][0])
-            elif ATTRIBUTE_ALIASES.get(a) in best:
-                values.append(best[ATTRIBUTE_ALIASES[a]][0])
+                used_attrs.add(a)
+            else:
+                alias = ATTRIBUTE_ALIASES.get(a)
+                if alias and alias in best and alias not in used_attrs:
+                    values.append(best[alias][0])
+                    used_attrs.add(alias)
         if values:
             avg = sum(values) / len(values)
             full_score = min(avg * 5, 99)
 
-            # Coverage penalty for thin data
-            coverage = len(values) / len(attrs)
-            raw_score = full_score * coverage + 50 * (1 - coverage)
+            # Light coverage penalty — trust the data we have
+            confidence = COVERAGE_CONFIDENCE.get(len(values), 0.70)
+            raw_score = full_score * confidence
             raw_scores[model] = round(raw_score)
 
             # Anchored version: blend with level when data is thin (<3 of 4 attrs)
@@ -347,6 +357,8 @@ def compute_best_role(model_scores, position):
     """Compute the best tactical role and its score for a player.
 
     Returns (role_name, role_score) where role_score is 0-100.
+    When a required model has no data, we skip that role entirely rather
+    than letting a zero drag the score down.
     """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
@@ -355,13 +367,22 @@ def compute_best_role(model_scores, position):
     best_role = None
     best_score = -1
     for primary, secondary, name in roles:
-        p_score = model_scores.get(primary, 0)
-        s_score = model_scores.get(secondary, 0)
-        score = p_score * 0.6 + s_score * 0.4
+        p_score = model_scores.get(primary)
+        s_score = model_scores.get(secondary)
+        # Skip roles where the primary model has no data at all
+        if p_score is None:
+            continue
+        # If secondary is missing, score based on primary alone
+        if s_score is None:
+            score = p_score * 0.85  # slight penalty for incomplete role fit
+        else:
+            score = p_score * 0.6 + s_score * 0.4
         if score > best_score:
             best_score = score
             best_role = name
 
+    if best_role is None:
+        return None, 0
     return best_role, round(best_score)
 
 
@@ -486,6 +507,14 @@ def main():
 
         # Raw scores for role selection (no level inflation distorting role fit)
         best_role, best_role_score = compute_best_role(raw_scores, position)
+
+        # Level floor: role score can't drop too far below level.
+        # Tighter floor for elite players (they have proven role fit),
+        # looser for lower levels where data gaps are more real.
+        if level and best_role_score:
+            gap = 6 if level >= 80 else 15
+            level_floor = max(level - gap, 50)
+            best_role_score = max(best_role_score, level_floor)
 
         results.append({
             "person_id": pid,

@@ -286,9 +286,9 @@ if UPDATE_TAGS and matched_person_ids and not DRY_RUN:
             tag = "Normal"
 
         cur.execute("""
-            INSERT INTO player_status (person_id, fitness)
+            INSERT INTO player_status (person_id, fitness_tag)
             VALUES (%s, %s)
-            ON CONFLICT (person_id) DO UPDATE SET fitness = EXCLUDED.fitness
+            ON CONFLICT (person_id) DO UPDATE SET fitness_tag = EXCLUDED.fitness_tag
         """, (pid, tag))
         tag_updates += 1
     print(f"  Updated {tag_updates:,} fitness tags")

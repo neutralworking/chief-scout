@@ -219,6 +219,99 @@ def _extract_fbref_id(href: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _slugify(text: str) -> str:
+    """Convert text to a URL-safe slug for deterministic IDs."""
+    import unicodedata
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^\w\s-]", "", text.lower().strip())
+    return re.sub(r"[\s_-]+", "-", text)
+
+
+def _make_csv_fbref_id(comp_id: int, season: str, team: str, name: str) -> str:
+    """Generate deterministic fbref_id for CSV imports: csv_{comp}_{season}_{team}_{name}."""
+    return f"csv_{comp_id}_{season}_{_slugify(team)}_{_slugify(name)}"
+
+
+# ── CSV column mappings ──────────────────────────────────────────────────────
+# Maps FBRef CSV/copy-paste column headers to internal data-stat names
+
+CSV_COLUMN_MAP = {
+    # Standard stats — FBRef copy-paste uses short headers
+    "Rk": "ranker",
+    "Player": "player",
+    "Nation": "nationality",
+    "Pos": "position",
+    "Squad": "team",
+    "Age": "age",
+    "Born": "birth_year",
+    "MP": "games",
+    "Starts": "games_starts",
+    "Min": "minutes",
+    "90s": "minutes_90s",
+    "Gls": "goals",
+    "Ast": "assists",
+    "G+A": "goals_assists",
+    "G-PK": "goals_pens",
+    "PK": "pens_made",
+    "PKatt": "pens_att",
+    "CrdY": "cards_yellow",
+    "CrdR": "cards_red",
+    "Matches": "matches",
+}
+
+
+def parse_csv_table(filepath: Path, comp_id: int, season: str) -> list[dict]:
+    """
+    Parse a FBRef CSV export or tab-separated copy-paste.
+
+    Since CSV exports lack player URLs, we generate deterministic IDs:
+      csv_{comp_id}_{season}_{team_slug}_{name_slug}
+
+    Handles both true CSV and tab-separated data (from browser copy-paste).
+    """
+    text = filepath.read_text(encoding="utf-8-sig", errors="replace")
+
+    # Detect delimiter: if tabs are present, it's likely a copy-paste
+    if "\t" in text.split("\n")[0]:
+        delimiter = "\t"
+    else:
+        delimiter = ","
+
+    rows = []
+    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+
+    for raw_row in reader:
+        # Skip empty rows or separator rows (FBRef repeats headers every 25 rows)
+        player_name = raw_row.get("Player", "").strip()
+        if not player_name or player_name == "Player":
+            continue
+
+        # Map CSV column names to internal stat names
+        row = {}
+        for csv_col, stat_name in CSV_COLUMN_MAP.items():
+            val = raw_row.get(csv_col, "").strip()
+            if val:
+                row[stat_name] = val
+
+        if not row.get("player"):
+            continue
+
+        # Generate deterministic fbref_id
+        team = row.get("team", "unknown")
+        row["_fbref_id"] = _make_csv_fbref_id(comp_id, season, team, player_name)
+        row["_fbref_url"] = ""
+
+        # Clean nation: FBRef uses "eng ENG" format — extract country code
+        nation = row.get("nationality", "")
+        if " " in nation:
+            parts = nation.split()
+            row["nationality"] = parts[-1]  # take uppercase part (ENG, FRA, etc.)
+
+        rows.append(row)
+
+    return rows
+
+
 def parse_stats_table(soup: BeautifulSoup, stat_type: str) -> list[dict]:
     """
     Parse the main stats table from a FBRef page.
@@ -533,9 +626,10 @@ for (comp_id, season), stat_files in file_groups.items():
             if soup is None:
                 continue
             rows = parse_stats_table(soup, stat_type)
+        elif filepath.suffix == ".csv":
+            rows = parse_csv_table(filepath, comp_id, season)
         else:
-            # CSV processing — not yet implemented, skip
-            print(f"    SKIP — CSV support coming soon")
+            print(f"    SKIP — unsupported file type: {filepath.suffix}")
             continue
 
         print(f"    parsed {len(rows)} player rows")

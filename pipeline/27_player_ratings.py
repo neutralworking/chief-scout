@@ -198,18 +198,26 @@ def _safe(val):
 
 
 def compute_model_scores(grades):
-    """Compute model scores (0-100) from best-source attribute grades (0-20 scale)."""
+    """Compute model scores (0-100) from best-source attribute grades.
+
+    scout_grade uses a 1-20 scale; stat_score uses a 1-10 scale.
+    Both are normalised to 0-20 before averaging.
+    """
     # Build best-grade-per-attribute map (prefer highest-priority source)
-    best = {}  # attr -> (score, priority)
+    best = {}  # attr -> (normalised_score_0_20, priority)
     for g in grades:
         attr = g["attribute"].lower().replace(" ", "_")
-        score = g["scout_grade"] if g["scout_grade"] is not None else g.get("stat_score")
-        if score is None or score <= 0:
+        # Normalise to 0-20 scale regardless of source
+        if g["scout_grade"] is not None and g["scout_grade"] > 0:
+            score_20 = g["scout_grade"]  # already 1-20
+        elif g.get("stat_score") is not None and g["stat_score"] > 0:
+            score_20 = g["stat_score"] * 2  # 1-10 → 2-20
+        else:
             continue
         priority = SOURCE_PRIORITY.get(g.get("source", ""), 0)
         existing = best.get(attr)
         if existing is None or priority > existing[1]:
-            best[attr] = (score, priority)
+            best[attr] = (score_20, priority)
 
     # Compute each model score
     model_scores = {}

@@ -77,12 +77,12 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-3">
           {player.club && (
             player.club_id ? (
-              <span
+              <Link
+                href={`/clubs/${player.club_id}`}
                 className="truncate hover:text-[var(--text-primary)] transition-colors"
-                onClick={(e) => { e.preventDefault(); window.location.href = `/clubs/${player.club_id}`; }}
               >
                 {player.club}
-              </span>
+              </Link>
             ) : (
               <span className="truncate">{player.club}</span>
             )

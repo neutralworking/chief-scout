@@ -4,8 +4,8 @@
 
 ### Data Density (Strategic Priority #1)
 - [ ] **Run `22_fbref_grades.py`** — 0 fbref-sourced grades in attribute_grades table. Zero-effort data density win.
-- [ ] **Apply migration 029** (`pipeline/sql/029_trait_scores.sql`) — player_trait_scores table + availability columns
-- [ ] **Run personality rules** — `python 34_personality_rules.py` (fixes ~765 players)
+- [x] **Apply migration 029** (`pipeline/sql/029_trait_scores.sql`) — player_trait_scores table + availability columns
+- [x] **Run personality rules** — `python 34_personality_rules.py` (15 players updated)
 - [ ] **Run personality LLM** — `python 35_personality_llm.py --min-level 85 --limit 50`
 - [ ] **Manual personality review** — `/admin/personality` for top 50 players
 - [ ] **Scale to 200+ full profiles** — target by end of March (currently ~50). Requires automated generation from external data.
@@ -34,6 +34,7 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] **Fixture Previews Setup** — see steps below
 - [ ] **Production deployment to Vercel** — create prod Supabase project, set env vars, first promotion (#32). Blocked until profile count higher.
 - [ ] **Create prod Supabase project** — prerequisite for production launch. Needs to happen this week.
+- [ ] **XP system v2** — move to real XP scale (Ballon d'Or=1000, World Cup=500, debut=10) with separate integration into valuation engine. Current small-modifier system is interim.
 - [ ] CS Value formula still produces inflated values (Foden 174m, Rodri 153m) — needs age curve and league weighting review
 - [ ] Revisit CSPER personality names: Blade (INSC) and Warrior (AXLC) are placeholders
 

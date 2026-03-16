@@ -109,6 +109,39 @@ GK_MAP: dict[str, str] = {
 
 GK_POSITIONS = {"GK"}
 
+# ── Manual alias map ──────────────────────────────────────────────────────────
+# EA FC name → person_id in our DB. For players where automated matching fails
+# due to short names, reversed name order, or licensing renames.
+
+MANUAL_ALIASES: dict[str, int] = {
+    # Top-rated unmatched — verified person_ids
+    "Heung Min Son": 17513,       # Son Heung-min
+    "Benjamin White": 8969,       # Ben White
+    "Kim Min Jae": 13561,         # Kim Min-Jae
+    "Brahim": 9150,               # Brahim Diaz
+    "Raphaël Guerreiro": 19633,   # Raphaël Adelino José Guerreiro
+    "Aleksandar Mitrović": 8203,  # Alexsander Mitrovic
+    "Tijjani Reijnders": 17963,   # Tijani Reijnders
+    "Yeray": 18646,               # Yeray Álvarez
+    "Ali Al Musrati": 7988,       # Al-Musrati
+    "Reinildo": 16558,            # Reinildo Mandava
+    "Lee Kang In": 13801,         # Lee Kang-in
+    "Jean-Philippe Mateta": 12507, # Jean-Phillipe Mateta
+    "Pape Matar Sarr": 16087,     # Pape Sarr
+    "Hwang Hee Chan": 11868,      # Hwang Hee-chan
+    # Spanish single-name players
+    "Morata": 8310,               # Alvaro Morata
+    "Parejo": 9888,               # Dani Parejo
+    "Oyarzabal": 15198,           # Mikel Oyarzabal
+    "Sancet": 15844,              # Oihan Sancet
+    "Guruzeta": 11502,            # Gorka Guruzeta
+    "Kirian": 13570,              # Kirian Rodríguez
+    "Azpilicueta": 9470,          # César Azpilicueta
+    "Zubimendi": 14666,           # Martín Zubimendi
+    "Catena": 8052,               # Alejandro Catena
+    "Riquelme": 16772,            # Rodrigo Riquelme (Atlético)
+}
+
 # ── CSV parsing ───────────────────────────────────────────────────────────────
 
 KAGGLE_DIR = Path(__file__).parent.parent / "imports" / "kaggle" / "eafc25"
@@ -177,14 +210,21 @@ def normalize_name(name: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
-def build_name_index(sb_client) -> dict[str, list[dict]]:
-    """Load all people names and build a normalized lookup."""
+def build_name_index(sb_client) -> tuple[dict[str, list[dict]], dict[str, list[dict]], list[dict]]:
+    """
+    Load all people and build multiple lookup indices.
+
+    Returns:
+      - full_index: normalized full name → [people]
+      - surname_index: normalized last word of name → [people]
+      - all_people: raw list
+    """
     print("  Loading people for name matching...")
     all_people = []
     offset = 0
     batch = 1000
     while True:
-        r = sb_client.table("people").select("id, name").range(offset, offset + batch - 1).execute()
+        r = sb_client.table("people").select("id, name, club_id").range(offset, offset + batch - 1).execute()
         if not r.data:
             break
         all_people.extend(r.data)
@@ -192,13 +232,18 @@ def build_name_index(sb_client) -> dict[str, list[dict]]:
         if len(r.data) < batch:
             break
 
-    index: dict[str, list[dict]] = {}
+    full_index: dict[str, list[dict]] = {}
+    surname_index: dict[str, list[dict]] = {}
     for p in all_people:
         norm = normalize_name(p["name"])
-        index.setdefault(norm, []).append(p)
+        full_index.setdefault(norm, []).append(p)
+        # Surname = last word (handles "Virgil van Dijk" → "dijk")
+        parts = norm.split()
+        if parts:
+            surname_index.setdefault(parts[-1], []).append(p)
 
-    print(f"  People loaded: {len(all_people)}, unique normalized names: {len(index)}")
-    return index
+    print(f"  People loaded: {len(all_people)}, full names: {len(full_index)}, surnames: {len(surname_index)}")
+    return full_index, surname_index, all_people
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -217,8 +262,132 @@ def main():
 
     print(f"  EA FC players: {len(eafc_players)}")
 
-    # Build name index from people table
-    name_index = build_name_index(sb)
+    # Build name indices from people table
+    full_index, surname_index, all_people = build_name_index(sb)
+
+    # Load club name → club_id mapping for club-based disambiguation
+    print("  Loading clubs...")
+    club_name_to_id: dict[str, int] = {}
+    club_id_to_name: dict[int, str] = {}
+    offset = 0
+    while True:
+        r = sb.table("clubs").select("id, clubname").range(offset, offset + 999).execute()
+        if not r.data:
+            break
+        for c in r.data:
+            if c.get("clubname"):
+                club_name_to_id[normalize_name(c["clubname"])] = c["id"]
+                club_id_to_name[c["id"]] = c["clubname"]
+        offset += 1000
+        if len(r.data) < 1000:
+            break
+    print(f"  Clubs loaded: {len(club_name_to_id)}")
+
+    # EA FC team name → our club name aliases (common mismatches)
+    TEAM_ALIASES: dict[str, str] = {
+        "spurs": "tottenham hotspur",
+        "lombardia fc": "inter",  # licensing
+        "milano fc": "ac milan",  # licensing
+        "paris sg": "paris saint-germain",
+        "om": "olympique de marseille",
+        "latium": "lazio",  # licensing
+        "old trafford fc": "manchester united",  # licensing
+        "east london fc": "west ham united",  # licensing
+    }
+
+    def find_club_id(eafc_team: str) -> int | None:
+        """Try to match EA FC team name to our club_id."""
+        if not eafc_team:
+            return None
+        norm_team = normalize_name(eafc_team)
+        # Direct match
+        if norm_team in club_name_to_id:
+            return club_name_to_id[norm_team]
+        # Alias
+        if norm_team in TEAM_ALIASES:
+            alias = TEAM_ALIASES[norm_team]
+            if alias in club_name_to_id:
+                return club_name_to_id[alias]
+        # Substring match (e.g. "FC Bayern München" contains "bayern")
+        for cname, cid in club_name_to_id.items():
+            if norm_team in cname or cname in norm_team:
+                return cid
+        return None
+
+    # Build person_id → person dict for alias lookups
+    people_by_id = {p["id"]: p for p in all_people}
+
+    def match_player(eafc_row: dict) -> dict | None:
+        """Try to match an EA FC player to a person in our DB."""
+        name = eafc_row.get("Name", "").strip()
+        if not name:
+            return None
+
+        # 0. Manual alias (highest priority)
+        if name in MANUAL_ALIASES:
+            pid = MANUAL_ALIASES[name]
+            if pid in people_by_id:
+                return people_by_id[pid]
+
+        norm = normalize_name(name)
+
+        # 1. Exact full name match
+        matches = full_index.get(norm, [])
+        if len(matches) == 1:
+            return matches[0]
+
+        # 2. Full name match with club disambiguation
+        if len(matches) > 1:
+            eafc_club_id = find_club_id(eafc_row.get("Team", ""))
+            if eafc_club_id:
+                club_matches = [m for m in matches if m.get("club_id") == eafc_club_id]
+                if len(club_matches) == 1:
+                    return club_matches[0]
+            return matches[0]  # fallback to first
+
+        # 3. Strip suffixes like "Jr.", "Jr", "II", "III"
+        cleaned = norm.rstrip(".")
+        for suffix in (" jr", " jr.", " ii", " iii", " sr"):
+            if cleaned.endswith(suffix):
+                cleaned = cleaned[:-len(suffix)].strip()
+        if cleaned != norm:
+            matches = full_index.get(cleaned, [])
+            if len(matches) == 1:
+                return matches[0]
+
+        # 4. Surname-only match + club disambiguation
+        parts = norm.replace(".", "").split()
+        surname = parts[-1] if parts else norm
+        surname_matches = surname_index.get(surname, [])
+
+        if len(surname_matches) == 1:
+            return surname_matches[0]
+
+        if len(surname_matches) > 1:
+            eafc_club_id = find_club_id(eafc_row.get("Team", ""))
+            if eafc_club_id:
+                club_matches = [m for m in surname_matches if m.get("club_id") == eafc_club_id]
+                if len(club_matches) == 1:
+                    return club_matches[0]
+
+        # 5. Try first word as surname (e.g. "Grimaldo" is a surname)
+        if len(parts) == 1:
+            # Single-word name — already tried as surname above
+            pass
+        elif len(parts) >= 2:
+            # Try first word as surname too (some cultures: surname first)
+            first_word = parts[0]
+            first_matches = surname_index.get(first_word, [])
+            if len(first_matches) == 1:
+                return first_matches[0]
+            if len(first_matches) > 1:
+                eafc_club_id = find_club_id(eafc_row.get("Team", ""))
+                if eafc_club_id:
+                    club_matches = [m for m in first_matches if m.get("club_id") == eafc_club_id]
+                    if len(club_matches) == 1:
+                        return club_matches[0]
+
+        return None
 
     # Check existing eafc_inferred rows
     existing_players = set()
@@ -252,16 +421,13 @@ def main():
         if not name:
             continue
 
-        norm = normalize_name(name)
-        matches = name_index.get(norm, [])
-
-        if not matches:
+        person = match_player(eafc)
+        if not person:
             stats["unmatched"] += 1
             if len(unmatched_sample) < 20:
-                unmatched_sample.append(name)
+                unmatched_sample.append(f"{name} ({eafc.get('Team', '?')})")
             continue
 
-        person = matches[0]
         person_id = person["id"]
 
         if args.player and person_id != args.player:
@@ -296,7 +462,7 @@ def main():
     if upsert_rows:
         sample_pid = upsert_rows[0]["player_id"]
         sample_attrs = [r for r in upsert_rows if r["player_id"] == sample_pid]
-        sample_name = next((p["name"] for people in name_index.values() for p in people if p["id"] == sample_pid), "?")
+        sample_name = next((p["name"] for people in full_index.values() for p in people if p["id"] == sample_pid), "?")
         print(f"\n  Sample: {sample_name} (id={sample_pid})")
         for a in sorted(sample_attrs, key=lambda x: -x["stat_score"]):
             print(f"    {a['attribute']:20s}  {a['stat_score']:>2}/20")

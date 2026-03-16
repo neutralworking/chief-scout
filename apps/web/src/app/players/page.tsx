@@ -195,9 +195,9 @@ function PlayersContent() {
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
                 <th className="text-left py-2 px-4 font-medium hidden lg:table-cell">Best Role</th>
+                <th className="text-right py-2 px-4 font-medium w-16">Score</th>
                 <th className="text-right py-2 px-4 font-medium w-20 hidden lg:table-cell">CS Value</th>
                 <th className="text-right py-2 px-4 font-medium w-20 hidden lg:table-cell">TM Value</th>
-                <th className="text-right py-2 px-4 font-medium w-16">Score</th>
               </tr>
             </thead>
             <tbody>
@@ -224,14 +224,14 @@ function PlayersContent() {
                     <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-muted)]">{age ?? "–"}</td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
+                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                      {player.best_role_score ?? "–"}
+                    </td>
                     <td className="py-2 px-4 text-right font-mono text-xs text-[var(--color-accent-tactical)] hidden lg:table-cell">
                       {fmtMeur(player.director_valuation_meur)}
                     </td>
                     <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-secondary)] hidden lg:table-cell">
                       {fmtValue(player.market_value_eur)}
-                    </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
-                      {player.best_role_score ?? "–"}
                     </td>
                   </tr>
                 );

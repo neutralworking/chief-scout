@@ -20,6 +20,9 @@ node_modules/
 # Pipeline cache
 pipeline/.cache/
 
+# Kaggle dataset CSVs (large, download via make kaggle-download)
+imports/kaggle/
+
 # IDE
 .vscode/
 .idea/

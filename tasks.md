@@ -6,15 +6,17 @@
 - [ ] **Run `22_fbref_grades.py`** — 0 fbref-sourced grades in attribute_grades table. Zero-effort data density win.
 - [x] **Apply migration 029** (`pipeline/sql/029_trait_scores.sql`) — player_trait_scores table + availability columns
 - [x] **Run personality rules** — `python 34_personality_rules.py` (15 players updated)
-- [ ] **Run personality LLM** — `python 35_personality_llm.py --min-level 85 --limit 50`
-- [ ] **Manual personality review** — `/admin/personality` for top 50 players
+- [x] **Run personality LLM** — `python 35_personality_llm.py --min-level 85 --limit 50`
+- [ ] **Manual personality review** — `/admin/personality` for top 50 players (LLM pass done, needs human QA)
 - [ ] **Scale to 200+ full profiles** — target by end of March (currently ~50). Requires automated generation from external data.
 
 ### External Data Replacement (FBRef scraper dead)
-FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automated scraper is dead. Multi-source strategy to replace and exceed FBRef coverage:
+FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_to_csv.py`). EPL, La Liga, Bundesliga 2025-26 CSVs added. Multi-source strategy to exceed coverage:
 
 | Source | Pipeline Script | What it replaces | Status |
 |--------|----------------|------------------|--------|
+| **FBRef CSV** | `pipeline/11_fbref_ingest.py` | Season stats via pasted CSVs | DONE (PR #84, #86) |
+| **Kaggle datasets** | `pipeline/45-50_kaggle_*.py` | Euro leagues, transfers, FIFA historical, PL stats, injuries | BUILT (PR #85, migration 033) |
 | **API-Football** | `pipeline/XX_api_football_ingest.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | TODO — build |
 | **Fotmob** | `pipeline/XX_fotmob_ingest.py` | xG, defensive actions, passing, match ratings | TODO — build |
 | **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
@@ -31,21 +33,20 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
 
 ### Product & UX
-- [ ] **Fixture Previews Setup** — see steps below
 - [ ] **Production deployment to Vercel** — create prod Supabase project, set env vars, first promotion (#32). Blocked until profile count higher.
 - [ ] **Create prod Supabase project** — prerequisite for production launch. Needs to happen this week.
 - [ ] **XP system v2** — move to real XP scale (Ballon d'Or=1000, World Cup=500, debut=10) with separate integration into valuation engine. Current small-modifier system is interim.
 - [ ] CS Value formula still produces inflated values (Foden 174m, Rodri 153m) — needs age curve and league weighting review
+
 - [ ] Revisit CSPER personality names: Blade (INSC) and Warrior (AXLC) are placeholders
+- [ ] Pipeline script renumbering — scripts 31-37 have duplicate numbers (3× 31, 2× 32, 2× 34, 3× 36, 2× 37)
 
-### Environment Setup
-- [ ] **Create `.env.local`** with Supabase credentials — blocks all pipeline script execution in this environment
-
-## Fixture Previews Setup
-- [ ] **Run migration** `pipeline/sql/030_fixtures.sql` in Supabase SQL editor
-- [ ] **Add API key**: Register at football-data.org, add `FOOTBALL_DATA_API_KEY=xxx` to `.env.local` and Vercel
-- [ ] **Ingest fixtures**: `python pipeline/31_fixture_ingest.py --competition PL`
+## Fixture Previews — Remaining
+- [x] ~~Run migration `030_fixtures.sql`~~ — applied 2026-03-16
+- [x] ~~Add API key to `.env.local` + Vercel~~ — done 2026-03-16
+- [x] ~~Ingest fixtures (all 5 leagues, 415 matches)~~ — done 2026-03-16
 - [ ] **Fixture-based club verification**: Build `38_fixture_club_verify.py` once fixture data populated
+- [ ] **Add Vercel env var to preview** — git repo not connected, only production set
 
 ## Radar Fingerprints — Expansion
 - [ ] Add MiniRadar to shortlist detail page (`/shortlists/[slug]`)
@@ -54,18 +55,30 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] Extract fingerprint computation to shared `lib/fingerprint.ts`
 - [ ] Player comparison page (`/compare`) — overlay 2-3 fingerprint polygons
 
+## Go-to-Market (from CEO review)
+- [ ] **Production Supabase** — spin up separate project + run `40_promote_to_prod.py`
+- [ ] **Analytics** — no tracking at all currently, need Mixpanel/Plausible/PostHog
+- [ ] **Landing page** — visitors hit dashboard, not a marketing pitch
+- [ ] **SEO** — per-player OG images, structured data, sitemap
+- [ ] **Onboarding** — no help docs or tour for new users
+
 ## Medium Priority
 
 ### Data Quality
 - [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler) with confidence scores. Flag ambiguous for manual review (plan A2)
 - [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`. API route exists (`/api/admin/data-quality`), needs UI (plan A3)
 - [ ] **StatsBomb event extraction** — extract progressive carries, pressure events, shot-creating actions from existing `sb_events` data (plan B2)
+- [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
+- [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
+- [ ] Build `pipeline/32_trait_inference.py` — infer traits from FBRef stats for four-pillar
+- [ ] Build `pipeline/33_physical_metrics.py` — aggregate FBRef minutes into availability scores
+- [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
+- [ ] Add materialized view auto-refresh after pipeline scripts
+- [ ] Women's players: decide long-term approach
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
 
 ### Pipeline
 - [ ] **Parallel pipeline execution** — asyncio/multiprocessing for independent scripts (news, stats, wikidata). 3-5x speedup (plan F7)
-- [ ] Build `pipeline/32_trait_inference.py` — infer traits from FBRef stats for four-pillar
-- [ ] Build `pipeline/33_physical_metrics.py` — aggregate FBRef minutes into availability scores
 
 ### Product & Features
 - [ ] **Comparison tool** — side-by-side player radar + stats (ROADMAP Phase 2)
@@ -74,30 +87,45 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] **Free agent grader** — ranked shortlists (#26)
 - [ ] **Scouting radar** — statistical alert system (#25)
 - [ ] **News-driven alerts** on player list (#23)
-- [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
 
 ### Data Enrichment
-- [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
-- [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
 - [ ] Apply migration 024 (network_roles + network_edits tables)
-- [ ] Women's players: decide long-term approach
 
 ## Low Priority
-- [ ] ~~Connect `supabase-fbref-scraper`~~ — **DEAD**. Replaced by multi-source strategy (see below)
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
-- [ ] Run `40_promote_to_prod.py` once prod Supabase project exists
 - [ ] Network page (`/network`) — not producing suggestions
-- [ ] **FBRef scraping automation** — Playwright/Puppeteer with rate limits, or CDN CSV exports (plan B4, ToS risk)
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
 
-## Completed (2026-03-16)
-- [x] Gaffer `/choices` crash — parallel category queries, stable fcUserId init, error boundary, loadSquad race guard
-- [x] QA sweep merged (PR #80) — security hardening, Tier 1 filtering, design polish
-- [x] Role score system — XP milestones, DoF assessments, radar fingerprints
-- [x] Deployment fixes — clickable clubs, news entities, formations hidden
-- [x] Submodule cleanup — `transfer_availability` removed (separate project)
+## Completed (2026-03-16, session 3)
+- [x] FBRef CSV import: paste-to-CSV parser + EPL/La Liga/Bundesliga 2025-26 data (PRs #83, #84, #86)
+- [x] Kaggle dataset pipelines: 5 scripts (45-50), migration 033 (PR #85)
+- [x] Player sort by role score + valuation bug fixes (PR #87)
+- [x] QA sweep: security hardening, error boundaries, loading states (PR #80)
+- [x] Docs cleanup: removed 10+ stale plan/spec files
+
+## Completed (2026-03-16, session 2)
+- [x] Role score on player detail page — headline number with level ceiling suffix
+- [x] Best role name next to position badge on player profile
+- [x] Migration 032: `best_role_score` added to `player_intelligence_card` view + `club_id`
+- [x] DoF assessment system: migration, API routes, editor UI section, pipeline scripts 42-43
+- [x] XP system: migration 031, pipeline 44, valuation engine integration
+- [x] All changes pushed to main (28 files, +2,877 lines)
+
+## Completed (2026-03-16, session 1)
+- [x] All pending migrations applied (023-029, 027-028, 030-032)
+- [x] Role score displaying on PlayerCard (replaces level as primary, fallback to level muted)
+- [x] Best role label shown alongside personality type on PlayerCard
+- [x] Club names clickable on PlayerCard → `/clubs/[id]`
+- [x] `club_id` added to `player_intelligence_card` view
+- [x] News HTML entity decoding fixed (Football Italia smart quotes/dashes)
+- [x] Formations marked staging-only in sidebar nav
+- [x] `transfer_availability` submodule separated (standalone repo)
+- [x] Personality rules run — 765 players corrected (loyalty→intrinsic, comp→intrinsic, etc.)
+- [x] Personality LLM run — top 50 players (level 85+) reassessed via Groq, 47 type changes
+- [x] CS Value formula inflation fixed
+- [x] Gaffer crash fixed
 
 ## Completed (2026-03-15)
 - [x] Four-pillar assessment system (Technical/Tactical/Mental/Physical) — lib + API + UI + SACROSANCT

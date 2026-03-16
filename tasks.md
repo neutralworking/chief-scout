@@ -7,7 +7,7 @@
 - [ ] **Manual personality review** — `/admin/personality` for top 50 players
 - [ ] **Fixture Previews Setup** — see steps below
 - [ ] CS Value formula still produces inflated values (Foden 174m, Rodri 153m) — needs age curve and league weighting review
-- [ ] Gaffer (`/choices`) crashes browser — investigate AllTimeXI component or auth context issue
+- [x] Gaffer (`/choices`) crashes browser — fixed: parallel category queries, stable fcUserId init, error boundary
 - [ ] Run `22_fbref_grades.py` — 0 fbref-sourced grades in attribute_grades table
 - [ ] Revisit CSPER personality names: Blade (INSC) and Warrior (AXLC) are placeholders
 

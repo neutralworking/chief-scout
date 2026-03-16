@@ -43,12 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [anonId, setAnonId] = useState("");
+  const [anonId, setAnonId] = useState(() => getAnonId());
   const [clubTheme, setClubThemeState] = useState<string | null>(null);
 
   useEffect(() => {
-    setAnonId(getAnonId());
-
     // Load saved club theme from localStorage
     const savedClub = localStorage.getItem("fc_club_theme");
     if (savedClub) {

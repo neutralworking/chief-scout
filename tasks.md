@@ -33,12 +33,12 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
 
 ### Product & UX
-- [ ] **Production deployment to Vercel** — create prod Supabase project, set env vars, first promotion (#32). Blocked until profile count higher.
-- [ ] **Create prod Supabase project** — prerequisite for production launch. Needs to happen this week.
+- [x] ~~Production deployment to Vercel~~ — chief-scout-prod.vercel.app live (2026-03-16)
+- [x] ~~Create prod Supabase project~~ — qfzhvoyvlxsbajbnifds, 276 players promoted (2026-03-16)
 - [ ] **XP system v2** — move to real XP scale (Ballon d'Or=1000, World Cup=500, debut=10) with separate integration into valuation engine. Current small-modifier system is interim.
-- [ ] CS Value formula still produces inflated values (Foden 174m, Rodri 153m) — needs age curve and league weighting review
+- [x] ~~CS Value formula inflation~~ — fixed (2026-03-16)
 
-- [ ] Revisit CSPER personality names: Blade (INSC) and Warrior (AXLC) are placeholders
+- [x] ~~Revisit CSPER personality names~~ — Blade→Mamba (INSC), Warrior→Catalyst (AXLC), centralised in lib/personality.ts (2026-03-17)
 - [ ] Pipeline script renumbering — scripts 31-37 have duplicate numbers (3× 31, 2× 32, 2× 34, 3× 36, 2× 37)
 
 ## Fixture Previews — Remaining
@@ -49,18 +49,22 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **Add Vercel env var to preview** — git repo not connected, only production set
 
 ## Radar Fingerprints — Expansion
+- [x] ~~Percentile-based fingerprints~~ — position-group percentiles via pipeline/51_fingerprints.py (2026-03-17)
+- [x] ~~Remove on-the-fly fingerprint computation~~ — API reads from view, 160 lines removed (2026-03-17)
+- [ ] **Role-specific radar axes** — show role-relevant attributes instead of generic 6-axis (e.g. Regista: Tempo/Vision/Pass Range/Composure instead of DEF/CRE/ATK/PWR/PAC/DRV)
 - [ ] Add MiniRadar to shortlist detail page (`/shortlists/[slug]`)
 - [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
 - [ ] Add MiniRadar to TrendingPlayers component (homepage)
-- [ ] Extract fingerprint computation to shared `lib/fingerprint.ts`
 - [ ] Player comparison page (`/compare`) — overlay 2-3 fingerprint polygons
 
 ## Go-to-Market (from CEO review)
-- [ ] **Production Supabase** — spin up separate project + run `40_promote_to_prod.py`
-- [ ] **Analytics** — no tracking at all currently, need Mixpanel/Plausible/PostHog
-- [ ] **Landing page** — visitors hit dashboard, not a marketing pitch
-- [ ] **SEO** — per-player OG images, structured data, sitemap
+- [x] ~~Production Supabase~~ — qfzhvoyvlxsbajbnifds (EU West), 276 Tier 1 players promoted (2026-03-16)
+- [x] ~~Analytics~~ — Plausible script, prod only (2026-03-16)
+- [x] ~~Landing page~~ — hero, features, live player cards, pricing CTA (2026-03-16)
+- [x] ~~SEO basics~~ — sitemap.xml, robots.txt, OG meta tags (2026-03-16)
+- [ ] **SEO advanced** — per-player OG images, structured data
 - [ ] **Onboarding** — no help docs or tour for new users
+- [ ] **Pricing page visual alignment** — redesigned to match landing page (2026-03-16, needs review)
 
 ## Medium Priority
 

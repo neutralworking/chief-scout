@@ -69,11 +69,21 @@ function computeFingerprint(
     return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
   }
 
+  let raw: number[];
   if (position === "GK") {
-    return [modelScores["GK"] ?? 0, modelScores["Commander"] ?? 0, modelScores["Cover"] ?? 0, modelScores["Passer"] ?? 0];
+    raw = [modelScores["GK"] ?? 0, modelScores["Commander"] ?? 0, modelScores["Cover"] ?? 0, modelScores["Passer"] ?? 0];
+  } else {
+    raw = [avg("Cover", "Destroyer"), avg("Creator", "Passer"), avg("Striker", "Dribbler"), avg("Powerhouse", "Target"), modelScores["Sprinter"] ?? 0, avg("Engine", "Commander", "Controller")];
   }
 
-  return [avg("Cover", "Destroyer"), avg("Creator", "Passer"), avg("Striker", "Dribbler"), avg("Powerhouse", "Target"), modelScores["Sprinter"] ?? 0, avg("Engine", "Commander", "Controller")];
+  // Contrast-boost: rescale so shapes are distinctive (min→25, max→95)
+  const nonZero = raw.filter((v) => v > 0);
+  if (nonZero.length < 2) return raw;
+  const lo = Math.min(...nonZero);
+  const hi = Math.max(...nonZero);
+  const spread = hi - lo;
+  if (spread < 5) return raw;
+  return raw.map((v) => v <= 0 ? 0 : Math.round(25 + ((v - lo) / spread) * 70));
 }
 
 export async function GET(req: NextRequest) {

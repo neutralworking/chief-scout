@@ -6,19 +6,19 @@ const FEATURES = [
   {
     title: "Role-Fit Scoring",
     description:
-      "Every player rated against 26 tactical roles. Know exactly where they fit — and where they don't.",
+      "Every player scored against 26 tactical roles. Don't just know if they're good — know where they're good.",
     accent: "var(--color-accent-tactical)",
   },
   {
     title: "Personality Profiling",
     description:
-      "16 personality types built on how players think, compete, and lead. Not just what they do — who they are.",
+      "16 types built on how players think, compete, and lead. The difference between a signing and a fit.",
     accent: "var(--color-accent-personality)",
   },
   {
     title: "Transfer Intelligence",
     description:
-      "Market valuations, contract status, free agent tracking. Scouting-grade data on 19,000+ players.",
+      "Valuations, contract status, and free agent tracking. Know the market before the market knows itself.",
     accent: "var(--color-accent-mental)",
   },
 ];
@@ -27,7 +27,7 @@ const STATS = [
   { value: "19,000+", label: "Players" },
   { value: "26", label: "Tactical Roles" },
   { value: "16", label: "Personality Types" },
-  { value: "5", label: "Top Leagues" },
+  { value: "276", label: "Full Dossiers" },
 ];
 
 export function LandingPage({
@@ -64,14 +64,14 @@ export function LandingPage({
       <section className="px-6 pt-12 pb-16 max-w-6xl mx-auto">
         <div className="max-w-2xl">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[var(--text-primary)] leading-[1.1]">
-            The scouting platform that thinks like a{" "}
+            See what the{" "}
             <span className="text-[var(--color-accent-personality)]">
-              Director of Football
+              stats don&apos;t tell you
             </span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] mt-5 leading-relaxed max-w-xl">
-            Role-fit scoring. Personality profiling. Transfer intelligence.
-            Everything you need to find the right player for your system.
+            Role-fit scores, personality profiles, and transfer intelligence
+            on 19,000+ players. Find who fits your system — not just who&apos;s available.
           </p>
           <div className="flex flex-wrap items-center gap-3 mt-8">
             <Link
@@ -143,7 +143,7 @@ export function LandingPage({
               Live Data
             </h2>
             <p className="text-sm text-[var(--text-secondary)] mb-8">
-              Real scouting intelligence — not mockups.
+              Live from the database.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {showcasePlayers.map((player) => (
@@ -161,11 +161,11 @@ export function LandingPage({
       <section className="px-6 py-16 border-t border-[var(--border-subtle)]">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-3">
-            Start scouting today
+            Pick your level
           </h2>
           <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-md mx-auto">
-            Free tier gives you 500 players. Upgrade for full database access,
-            archetypes, and squad building tools.
+            Free gets you started. Scout gets you serious. Pro gets you
+            everything.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             {[

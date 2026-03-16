@@ -57,7 +57,29 @@ wikidata-clubs:
 transfermarkt:
 	cd $(PIPELINE) && $(PYTHON) 25_transfermarkt_ingest.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt
+# ── Kaggle datasets ──────────────────────────────────────────────────────────
+
+kaggle-download:
+	$(PYTHON) $(PIPELINE)/50_kaggle_download.py
+
+kaggle-euro:
+	cd $(PIPELINE) && $(PYTHON) 45_kaggle_euro_leagues.py
+
+kaggle-transfers:
+	cd $(PIPELINE) && $(PYTHON) 46_kaggle_transfer_values.py
+
+kaggle-fifa:
+	cd $(PIPELINE) && $(PYTHON) 47_kaggle_fifa_historical.py
+
+kaggle-pl:
+	cd $(PIPELINE) && $(PYTHON) 48_kaggle_pl_stats.py
+
+kaggle-injuries:
+	cd $(PIPELINE) && $(PYTHON) 49_kaggle_injuries.py --tags --traits
+
+kaggle-all: kaggle-euro kaggle-transfers kaggle-fifa kaggle-pl kaggle-injuries
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt kaggle-all
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

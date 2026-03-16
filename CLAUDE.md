@@ -90,6 +90,12 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `29_scouting_tags.py` → Auto-assign scouting tags based on player data (attributes, career, news sentiment)
 - `30_squad_roles.py` → DOF-level squad role assessment
 - `40_promote_to_prod.py` → Promote Tier 1 players to production Supabase. Only complete profiles (all 6 tables + 20+ attributes). Flags: `--dry-run`, `--list`, `--player`, `--force`
+- `45_kaggle_euro_leagues.py` → Kaggle European Top Leagues 25-26 stats → `kaggle_euro_league_stats`. Flags: `--dry-run`, `--force`, `--limit`, `--match-only`, `--file`. Requires migration `033_kaggle_tables.sql`.
+- `46_kaggle_transfer_values.py` → Kaggle Transfer Value Intelligence → `kaggle_transfer_values` + enriches `player_market`. Flags: `--dry-run`, `--force`, `--enrich`, `--limit`, `--file`. Requires migration `033_kaggle_tables.sql`.
+- `47_kaggle_fifa_historical.py` → FIFA historical matches 1930-2022 → `kaggle_fifa_matches` + `kaggle_fifa_rankings`. Flags: `--dry-run`, `--force`, `--limit`, `--matches-only`, `--rankings-only`. Requires migration `033_kaggle_tables.sql`.
+- `48_kaggle_pl_stats.py` → Kaggle PL 2024-2025 data → `kaggle_pl_stats`. Auto-detects player vs match data. Flags: `--dry-run`, `--force`, `--limit`, `--grades`. Requires migration `033_kaggle_tables.sql`.
+- `49_kaggle_injuries.py` → European Football Injuries 2020-2025 → `kaggle_injuries` + `player_status` fitness tags + `player_trait_scores` durability. Flags: `--dry-run`, `--force`, `--limit`, `--tags`, `--traits`. Requires migration `033_kaggle_tables.sql`.
+- `50_kaggle_download.py` → Download all 5 Kaggle datasets via kaggle CLI → `imports/kaggle/`. Flags: `--dataset 1-5`, `--force`, `--list`.
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -105,6 +111,11 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `career_metrics` | Script 23 | Per-player career trajectory: loyalty/mobility scores, tenure stats, trajectory label (migration 016) |
 | `news_sentiment_agg` | Script 24 | Per-player news sentiment: buzz/sentiment scores, story types, trend windows (migration 016) |
 | `tactical_roles` | Script 13 | Named roles per position with archetype affinity (Regista, Inside Forward, etc.) (migration 018) |
+| `kaggle_euro_league_stats` | Kaggle (kaanyorgun) | European top leagues player stats 25-26 season (migration 033) |
+| `kaggle_transfer_values` | Kaggle (kanchana1990) | Transfer value intelligence with market values, fees, contracts (migration 033) |
+| `kaggle_fifa_matches` + `kaggle_fifa_rankings` | Kaggle (zkskhurram) | FIFA international match results 1930-2022 + rankings (migration 033) |
+| `kaggle_pl_stats` | Kaggle (furkanark) | Premier League 2024-2025 player + match stats (migration 033) |
+| `kaggle_injuries` | Kaggle (sananmuzaffarov) | European football injuries 2020-2025, feeds fitness tags + durability traits (migration 033) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.

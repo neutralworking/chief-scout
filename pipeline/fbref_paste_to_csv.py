@@ -71,7 +71,8 @@ def parse_row(line: str) -> dict | None:
     if not line or line.startswith("Rk") or line.startswith("Playing"):
         return None
 
-    line = re.sub(r"Matches\s*$", "", line)
+    # Strip trailing "Matches" + any FBRef header that got concatenated
+    line = re.sub(r"Matches(?:Rk.*)?$", "", line)
 
     # ── Rank ──
     m = re.match(r"^(\d+)", line)
@@ -149,8 +150,12 @@ def parse_row(line: str) -> dict | None:
 
     # ── Numeric blob ──
     # Structure: MP Starts Min 90s Gls Ast G+A G-PK PK PKatt CrdY CrdR Per90x5
-    # Per-90 values at end: each d.dd (single digit + 2 decimal places)
+    # Per-90 values at end: each d+.dd (usually single digit, rarely double)
+    # Try single-digit first (most common), fall back to multi-digit
     per90_m = re.search(r"(\d\.\d{2})(\d\.\d{2})(\d\.\d{2})(\d\.\d{2})(\d\.\d{2})$", line)
+    if not per90_m:
+        # Try allowing multi-digit per-90 values (rare: players with very few minutes)
+        per90_m = re.search(r"(\d+\.\d{2})(\d+\.\d{2})(\d+\.\d{2})(\d+\.\d{2})(\d+\.\d{2})$", line)
     if not per90_m:
         return None
     counting_blob = line[:per90_m.start()]

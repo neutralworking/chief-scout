@@ -22,6 +22,18 @@ const PERSONALITY_NAMES: Record<string, string> = {
   INSC: "Blade", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
 };
 
+function fmtValue(eur: number | null | undefined): string {
+  if (eur == null || eur <= 0) return "–";
+  if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(1)}m`;
+  if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}k`;
+  return `€${eur}`;
+}
+
+function fmtMeur(meur: number | null | undefined): string {
+  if (meur == null || meur <= 0) return "–";
+  return `€${meur.toFixed(1)}m`;
+}
+
 function levelColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 85) return "text-amber-400";
@@ -158,7 +170,8 @@ function PlayersContent() {
           className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
           <option value="role_score">Sort: Role Score</option>
           <option value="level">Sort: Level</option>
-          <option value="value">Sort: Value</option>
+          <option value="cs_value">Sort: CS Value</option>
+          <option value="tm_value">Sort: TM Value</option>
           <option value="name">Sort: Name</option>
         </select>
         {hasFilters && (
@@ -181,7 +194,9 @@ function PlayersContent() {
                 <th className="text-left py-2 px-4 font-medium hidden lg:table-cell">Nation</th>
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
-                <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Status</th>
+                <th className="text-left py-2 px-4 font-medium hidden lg:table-cell">Best Role</th>
+                <th className="text-right py-2 px-4 font-medium w-20 hidden lg:table-cell">CS Value</th>
+                <th className="text-right py-2 px-4 font-medium w-20 hidden lg:table-cell">TM Value</th>
                 <th className="text-right py-2 px-4 font-medium w-16">Score</th>
               </tr>
             </thead>
@@ -208,12 +223,12 @@ function PlayersContent() {
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.nation || "–"}</td>
                     <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-muted)]">{age ?? "–"}</td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
-                    <td className="py-2 px-4 hidden xl:table-cell">
-                      {player.pursuit_status && player.pursuit_status !== "Pass" && (
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${pursuitColor}`}>
-                          {player.pursuit_status}
-                        </span>
-                      )}
+                    <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
+                    <td className="py-2 px-4 text-right font-mono text-xs text-[var(--color-accent-tactical)] hidden lg:table-cell">
+                      {fmtMeur(player.director_valuation_meur)}
+                    </td>
+                    <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-secondary)] hidden lg:table-cell">
+                      {fmtValue(player.market_value_eur)}
                     </td>
                     <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
                       {player.best_role_score ?? "–"}
@@ -250,8 +265,8 @@ function PlayersContent() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-3">
-                  {player.archetype && (
-                    <span className="text-[10px] text-[var(--text-secondary)] hidden xs:inline">{player.archetype}</span>
+                  {player.best_role && (
+                    <span className="text-[10px] text-[var(--text-secondary)]">{player.best_role}</span>
                   )}
                   <span className={`text-lg font-mono font-bold ${levelColor(player.best_role_score)}`}>
                     {player.best_role_score ?? "–"}

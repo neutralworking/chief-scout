@@ -137,6 +137,12 @@ export async function GET(req: NextRequest) {
     case "position":
       query = query.order("position", { ascending: true, nullsFirst: false });
       break;
+    case "cs_value":
+      query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+      break;
+    case "tm_value":
+      query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
+      break;
     case "value":
       query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
       break;

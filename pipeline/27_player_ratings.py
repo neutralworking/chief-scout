@@ -204,17 +204,21 @@ def compute_model_scores(grades):
     Both are normalised to 0-20 before averaging.
     """
     # Build best-grade-per-attribute map (prefer highest-priority source)
+    # Exclude eafc_inferred — flat 10/10 junk data inflates all scores
     best = {}  # attr -> (normalised_score_0_20, priority)
     for g in grades:
+        source = g.get("source", "")
+        if source == "eafc_inferred":
+            continue  # skip — all values are flat 10, useless for differentiation
         attr = g["attribute"].lower().replace(" ", "_")
         # Normalise to 0-20 scale regardless of source
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
-            score_20 = g["scout_grade"]  # already 1-20
+            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            score_20 = g["stat_score"] * 2  # 1-10 → 2-20
+            score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20, clamped
         else:
             continue
-        priority = SOURCE_PRIORITY.get(g.get("source", ""), 0)
+        priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
         if existing is None or priority > existing[1]:
             best[attr] = (score_20, priority)
@@ -225,8 +229,8 @@ def compute_model_scores(grades):
         values = [best[a][0] for a in attrs if a in best]
         if values:
             avg = sum(values) / len(values)
-            # Convert from 0-20 to 0-100
-            model_scores[model] = round(min(avg * 5, 100))
+            # Convert from 0-20 to 0-100, cap at 99 (no perfect scores)
+            model_scores[model] = round(min(avg * 5, 99))
 
     return model_scores
 

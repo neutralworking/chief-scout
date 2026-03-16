@@ -10,7 +10,7 @@
  *   Helvetica business card: clean lines, neutral palette, sharp borders
  *   Personality traits: Analytical, structured, disciplined, relentless
  *
- * "Warrior" — The Warrior (AXLC), The Maverick (IXSC), The Livewire (IXLC)
+ * "Catalyst" — The Catalyst (AXLC), The Maverick (IXSC), The Livewire (IXLC)
  *   Carnival: vibrant gradients, rounded shapes, bold color pops
  *   Personality traits: Flair-driven, occasion-fuelled, confrontational
  *
@@ -27,19 +27,19 @@
  *   Personality traits: Analytical, composed, self-contained, precise
  */
 
-export type CardTheme = "general" | "showman" | "maestro" | "captain" | "professor" | "default";
+export type CardTheme = "general" | "catalyst" | "maestro" | "captain" | "professor" | "default";
 
 // Maps personality_type 4-letter code → card theme
 const PERSONALITY_THEME_MAP: Record<string, CardTheme> = {
   // General — structured, disciplined, business-like
   ANLC: "general",     // The General
   ANSC: "general",     // The Machine
-  INSC: "general",     // The Blade
+  INSC: "general",     // The Mamba
 
-  // Warrior — flair, carnival, feeds off atmosphere
-  AXLC: "showman",     // The Warrior
-  IXSC: "showman",     // The Maverick
-  IXLC: "showman",     // The Livewire
+  // Catalyst — flair, carnival, feeds off atmosphere
+  AXLC: "catalyst",     // The Catalyst
+  IXSC: "catalyst",     // The Maverick
+  IXLC: "catalyst",     // The Livewire
 
   // Maestro — elegant, composed, silk
   INSP: "maestro",     // The Maestro
@@ -84,7 +84,7 @@ export const THEME_STYLES: Record<CardTheme, ThemeStyles> = {
     borderAccent: "border-zinc-500/40",
     nameFont: "font-sans font-bold tracking-wide",
   },
-  showman: {
+  catalyst: {
     // Carnival — vibrant gradients, rounded, bold
     card: "border-2 border-transparent bg-gradient-to-br from-fuchsia-950/40 via-[#1a1a2e] to-amber-950/30 rounded-2xl ring-1 ring-fuchsia-500/20",
     personalityText: "font-sans font-black italic text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-amber-400",

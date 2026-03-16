@@ -32,7 +32,7 @@ interface FreeAgent {
 // Hex colors for radar polygon per theme
 const RADAR_COLORS: Record<CardTheme, string> = {
   general: "#a1a1aa",
-  showman: "#e879f9",
+  catalyst: "#e879f9",
   maestro: "#fcd34d",
   captain: "#f87171",
   professor: "#60a5fa",

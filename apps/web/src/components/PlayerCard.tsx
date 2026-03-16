@@ -5,14 +5,14 @@ import {
   PURSUIT_COLORS,
   POSITION_COLORS,
 } from "@/lib/types";
-import { PersonalityBadge } from "@/components/PersonalityBadge";
-import { getCardTheme, THEME_STYLES, CardTheme } from "@/lib/archetype-themes";
+import { getPersonalityName } from "@/lib/personality";
+import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
 import { MiniRadar } from "@/components/MiniRadar";
 
 // Hex colors for radar polygon per theme (matches theme accent)
 const RADAR_COLORS: Record<CardTheme, string> = {
   general: "#a1a1aa",   // zinc-400
-  showman: "#e879f9",   // fuchsia-400
+  catalyst: "#e879f9",  // fuchsia-400
   maestro: "#fcd34d",   // amber-300
   captain: "#f87171",   // red-400
   professor: "#60a5fa", // blue-400
@@ -22,13 +22,6 @@ const RADAR_COLORS: Record<CardTheme, string> = {
 const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
 const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
 
-const PERSONALITY_NAMES: Record<string, string> = {
-  ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
-  AXLC: "Warrior", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
-  AXSC: "Enforcer", AXSP: "Technician", AXLP: "Orchestrator", INLP: "Guardian",
-  INSC: "Blade", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
-};
-
 export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -37,7 +30,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
 
-  const mentalLabel = player.personality_type ? PERSONALITY_NAMES[player.personality_type] ?? player.personality_type : null;
+  const mentalLabel = getPersonalityName(player.personality_type);
 
   return (
     <Link
@@ -101,10 +94,15 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Personality + Best Role */}
+        {/* Row 3: Personality (codename + code) · Best Role */}
         {(mentalLabel || player.best_role) && (
-          <div className="flex items-center gap-3 text-[10px] mb-3">
-            {mentalLabel && <span className="text-purple-400 font-medium">{mentalLabel}</span>}
+          <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
+            {mentalLabel && (
+              <span className="text-purple-400 font-medium">
+                {mentalLabel}
+                <span className="text-[var(--text-muted)] font-mono ml-1 text-[8px]">{player.personality_type}</span>
+              </span>
+            )}
             {player.best_role && (
               <>
                 {mentalLabel && <span className="text-[var(--text-muted)]">·</span>}
@@ -144,7 +142,9 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
               </span>
             )}
           </div>
-          <PersonalityBadge personalityType={player.personality_type} size="mini" />
+          {player.archetype && !player.engine_value_p50 && !player.market_value_eur && (
+            <span className="text-[9px] font-mono text-[var(--text-muted)]">{player.personality_type}</span>
+          )}
         </div>
 
         {/* Row 5: MiniRadar fingerprint */}

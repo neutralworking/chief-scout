@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { RadarChart } from "./RadarChart";
 
@@ -20,25 +21,6 @@ interface FeaturedPlayerData {
   market_value_tier: string | null;
   dob: string | null;
 }
-
-const PERSONALITY_NAMES: Record<string, { name: string; oneLiner: string }> = {
-  ANLC: { name: "The General", oneLiner: "Structured reader, self-driven, organizes others, thrives in confrontation" },
-  IXSP: { name: "The Genius", oneLiner: "Improviser, occasion-driven, self-contained, ice-cold under pressure" },
-  ANSC: { name: "The Machine", oneLiner: "Reads the game systematically, self-motivated, quiet but relentless" },
-  INLC: { name: "The Captain", oneLiner: "Instinct-driven, self-motivated, vocal leader, fierce competitor" },
-  AXLC: { name: "The Warrior", oneLiner: "Structured but feeds off atmosphere, demands attention, confrontational" },
-  INSP: { name: "The Maestro", oneLiner: "Creative, self-motivated, quietly brilliant, composed under pressure" },
-  ANLP: { name: "The Conductor", oneLiner: "Tactical organizer, self-driven, leads through control, ice-cold composure" },
-  IXSC: { name: "The Maverick", oneLiner: "Flair player, needs the big stage, self-focused, rises to confrontation" },
-  AXSC: { name: "The Enforcer", oneLiner: "Reads patterns, fuelled by occasion, self-focused, aggressive competitor" },
-  AXSP: { name: "The Technician", oneLiner: "Structured, occasion-driven, self-contained, calm under pressure" },
-  AXLP: { name: "The Orchestrator", oneLiner: "Tactical mind, feeds off the crowd, organizes others, composed decision-maker" },
-  INLP: { name: "The Guardian", oneLiner: "Instinctive, self-motivated, vocal organizer, calm presence" },
-  INSC: { name: "The Blade", oneLiner: "Instinctive, self-driven, self-reliant, competitive edge" },
-  IXLC: { name: "The Livewire", oneLiner: "Improviser, occasion-driven, leads vocally, thrives on confrontation" },
-  IXLP: { name: "The Playmaker", oneLiner: "Creative improviser, occasion-driven, organizes play, composed" },
-  ANSP: { name: "The Professor", oneLiner: "Analytical, self-motivated, self-contained, composed under pressure" },
-};
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
@@ -81,7 +63,8 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   const player = currentPlayer;
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
-  const personality = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
+  const pt = player.personality_type ? PERSONALITY_TYPES[player.personality_type] : null;
+  const personality = pt ? { name: pt.fullName, oneLiner: pt.oneLiner } : null;
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;

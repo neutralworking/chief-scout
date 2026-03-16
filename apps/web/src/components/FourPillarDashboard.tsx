@@ -17,9 +17,9 @@ const PILLAR_CONFIG = [
 
 const PERSONALITY_NAMES: Record<string, string> = {
   ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
-  AXLC: "Warrior", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
+  AXLC: "Catalyst", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
   AXSC: "Enforcer", AXSP: "Technician", AXLP: "Orchestrator", INLP: "Guardian",
-  INSC: "Blade", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
+  INSC: "Mamba", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
 };
 
 function PillarBar({ value, color, max = 100 }: { value: number; color: string; max?: number }) {

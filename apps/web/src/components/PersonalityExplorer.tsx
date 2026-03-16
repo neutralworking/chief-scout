@@ -24,8 +24,8 @@ const THEMES: PersonalityTheme[] = [
     borderColor: "border-l-zinc-400",
   },
   {
-    name: "The Warrior",
-    slug: "showman",
+    name: "The Catalyst",
+    slug: "catalyst",
     types: ["AXLC", "IXSC", "IXLC"],
     description: "Flair-driven, feeds off the crowd",
     gradient: "from-fuchsia-950/40 to-amber-950/30",

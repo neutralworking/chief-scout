@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
+import { getPersonalityFullName } from "@/lib/personality";
 import { PersonalityBadge } from "@/components/PersonalityBadge";
 import { CareerAndMoments } from "@/components/CareerAndMoments";
 import type { KeyMoment, XpMilestone } from "@/components/CareerAndMoments";
@@ -85,13 +86,6 @@ interface FBRefStat {
   yellow_cards: number | null;
   red_cards: number | null;
 }
-
-const PERSONALITY_NAMES: Record<string, string> = {
-  ANLC: "The General", IXSP: "The Genius", ANSC: "The Machine", INLC: "The Captain",
-  AXLC: "The Warrior", INSP: "The Maestro", ANLP: "The Conductor", IXSC: "The Maverick",
-  AXSC: "The Enforcer", AXSP: "The Technician", AXLP: "The Orchestrator", INLP: "The Guardian",
-  INSC: "The Blade", IXLC: "The Livewire", IXLP: "The Playmaker", ANSP: "The Professor",
-};
 
 export default async function PlayerDetailPage({
   params,
@@ -202,7 +196,7 @@ export default async function PlayerDetailPage({
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
-  const personalityName = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
+  const personalityName = getPersonalityFullName(player.personality_type);
   const hasStatus = !!(player.squad_role || player.loan_status || playerTags.length > 0);
   const fbrefId = fbrefLink?.external_id;
 

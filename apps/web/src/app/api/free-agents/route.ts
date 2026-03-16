@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
+import { prodFilter } from "@/lib/env";
 
 const SELECT =
   "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score";
@@ -142,10 +143,10 @@ export async function GET(req: NextRequest) {
 
   // Fetch player cards — Supabase .in() has a limit, batch if needed
   const idArray = Array.from(playerIds);
-  let query = supabase
+  let query = prodFilter(supabase
     .from("player_intelligence_card")
     .select(SELECT)
-    .in("person_id", idArray);
+    .in("person_id", idArray));
 
   // Only show active players (filter out retired)
   query = query.eq("active", true);

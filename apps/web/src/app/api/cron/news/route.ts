@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
+import { isProduction } from "@/lib/env";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -232,6 +233,11 @@ async function matchPlayer(
 // ── Main Handler ────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  // Skip cron on production — pipeline runs on staging only
+  if (isProduction()) {
+    return NextResponse.json({ ok: true, skipped: "production" });
+  }
+
   // Auth: require CRON_SECRET header (for Vercel Cron), query param, or internal admin call
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.get("authorization");

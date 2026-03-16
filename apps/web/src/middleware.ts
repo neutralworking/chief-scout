@@ -1,7 +1,20 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase-middleware";
+import { isRouteAllowed, isProduction } from "@/lib/env";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Block staging-only routes in production (redirect to home)
+  if (isProduction() && !isRouteAllowed(pathname)) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Block all admin API routes in production (return 404)
+  if (isProduction() && pathname.startsWith("/api/admin")) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   return await updateSession(request);
 }
 

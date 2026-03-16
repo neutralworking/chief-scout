@@ -10,6 +10,22 @@
 - [ ] **Manual personality review** — `/admin/personality` for top 50 players
 - [ ] **Scale to 200+ full profiles** — target by end of March (currently ~50). Requires automated generation from external data.
 
+### External Data Replacement (FBRef scraper dead)
+FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automated scraper is dead. Multi-source strategy to replace and exceed FBRef coverage:
+
+| Source | Pipeline Script | What it replaces | Status |
+|--------|----------------|------------------|--------|
+| **API-Football** | `pipeline/XX_api_football_ingest.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | TODO — build |
+| **Fotmob** | `pipeline/XX_fotmob_ingest.py` | xG, defensive actions, passing, match ratings | TODO — build |
+| **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
+| **Understat** (existing) | `pipeline/09_understat_ingest.py` | xG/xA per match (top 5 leagues) | DONE |
+
+- [ ] **Build API-Football ingest** — register key, build pipeline script, map to `attribute_grades`
+- [ ] **Build Fotmob ingest** — unofficial API, build pipeline script, map to `attribute_grades`
+- [ ] **Update script 22** — generalize grade computation to accept multi-source season stats (not just FBRef)
+- [ ] **Update `player_id_links`** — add `source='api_football'` and `source='fotmob'` matching
+- [ ] **Update `SOURCE_PRIORITY`** in frontend API routes — add new sources to priority chain
+
 ### Data Freshness (Strategic Priority #2)
 - [ ] **News cron** — automated refresh every 2-4h (#53). Sprint item #1. Last automation gap.
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
@@ -54,7 +70,7 @@
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
 
 ## Low Priority
-- [ ] Connect `supabase-fbref-scraper` output as additional data source (ROADMAP Phase 1)
+- [ ] ~~Connect `supabase-fbref-scraper`~~ — **DEAD**. Replaced by multi-source strategy (see below)
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)

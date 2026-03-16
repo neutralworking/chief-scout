@@ -9,7 +9,7 @@ chief-scout/
 ├── pipeline/                ← data pipeline (27 numbered scripts)
 ├── apps/web/      ← Next.js player intelligence UI
 ├── imports/                 ← CSV data (Real Players Active, clubs)
-├── transfer_availability/   ← submodule: player archetype + transfer model
+├── (transfer_availability removed — separate project)
 ├── docs/
 │   ├── research/rsg.db/     ← Obsidian research vault (reference data)
 │   ├── systems/             ← SACROSANCT.md (classification taxonomy)
@@ -50,7 +50,7 @@ All 27 pipeline scripts operational. 5+ external data sources ingested and cross
 - [x] News sentiment aggregation (script 24)
 - [x] Key moments from career + news (script 26)
 - [x] Composite player ratings: model scores → compound → overall (script 27)
-- [ ] Connect `supabase-fbref-scraper` output as additional data source
+- [ ] ~~Connect `supabase-fbref-scraper`~~ — DEAD. Replace with multi-source: API-Football + Fotmob
 
 ## Phase 2 — Scouting Interface [FUNCTIONAL]
 Core UI built and working. Needs design polish pass.
@@ -121,6 +121,6 @@ Pipeline supports automated profile generation. Manual data work ongoing.
 
 ## Connects to
 - `director/` — chief scout provides player data + scouting reports to the game
-- `supabase-fbref-scraper/` — data source
-- `transfer_availability/` — player decision model
+- ~~`supabase-fbref-scraper/`~~ — DEAD. Replaced by API-Football + Fotmob multi-source strategy
+- ~~`transfer_availability/`~~ — removed (separate project, no shared code)
 - News Layer — real-world stories feed availability signals + game inbox events

@@ -119,6 +119,20 @@ body {
   animation: slideUp 0.4s ease-out forwards;
 }
 
+/* Landing page: break out of sidebar layout */
+.landing-page {
+  position: relative;
+  z-index: 60;
+  background: var(--bg-base);
+  min-height: 100vh;
+}
+
+/* Hide sidebar when landing page is present */
+.landing-page ~ aside,
+:has(.landing-page) aside {
+  display: none !important;
+}
+
 /* PWA safe areas */
 @supports (padding: env(safe-area-inset-top)) {
   body {

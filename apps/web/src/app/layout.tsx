@@ -5,17 +5,21 @@ import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
 import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "Chief Scout",
-  description: "Player Intelligence Platform",
+  title: "Chief Scout — Player Intelligence Platform",
+  description:
+    "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players. The scouting platform that thinks like a Director of Football.",
   openGraph: {
-    title: "Chief Scout",
-    description: "Player Intelligence Platform",
+    title: "Chief Scout — Player Intelligence Platform",
+    description:
+      "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players.",
     type: "website",
+    siteName: "Chief Scout",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Chief Scout",
-    description: "Player Intelligence Platform",
+    title: "Chief Scout — Player Intelligence Platform",
+    description:
+      "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players.",
   },
 };
 

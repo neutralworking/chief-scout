@@ -18,6 +18,7 @@ const ALL_NAV_ITEMS = [
   { label: "Free Agents", href: "/free-agents" },
   { label: "Gaffer", href: "/choices" },
   { label: "Network", href: "/network", stagingOnly: true },
+  { label: "Review", href: "/review", stagingOnly: true },
   { label: "Editor", href: "/editor", stagingOnly: true },
   { label: "Admin", href: "/admin", stagingOnly: true },
 ];

@@ -22,7 +22,7 @@ export function isStaging(): boolean {
 }
 
 /** Routes that should only be visible on staging (internal tools) */
-const STAGING_ONLY_ROUTES = ["/admin", "/editor", "/squad", "/formations", "/network"];
+const STAGING_ONLY_ROUTES = ["/admin", "/editor", "/review", "/squad", "/formations", "/network"];
 
 /** Check if a route is allowed in the current environment */
 export function isRouteAllowed(pathname: string): boolean {

@@ -4,10 +4,11 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
-import { prodFilter } from "@/lib/env";
+import { prodFilter, isProduction } from "@/lib/env";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PursuitPanel } from "@/components/PursuitPanel";
+import { LandingPage } from "@/components/LandingPage";
 
 const PIPELINE_STATUSES = ["Priority", "Interested", "Watch"] as const;
 
@@ -297,7 +298,31 @@ const SENTIMENT_DOT: Record<string, string> = {
   neutral: "bg-[var(--sentiment-neutral)]",
 };
 
+async function getShowcasePlayers(): Promise<PlayerCardType[]> {
+  if (!supabaseServer) return [];
+  const { data } = await supabaseServer
+    .from("player_intelligence_card")
+    .select("person_id, name, dob, club, club_id, nation, position, level, archetype, personality_type, best_role, best_role_score, market_value_eur, director_valuation_meur, model_id, profile_tier, pursuit_status, height_cm, preferred_foot, active, market_value_tier, true_mvt")
+    .eq("profile_tier", 1)
+    .not("archetype", "is", null)
+    .not("personality_type", "is", null)
+    .not("best_role_score", "is", null)
+    .order("best_role_score", { ascending: false })
+    .limit(4);
+  return (data ?? []) as unknown as PlayerCardType[];
+}
+
 export default async function DashboardPage() {
+  // Production: show landing page for unauthenticated visitors
+  if (isProduction()) {
+    const cookieStore = await cookies();
+    const hasAuth = cookieStore.getAll().some((c) => c.name.includes("auth-token"));
+    if (!hasAuth) {
+      const showcasePlayers = await getShowcasePlayers();
+      return <LandingPage showcasePlayers={showcasePlayers} />;
+    }
+  }
+
   const preferences = await getUserPreferences();
   const flags = getFeatureFlags(preferences);
   const data = await getDashboardData(flags.shortlists);

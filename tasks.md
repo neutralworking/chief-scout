@@ -95,8 +95,13 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
-- [ ] Network page (`/network`) — not producing suggestions
+- [ ] Network page (`/players`) — user building smarter sorting/highlighting (rising players, XP buffs, score deltas)
+- [ ] Vercel deployment not picking up changes — check Hobby plan settings
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-16, session 4)
+- [x] XP system fully live — migration 031 applied to Supabase, pipeline 44 run (4,589 players, 11,663 milestones), valuation engine XP modifier in effective_score, UI XP tab on player detail pages
+- [x] User expanded pipeline 44 with tiered trophies (elite/major/minor), academy graduates, early starters, promotion climbers, late bloomers, loan success, consecutive seasons. XP cap raised to [-5, +12].
 
 ## Completed (2026-03-16, session 3)
 - [x] FBRef CSV import: paste-to-CSV parser + EPL/La Liga/Bundesliga 2025-26 data (PRs #83, #84, #86)

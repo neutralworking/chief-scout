@@ -1,0 +1,4 @@
+# FBRef data files (raw paste + generated CSVs) — not source code
+*.txt
+*.csv
+*.html

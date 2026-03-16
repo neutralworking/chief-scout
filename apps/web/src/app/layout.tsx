@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
 import { AuthProvider } from "@/components/AuthProvider";
+import { isProduction } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Chief Scout — Player Intelligence Platform",
@@ -31,6 +33,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {isProduction() && (
+          <Script
+            defer
+            data-domain="chief-scout-prod.vercel.app"
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

@@ -128,6 +128,9 @@ export async function GET(req: NextRequest) {
     case "level":
       query = query.order("level", { ascending: false, nullsFirst: false });
       break;
+    case "role_score":
+      query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+      break;
     case "name":
       query = query.order("name", { ascending: true });
       break;
@@ -135,8 +138,10 @@ export async function GET(req: NextRequest) {
       query = query.order("position", { ascending: true, nullsFirst: false });
       break;
     case "value":
-    default:
       query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+      break;
+    default:
+      query = query.order("best_role_score", { ascending: false, nullsFirst: false });
       break;
   }
 

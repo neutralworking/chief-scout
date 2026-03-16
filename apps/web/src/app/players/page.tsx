@@ -43,7 +43,7 @@ function PlayersContent() {
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "level";
+  const sort = searchParams.get("sort") ?? "role_score";
   const tier = searchParams.get("tier") ?? "";
 
   const updateParam = useCallback((key: string, value: string) => {
@@ -156,6 +156,7 @@ function PlayersContent() {
         </select>
         <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
           className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
+          <option value="role_score">Sort: Role Score</option>
           <option value="level">Sort: Level</option>
           <option value="value">Sort: Value</option>
           <option value="name">Sort: Name</option>

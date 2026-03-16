@@ -28,19 +28,18 @@ export default async function ChoicesPage() {
         .select("id, slug, name, description, icon, sort_order")
         .order("sort_order");
       if (!error && data) {
-        // Only include categories that have active questions
-        const filtered: Category[] = [];
-        for (const cat of data) {
-          const { count } = await supabaseServer
-            .from("fc_questions")
-            .select("id", { count: "exact", head: true })
-            .eq("category_id", cat.id)
-            .eq("active", true);
-          if ((count ?? 0) > 0) {
-            filtered.push(cat as Category);
-          }
-        }
-        categories = filtered;
+        // Filter to categories with active questions — parallel queries
+        const counts = await Promise.all(
+          data.map((cat: Category) =>
+            supabaseServer!
+              .from("fc_questions")
+              .select("id", { count: "exact", head: true })
+              .eq("category_id", cat.id)
+              .eq("active", true)
+              .then(({ count }: { count: number | null }) => count ?? 0)
+          )
+        );
+        categories = data.filter((_: Category, i: number) => counts[i] > 0) as Category[];
       }
     } catch {
       // Table may not exist yet — migrations 015/016 not applied

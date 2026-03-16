@@ -137,9 +137,11 @@ export function AllTimeXI() {
   const [loading, setLoading] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const timerRef = useRef(0);
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (fcUserId) loadSquad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fcUserId]);
 
   // Analysis of picks
@@ -179,6 +181,8 @@ export function AllTimeXI() {
   }, [picks]);
 
   async function loadSquad() {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     try {
       const res = await fetch(`/api/choices/squad?user_id=${fcUserId}&template=classic-433`);
       if (!res.ok) return;
@@ -193,6 +197,8 @@ export function AllTimeXI() {
       }
     } catch (err) {
       console.error("Failed to load squad:", err);
+    } finally {
+      loadingRef.current = false;
     }
   }
 

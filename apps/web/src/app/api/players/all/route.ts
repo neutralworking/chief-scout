@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
+import { prodFilter } from "@/lib/env";
 
 const SELECT =
   "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score";
@@ -107,7 +108,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
   const offset = Number(searchParams.get("offset") || 0);
 
-  let query = supabase.from("player_intelligence_card").select(SELECT);
+  let query = prodFilter(supabase.from("player_intelligence_card").select(SELECT));
 
   // Server-side filters
   if (position) query = query.eq("position", position);

@@ -1,5 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
+import { isProduction, prodFilter } from "@/lib/env";
 
 const SELECT = [
   "id","name","club","division","nation",
@@ -94,6 +95,11 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
+  // Block write operations in production (use admin tools on staging only)
+  if (isProduction()) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const supabase = supabaseServer!;
   const body = await req.json();
   const { id, ...fields } = body;

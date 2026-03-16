@@ -7,6 +7,16 @@ import { AuthProvider } from "@/components/AuthProvider";
 export const metadata: Metadata = {
   title: "Chief Scout",
   description: "Player Intelligence Platform",
+  openGraph: {
+    title: "Chief Scout",
+    description: "Player Intelligence Platform",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chief Scout",
+    description: "Player Intelligence Platform",
+  },
 };
 
 export default function RootLayout({

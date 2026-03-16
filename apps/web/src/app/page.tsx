@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
+import { prodFilter } from "@/lib/env";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PursuitPanel } from "@/components/PursuitPanel";
@@ -48,11 +49,11 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
     // Featured: DOF picks — pursuit targets with profiles
-    supabaseServer
+    prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select(FEATURED_COLS + ", pursuit_status")
       .in("pursuit_status", ["Priority", "Interested"])
-      .not("archetype", "is", null)
+      .not("archetype", "is", null))
       .order("level", { ascending: false })
       .limit(20),
     // Featured player: sentiment data for swing-based selection
@@ -62,15 +63,15 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .order("created_at", { ascending: false })
       .limit(200),
     // Personality type counts
-    supabaseServer
+    prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select("personality_type")
-      .not("personality_type", "is", null),
+      .not("personality_type", "is", null)),
     // Position counts
-    supabaseServer
+    prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select("position")
-      .not("position", "is", null),
+      .not("position", "is", null)),
     // Recent news with tags
     supabaseServer
       .from("news_stories")
@@ -87,10 +88,10 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   if (shortlistsEnabled) {
     queries.push(
-      supabaseServer
+      prodFilter(supabaseServer
         .from("player_intelligence_card")
         .select("person_id, name, position, club, level, archetype, pursuit_status, profile_tier, personality_type")
-        .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"])
+        .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]))
         .order("level", { ascending: false }),
       supabaseServer.from("people").select("id", { count: "exact", head: true }),
       supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
@@ -283,11 +284,11 @@ function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
+  if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  return `${days}d`;
+  return `${days}d ago`;
 }
 
 const SENTIMENT_DOT: Record<string, string> = {
@@ -457,7 +458,7 @@ export default async function DashboardPage() {
               {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
                 <Link
                   key={league}
-                  href={`/leagues`}
+                  href={`/clubs?league=${encodeURIComponent(league)}`}
                   className="flex items-center px-2 py-1 rounded text-[10px] hover:bg-green-500/10 transition-colors"
                 >
                   <span className="text-[var(--text-secondary)]">{league}</span>

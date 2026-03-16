@@ -18,6 +18,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase-server";
+import { isProduction } from "@/lib/env";
 import { runRatings } from "@/lib/valuation/ratings";
 import { runSquadRoles } from "@/lib/valuation/squad-roles";
 import {
@@ -37,6 +38,11 @@ type StepResult = {
 };
 
 export async function GET(req: NextRequest) {
+  // Skip cron on production — pipeline runs on staging only
+  if (isProduction()) {
+    return NextResponse.json({ ok: true, skipped: "production" });
+  }
+
   // Auth
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.get("authorization");

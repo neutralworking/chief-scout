@@ -9,14 +9,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  // Auth: require CRON_SECRET as Bearer token for remote access
-  // Browser requests from admin panel (same origin) also allowed via Referer check
+  // Auth: require CRON_SECRET as Bearer token
   const auth = req.headers.get("authorization");
-  const referer = req.headers.get("referer") ?? "";
-  const isLocalAdmin = referer.includes("/admin");
   const hasValidKey = ADMIN_KEY && auth === `Bearer ${ADMIN_KEY}`;
 
-  if (!isLocalAdmin && !hasValidKey) {
+  if (!hasValidKey) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

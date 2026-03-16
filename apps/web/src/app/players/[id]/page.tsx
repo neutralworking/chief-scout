@@ -5,8 +5,8 @@ import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { PersonalityBadge } from "@/components/PersonalityBadge";
 import { CareerAndMoments } from "@/components/CareerAndMoments";
 import type { KeyMoment, XpMilestone } from "@/components/CareerAndMoments";
-import { ScoutPad } from "@/components/ScoutPad";
-import type { NewsStory } from "@/components/ScoutPad";
+import { PlayerNews } from "@/components/PlayerNews";
+import type { NewsStory } from "@/components/PlayerNews";
 import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
@@ -217,7 +217,8 @@ export default async function PlayerDetailPage({
         </Link>
         <PlayerQuickEdit player={{
           person_id: player.person_id,
-          level: player.level,
+          best_role: player.best_role,
+          best_role_score: player.best_role_score,
           position: player.position,
           archetype: player.archetype,
           blueprint: player.blueprint,
@@ -263,25 +264,11 @@ export default async function PlayerDetailPage({
             </div>
           </div>
 
-          {/* Rating — role score (primary) with level ceiling */}
-          {(player.best_role_score != null || player.level != null) && (
+          {/* Rating — best role score */}
+          {player.best_role_score != null && (
             <div className="text-center shrink-0">
-              {player.best_role_score != null ? (
-                <>
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.best_role_score}</div>
-                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">
-                    Role Score
-                    {player.level != null && (
-                      <span className="text-[var(--text-muted)] ml-1">/ {player.level}</span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.level}</div>
-                  <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Level</div>
-                </>
-              )}
+              <div className="text-xl sm:text-2xl font-mono font-bold text-[var(--text-primary)]">{player.best_role_score}</div>
+              <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Role Score</div>
             </div>
           )}
         </div>
@@ -466,7 +453,7 @@ export default async function PlayerDetailPage({
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 
           {news.length > 0 && (
-            <ScoutPad
+            <PlayerNews
               news={news}
             />
           )}

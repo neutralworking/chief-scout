@@ -19,6 +19,7 @@ interface FreeAgent {
   club: string | null;
   position: string | null;
   level: number | null;
+  best_role_score: number | null;
   archetype: string | null;
   personality_type: string | null;
   pursuit_status: string | null;
@@ -110,9 +111,9 @@ function FreeAgentsContent() {
     return () => { cancelled = true; };
   }, [buildUrl]);
 
-  const withLevel = players.filter((p) => p.level != null);
-  const avgLevel = withLevel.length > 0
-    ? Math.round(withLevel.reduce((sum, p) => sum + (p.level ?? 0), 0) / withLevel.length)
+  const withScore = players.filter((p) => p.best_role_score != null);
+  const avgScore = withScore.length > 0
+    ? Math.round(withScore.reduce((sum, p) => sum + (p.best_role_score ?? 0), 0) / withScore.length)
     : null;
 
   return (
@@ -122,7 +123,7 @@ function FreeAgentsContent() {
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agents & Expiring Contracts</h1>
         <p className="text-[11px] text-[var(--text-secondary)]">
           {loading ? "Loading..." : `${players.length} players`}
-          {avgLevel != null && !loading && ` · avg level ${avgLevel}`}
+          {avgScore != null && !loading && ` · avg score ${avgScore}`}
         </p>
       </div>
 
@@ -200,7 +201,7 @@ function FreeAgentsContent() {
                 <th className="text-right py-2 px-4 font-medium w-20">
                   {isFreeTab ? "Status" : "Expires"}
                 </th>
-                <th className="text-right py-2 px-4 font-medium w-16">Level</th>
+                <th className="text-right py-2 px-4 font-medium w-16">Score</th>
               </tr>
             </thead>
             <tbody>
@@ -277,8 +278,8 @@ function FreeAgentsContent() {
                         </span>
                       )}
                     </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.level)}`}>
-                      {player.level ?? "–"}
+                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                      {player.best_role_score ?? "–"}
                     </td>
                   </tr>
                 );

@@ -181,7 +181,7 @@ function PlayersContent() {
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Status</th>
-                <th className="text-right py-2 px-4 font-medium w-16">Level</th>
+                <th className="text-right py-2 px-4 font-medium w-16">Score</th>
               </tr>
             </thead>
             <tbody>
@@ -214,8 +214,8 @@ function PlayersContent() {
                         </span>
                       )}
                     </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.level)}`}>
-                      {player.level ?? "–"}
+                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                      {player.best_role_score ?? "–"}
                     </td>
                   </tr>
                 );
@@ -252,8 +252,8 @@ function PlayersContent() {
                   {player.archetype && (
                     <span className="text-[10px] text-[var(--text-secondary)] hidden xs:inline">{player.archetype}</span>
                   )}
-                  <span className={`text-lg font-mono font-bold ${levelColor(player.level)}`}>
-                    {player.level ?? "–"}
+                  <span className={`text-lg font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                    {player.best_role_score ?? "–"}
                   </span>
                 </div>
               </Link>

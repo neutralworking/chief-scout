@@ -54,20 +54,32 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] Player comparison page (`/compare`) — overlay 2-3 fingerprint polygons
 
 ## Medium Priority
+
+### Data Quality
+- [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler) with confidence scores. Flag ambiguous for manual review (plan A2)
+- [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`. API route exists (`/api/admin/data-quality`), needs UI (plan A3)
+- [ ] **StatsBomb event extraction** — extract progressive carries, pressure events, shot-creating actions from existing `sb_events` data (plan B2)
+- [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
+
+### Pipeline
+- [ ] **Parallel pipeline execution** — asyncio/multiprocessing for independent scripts (news, stats, wikidata). 3-5x speedup (plan F7)
+- [ ] Build `pipeline/32_trait_inference.py` — infer traits from FBRef stats for four-pillar
+- [ ] Build `pipeline/33_physical_metrics.py` — aggregate FBRef minutes into availability scores
+
+### Product & Features
 - [ ] **Comparison tool** — side-by-side player radar + stats (ROADMAP Phase 2)
 - [ ] **Formations seed** — populate from research data (#54, sprint item #2)
 - [ ] **Product polish** — glass consistency, archetype styling (#55, sprint item #3)
 - [ ] **Free agent grader** — ranked shortlists (#26)
 - [ ] **Scouting radar** — statistical alert system (#25)
 - [ ] **News-driven alerts** on player list (#23)
+- [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
+
+### Data Enrichment
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
-- [ ] Build `pipeline/32_trait_inference.py` — infer traits from FBRef stats for four-pillar
-- [ ] Build `pipeline/33_physical_metrics.py` — aggregate FBRef minutes into availability scores
-- [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
 - [ ] Apply migration 024 (network_roles + network_edits tables)
 - [ ] Women's players: decide long-term approach
-- [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
 
 ## Low Priority
 - [ ] ~~Connect `supabase-fbref-scraper`~~ — **DEAD**. Replaced by multi-source strategy (see below)
@@ -76,6 +88,8 @@ FBRef manual ingest (script 11) still works for saved HTML/CSV. But the automate
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] Run `40_promote_to_prod.py` once prod Supabase project exists
 - [ ] Network page (`/network`) — not producing suggestions
+- [ ] **FBRef scraping automation** — Playwright/Puppeteer with rate limits, or CDN CSV exports (plan B4, ToS risk)
+- [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
 
 ## Completed (2026-03-16)
 - [x] Gaffer `/choices` crash — parallel category queries, stable fcUserId init, error boundary, loadSquad race guard

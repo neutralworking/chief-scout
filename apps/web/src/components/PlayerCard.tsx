@@ -58,15 +58,11 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
             </h3>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            {player.best_role_score != null ? (
+            {player.best_role_score != null && (
               <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none" title={player.best_role ?? "Role Score"}>
                 {player.best_role_score}
               </span>
-            ) : player.level != null ? (
-              <span className="text-lg font-mono font-bold text-[var(--text-muted)] leading-none" title="Legacy level">
-                {player.level}
-              </span>
-            ) : null}
+            )}
             {showPursuit && player.pursuit_status && (
               <span
                 className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}

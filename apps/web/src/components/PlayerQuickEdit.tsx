@@ -8,7 +8,8 @@ const SQUAD_ROLES = ["", "Key Player", "Important Player", "Rotation", "Backup",
 
 interface PlayerData {
   person_id: number;
-  level: number | null;
+  best_role: string | null;
+  best_role_score: number | null;
   position: string | null;
   archetype: string | null;
   blueprint: string | null;
@@ -25,7 +26,8 @@ export function PlayerQuickEdit({ player }: { player: PlayerData }) {
   const [status, setStatus] = useState<SaveStatus>("idle");
 
   // Editable fields
-  const [level, setLevel] = useState(player.level);
+  const [bestRole, setBestRole] = useState(player.best_role ?? "");
+  const [bestRoleScore, setBestRoleScore] = useState(player.best_role_score);
   const [position, setPosition] = useState(player.position ?? "");
   const [archetype, setArchetype] = useState(player.archetype ?? "");
   const [blueprint, setBlueprint] = useState(player.blueprint ?? "");
@@ -64,7 +66,8 @@ export function PlayerQuickEdit({ player }: { player: PlayerData }) {
 
       // Profile fields
       const profileUpdates: Record<string, unknown> = {};
-      if (level !== player.level) profileUpdates.level = level;
+      if (bestRole !== (player.best_role ?? "")) profileUpdates.best_role = bestRole || null;
+      if (bestRoleScore !== player.best_role_score) profileUpdates.best_role_score = bestRoleScore;
       if (position !== (player.position ?? "")) profileUpdates.position = position || null;
       if (archetype !== (player.archetype ?? "")) profileUpdates.archetype = archetype || null;
       if (blueprint !== (player.blueprint ?? "")) profileUpdates.blueprint = blueprint || null;
@@ -133,17 +136,27 @@ export function PlayerQuickEdit({ player }: { player: PlayerData }) {
         </div>
       </div>
 
-      {/* Row 1: Level + Position + Pursuit */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Row 1: Role Score + Best Role + Position + Pursuit */}
+      <div className="grid grid-cols-4 gap-2">
         <div>
-          <label className={labelClass}>Level</label>
+          <label className={labelClass}>Role Score</label>
           <input
             type="number"
             min={1}
-            max={99}
-            value={level ?? ""}
-            onChange={(e) => setLevel(e.target.value ? parseInt(e.target.value) : null)}
+            max={100}
+            value={bestRoleScore ?? ""}
+            onChange={(e) => setBestRoleScore(e.target.value ? parseInt(e.target.value) : null)}
             className={inputClass + " font-mono font-bold text-center"}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Best Role</label>
+          <input
+            type="text"
+            value={bestRole}
+            onChange={(e) => setBestRole(e.target.value)}
+            placeholder="e.g. Regista"
+            className={inputClass}
           />
         </div>
         <div>

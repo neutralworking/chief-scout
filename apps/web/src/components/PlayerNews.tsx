@@ -12,7 +12,7 @@ export interface NewsStory {
   confidence: number | null;
 }
 
-interface ScoutPadProps {
+interface PlayerNewsProps {
   news: NewsStory[];
 }
 
@@ -37,7 +37,7 @@ function formatDate(dateStr: string | null): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function ScoutPad({ news }: ScoutPadProps) {
+export function PlayerNews({ news }: PlayerNewsProps) {
   if (news.length === 0) return null;
 
   return (

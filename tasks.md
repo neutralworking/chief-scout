@@ -3,7 +3,7 @@
 ## High Priority
 
 ### Data Density (Strategic Priority #1)
-- [ ] **Run `22_fbref_grades.py`** — 0 fbref-sourced grades in attribute_grades table. Zero-effort data density win.
+- [ ] **Run `22_fbref_grades.py`** — 0 fbref-sourced grades in attribute_grades table. Requires FBRef CSV data in `fbref_player_season_stats`.
 - [x] **Apply migration 029** (`pipeline/sql/029_trait_scores.sql`) — player_trait_scores table + availability columns
 - [x] **Run personality rules** — `python 34_personality_rules.py` (15 players updated)
 - [x] **Run personality LLM** — `python 35_personality_llm.py --min-level 85 --limit 50`
@@ -16,7 +16,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 | Source | Pipeline Script | What it replaces | Status |
 |--------|----------------|------------------|--------|
 | **FBRef CSV** | `pipeline/11_fbref_ingest.py` | Season stats via pasted CSVs | DONE (PR #84, #86) |
-| **Kaggle datasets** | `pipeline/45-50_kaggle_*.py` | Euro leagues, transfers, FIFA historical, PL stats, injuries | BUILT (PR #85, migration 033) |
+| **Kaggle datasets** | `pipeline/45-50_kaggle_*.py` | Euro leagues, transfers, FIFA historical, PL stats, injuries | DONE — 5 datasets downloaded, 4 ingested (2026-03-17) |
 | **API-Football** | `pipeline/XX_api_football_ingest.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | TODO — build |
 | **Fotmob** | `pipeline/XX_fotmob_ingest.py` | xG, defensive actions, passing, match ratings | TODO — build |
 | **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
@@ -38,8 +38,8 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **XP system v2** — move to real XP scale (Ballon d'Or=1000, World Cup=500, debut=10) with separate integration into valuation engine. Current small-modifier system is interim.
 - [x] ~~CS Value formula inflation~~ — fixed (2026-03-16)
 
-- [x] ~~Revisit CSPER personality names~~ — Blade→Mamba (INSC), Warrior→Catalyst (AXLC), centralised in lib/personality.ts (2026-03-17)
-- [ ] Pipeline script renumbering — scripts 31-37 have duplicate numbers (3× 31, 2× 32, 2× 34, 3× 36, 2× 37)
+- [x] ~~Revisit CSPER personality names~~ — Blade→Mamba, Warrior→Catalyst, Genius→Spark. Centralised in lib/personality.ts (2026-03-17)
+- [x] ~~Pipeline script renumbering~~ — 37 files renamed, zero collisions, clean ranges 01-79 (2026-03-18)
 
 ## Fixture Previews — Remaining
 - [x] ~~Run migration `030_fixtures.sql`~~ — applied 2026-03-16
@@ -51,7 +51,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 ## Radar Fingerprints — Expansion
 - [x] ~~Percentile-based fingerprints~~ — position-group percentiles via pipeline/51_fingerprints.py (2026-03-17)
 - [x] ~~Remove on-the-fly fingerprint computation~~ — API reads from view, 160 lines removed (2026-03-17)
-- [ ] **Role-specific radar axes** — show role-relevant attributes instead of generic 6-axis (e.g. Regista: Tempo/Vision/Pass Range/Composure instead of DEF/CRE/ATK/PWR/PAC/DRV)
+- [x] ~~Role-specific radar axes~~ — 45+ role→axis mappings in lib/role-radar.ts, pipeline 60 computes per-role percentiles (2026-03-17)
 - [ ] Add MiniRadar to shortlist detail page (`/shortlists/[slug]`)
 - [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
 - [ ] Add MiniRadar to TrendingPlayers component (homepage)
@@ -74,19 +74,26 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **StatsBomb event extraction** — extract progressive carries, pressure events, shot-creating actions from existing `sb_events` data (plan B2)
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
-- [ ] Build `pipeline/32_trait_inference.py` — infer traits from FBRef stats for four-pillar
-- [ ] Build `pipeline/33_physical_metrics.py` — aggregate FBRef minutes into availability scores
+- [ ] Build trait inference script — infer traits from FBRef stats for four-pillar (slot: 63+)
+- [ ] Build physical metrics script — aggregate FBRef minutes into availability scores (slot: 64+)
 - [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
 - [ ] Add materialized view auto-refresh after pipeline scripts
 - [ ] Women's players: decide long-term approach
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
 
-### Pipeline
+### Pipeline Infrastructure
+- [x] ~~Script renumbering~~ — 37 files, clean ranges, zero collisions (2026-03-18)
+- [ ] **Pipeline orchestrator** — `pipeline/run_all.py`: dependency-ordered execution, skip-if-unchanged (checksum), timing, cron_log integration. Trigger from admin panel.
+- [ ] **Incremental processing** — add `updated_at` tracking so scripts only process players modified since last run. Use cron_log for delta detection.
+- [ ] **Shared DB connection** — `pipeline/lib/db.py` standardising psycopg2 connection across all 56 scripts (currently each script opens its own)
+- [ ] **Post-pipeline validation** — `pipeline/63_validate.py`: null rate checks, duplicate detection, grade distribution drift. Flags anomalies to cron_log.
 - [ ] **Parallel pipeline execution** — asyncio/multiprocessing for independent scripts (news, stats, wikidata). 3-5x speedup (plan F7)
+- [ ] **Single MODEL_ATTRIBUTES source** — currently defined in radar/route.ts, formation-intelligence.ts, and 60_fingerprints.py. Extract to shared config.
 
 ### Product & Features
 - [ ] **Comparison tool** — side-by-side player radar + stats (ROADMAP Phase 2)
 - [ ] **Formations seed** — populate from research data (#54, sprint item #2)
+- [x] ~~Editor redesign~~ — scout-first layout, compound archetype selector, position-filtered blueprints, collapsible sections, mobile touch targets (2026-03-17)
 - [ ] **Product polish** — glass consistency, archetype styling (#55, sprint item #3)
 - [ ] **Free agent grader** — ranked shortlists (#26)
 - [ ] **Scouting radar** — statistical alert system (#25)
@@ -99,9 +106,22 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
-- [ ] Network page (`/players`) — user building smarter sorting/highlighting (rising players, XP buffs, score deltas)
-- [ ] Vercel deployment not picking up changes — check Hobby plan settings
+- [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-17, session 6)
+- [x] Role score full calibration — aliases, level floors, understat compression, GK remap. 7,363 players rated. Validated: Haaland 89, Mbappé 89, Kane 85, Yamal 86, Palmer 84, Alisson 86, Ederson 80
+- [x] Kaggle data pipeline — migration 033 applied, 5 datasets downloaded, 4 ingested (euro leagues 4277, PL stats 574, injuries 15603, transfer values 508)
+- [x] Fixed 49_kaggle_injuries.py (fitness→fitness_tag), 46_kaggle_transfer_values.py (rglob for nested dirs)
+- [x] Pipeline 27: raw/anchored model score split, attribute alias system (10 fallbacks), double-count prevention
+- [x] Understat compression (×1.7 cap 17), GK model remapped to scout-graded attrs
+
+## Completed (2026-03-17, session 5)
+- [x] XP system fully implemented — migration 031, pipeline 44, valuation engine, UI XP tab. User expanded with tiered trophies, academy grads, promotion climbers
+- [x] EA FC 25 attribute import — purged 418k broken rows, reimported 189k real grades from Kaggle dataset (pipeline 51). 9,190 players matched via multi-strategy matching + 24 manual aliases
+- [x] Role score inflation fix — coverage penalty in pipeline 27 prevents thin-data models scoring 90. Before: 67 players at 90. After: proper gradient (Mbappé 82, Palmer 90, Haaland 76)
+- [x] Retired players filtered from /players Network page (active=true filter on API)
+- [x] Pipeline 27 re-run with fixes — 7,353 players re-rated
 
 ## Completed (2026-03-16, session 4)
 - [x] XP system fully live — migration 031 applied to Supabase, pipeline 44 run (4,589 players, 11,663 milestones), valuation engine XP modifier in effective_score, UI XP tab on player detail pages

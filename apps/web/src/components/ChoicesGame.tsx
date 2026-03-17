@@ -115,35 +115,19 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   }, [fcUserId]);
 
   const fetchQuestion = useCallback(
-    async (category?: string) => {
+    async () => {
       setLoading(true);
       setResults(null);
       setChosenId(null);
       setAnimatingOut(false);
 
       try {
-        // Try dynamic first
+        // Dynamic questions only — powered by real player data
         const dynRes = await fetch("/api/choices/dynamic");
         const dynData = await dynRes.json();
 
         if (dynData.questions?.length > 0) {
           setCurrentQuestion(dynData.questions[0]);
-          timerRef.current = Date.now();
-          setLoading(false);
-          return;
-        }
-
-        // Fall back to static
-        const params = new URLSearchParams();
-        if (fcUserId) params.set("user_id", fcUserId);
-        if (category) params.set("category", category);
-        params.set("count", "1");
-
-        const res = await fetch(`/api/choices?${params}`);
-        const data = await res.json();
-
-        if (data.questions?.length > 0) {
-          setCurrentQuestion(data.questions[0]);
           timerRef.current = Date.now();
         } else {
           setCurrentQuestion(null);

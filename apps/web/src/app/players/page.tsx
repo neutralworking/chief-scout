@@ -271,7 +271,9 @@ function PlayersContent() {
           <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
             className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
             <option value="role_score">Role Score</option>
-            <option value="level">Rating</option>
+            <option value="level">Overall</option>
+            <option value="level_raw">Level</option>
+            <option value="review">Needs Review</option>
             <option value="cs_value">CS Value</option>
             <option value="tm_value">TM Value</option>
             <option value="name">Name</option>

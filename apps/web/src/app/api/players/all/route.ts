@@ -45,35 +45,47 @@ export async function GET(req: NextRequest) {
   }
   if (q) query = query.ilike("name", `%${q}%`);
 
-  // Sort
-  switch (sort) {
-    case "level":
-      query = query.order("overall", { ascending: false, nullsFirst: false });
-      break;
-    case "role_score":
-      query = query.order("best_role_score", { ascending: false, nullsFirst: false });
-      break;
-    case "name":
-      query = query.order("name", { ascending: true });
-      break;
-    case "position":
-      query = query.order("position", { ascending: true, nullsFirst: false });
-      break;
-    case "cs_value":
-      query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
-      break;
-    case "tm_value":
-      query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
-      break;
-    case "value":
-      query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
-      break;
-    default:
-      query = query.order("best_role_score", { ascending: false, nullsFirst: false });
-      break;
-  }
+  // "Needs Review" sort: fetch wider set, sort by |level - overall| divergence
+  const isReviewSort = sort === "review";
 
-  query = query.range(offset, offset + limit - 1);
+  // Sort
+  if (!isReviewSort) {
+    switch (sort) {
+      case "level":
+        query = query.order("overall", { ascending: false, nullsFirst: false });
+        break;
+      case "level_raw":
+        query = query.order("level", { ascending: false, nullsFirst: false });
+        break;
+      case "role_score":
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
+      case "name":
+        query = query.order("name", { ascending: true });
+        break;
+      case "position":
+        query = query.order("position", { ascending: true, nullsFirst: false });
+        break;
+      case "cs_value":
+        query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+        break;
+      case "tm_value":
+        query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
+        break;
+      case "value":
+        query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+        break;
+      default:
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
+    }
+    query = query.range(offset, offset + limit - 1);
+  } else {
+    // For review sort: need both level and overall non-null, fetch more rows to sort
+    query = query.not("level", "is", null).not("overall", "is", null);
+    query = query.order("level", { ascending: false, nullsFirst: false });
+    query = query.range(0, 499); // fetch up to 500 to sort by divergence
+  }
 
   const { data, error } = await query;
 
@@ -82,6 +94,16 @@ export async function GET(req: NextRequest) {
   }
 
   let players = (data ?? []) as Record<string, unknown>[];
+
+  // Sort by divergence for review mode
+  if (isReviewSort) {
+    players.sort((a, b) => {
+      const divA = Math.abs((a.level as number) - (a.overall as number));
+      const divB = Math.abs((b.level as number) - (b.overall as number));
+      return divB - divA;
+    });
+    players = players.slice(offset, offset + limit);
+  }
 
   // Enrich with season stats (apps, goals, assists) from Kaggle tables
   if (wantStats && players.length > 0) {

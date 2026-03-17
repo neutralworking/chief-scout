@@ -6,6 +6,7 @@ import {
   POSITION_COLORS,
 } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
+import { getRoleRadarConfig } from "@/lib/role-radar";
 import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
 import { MiniRadar } from "@/components/MiniRadar";
 
@@ -18,9 +19,6 @@ const RADAR_COLORS: Record<CardTheme, string> = {
   professor: "#60a5fa", // blue-400
   default: "#4ade80",   // green-400
 };
-
-const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
-const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
 
 export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
   const age = computeAge(player.dob);
@@ -147,18 +145,27 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 5: MiniRadar fingerprint */}
-        {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
-          <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
-            <MiniRadar
-              values={player.fingerprint}
-              size={72}
-              color={RADAR_COLORS[theme]}
-              labels={player.position === "GK" ? GK_LABELS : OUTFIELD_LABELS}
-              showLabels
-            />
-          </div>
-        )}
+        {/* Row 5: MiniRadar fingerprint (role-specific axes) */}
+        {player.fingerprint && player.fingerprint.some((v) => v > 0) && (() => {
+          const radarConfig = getRoleRadarConfig(player.best_role, player.position);
+          // Only use role labels if axis count matches fingerprint length
+          const labels = radarConfig.labels.length === player.fingerprint!.length
+            ? radarConfig.labels
+            : player.position === "GK"
+            ? ["STP", "CMD", "SWP", "DST"]
+            : ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
+          return (
+            <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
+              <MiniRadar
+                values={player.fingerprint!}
+                size={72}
+                color={RADAR_COLORS[theme]}
+                labels={labels}
+                showLabels
+              />
+            </div>
+          );
+        })()}
       </div>
     </Link>
   );

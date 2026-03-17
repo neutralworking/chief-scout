@@ -131,6 +131,8 @@ function PlayersContent() {
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginPass, setLoginPass] = useState("");
 
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
@@ -138,11 +140,18 @@ function PlayersContent() {
   const sort = searchParams.get("sort") ?? "role_score";
   const tier = searchParams.get("tier") ?? "";
 
-  const canEdit = isAdmin || sort === "review";
-
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
   }, []);
+
+  function handleLogin() {
+    if (loginPass === "0.123456789") {
+      sessionStorage.setItem("network_admin", "1");
+      setIsAdmin(true);
+      setShowLogin(false);
+      setLoginPass("");
+    }
+  }
 
   const updateParam = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -204,6 +213,36 @@ function PlayersContent() {
         {/* Title + position pills + pagination */}
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-lg font-bold tracking-tight">Players</h1>
+          {!isAdmin ? (
+            <button
+              onClick={() => setShowLogin(!showLogin)}
+              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              title="Admin login"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </button>
+          ) : (
+            <span className="text-[10px] text-[var(--color-accent-tactical)]" title="Editing enabled">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </span>
+          )}
+          {showLogin && (
+            <div className="flex items-center gap-1">
+              <input
+                type="password"
+                value={loginPass}
+                onChange={(e) => setLoginPass(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
+                placeholder="PIN"
+                className="w-24 px-2 py-0.5 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+                autoFocus
+              />
+            </div>
+          )}
           <div className="flex flex-wrap gap-1">
             <button onClick={() => updateParam("position", "")}
               className={`text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors ${
@@ -330,7 +369,7 @@ function PlayersContent() {
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-right">
-                          {canEdit ? (
+                          {isAdmin ? (
                             <EditableCell
                               value={player.best_role_score}
                               personId={player.person_id}
@@ -347,7 +386,7 @@ function PlayersContent() {
                           )}
                         </td>
                         <td className="py-1.5 px-3 text-right">
-                          {canEdit ? (
+                          {isAdmin ? (
                             <EditableCell
                               value={player.level}
                               personId={player.person_id}
@@ -418,7 +457,7 @@ function PlayersContent() {
                       <div className="flex items-center gap-3">
                         <div className="text-center">
                           <span className="text-[8px] text-[var(--text-muted)] block">Score</span>
-                          {canEdit ? (
+                          {isAdmin ? (
                             <EditableCell
                               value={player.best_role_score}
                               personId={player.person_id}
@@ -436,7 +475,7 @@ function PlayersContent() {
                         </div>
                         <div className="text-center">
                           <span className="text-[8px] text-[var(--text-muted)] block">Lvl</span>
-                          {canEdit ? (
+                          {isAdmin ? (
                             <EditableCell
                               value={player.level}
                               personId={player.person_id}

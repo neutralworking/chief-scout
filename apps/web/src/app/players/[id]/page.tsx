@@ -209,7 +209,7 @@ export default async function PlayerDetailPage({
   const fbrefId = fbrefLink?.external_id;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]">
       {/* ── Header: Identity + Bio + Assessment ─────────────────────────── */}
       <div className="shrink-0 space-y-1 mb-1">
         {/* Nav */}

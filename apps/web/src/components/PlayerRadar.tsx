@@ -161,42 +161,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
       </div>
 
       {/* Physical Profile — composite of Sprinter + Powerhouse + Target */}
-      {(() => {
-        const physModels = ["Sprinter", "Powerhouse", "Target"] as const;
-        const physScores = physModels
-          .map((m) => ({ name: m, score: radarData.modelScores[m] }))
-          .filter((s) => s.score != null && s.score > 0);
-        if (physScores.length === 0) return null;
-        const physAvg = Math.round(physScores.reduce((s, p) => s + p.score, 0) / physScores.length);
-        const physGrade = gradeLabel(physAvg);
-        const physLabels: Record<string, string> = { Sprinter: "Pace & Agility", Powerhouse: "Strength & Power", Target: "Aerial & Presence" };
-        return (
-          <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Physical</span>
-              <span className={`text-[10px] font-bold ${physGrade.color}`}>{physAvg}</span>
-              <span className={`text-[9px] ${physGrade.color}`}>{physGrade.label}</span>
-            </div>
-            <div className="space-y-1">
-              {physScores.map(({ name, score }) => (
-                <div key={name} className="flex items-center gap-2">
-                  <span className="text-[9px] text-[var(--text-secondary)] w-28 truncate">{physLabels[name] ?? name}</span>
-                  <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min(score, 100)}%`,
-                        backgroundColor: score >= 70 ? "var(--accent-tactical)" : score >= 50 ? "var(--text-secondary)" : "var(--text-muted)",
-                      }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-mono w-5 text-right text-[var(--text-secondary)]">{score}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
+      <PhysicalProfile modelScores={radarData.modelScores} />
 
       {/* Role pills */}
       {roles.length > 0 && (
@@ -216,6 +181,59 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const PHYS_LABELS: Record<string, string> = {
+  Sprinter: "Pace & Agility",
+  Powerhouse: "Strength & Power",
+  Target: "Aerial & Presence",
+};
+
+function PhysicalProfile({ modelScores }: { modelScores: Record<string, number> }) {
+  const physModels = ["Sprinter", "Powerhouse", "Target"] as const;
+  const physScores = physModels
+    .map((m) => ({ name: m, score: modelScores[m] }))
+    .filter((s) => s.score != null && s.score > 0);
+
+  if (physScores.length === 0) {
+    return (
+      <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Physical</span>
+        <p className="text-[9px] text-[var(--text-muted)] mt-1">No physical data available</p>
+      </div>
+    );
+  }
+
+  const physAvg = Math.round(physScores.reduce((s, p) => s + p.score, 0) / physScores.length);
+  const physGrade = gradeLabel(physAvg);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Physical</span>
+        <span className={`text-[10px] font-bold ${physGrade.color}`}>{physAvg}</span>
+        <span className={`text-[9px] ${physGrade.color}`}>{physGrade.label}</span>
+      </div>
+      <div className="space-y-1.5">
+        {physScores.map(({ name, score }) => (
+          <div key={name} className="flex items-center gap-2">
+            <span className="text-[9px] text-[var(--text-secondary)] w-28 truncate">{PHYS_LABELS[name] ?? name}</span>
+            <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(score, 100)}%`,
+                  backgroundColor: "var(--color-accent-physical)",
+                  opacity: score >= 70 ? 1 : score >= 50 ? 0.75 : 0.5,
+                }}
+              />
+            </div>
+            <span className="text-[9px] font-mono w-5 text-right text-[var(--text-secondary)]">{score}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

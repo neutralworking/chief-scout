@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { getFeatureFlags } from "@/lib/features";
 import { isProduction } from "@/lib/env";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const ALL_NAV_ITEMS = [
   { label: "Dashboard", href: "/", exact: true },
@@ -171,6 +172,11 @@ export function Sidebar() {
             </div>
           )}
         </nav>
+
+        {/* Theme toggle */}
+        <div className="px-4 py-2 border-t border-[var(--border-subtle)]">
+          <ThemeToggle />
+        </div>
 
         {/* Auth section */}
         <div className="p-4 border-t border-[var(--border-subtle)]">

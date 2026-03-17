@@ -21,6 +21,23 @@ const THEME_ICONS: Record<string, string> = {
   professor: "M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5", // academic cap
 };
 
+// Theme accent colors for tinting
+const THEME_COLORS: Record<string, string> = {
+  general: "rgba(161, 161, 170, 0.12)",    // zinc tint
+  catalyst: "rgba(232, 121, 249, 0.10)",    // fuchsia tint
+  maestro: "rgba(245, 158, 11, 0.10)",      // amber tint
+  captain: "rgba(239, 68, 68, 0.10)",       // red tint
+  professor: "rgba(59, 130, 246, 0.10)",    // blue tint
+};
+
+const THEME_BORDER_COLORS: Record<string, string> = {
+  general: "rgba(161, 161, 170, 0.4)",
+  catalyst: "rgba(232, 121, 249, 0.4)",
+  maestro: "rgba(245, 158, 11, 0.4)",
+  captain: "rgba(239, 68, 68, 0.4)",
+  professor: "rgba(59, 130, 246, 0.4)",
+};
+
 // Map personality code to theme
 function getPersonalityTheme(code: string): string {
   const themeMap: Record<string, string> = {
@@ -45,48 +62,41 @@ function computePersonalityCode(ei: number, sn: number, tf: number, jp: number):
   ].join("");
 }
 
-function DimensionBar({ dimension, value }: { dimension: keyof typeof DIMENSION_LABELS; value: number }) {
+function DimensionTrack({ dimension, value }: { dimension: keyof typeof DIMENSION_LABELS; value: number }) {
   const labels = DIMENSION_LABELS[dimension];
   const pct = Math.min(Math.max(value, 0), 100);
-  const dominant = value >= 50 ? labels.highLabel : labels.lowLabel;
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] font-bold w-3 text-[var(--accent-personality)]" title={labels.lowLabel}>
-        {labels.low}
-      </span>
-      <div className="flex-1 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden relative">
+    <div className="space-y-0.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[9px] text-[var(--text-secondary)]">{labels.lowLabel}</span>
+        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{labels.name}</span>
+        <span className="text-[9px] text-[var(--text-secondary)]">{labels.highLabel}</span>
+      </div>
+      <div className="relative h-1.5 bg-[var(--bg-elevated)] rounded-full">
+        {/* Center line marker */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-[var(--text-muted)]/30" />
+        {/* Position dot */}
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-[var(--accent-personality)] opacity-60"
-          style={{ width: `${pct}%` }}
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[var(--color-accent-personality)] shadow-[0_0_6px_rgba(232,197,71,0.4)] border-2 border-[var(--bg-surface)]"
+          style={{ left: `calc(${pct}% - 6px)` }}
         />
       </div>
-      <span className="text-[10px] font-bold w-3 text-[var(--text-muted)]" title={labels.highLabel}>
-        {labels.high}
-      </span>
-      <span className="text-[10px] text-[var(--text-secondary)] w-16 text-right">{dominant}</span>
-      <span className="text-xs font-mono w-6 text-right text-[var(--text-secondary)]">{value}</span>
     </div>
   );
 }
 
-function DotIndicator({ label, value, max = 100 }: { label: string; value: number; max?: number }) {
-  const filled = Math.round((value / max) * 5);
+function GaugeBar({ label, value, max = 100 }: { label: string; value: number; max?: number }) {
+  const pct = Math.min(Math.max((value / max) * 100, 0), 100);
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] text-[var(--text-muted)] w-24">{label}</span>
-      <div className="flex gap-1">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div
-            key={i}
-            className={`w-1.5 h-1.5 rounded-full ${
-              i < filled
-                ? "bg-[var(--accent-personality)]"
-                : "bg-[var(--bg-elevated)]"
-            }`}
-          />
-        ))}
+      <span className="text-[9px] text-[var(--text-muted)] w-24 shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full bg-[var(--color-accent-personality)]"
+          style={{ width: `${pct}%`, opacity: pct >= 60 ? 0.9 : pct >= 40 ? 0.6 : 0.35 }}
+        />
       </div>
-      <span className="text-xs font-mono text-[var(--text-secondary)]">{value}</span>
+      <span className="text-[10px] font-mono text-[var(--text-secondary)] w-6 text-right shrink-0">{value}</span>
     </div>
   );
 }
@@ -136,7 +146,7 @@ export function PersonalityBadge({
   // Mini: just the code
   if (size === "mini") {
     return (
-      <span className="inline-block font-mono text-sm font-bold tracking-widest text-[var(--accent-personality)]">
+      <span className="inline-block font-mono text-sm font-bold tracking-widest text-[var(--color-accent-personality)]">
         {code}
       </span>
     );
@@ -149,16 +159,16 @@ export function PersonalityBadge({
     return (
       <div className="inline-flex items-center gap-1.5">
         {iconPath && (
-          <svg className="w-3.5 h-3.5 text-[var(--accent-personality)] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <svg className="w-3.5 h-3.5 text-[var(--color-accent-personality)] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d={iconPath} />
           </svg>
         )}
         {info ? (
-          <span className="text-[10px] font-bold text-[var(--accent-personality)] tracking-wide">
+          <span className="text-[10px] font-bold text-[var(--color-accent-personality)] tracking-wide">
             {info.name.replace("The ", "")}
           </span>
         ) : (
-          <span className="text-[10px] font-mono font-bold text-[var(--accent-personality)] tracking-wider">
+          <span className="text-[10px] font-mono font-bold text-[var(--color-accent-personality)] tracking-wider">
             {code}
           </span>
         )}
@@ -166,44 +176,59 @@ export function PersonalityBadge({
     );
   }
 
-  // Hero: full display
+  // Hero: themed personality card
+  const theme = getPersonalityTheme(code);
+  const iconPath = THEME_ICONS[theme];
+  const bgTint = THEME_COLORS[theme] ?? THEME_COLORS.general;
+  const borderColor = THEME_BORDER_COLORS[theme] ?? THEME_BORDER_COLORS.general;
+
   return (
-    <div>
-      <div className="text-center mb-4">
-        <span className="inline-block font-mono text-3xl font-extrabold tracking-[0.15em] text-[var(--accent-personality)] border border-[var(--accent-personality)]/20 px-4 py-2 rounded-lg shadow-[0_0_20px_rgba(232,197,71,0.1)]">
-          {code}
-        </span>
-        {info && (
-          <div className="mt-2">
-            <span className="text-sm font-semibold text-[var(--text-primary)]">{info.name}</span>
+    <div
+      className="rounded-lg p-4 border-l-4"
+      style={{ backgroundColor: bgTint, borderLeftColor: borderColor }}
+    >
+      {/* Header: icon + name + code */}
+      <div className="flex items-start gap-3">
+        {iconPath && (
+          <div className="shrink-0 mt-0.5">
+            <svg className="w-8 h-8 text-[var(--color-accent-personality)]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d={iconPath} />
+            </svg>
           </div>
         )}
+        <div className="flex-1 min-w-0">
+          {info && (
+            <h4 className="text-base font-bold text-[var(--text-primary)] leading-tight">{info.name}</h4>
+          )}
+          <span className="text-xs font-mono font-bold tracking-[0.2em] text-[var(--color-accent-personality)] opacity-80">{code}</span>
+          {desc && info && (
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-1 italic">
+              {info.oneLiner}
+            </p>
+          )}
+        </div>
       </div>
 
+      {/* Dimension tracks */}
       {dims && ei != null && sn != null && tf != null && jp != null && (
-        <div className="space-y-2 mt-4">
-          <DimensionBar dimension="ei" value={ei} />
-          <DimensionBar dimension="sn" value={sn} />
-          <DimensionBar dimension="tf" value={tf} />
-          <DimensionBar dimension="jp" value={jp} />
+        <div className="space-y-3 mt-4 pt-3 border-t border-[var(--border-subtle)]">
+          <DimensionTrack dimension="ei" value={ei} />
+          <DimensionTrack dimension="sn" value={sn} />
+          <DimensionTrack dimension="tf" value={tf} />
+          <DimensionTrack dimension="jp" value={jp} />
         </div>
       )}
 
+      {/* Trait gauges */}
       {dims && (competitiveness != null || coachability != null) && (
-        <div className="mt-4 space-y-1.5">
+        <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] space-y-1.5">
           {competitiveness != null && (
-            <DotIndicator label="Competitiveness" value={competitiveness} />
+            <GaugeBar label="Competitiveness" value={competitiveness} />
           )}
           {coachability != null && (
-            <DotIndicator label="Coachability" value={coachability} />
+            <GaugeBar label="Coachability" value={coachability} />
           )}
         </div>
-      )}
-
-      {desc && info && (
-        <p className="mt-4 text-sm text-[var(--text-secondary)] leading-relaxed">
-          {info.oneLiner}
-        </p>
       )}
     </div>
   );

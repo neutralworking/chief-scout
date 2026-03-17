@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { getFeatureFlags } from "@/lib/features";
 import { isProduction } from "@/lib/env";
@@ -33,7 +33,6 @@ const POSITION_SHORTCUTS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [shortlistsEnabled, setShortlistsEnabled] = useState(false);
 
@@ -49,49 +48,14 @@ export function Sidebar() {
     } catch { /* ignore parse errors */ }
   }, []);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  // Close on escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
   return (
     <>
-      {/* Mobile hamburger */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-        aria-label="Open menu"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M3 5h14M3 10h14M3 15h14" />
-        </svg>
-      </button>
-
-      {/* Overlay (mobile only) */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar (desktop only — mobile uses MobileTopNav) */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-64 bg-[var(--bg-surface)] border-r border-[var(--border-subtle)] flex flex-col z-50 transition-transform duration-200 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className="fixed left-0 top-0 bottom-0 w-64 bg-[var(--bg-surface)] border-r border-[var(--border-subtle)] flex-col z-50 hidden lg:flex"
       >
         {/* Logo + close button */}
-        <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="p-6 border-b border-[var(--border-subtle)]">
           <Link href="/" className="block">
             <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
               CHIEF SCOUT
@@ -100,15 +64,6 @@ export function Sidebar() {
               Intelligence Platform
             </p>
           </Link>
-          <button
-            onClick={() => setOpen(false)}
-            className="lg:hidden p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            aria-label="Close menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M4 4l10 10M14 4L4 14" />
-            </svg>
-          </button>
         </div>
 
         {/* Main nav */}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileTopNav } from "@/components/MobileTopNav";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
 import { AuthProvider } from "@/components/AuthProvider";
 import { isProduction } from "@/lib/env";
@@ -56,9 +57,10 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <div className="flex min-h-screen">
+            <MobileTopNav />
             <Sidebar />
             <ServiceWorkerRegistration />
-            <main className="flex-1 min-w-0 p-4 pt-16 lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
+            <main className="flex-1 min-w-0 p-4 pt-[5.5rem] lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
           </div>
         </AuthProvider>
       </body>

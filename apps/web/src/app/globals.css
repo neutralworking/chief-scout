@@ -90,6 +90,15 @@ body {
   background: rgba(80, 80, 120, 0.5);
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Animation keyframes */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }

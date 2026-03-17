@@ -3,12 +3,12 @@
 31_populate_free_agents.py — Populate contract_expiry_date and contract_tag for free agents.
 
 Sources:
-  1. Manual seed list of confirmed/likely free agents (summer 2026)
-  2. player_career_history: players with long tenures (start before 2021-07-01, no end_date)
-     get contract_tag = 'Expiring' as a heuristic
+  1. Curated seed list of confirmed expiring contracts (summer 2026)
+     Researched from Transfermarkt, Goal.com, ESPN, Sky Sports — verified March 2026.
+  2. Cleanup: remove stale contract data for players who renewed or transferred.
 
 Usage:
-  python pipeline/31_populate_free_agents.py [--dry-run]
+  python pipeline/31_populate_free_agents.py [--dry-run] [--clean]
 """
 
 import os
@@ -24,51 +24,113 @@ import psycopg2.extras
 
 DSN = os.environ["POSTGRES_DSN"]
 
-# ── Seed list of confirmed/likely free agents ──
-FREE_AGENTS_2026 = [
-    ("Ben Chilwell", "2026-06-30", "Expiring"),
-    ("Mohamed Salah", "2026-06-30", "Expiring"),
-    ("Virgil van Dijk", "2026-06-30", "Expiring"),
-    ("Trent Alexander-Arnold", "2026-06-30", "Expiring"),
-    ("Kevin De Bruyne", "2026-06-30", "Expiring"),
-    ("Joshua Kimmich", "2026-06-30", "Expiring"),
-    ("Alphonso Davies", "2026-06-30", "Expiring"),
-    ("Jonathan David", "2026-06-30", "Expiring"),
-    ("Nkunku", "2026-06-30", "Expiring"),
-    ("Leroy Sané", "2026-06-30", "Expiring"),
-    ("Son Heung-min", "2026-06-30", "Expiring"),
-    ("Thomas Müller", "2026-06-30", "Expiring"),
-    ("Manuel Neuer", "2026-06-30", "Expiring"),
-    ("İlkay Gündoğan", "2026-06-30", "Expiring"),
-    ("Marcos Llorente", "2026-06-30", "Expiring"),
-    ("De Ligt", "2026-06-30", "Expiring"),
-    ("Marcus Rashford", "2026-06-30", "Expiring"),
-    ("Romelu Lukaku", "2026-06-30", "Expiring"),
-    ("Dusan Vlahovic", "2026-06-30", "Expiring"),
-    ("Angel Di Maria", "2026-06-30", "Expiring"),
-    ("Neymar", "2026-06-30", "Free Agent"),
-    ("Paul Pogba", "2026-06-30", "Free Agent"),
-    ("Adrien Rabiot", "2026-06-30", "Free Agent"),
+# ── Curated list: confirmed expiring contracts summer 2026 ──
+# Last verified: 2026-03-17
+# Sources: Transfermarkt, ESPN, Sky Sports, Goal.com, club announcements
+#
+# Format: (name_pattern, expiry_date, contract_tag, club_hint, position)
+# club_hint helps disambiguate common names; position for display context.
+
+EXPIRING_2026 = [
+    # ── Premier League ──
+    ("Ibrahima Konaté", "2026-06-30", "Six Months", "Liverpool", "CD"),
+    ("Marc Guehi", "2026-06-30", "Six Months", "Crystal Palace", "CD"),
+    ("Bernardo Silva", "2026-06-30", "Six Months", "Manchester City", "AM"),
+    ("Casemiro", "2026-06-30", "Six Months", "Manchester United", "DM"),
+    ("Andrew Robertson", "2026-06-30", "Six Months", "Liverpool", "WD"),
+    ("John Stones", "2026-06-30", "Six Months", "Manchester City", "CD"),
+    ("Yves Bissouma", "2026-06-30", "Six Months", "Tottenham", "DM"),
+    ("Rodrigo Bentancur", "2026-06-30", "Six Months", "Tottenham", "CM"),
+    ("Harry Maguire", "2026-06-30", "Six Months", "Manchester United", "CD"),
+    ("Danny Welbeck", "2026-06-30", "Six Months", "Brighton", "CF"),
+    ("Harry Wilson", "2026-06-30", "Six Months", "Fulham", "WF"),
+    ("Adama Traoré", "2026-06-30", "Six Months", "Fulham", "WF"),
+    ("Vitaliy Mykolenko", "2026-06-30", "Six Months", "Everton", "WD"),
+
+    # ── La Liga ──
+    ("Robert Lewandowski", "2026-06-30", "Six Months", "Barcelona", "CF"),
+    ("Antonio Rüdiger", "2026-06-30", "Six Months", "Real Madrid", "CD"),
+    ("David Alaba", "2026-06-30", "Six Months", "Real Madrid", "CD"),
+    ("Dani Carvajal", "2026-06-30", "Six Months", "Real Madrid", "WD"),
+    ("Andreas Christensen", "2026-06-30", "Six Months", "Barcelona", "CD"),
+    ("Eric García", "2026-06-30", "Six Months", "Barcelona", "CD"),
+
+    # ── Serie A ──
+    ("Dusan Vlahovic", "2026-06-30", "Six Months", "Juventus", "CF"),
+    ("Paulo Dybala", "2026-06-30", "Six Months", "Roma", "AM"),
+    ("Lorenzo Pellegrini", "2026-06-30", "Six Months", "Roma", "CM"),
+    ("Mike Maignan", "2026-06-30", "Six Months", "AC Milan", "GK"),
+    ("Weston McKennie", "2026-06-30", "Six Months", "Juventus", "CM"),
+    ("Stefan de Vrij", "2026-06-30", "Six Months", "Inter", "CD"),
+
+    # ── Bundesliga ──
+    ("Manuel Neuer", "2026-06-30", "Six Months", "Bayern", "GK"),
+    ("Dayot Upamecano", "2026-06-30", "Six Months", "Bayern", "CD"),
+    ("Serge Gnabry", "2026-06-30", "Six Months", "Bayern", "WF"),
+    ("Leon Goretzka", "2026-06-30", "Six Months", "Bayern", "CM"),
+    ("Julian Brandt", "2026-06-30", "Six Months", "Borussia Dortmund", "AM"),
+    ("Timo Werner", "2026-06-30", "Six Months", "RB Leipzig", "WF"),
+
+    # ── Ligue 1 ──
+    ("Gianluigi Donnarumma", "2026-06-30", "Six Months", "Paris Saint-Germain", "GK"),
+]
+
+# ── Players to CLEAN: previously tagged as expiring but have renewed/transferred ──
+# These were in the old seed list but are no longer accurate as of March 2026.
+CLEAN_PLAYERS = [
+    "Mohamed Salah",           # Renewed Liverpool → 2027
+    "Virgil van Dijk",         # Renewed Liverpool → 2027
+    "Trent Alexander-Arnold",  # Transferred to Real Madrid (2025)
+    "Kevin De Bruyne",         # Left Man City (2025 free agent)
+    "Joshua Kimmich",          # Renewed Bayern → 2029
+    "Alphonso Davies",         # Renewed Bayern → 2030
+    "Jonathan David",          # Transferred to Juventus (2025)
+    "Nkunku",                  # Sold Chelsea → AC Milan (2025)
+    "Leroy Sané",              # Joined Galatasaray on free (2025)
+    "Son Heung-min",           # Left Tottenham for LAFC (2025)
+    "Thomas Müller",           # Left Bayern for Vancouver (2025)
+    "İlkay Gündoğan",          # At Galatasaray (2025)
+    "Paul Pogba",              # Joined Monaco (2025)
+    "De Ligt",                 # At Man United → 2029
+    "Marcus Rashford",         # On loan Barca, contracted Man United → 2028
+    "Romelu Lukaku",           # At Napoli → 2027
+    "Ben Chilwell",            # At Strasbourg → 2027
+    "Angel Di Maria",          # No longer in top-5 league
+    "Marcos Llorente",         # Need verification — removing stale tag
 ]
 
 
-def find_player(cur, name_pattern):
+def find_player(cur, name_pattern, club_hint=None):
     """Find a player by ILIKE pattern. Returns (id, name) or None."""
     cur.execute(
-        "SELECT id, name FROM people WHERE name ILIKE %s LIMIT 5",
+        """SELECT p.id, p.name, c.clubname
+           FROM people p
+           LEFT JOIN clubs c ON c.id = p.club_id
+           WHERE p.name ILIKE %s
+           LIMIT 10""",
         (f"%{name_pattern}%",),
     )
     rows = cur.fetchall()
-    if len(rows) == 1:
-        return rows[0]
-    if len(rows) > 1:
-        # Try exact match first
+    if not rows:
+        return None
+
+    # Exact name match
+    for r in rows:
+        if r[1].lower() == name_pattern.lower():
+            return (r[0], r[1])
+
+    # Club hint match
+    if club_hint and len(rows) > 1:
         for r in rows:
-            if r[1].lower() == name_pattern.lower():
-                return r
-        # Otherwise return first
-        return rows[0]
-    return None
+            if r[2] and club_hint.lower() in r[2].lower():
+                return (r[0], r[1])
+
+    # Single result
+    if len(rows) == 1:
+        return (rows[0][0], rows[0][1])
+
+    # First result as fallback
+    return (rows[0][0], rows[0][1])
 
 
 def ensure_player_status(cur, person_id):
@@ -82,22 +144,52 @@ def ensure_player_status(cur, person_id):
 def main():
     parser = argparse.ArgumentParser(description="Populate free agent contract data")
     parser.add_argument("--dry-run", action="store_true", help="Print changes without committing")
+    parser.add_argument("--clean", action="store_true", help="Also clean stale contract tags from old data")
     args = parser.parse_args()
 
     conn = psycopg2.connect(DSN)
     cur = conn.cursor()
 
-    stats = {"seed_matched": 0, "seed_missed": 0, "career_heuristic": 0, "total": 0}
+    stats = {"matched": 0, "missed": 0, "cleaned": 0}
 
+    # ── Step 0: Clean stale data ──
+    if args.clean:
+        print("=" * 60)
+        print("STEP 0: Clean stale contract data from previous runs")
+        print("=" * 60)
+
+        for name_pattern in CLEAN_PLAYERS:
+            result = find_player(cur, name_pattern)
+            if result:
+                pid, full_name = result
+                if not args.dry_run:
+                    cur.execute(
+                        "UPDATE people SET contract_expiry_date = NULL WHERE id = %s",
+                        (pid,),
+                    )
+                    cur.execute(
+                        "UPDATE player_status SET contract_tag = NULL WHERE person_id = %s AND contract_tag IN ('Expiring', 'Free Agent', 'Six Months', 'Expired')",
+                        (pid,),
+                    )
+                print(f"  ✓ Cleaned: {full_name} (id={pid})")
+                stats["cleaned"] += 1
+            else:
+                print(f"  – {name_pattern} — not in database (skip)")
+
+        print(f"\nCleaned {stats['cleaned']} stale records")
+        print()
+
+    # ── Step 1: Seed confirmed expiring contracts ──
     print("=" * 60)
-    print("STEP 1: Seed list of known free agents")
+    print("STEP 1: Seed confirmed expiring contracts (summer 2026)")
     print("=" * 60)
 
-    for name_pattern, expiry, tag in FREE_AGENTS_2026:
-        result = find_player(cur, name_pattern)
+    for entry in EXPIRING_2026:
+        name_pattern, expiry, tag, club_hint, position = entry
+        result = find_player(cur, name_pattern, club_hint)
         if result:
             pid, full_name = result
-            print(f"  ✓ {name_pattern} → {full_name} (id={pid}) — {tag}")
+            print(f"  ✓ {name_pattern} ({club_hint}) → {full_name} (id={pid}) — {tag}")
             if not args.dry_run:
                 cur.execute(
                     "UPDATE people SET contract_expiry_date = %s WHERE id = %s",
@@ -108,67 +200,14 @@ def main():
                     "UPDATE player_status SET contract_tag = %s WHERE person_id = %s",
                     (tag, pid),
                 )
-            stats["seed_matched"] += 1
+            stats["matched"] += 1
         else:
-            print(f"  ✗ {name_pattern} — NOT FOUND in database")
-            stats["seed_missed"] += 1
+            print(f"  ✗ {name_pattern} ({club_hint}) — NOT FOUND in database")
+            stats["missed"] += 1
 
-    print(f"\nSeed: {stats['seed_matched']} matched, {stats['seed_missed']} missed")
+    print(f"\nSeed: {stats['matched']} matched, {stats['missed']} missed")
 
-    print()
-    print("=" * 60)
-    print("STEP 2: Career history heuristic (realistic start dates only)")
-    print("=" * 60)
-
-    # Only use career history entries with realistic start dates (2018+)
-    # that match the player's current club_id — this filters out stale/wrong entries.
-    # Players with 4+ year tenures at their current club likely have contracts
-    # expiring in the 2025-2027 window.
-    cur.execute("""
-        SELECT DISTINCT ON (pch.person_id)
-            pch.person_id, p.name, pch.start_date, c.clubname, pch.club_id
-        FROM player_career_history pch
-        JOIN people p ON p.id = pch.person_id
-        LEFT JOIN clubs c ON c.id = p.club_id
-        WHERE pch.end_date IS NULL
-          AND pch.start_date IS NOT NULL
-          AND pch.start_date >= '2018-01-01'
-          AND pch.start_date < '2022-07-01'
-          AND p.contract_expiry_date IS NULL
-          AND p.club_id IS NOT NULL
-          AND pch.club_id = p.club_id
-          AND EXISTS (
-            SELECT 1 FROM player_profiles pp
-            WHERE pp.person_id = pch.person_id
-              AND pp.level IS NOT NULL
-              AND pp.archetype IS NOT NULL
-          )
-        ORDER BY pch.person_id, pch.start_date DESC
-    """)
-    long_tenure = cur.fetchall()
-
-    print(f"Found {len(long_tenure)} scouted players with 4+ year tenures at current club")
-    for pid, name, start_date, club, _ in long_tenure[:30]:
-        print(f"  → {name} at {club or '?'} since {start_date}")
-    if len(long_tenure) > 30:
-        print(f"  ... and {len(long_tenure) - 30} more")
-
-    for pid, name, start_date, club, _ in long_tenure:
-        if not args.dry_run:
-            cur.execute(
-                "UPDATE people SET contract_expiry_date = '2026-06-30' WHERE id = %s AND contract_expiry_date IS NULL",
-                (pid,),
-            )
-            ensure_player_status(cur, pid)
-            cur.execute(
-                "UPDATE player_status SET contract_tag = 'Expiring' WHERE person_id = %s AND (contract_tag IS NULL OR contract_tag = 'One Year Left')",
-                (pid,),
-            )
-        stats["career_heuristic"] += 1
-
-    print(f"\nCareer heuristic: {stats['career_heuristic']} players tagged as Expiring")
-
-    # Commit or rollback
+    # ── Commit or rollback ──
     if args.dry_run:
         print("\n[DRY RUN] No changes committed")
         conn.rollback()
@@ -176,15 +215,16 @@ def main():
         conn.commit()
         print("\nChanges committed!")
 
-    # Final count
+    # ── Final state ──
     cur.execute("SELECT COUNT(*) FROM people WHERE contract_expiry_date IS NOT NULL")
     total_with_expiry = cur.fetchone()[0]
 
     cur.execute("""
         SELECT contract_tag, COUNT(*)
         FROM player_status
-        WHERE contract_tag IN ('Expiring', 'Free Agent')
+        WHERE contract_tag IN ('Six Months', 'Expired', 'One Year Left', 'Expiring', 'Free Agent')
         GROUP BY contract_tag
+        ORDER BY contract_tag
     """)
     tag_counts = cur.fetchall()
 
@@ -195,9 +235,9 @@ def main():
     print(f"  Players with contract_expiry_date: {total_with_expiry}")
     for tag, count in tag_counts:
         print(f"  contract_tag = '{tag}': {count}")
-
-    stats["total"] = stats["seed_matched"] + stats["career_heuristic"]
-    print(f"\n  Total enriched this run: {stats['total']}")
+    print(f"\n  Total enriched this run: {stats['matched']}")
+    if stats["cleaned"]:
+        print(f"  Stale records cleaned: {stats['cleaned']}")
 
     cur.close()
     conn.close()

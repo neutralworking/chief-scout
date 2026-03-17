@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const position = searchParams.get("position");
   const sort = searchParams.get("sort") ?? "level";
-  const tab = searchParams.get("tab") ?? "free"; // free | 2026 | 2027
+  const tab = searchParams.get("tab") ?? "2026"; // 2026 | free | 2027
 
   // Determine date ranges based on tab
   const now = new Date();
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       supabase
         .from("player_status")
         .select("person_id, contract_tag")
-        .or("contract_tag.ilike.%free%,contract_tag.ilike.%end of contract%,contract_tag.ilike.%unattached%"),
+        .or("contract_tag.eq.Expired,contract_tag.ilike.%free%,contract_tag.ilike.%unattached%"),
     ]);
 
     for (const row of expired ?? []) {

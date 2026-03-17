@@ -53,7 +53,6 @@ export async function POST(request: Request) {
       old_value: oldRow ? String((oldRow as unknown as Record<string, unknown>)[field] ?? "") : null,
       new_value: newValue != null ? String(newValue) : null,
       table_name: table,
-      user_id: "admin",
     }));
 
     if (edits.length > 0) {

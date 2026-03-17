@@ -81,6 +81,20 @@ kaggle-all: kaggle-euro kaggle-transfers kaggle-fifa kaggle-pl kaggle-injuries
 
 pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt kaggle-all
 
+# ── Orchestrator ────────────────────────────────────────────────────────────
+
+run-all:
+	$(PYTHON) $(PIPELINE)/run_all.py
+
+run-all-dry:
+	$(PYTHON) $(PIPELINE)/run_all.py --dry-run
+
+run-grades:
+	$(PYTHON) $(PIPELINE)/run_all.py --steps understat_grades,statsbomb_grades,ratings,fingerprints
+
+run-from:
+	$(PYTHON) $(PIPELINE)/run_all.py --from ratings
+
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run
 	cd $(PIPELINE) && $(PYTHON) 02_insert_missing.py --dry-run

@@ -14,7 +14,7 @@
  *   Carnival: vibrant gradients, rounded shapes, bold color pops
  *   Personality traits: Flair-driven, occasion-fuelled, confrontational
  *
- * "Maestro" — The Maestro (INSP), The Conductor (ANLP), The Genius (IXSP)
+ * "Maestro" — The Maestro (INSP), The Conductor (ANLP), The Spark (IXSP)
  *   Silk: elegant, muted gold accents, refined typography
  *   Personality traits: Composed, brilliant, self-motivated, quietly class
  *
@@ -44,7 +44,7 @@ const PERSONALITY_THEME_MAP: Record<string, CardTheme> = {
   // Maestro — elegant, composed, silk
   INSP: "maestro",     // The Maestro
   ANLP: "maestro",     // The Conductor
-  IXSP: "maestro",     // The Genius
+  IXSP: "maestro",     // The Spark
 
   // Captain — commanding, leader, military
   INLC: "captain",     // The Captain

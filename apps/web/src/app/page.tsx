@@ -42,7 +42,7 @@ function dailySeed(): number {
 
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
 
-const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint" as const;
+const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint, scouting_notes" as const;
 
 async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
@@ -54,7 +54,8 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .from("player_intelligence_card")
       .select(FEATURED_COLS + ", pursuit_status")
       .in("pursuit_status", ["Priority", "Interested"])
-      .not("archetype", "is", null))
+      .not("archetype", "is", null)
+      .not("scouting_notes", "is", null))
       .order("level", { ascending: false })
       .limit(20),
     // Featured player: sentiment data for swing-based selection
@@ -109,6 +110,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     nation: string | null; level: number | null; overall: number | null;
     archetype: string | null; personality_type: string | null;
     market_value_tier: string | null; dob: string | null; blueprint: string | null;
+    scouting_notes: string | null;
   };
 
   let featured: FeaturedProfile | null = null;
@@ -157,7 +159,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
         .select(FEATURED_COLS)
         .eq("person_id", bestPid)
         .single();
-      if (fp) { featured = fp as FeaturedProfile; featuredReason = "news_trending"; }
+      if (fp && (fp as FeaturedProfile).scouting_notes) { featured = fp as FeaturedProfile; featuredReason = "news_trending"; }
     }
   }
 
@@ -168,6 +170,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .select(FEATURED_COLS)
       .eq("profile_tier", 1)
       .not("archetype", "is", null)
+      .not("scouting_notes", "is", null)
       .limit(20);
     const candidates = (fallbacks ?? []) as FeaturedProfile[];
     if (candidates.length > 0) {

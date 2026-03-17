@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       supabase
         .from("player_status")
         .select("person_id, contract_tag")
-        .or("contract_tag.ilike.%free%,contract_tag.ilike.%end of contract%,contract_tag.ilike.%unattached%"),
+        .or("contract_tag.eq.Expired,contract_tag.ilike.%free%,contract_tag.ilike.%unattached%"),
     ]);
 
     for (const row of expired ?? []) {

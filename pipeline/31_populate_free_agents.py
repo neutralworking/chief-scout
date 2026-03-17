@@ -33,46 +33,46 @@ DSN = os.environ["POSTGRES_DSN"]
 
 EXPIRING_2026 = [
     # ── Premier League ──
-    ("Ibrahima Konaté", "2026-06-30", "Expiring", "Liverpool", "CD"),
-    ("Marc Guehi", "2026-06-30", "Expiring", "Crystal Palace", "CD"),
-    ("Bernardo Silva", "2026-06-30", "Expiring", "Manchester City", "AM"),
-    ("Casemiro", "2026-06-30", "Expiring", "Manchester United", "DM"),
-    ("Andrew Robertson", "2026-06-30", "Expiring", "Liverpool", "WD"),
-    ("John Stones", "2026-06-30", "Expiring", "Manchester City", "CD"),
-    ("Yves Bissouma", "2026-06-30", "Expiring", "Tottenham", "DM"),
-    ("Rodrigo Bentancur", "2026-06-30", "Expiring", "Tottenham", "CM"),
-    ("Harry Maguire", "2026-06-30", "Expiring", "Manchester United", "CD"),
-    ("Danny Welbeck", "2026-06-30", "Expiring", "Brighton", "CF"),
-    ("Harry Wilson", "2026-06-30", "Expiring", "Fulham", "WF"),
-    ("Adama Traoré", "2026-06-30", "Expiring", "Fulham", "WF"),
-    ("Vitaliy Mykolenko", "2026-06-30", "Expiring", "Everton", "WD"),
+    ("Ibrahima Konaté", "2026-06-30", "Six Months", "Liverpool", "CD"),
+    ("Marc Guehi", "2026-06-30", "Six Months", "Crystal Palace", "CD"),
+    ("Bernardo Silva", "2026-06-30", "Six Months", "Manchester City", "AM"),
+    ("Casemiro", "2026-06-30", "Six Months", "Manchester United", "DM"),
+    ("Andrew Robertson", "2026-06-30", "Six Months", "Liverpool", "WD"),
+    ("John Stones", "2026-06-30", "Six Months", "Manchester City", "CD"),
+    ("Yves Bissouma", "2026-06-30", "Six Months", "Tottenham", "DM"),
+    ("Rodrigo Bentancur", "2026-06-30", "Six Months", "Tottenham", "CM"),
+    ("Harry Maguire", "2026-06-30", "Six Months", "Manchester United", "CD"),
+    ("Danny Welbeck", "2026-06-30", "Six Months", "Brighton", "CF"),
+    ("Harry Wilson", "2026-06-30", "Six Months", "Fulham", "WF"),
+    ("Adama Traoré", "2026-06-30", "Six Months", "Fulham", "WF"),
+    ("Vitaliy Mykolenko", "2026-06-30", "Six Months", "Everton", "WD"),
 
     # ── La Liga ──
-    ("Robert Lewandowski", "2026-06-30", "Expiring", "Barcelona", "CF"),
-    ("Antonio Rüdiger", "2026-06-30", "Expiring", "Real Madrid", "CD"),
-    ("David Alaba", "2026-06-30", "Expiring", "Real Madrid", "CD"),
-    ("Dani Carvajal", "2026-06-30", "Expiring", "Real Madrid", "WD"),
-    ("Andreas Christensen", "2026-06-30", "Expiring", "Barcelona", "CD"),
-    ("Eric García", "2026-06-30", "Expiring", "Barcelona", "CD"),
+    ("Robert Lewandowski", "2026-06-30", "Six Months", "Barcelona", "CF"),
+    ("Antonio Rüdiger", "2026-06-30", "Six Months", "Real Madrid", "CD"),
+    ("David Alaba", "2026-06-30", "Six Months", "Real Madrid", "CD"),
+    ("Dani Carvajal", "2026-06-30", "Six Months", "Real Madrid", "WD"),
+    ("Andreas Christensen", "2026-06-30", "Six Months", "Barcelona", "CD"),
+    ("Eric García", "2026-06-30", "Six Months", "Barcelona", "CD"),
 
     # ── Serie A ──
-    ("Dusan Vlahovic", "2026-06-30", "Expiring", "Juventus", "CF"),
-    ("Paulo Dybala", "2026-06-30", "Expiring", "Roma", "AM"),
-    ("Lorenzo Pellegrini", "2026-06-30", "Expiring", "Roma", "CM"),
-    ("Mike Maignan", "2026-06-30", "Expiring", "AC Milan", "GK"),
-    ("Weston McKennie", "2026-06-30", "Expiring", "Juventus", "CM"),
-    ("Stefan de Vrij", "2026-06-30", "Expiring", "Inter", "CD"),
+    ("Dusan Vlahovic", "2026-06-30", "Six Months", "Juventus", "CF"),
+    ("Paulo Dybala", "2026-06-30", "Six Months", "Roma", "AM"),
+    ("Lorenzo Pellegrini", "2026-06-30", "Six Months", "Roma", "CM"),
+    ("Mike Maignan", "2026-06-30", "Six Months", "AC Milan", "GK"),
+    ("Weston McKennie", "2026-06-30", "Six Months", "Juventus", "CM"),
+    ("Stefan de Vrij", "2026-06-30", "Six Months", "Inter", "CD"),
 
     # ── Bundesliga ──
-    ("Manuel Neuer", "2026-06-30", "Expiring", "Bayern", "GK"),
-    ("Dayot Upamecano", "2026-06-30", "Expiring", "Bayern", "CD"),
-    ("Serge Gnabry", "2026-06-30", "Expiring", "Bayern", "WF"),
-    ("Leon Goretzka", "2026-06-30", "Expiring", "Bayern", "CM"),
-    ("Julian Brandt", "2026-06-30", "Expiring", "Borussia Dortmund", "AM"),
-    ("Timo Werner", "2026-06-30", "Expiring", "RB Leipzig", "WF"),
+    ("Manuel Neuer", "2026-06-30", "Six Months", "Bayern", "GK"),
+    ("Dayot Upamecano", "2026-06-30", "Six Months", "Bayern", "CD"),
+    ("Serge Gnabry", "2026-06-30", "Six Months", "Bayern", "WF"),
+    ("Leon Goretzka", "2026-06-30", "Six Months", "Bayern", "CM"),
+    ("Julian Brandt", "2026-06-30", "Six Months", "Borussia Dortmund", "AM"),
+    ("Timo Werner", "2026-06-30", "Six Months", "RB Leipzig", "WF"),
 
     # ── Ligue 1 ──
-    ("Gianluigi Donnarumma", "2026-06-30", "Expiring", "Paris Saint-Germain", "GK"),
+    ("Gianluigi Donnarumma", "2026-06-30", "Six Months", "Paris Saint-Germain", "GK"),
 ]
 
 # ── Players to CLEAN: previously tagged as expiring but have renewed/transferred ──
@@ -168,7 +168,7 @@ def main():
                         (pid,),
                     )
                     cur.execute(
-                        "UPDATE player_status SET contract_tag = NULL WHERE person_id = %s AND contract_tag IN ('Expiring', 'Free Agent')",
+                        "UPDATE player_status SET contract_tag = NULL WHERE person_id = %s AND contract_tag IN ('Expiring', 'Free Agent', 'Six Months', 'Expired')",
                         (pid,),
                     )
                 print(f"  ✓ Cleaned: {full_name} (id={pid})")
@@ -222,7 +222,7 @@ def main():
     cur.execute("""
         SELECT contract_tag, COUNT(*)
         FROM player_status
-        WHERE contract_tag IN ('Expiring', 'Free Agent', 'One Year Left')
+        WHERE contract_tag IN ('Six Months', 'Expired', 'One Year Left', 'Expiring', 'Free Agent')
         GROUP BY contract_tag
         ORDER BY contract_tag
     """)

@@ -426,9 +426,9 @@ for pid, _, _, expiry, _ in market_updates:
     if not expiry:
         continue
     if expiry < today_str:
-        tag_updates.append((pid, "Free Agent"))
+        tag_updates.append((pid, "Expired"))
     elif expiry[:4] == str(current_year):
-        tag_updates.append((pid, "Expiring"))
+        tag_updates.append((pid, "Six Months"))
     elif expiry[:4] == str(current_year + 1):
         tag_updates.append((pid, "One Year Left"))
 

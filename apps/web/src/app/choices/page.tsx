@@ -1,8 +1,5 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ChoicesGame } from "@/components/ChoicesGame";
-import { AllTimeXI } from "@/components/AllTimeXI";
-import { ChoicesShell } from "@/components/ChoicesShell";
-import Link from "next/link";
 
 interface Category {
   id: number;
@@ -46,23 +43,5 @@ export default async function ChoicesPage() {
     }
   }
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <Link
-        href="/"
-        className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mb-2 sm:mb-4 inline-block"
-      >
-        &larr; Back to Dashboard
-      </Link>
-
-      <div className="text-center mb-3 sm:mb-6">
-        <h1 className="text-xl sm:text-3xl font-bold tracking-tight mb-1">Gaffer</h1>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
-          Make the calls. Build your identity.
-        </p>
-      </div>
-
-      <ChoicesShell categories={categories} />
-    </div>
-  );
+  return <ChoicesGame categories={categories} />;
 }

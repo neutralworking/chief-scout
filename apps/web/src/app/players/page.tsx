@@ -65,7 +65,11 @@ function EditableCell({
   const [draft, setDraft] = useState(String(value ?? ""));
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<"saved" | "error" | null>(null);
+  const [displayValue, setDisplayValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync displayValue with prop when prop changes (e.g. page navigation)
+  useEffect(() => { setDisplayValue(value); }, [value]);
 
   useEffect(() => {
     if (editing) {
@@ -90,6 +94,7 @@ function EditableCell({
         body: JSON.stringify({ person_id: personId, table, updates: { [field]: clamped } }),
       });
       if (res.ok) {
+        setDisplayValue(clamped);
         onSaved?.(clamped);
         setFlash("saved");
       } else {
@@ -112,11 +117,11 @@ function EditableCell({
         className={`font-mono text-xs cursor-text hover:bg-[var(--bg-elevated)] rounded px-1 -mx-1 transition-colors ${
           flash === "saved" ? "text-[var(--color-accent-tactical)]" :
           flash === "error" ? "text-red-400" :
-          ratingColor(value)
+          ratingColor(displayValue)
         }`}
         title={`Edit ${field}`}
       >
-        {value ?? "–"}
+        {displayValue ?? "–"}
       </button>
     );
   }

@@ -134,3 +134,19 @@ Provide a clean summary:
 - Present findings first, then ask before taking any destructive action
 - Group recommendations by urgency: critical (secrets exposed) > important (stale branches) > nice-to-have (message quality)
 - Never rewrite public history (no force-push, no rebase of pushed commits)
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

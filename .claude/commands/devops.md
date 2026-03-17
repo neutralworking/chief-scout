@@ -154,3 +154,19 @@ When debugging build or deploy issues, check for missing environment variables F
 | "old project" warnings | Using `njulrlyfiamklxptvlun` ref | Switch to `fnvlemkbhohyouhjebwf` |
 | RLS permission denied | Using anon key server-side | Use service role key in server components |
 | Next.js shows no data | `SUPABASE_SERVICE_KEY` missing | Add to `apps/web/.env.local` |
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

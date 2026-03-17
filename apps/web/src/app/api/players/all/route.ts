@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
 
 // Fingerprints are precomputed by pipeline/51_fingerprints.py
 // and stored in player_profiles.fingerprint (percentile ranks within position group).
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   const sort = searchParams.get("sort") ?? "value";
   const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
   const offset = Number(searchParams.get("offset") || 0);
+  const wantStats = searchParams.get("stats") === "1";
 
   let query = prodFilter(supabase.from("player_intelligence_card").select(SELECT));
 
@@ -40,14 +41,14 @@ export async function GET(req: NextRequest) {
   }
   if (tier) query = query.eq("profile_tier", parseInt(tier, 10));
   if (full === "1") {
-    query = query.not("archetype", "is", null).not("personality_type", "is", null).not("level", "is", null);
+    query = query.not("archetype", "is", null).not("personality_type", "is", null).not("overall", "is", null);
   }
   if (q) query = query.ilike("name", `%${q}%`);
 
   // Sort
   switch (sort) {
     case "level":
-      query = query.order("level", { ascending: false, nullsFirst: false });
+      query = query.order("overall", { ascending: false, nullsFirst: false });
       break;
     case "role_score":
       query = query.order("best_role_score", { ascending: false, nullsFirst: false });
@@ -80,7 +81,45 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const players = data ?? [];
+  let players = (data ?? []) as Record<string, unknown>[];
+
+  // Enrich with season stats (apps, goals, assists) from Kaggle tables
+  if (wantStats && players.length > 0) {
+    const ids = players.map((p) => p.person_id as number).filter(Boolean);
+
+    // Try euro league stats first (broader coverage), then PL stats as fallback
+    const { data: euroStats } = await supabase
+      .from("kaggle_euro_league_stats")
+      .select("person_id, matches_played, goals, assists")
+      .in("person_id", ids);
+
+    const { data: plStats } = await supabase
+      .from("kaggle_pl_stats")
+      .select("person_id, matches_played, goals, assists")
+      .in("person_id", ids);
+
+    // Aggregate per player (sum across rows — player may have multiple entries)
+    const statsMap: Record<number, { apps: number; goals: number; assists: number }> = {};
+    for (const row of [...(euroStats ?? []), ...(plStats ?? [])]) {
+      const pid = row.person_id as number;
+      if (!pid) continue;
+      const existing = statsMap[pid] ?? { apps: 0, goals: 0, assists: 0 };
+      existing.apps += (row.matches_played as number) || 0;
+      existing.goals += (row.goals as number) || 0;
+      existing.assists += (row.assists as number) || 0;
+      statsMap[pid] = existing;
+    }
+
+    players = players.map((p) => {
+      const s = statsMap[p.person_id as number];
+      return {
+        ...p,
+        apps: s?.apps || null,
+        goals: s?.goals || null,
+        assists: s?.assists || null,
+      };
+    });
+  }
 
   // Fingerprints now come precomputed from the view (pipeline 51)
   // Return hasMore flag instead of total count (avoids expensive count query on view)

@@ -13,3 +13,6 @@
 - **Role commands**: 23 slash commands in `.claude/commands/` — all include guardrails
 - **Session start**: auto-loads WORKING.md + git log via hook
 - **Session end**: run `/context save` to archive learnings
+
+## Project State
+- [Overall Rating Transition](memory/project_overall_rating_transition.md) — overall replaces level as primary rating once calibrated

@@ -316,16 +316,17 @@ def compute_compound_scores(model_scores):
     return compounds
 
 
-def compute_overall(compound_scores, position, level=None, peak=None):
+def compute_overall(compound_scores, position, level=None, peak=None, grade_count=0):
     """
     Compute overall rating as a position-weighted compound average.
 
-    The overall blends:
-    - 70% technical compound score (position-weighted attribute average)
-    - 15% level (editorial assessment, if available)
-    - 15% peak (career ceiling, if available)
+    The technical weight scales with data coverage:
+    - Rich data (40+ grades): 50% technical, 50% level
+    - Thin data (10 grades):  20% technical, 80% level
+    - Zero grades:            skipped (shouldn't reach here)
 
-    If level/peak unavailable, 100% from compound scores.
+    Peak is not used — level is the sole editorial anchor.
+    If level unavailable, 100% from compound scores.
     """
     weights = POSITION_COMPOUND_WEIGHTS.get(position, {
         "Technical": 0.25, "Tactical": 0.25, "Physical": 0.25, "Mental": 0.25,
@@ -343,10 +344,13 @@ def compute_overall(compound_scores, position, level=None, peak=None):
 
     technical_overall = weighted_sum / total_weight
 
-    # Blend with level if available — level is the stronger signal
-    # since compound scores suffer from incomplete attribute data
+    # Scale tech weight by data coverage: more grades → trust data more
+    # 40+ grades → tech_pct=0.50, 20 grades → 0.35, 10 grades → 0.20
+    # Clamp between 0.20 and 0.50
     if level is not None:
-        overall = technical_overall * 0.35 + level * 0.65
+        tech_pct = min(0.50, max(0.20, grade_count / 80))
+        editorial_pct = 1.0 - tech_pct
+        overall = technical_overall * tech_pct + level * editorial_pct
     else:
         overall = technical_overall
 
@@ -494,7 +498,7 @@ def main():
         level = profile.get("level")
         peak = profile.get("peak")
 
-        overall = compute_overall(compound_scores, position, level, peak)
+        overall = compute_overall(compound_scores, position, level, peak, grade_count=len(grades))
 
         if overall is None:
             continue
@@ -593,19 +597,31 @@ def main():
 
         print(f"\n  Updated player_profiles.overall: {stats['updated_overall']}")
 
-        # Clear stale best_role_score for players that were skipped (flat/no data)
+        # Clear stale data for players that were skipped (flat/no data)
         # These keep old inflated scores from previous runs
         processed_ids = [r["person_id"] for r in results]
         if processed_ids:
             cur.execute("""
                 UPDATE player_profiles
-                SET best_role_score = NULL, best_role = NULL
-                WHERE best_role_score IS NOT NULL
-                AND person_id NOT IN %s
+                SET best_role_score = NULL, best_role = NULL,
+                    overall = NULL, technical_score = NULL, physical_score = NULL
+                WHERE person_id NOT IN %s
+                AND (best_role_score IS NOT NULL OR overall IS NOT NULL)
             """, (tuple(processed_ids),))
             stale_cleared = cur.rowcount
             if stale_cleared:
-                print(f"  Cleared stale best_role_score: {stale_cleared} players")
+                print(f"  Cleared stale ratings/roles: {stale_cleared} players")
+
+            # Clear stale compound scores from attribute_grades
+            cur.execute("""
+                DELETE FROM attribute_grades
+                WHERE source = 'computed'
+                AND attribute IN ('technical', 'tactical', 'physical', 'mental')
+                AND player_id NOT IN %s
+            """, (tuple(processed_ids),))
+            stale_compounds = cur.rowcount
+            if stale_compounds:
+                print(f"  Cleared stale compound scores: {stale_compounds} rows")
 
         # Write compound scores as attribute_grades (source='computed')
         # stat_score is 0-20 scale, so convert from 0-100

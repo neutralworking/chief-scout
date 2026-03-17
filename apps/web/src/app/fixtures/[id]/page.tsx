@@ -87,7 +87,7 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-function levelColor(level: number | null): string {
+function ratingColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 88) return "text-amber-400";
   if (level >= 83) return "text-green-400";
@@ -284,8 +284,8 @@ function XIPanel({
                   >
                     {slot.player.name}
                   </Link>
-                  <span className={`text-[10px] font-bold ${levelColor(slot.player.level)}`}>
-                    {slot.player.level ?? "?"}
+                  <span className={`text-[10px] font-bold ${ratingColor(slot.player.overall ?? slot.player.level)}`}>
+                    {slot.player.overall ?? slot.player.level ?? "?"}
                   </span>
                   {slot.player.archetype && (
                     <span className="text-[8px] px-1 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)]">
@@ -334,7 +334,7 @@ function KeyMatchupsSection({ data }: { data: PreviewData }) {
                   <span className="text-[11px] font-semibold text-[var(--text-primary)]">
                     {m.homePlayer.name}
                   </span>
-                  <span className={`text-[10px] font-bold ml-1 ${levelColor(m.homeLevel)}`}>
+                  <span className={`text-[10px] font-bold ml-1 ${ratingColor(m.homeLevel)}`}>
                     {m.homeLevel ?? "?"}
                   </span>
                 </div>
@@ -358,7 +358,7 @@ function KeyMatchupsSection({ data }: { data: PreviewData }) {
             <div>
               {m.awayPlayer ? (
                 <div>
-                  <span className={`text-[10px] font-bold mr-1 ${levelColor(m.awayLevel)}`}>
+                  <span className={`text-[10px] font-bold mr-1 ${ratingColor(m.awayLevel)}`}>
                     {m.awayLevel ?? "?"}
                   </span>
                   <span className="text-[11px] font-semibold text-[var(--text-primary)]">
@@ -387,7 +387,7 @@ function SquadIntelligence({ data }: { data: PreviewData }) {
 
       {/* Stats comparison */}
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <StatCompare label="Avg Level" home={home.avgLevel} away={away.avgLevel} />
+        <StatCompare label="Avg OVR" home={home.avgLevel} away={away.avgLevel} />
         <StatCompare label="Avg Age" home={home.avgAge} away={away.avgAge} invert />
         <StatCompare label="Squad Size" home={home.size} away={away.size} />
       </div>
@@ -508,7 +508,7 @@ function KeyPlayersList({ label, players }: { label: string; players: any[] }) {
             <span className="text-[11px] font-semibold text-[var(--text-primary)] flex-1">
               {p.name}
             </span>
-            <span className={`text-[10px] font-bold ${levelColor(p.level)}`}>{p.level ?? "?"}</span>
+            <span className={`text-[10px] font-bold ${ratingColor(p.level)}`}>{p.level ?? "?"}</span>
             {p.archetype && (
               <span className="text-[8px] px-1.5 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)]">
                 {p.archetype}

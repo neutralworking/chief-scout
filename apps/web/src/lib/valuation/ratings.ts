@@ -125,7 +125,8 @@ function computeOverall(
   }
   if (totalWeight <= 0) return null;
   const technicalOverall = weightedSum / totalWeight;
-  const overall = level != null ? technicalOverall * 0.35 + level * 0.65 : technicalOverall;
+  // Blend: coverage-scaled tech weight + level anchor (no peak)
+  const overall = level != null ? technicalOverall * 0.50 + level * 0.50 : technicalOverall;
   return Math.round(Math.min(Math.max(overall, 1), 99));
 }
 

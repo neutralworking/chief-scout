@@ -9,6 +9,7 @@ interface ClubPlayer {
   dob: string | null;
   position: string | null;
   level: number | null;
+  overall: number | null;
   archetype: string | null;
   pursuit_status: string | null;
   scouting_notes: string | null;
@@ -20,7 +21,7 @@ interface ClubPageProps {
   params: Promise<{ id: string }>;
 }
 
-function levelColor(level: number | null): string {
+function ratingColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 88) return "text-amber-400";
   if (level >= 83) return "text-green-400";
@@ -84,18 +85,18 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   if (personIds.length > 0) {
     const { data: playersData } = await supabaseServer
       .from("player_intelligence_card")
-      .select("person_id, name, dob, position, level, archetype, pursuit_status, scouting_notes, squad_role, nation")
+      .select("person_id, name, dob, position, level, overall, archetype, pursuit_status, scouting_notes, squad_role, nation")
       .in("person_id", personIds)
-      .order("level", { ascending: false, nullsFirst: false });
+      .order("overall", { ascending: false, nullsFirst: false });
     players = (playersData ?? []) as ClubPlayer[];
   }
 
   // Computed analysis
   const ages = players.map((p) => computeAge(p.dob)).filter((a): a is number => a !== null);
   const avgAge = ages.length > 0 ? (ages.reduce((a, b) => a + b, 0) / ages.length) : null;
-  const levels = players.map((p) => p.level).filter((l): l is number => l !== null);
-  const avgLevel = levels.length > 0 ? (levels.reduce((a, b) => a + b, 0) / levels.length) : null;
-  const topLevel = levels.length > 0 ? Math.max(...levels) : null;
+  const ratings = players.map((p) => p.overall).filter((l): l is number => l !== null);
+  const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : null;
+  const topRating = ratings.length > 0 ? Math.max(...ratings) : null;
   const profiled = players.filter((p) => p.archetype).length;
 
   // Position depth
@@ -115,7 +116,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   const gaps = POSITIONS.filter((pos) => (positionGroups[pos]?.length ?? 0) < 2);
 
   // Key players
-  const keyPlayers = players.filter((p) => p.level != null).slice(0, 5);
+  const keyPlayers = players.filter((p) => p.overall != null).slice(0, 5);
 
   // Archetypes
   const archetypeCounts: Record<string, number> = {};
@@ -175,15 +176,15 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
             <span className="text-sm font-mono font-bold">{avgAge != null ? avgAge.toFixed(1) : "–"}</span>
           </div>
           <div>
-            <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Avg Level</span>
-            <span className={`text-sm font-mono font-bold ${levelColor(avgLevel != null ? Math.round(avgLevel) : null)}`}>
-              {avgLevel != null ? avgLevel.toFixed(1) : "–"}
+            <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Avg OVR</span>
+            <span className={`text-sm font-mono font-bold ${ratingColor(avgRating != null ? Math.round(avgRating) : null)}`}>
+              {avgRating != null ? avgRating.toFixed(1) : "–"}
             </span>
           </div>
           <div>
-            <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Top Level</span>
-            <span className={`text-sm font-mono font-bold ${levelColor(topLevel)}`}>
-              {topLevel ?? "–"}
+            <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Top OVR</span>
+            <span className={`text-sm font-mono font-bold ${ratingColor(topRating)}`}>
+              {topRating ?? "–"}
             </span>
           </div>
           <div>
@@ -211,7 +212,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                     <Link key={p.person_id} href={`/players/${p.person_id}`} className="bg-[var(--bg-elevated)] rounded-lg p-2.5 hover:bg-[var(--bg-elevated)]/80 transition-colors group">
                       <div className="flex items-center justify-between mb-1">
                         <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${posColor} text-white`}>{p.position}</span>
-                        <span className={`text-base font-mono font-bold ${levelColor(p.level)}`}>{p.level}</span>
+                        <span className={`text-base font-mono font-bold ${ratingColor(p.overall)}`}>{p.overall ?? "–"}</span>
                       </div>
                       <div className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-white truncate">{p.name}</div>
                       <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
@@ -251,7 +252,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                             className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                           >
                             {p.name}
-                            {p.level != null && <span className={`ml-1 font-mono ${levelColor(p.level)}`}>{p.level}</span>}
+                            {p.overall != null && <span className={`ml-1 font-mono ${ratingColor(p.overall)}`}>{p.overall}</span>}
                           </Link>
                         ))}
                       </div>
@@ -337,7 +338,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                     <th className="text-left py-1.5 font-medium">Player</th>
                     <th className="text-left py-1.5 font-medium">Pos</th>
                     <th className="text-right py-1.5 font-medium">Age</th>
-                    <th className="text-right py-1.5 font-medium">Lvl</th>
+                    <th className="text-right py-1.5 font-medium">OVR</th>
                     <th className="text-left py-1.5 font-medium">Archetype</th>
                     <th className="text-left py-1.5 font-medium hidden md:table-cell">Role</th>
                     <th className="text-left py-1.5 font-medium hidden lg:table-cell">Nation</th>
@@ -360,7 +361,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                           </span>
                         </td>
                         <td className="py-1.5 text-right text-xs font-mono text-[var(--text-secondary)]">{age ?? "–"}</td>
-                        <td className={`py-1.5 text-right text-xs font-mono font-bold ${levelColor(p.level)}`}>{p.level ?? "–"}</td>
+                        <td className={`py-1.5 text-right text-xs font-mono font-bold ${ratingColor(p.overall)}`}>{p.overall ?? "–"}</td>
                         <td className="py-1.5 text-[10px] text-[var(--text-secondary)]">{p.archetype ?? "–"}</td>
                         <td className="py-1.5 text-[10px] text-[var(--text-muted)] hidden md:table-cell">
                           {p.squad_role ? p.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : "–"}

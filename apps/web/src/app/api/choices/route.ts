@@ -70,7 +70,7 @@ export async function GET(request: Request) {
 
     if (personIds.length > 0) {
       const [profilesRes, personalityRes] = await Promise.all([
-        sb.from("player_profiles").select("person_id, position, level, archetype").in("person_id", personIds),
+        sb.from("player_profiles").select("person_id, position, level, overall, archetype").in("person_id", personIds),
         sb.from("player_personality").select("person_id, personality_code").in("person_id", personIds),
       ]);
 
@@ -80,11 +80,12 @@ export async function GET(request: Request) {
       for (const q of tier2Questions) {
         for (const opt of (q as { options: { person_id: number | null; player_intel?: unknown }[] }).options) {
           if (opt.person_id) {
-            const profile = profileMap.get(opt.person_id) as { position?: string; level?: number; archetype?: string } | undefined;
+            const profile = profileMap.get(opt.person_id) as { position?: string; level?: number; overall?: number; archetype?: string } | undefined;
             const personality = personalityMap.get(opt.person_id) as { personality_code?: string } | undefined;
             opt.player_intel = {
               position: profile?.position ?? null,
               level: profile?.level ?? null,
+              overall: profile?.overall ?? null,
               archetype: profile?.archetype ?? null,
               personality_code: personality?.personality_code ?? null,
             };

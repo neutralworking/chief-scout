@@ -57,6 +57,7 @@ interface DynamicOption {
   player_intel: {
     position: string | null;
     level: number | null;
+    overall: number | null;
     archetype: string | null;
     personality_code: string | null;
     club: string | null;
@@ -104,6 +105,7 @@ function makeOption(
     player_intel: {
       position: player.position,
       level: player.level,
+      overall: player.overall,
       archetype: player.archetype,
       personality_code: player.personality_type,
       club: player.club,

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
 
 // Fingerprints are precomputed by pipeline/51_fingerprints.py (percentile ranks within position group).
 
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = req.nextUrl;
   const position = searchParams.get("position");
-  const sort = searchParams.get("sort") ?? "level";
+  const sort = searchParams.get("sort") ?? "overall";
   const tab = searchParams.get("tab") ?? "2026"; // 2026 | free | 2027
 
   // Determine date ranges based on tab
@@ -93,9 +93,10 @@ export async function GET(req: NextRequest) {
     case "value":
       query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
       break;
+    case "overall":
     case "level":
     default:
-      query = query.order("level", { ascending: false, nullsFirst: false });
+      query = query.order("overall", { ascending: false, nullsFirst: false });
       break;
   }
 

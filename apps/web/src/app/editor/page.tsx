@@ -174,7 +174,7 @@ export default function EditorSearchPage() {
                     )}
                     {p.level != null && (
                       <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                        Lv.{p.level}
+                        OVR {p.level}
                       </span>
                     )}
                     {p.archetype && (

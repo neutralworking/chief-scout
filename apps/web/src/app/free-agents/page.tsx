@@ -42,7 +42,7 @@ const RADAR_COLORS: Record<CardTheme, string> = {
 const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
 const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
 
-function levelColor(level: number | null): string {
+function ratingColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 85) return "text-amber-400";
   if (level >= 78) return "text-green-400";
@@ -77,7 +77,7 @@ function FreeAgentsContent() {
 
   const tab = searchParams.get("tab") ?? "2026";
   const position = searchParams.get("position") ?? "";
-  const sort = searchParams.get("sort") ?? "level";
+  const sort = searchParams.get("sort") ?? "overall";
   const isFreeTab = tab === "free";
 
   const updateParam = useCallback((key: string, value: string) => {
@@ -171,7 +171,7 @@ function FreeAgentsContent() {
       <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
           className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
-          <option value="level">Sort: Level</option>
+          <option value="overall">Sort: Rating</option>
           <option value="age">Sort: Age</option>
           <option value="value">Sort: Value</option>
           <option value="name">Sort: Name</option>
@@ -281,7 +281,7 @@ function FreeAgentsContent() {
                         </span>
                       )}
                     </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                    <td className={`py-2 px-4 text-right font-mono font-bold ${ratingColor(player.best_role_score)}`}>
                       {player.best_role_score ?? "–"}
                     </td>
                   </tr>
@@ -332,8 +332,8 @@ function FreeAgentsContent() {
                       {formatExpiry(player.contract_expiry_date)}
                     </span>
                   )}
-                  <span className={`text-lg font-mono font-bold ${levelColor(player.level)}`}>
-                    {player.level ?? "–"}
+                  <span className={`text-lg font-mono font-bold ${ratingColor(player.best_role_score)}`}>
+                    {player.best_role_score ?? "–"}
                   </span>
                 </div>
               </Link>

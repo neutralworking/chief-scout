@@ -487,6 +487,17 @@ export default function PlayerEditorPage() {
           <FieldNumber label="Height (cm)" value={profile.height_cm as number} onChange={(v) => setProfileField("height_cm", v)} min={140} max={220} />
         </div>
 
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <FieldNumber label="Level" value={profile.level as number} onChange={(v) => setProfileField("level", v)} min={1} max={99} />
+          <FieldNumber label="Peak" value={profile.peak as number} onChange={(v) => setProfileField("peak", v)} min={1} max={99} />
+          <div className="flex flex-col">
+            <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Overall</label>
+            <div className="px-2 py-2.5 rounded-md bg-[var(--bg-surface-solid)]/50 border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] font-mono">
+              {profile.overall ?? "—"}
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Scouting Notes</label>
           <textarea
@@ -586,13 +597,11 @@ export default function PlayerEditorPage() {
         </div>
       </CollapsibleSection>
 
-      {/* Overrides (collapsible, closed by default) */}
-      <CollapsibleSection title="Overrides" defaultOpen={false}>
+      {/* Overall Override (collapsible, closed by default) */}
+      <CollapsibleSection title="Overall Override" defaultOpen={false}>
         <p className="text-[10px] text-[var(--text-muted)] mb-3">Auto-computed by pipeline. Only override if you know what you&apos;re doing.</p>
-        <div className="grid grid-cols-3 gap-3">
-          <FieldNumber label="Level" value={profile.level as number} onChange={(v) => setProfileField("level", v)} min={1} max={100} />
-          <FieldNumber label="Peak" value={profile.peak as number} onChange={(v) => setProfileField("peak", v)} min={1} max={100} />
-          <FieldNumber label="Overall" value={profile.overall as number} onChange={(v) => setProfileField("overall", v)} min={1} max={100} />
+        <div className="grid grid-cols-1 gap-3">
+          <FieldNumber label="Overall" value={profile.overall as number} onChange={(v) => setProfileField("overall", v)} min={1} max={99} />
         </div>
       </CollapsibleSection>
 

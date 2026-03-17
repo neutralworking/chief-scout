@@ -19,7 +19,7 @@ export async function GET() {
   // Fetch player data from the compatibility view
   const { data: playerData, error: playerErr } = await supabase
     .from("players")
-    .select("id, name, club, position, level, peak")
+    .select("id, name, club, position, level, overall, peak")
     .in("id", playerIds);
 
   if (playerErr) return NextResponse.json({ error: playerErr.message }, { status: 500 });
@@ -36,11 +36,12 @@ export async function GET() {
         club: player?.club ?? null,
         position: player?.position ?? null,
         level: player?.level as number | null ?? null,
+        overall: player?.overall as number | null ?? null,
         peak: player?.peak ?? null,
         tag_name: tag.tag_name,
       };
     })
-    .sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
+    .sort((a, b) => (b.overall ?? b.level ?? 0) - (a.overall ?? a.level ?? 0));
 
   return NextResponse.json(rows);
 }

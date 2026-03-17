@@ -128,7 +128,7 @@ export default function PersonalityReassessmentPage() {
                   <th className="text-left py-2 px-3 font-medium">Player</th>
                   <th className="text-left py-2 px-3 font-medium hidden md:table-cell">Archetype</th>
                   <th className="text-center py-2 px-3 font-medium w-16">Current</th>
-                  <th className="text-right py-2 px-3 font-medium w-12">Lvl</th>
+                  <th className="text-right py-2 px-3 font-medium w-12">OVR</th>
                   <th className="text-center py-2 px-3 font-medium w-10">St</th>
                 </tr>
               </thead>
@@ -289,7 +289,7 @@ function AssessmentPanel({
               {player.archetype && ` · ${player.archetype}`}
             </p>
           </div>
-          <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level}</span>
+          <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level ?? "–"}</span>
         </div>
       </div>
 

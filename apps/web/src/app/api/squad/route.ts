@@ -24,6 +24,7 @@ export interface SquadPlayer {
   id: number;
   name: string;
   level: number | null;
+  overall: number | null;
   squad_role: string | null;
   loan_status: string | null;
   age: number | null;
@@ -58,7 +59,7 @@ export async function getSquadAssessment() {
   // 2. Query squad players
   const { data: players, error: playersErr } = await supabase
     .from("players")
-    .select("id, name, position, secondary_position, level, squad_role, loan_status, date_of_birth")
+    .select("id, name, position, secondary_position, level, overall, squad_role, loan_status, date_of_birth")
     .ilike("club", clubName);
 
   if (playersErr) {
@@ -85,6 +86,7 @@ export async function getSquadAssessment() {
       id: p.id,
       name: p.name,
       level: p.level,
+      overall: p.overall,
       squad_role: p.squad_role,
       loan_status: p.loan_status,
       age,
@@ -105,7 +107,7 @@ export async function getSquadAssessment() {
     group.depth_rating = depthRating(group.count);
 
     if (group.count > 0) {
-      const levels = group.players.map(p => p.level).filter((v): v is number => v != null);
+      const levels = group.players.map(p => p.overall ?? p.level).filter((v): v is number => v != null);
       const ages = group.players.map(p => p.age).filter((v): v is number => v != null);
 
       group.avg_level = levels.length ? Math.round((levels.reduce((a, b) => a + b, 0) / levels.length) * 10) / 10 : null;

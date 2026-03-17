@@ -138,6 +138,8 @@ function PlayersContent() {
   const sort = searchParams.get("sort") ?? "role_score";
   const tier = searchParams.get("tier") ?? "";
 
+  const canEdit = isAdmin || sort === "review";
+
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
   }, []);
@@ -328,7 +330,7 @@ function PlayersContent() {
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-right">
-                          {isAdmin ? (
+                          {canEdit ? (
                             <EditableCell
                               value={player.best_role_score}
                               personId={player.person_id}
@@ -345,7 +347,7 @@ function PlayersContent() {
                           )}
                         </td>
                         <td className="py-1.5 px-3 text-right">
-                          {isAdmin ? (
+                          {canEdit ? (
                             <EditableCell
                               value={player.level}
                               personId={player.person_id}
@@ -416,7 +418,7 @@ function PlayersContent() {
                       <div className="flex items-center gap-3">
                         <div className="text-center">
                           <span className="text-[8px] text-[var(--text-muted)] block">Score</span>
-                          {isAdmin ? (
+                          {canEdit ? (
                             <EditableCell
                               value={player.best_role_score}
                               personId={player.person_id}
@@ -434,7 +436,7 @@ function PlayersContent() {
                         </div>
                         <div className="text-center">
                           <span className="text-[8px] text-[var(--text-muted)] block">Lvl</span>
-                          {isAdmin ? (
+                          {canEdit ? (
                             <EditableCell
                               value={player.level}
                               personId={player.person_id}

@@ -5,11 +5,10 @@ import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { prodFilter, isProduction } from "@/lib/env";
-import { PERSONALITY_TYPES } from "@/lib/personality";
-import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PursuitPanel } from "@/components/PursuitPanel";
 import { LandingPage } from "@/components/LandingPage";
+import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 
 const PIPELINE_STATUSES = ["Priority", "Interested", "Watch"] as const;
 
@@ -46,6 +45,40 @@ interface FixtureRow {
   venue: string | null;
 }
 
+interface ContractPlayer {
+  person_id: number;
+  name: string;
+  position: string | null;
+  club: string | null;
+  contract_expiry_date: string;
+}
+
+interface RisingStar {
+  person_id: number;
+  name: string;
+  position: string | null;
+  club: string | null;
+  trajectory: string;
+}
+
+interface MarketMover {
+  person_id: number;
+  name: string;
+  position: string | null;
+  club: string | null;
+  market_premium: number;
+}
+
+interface KeyMoment {
+  id: number;
+  person_id: number;
+  name: string;
+  moment_type: string;
+  title: string | null;
+  description: string | null;
+  moment_date: string;
+}
+
 // Deterministic daily rotation
 function dailySeed(): number {
   const d = new Date();
@@ -65,9 +98,12 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
 
+  const sixMonthsOut = new Date(Date.now() + 180 * 86400000).toISOString().split("T")[0];
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
-    // Featured: DOF picks — pursuit targets with profiles
+    // 0: Featured: DOF picks
     prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select(FEATURED_COLS + ", pursuit_status")
@@ -76,25 +112,25 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .not("scouting_notes", "is", null))
       .order("level", { ascending: false })
       .limit(20),
-    // Featured player: sentiment data for swing-based selection
+    // 1: Sentiment data for swing-based selection
     supabaseServer
       .from("news_player_tags")
       .select("player_id, sentiment, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(200),
-    // Recent news with tags
+    // 2: Recent news with tags
     supabaseServer
       .from("news_stories")
       .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
       .limit(10),
-    // Trending players
+    // 3: Trending players
     supabaseServer
       .from("news_player_tags")
       .select("player_id, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(50),
-    // Upcoming fixtures (next 14 days)
+    // 4: Upcoming fixtures (next 14 days)
     supabaseServer
       .from("fixtures")
       .select("id, competition, competition_code, matchday, utc_date, home_team, away_team, venue")
@@ -103,29 +139,62 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .lte("utc_date", new Date(Date.now() + 14 * 86400000).toISOString())
       .order("utc_date", { ascending: true })
       .limit(8),
-    // Sample Gaffer question
+    // 5: Sample Gaffer question
     supabaseServer
       .from("fc_questions")
       .select("id, question_text, subtitle, tags")
       .order("total_votes", { ascending: false })
       .limit(5),
+    // 6: Contract watch — expiring within 6 months
+    supabaseServer
+      .from("people")
+      .select("id, name, contract_expiry_date, clubs(clubname), player_profiles(position)")
+      .not("contract_expiry_date", "is", null)
+      .lte("contract_expiry_date", sixMonthsOut)
+      .gte("contract_expiry_date", new Date().toISOString().split("T")[0])
+      .order("contract_expiry_date", { ascending: true })
+      .limit(5),
+    // 7: Rising stars — career trajectory
+    supabaseServer
+      .from("career_metrics")
+      .select("person_id, trajectory, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
+      .eq("trajectory", "rising")
+      .order("loyalty_score", { ascending: false })
+      .limit(5),
+    // 8: Market movers — biggest premium/discount
+    supabaseServer
+      .from("player_market")
+      .select("person_id, market_premium, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
+      .not("market_premium", "is", null)
+      .order("market_premium", { ascending: false })
+      .limit(10),
+    // 9: Key moments — last 7 days
+    supabaseServer
+      .from("key_moments")
+      .select("id, person_id, moment_type, title, description, moment_date, people!inner(name)")
+      .gte("moment_date", sevenDaysAgo)
+      .order("moment_date", { ascending: false })
+      .limit(5),
   ];
 
   if (shortlistsEnabled) {
     queries.push(
+      // 10: Pipeline players
       prodFilter(supabaseServer
         .from("player_intelligence_card")
         .select("person_id, name, position, club, level, archetype, pursuit_status, profile_tier, personality_type")
         .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]))
         .order("level", { ascending: false }),
+      // 11: Total people count
       supabaseServer.from("people").select("id", { count: "exact", head: true }),
+      // 12: Full profiles count
       supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
     );
   }
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dofPicksResult, sentimentResult, newsResult, trendingResult, fixturesResult, gafferResult] = results as any[];
+  const [dofPicksResult, sentimentResult, newsResult, trendingResult, fixturesResult, gafferResult, contractResult, risingResult, marketResult, momentsResult] = results as any[];
 
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
@@ -140,7 +209,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   let featuredReason: FeaturedReason = "discovery";
   let featuredPool: FeaturedProfile[] = [];
 
-  // Tier 1: DOF picks — Priority/Interested pursuit targets, daily rotation
   const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
   const priorityPicks = dofCandidates.filter((p) => p.pursuit_status === "Priority");
   const interestedPicks = dofCandidates.filter((p) => p.pursuit_status === "Interested");
@@ -151,7 +219,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     featuredPool = dofPool;
   }
 
-  // Tier 2: News trending — sentiment swing (controversial/talked-about)
   if (!featured) {
     const sentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; sentiment: string | null; people: { name: string } }>;
     const playerSentiments = new Map<number, { positive: number; negative: number; total: number }>();
@@ -162,7 +229,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       if (row.sentiment === "negative") existing.negative++;
       playerSentiments.set(row.player_id, existing);
     }
-
     let bestPid: number | null = null;
     let maxSwing = 0;
     for (const [pid, s] of playerSentiments) {
@@ -175,7 +241,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
         if (s.total > maxTotal) { maxTotal = s.total; bestPid = pid; }
       }
     }
-
     if (bestPid) {
       const { data: fp } = await supabaseServer
         .from("player_intelligence_card")
@@ -186,7 +251,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     }
   }
 
-  // Tier 3: Discovery — random well-profiled player
   if (!featured) {
     const { data: fallbacks } = await supabaseServer
       .from("player_intelligence_card")
@@ -203,19 +267,15 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     }
   }
 
-  // News stories
+  // News stories with tags
   const rawNews = (newsResult.data ?? []) as Array<{ id: string; headline: string; url: string | null; published_at: string | null; summary: string | null; story_type: string | null }>;
-
-  // Get tags for news stories
   const storyIds = rawNews.map((s) => s.id);
   let newsWithTags: NewsStoryWithTags[] = rawNews.map((s) => ({ ...s, tags: [] }));
-
   if (storyIds.length > 0) {
     const { data: tagData } = await supabaseServer
       .from("news_player_tags")
       .select("story_id, player_id, sentiment, people!inner(name)")
       .in("story_id", storyIds);
-
     if (tagData) {
       const tagMap = new Map<string, Array<{ player_id: number; name: string; sentiment: string | null }>>();
       for (const t of tagData as Array<Record<string, unknown>>) {
@@ -242,19 +302,16 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     }
   }
   const trendingPlayerIds = Array.from(trendingMap.values()).sort((a, b) => b.count - a.count).slice(0, 8);
-
   let trendingPlayers: Array<{
     person_id: number; name: string; position: string | null;
     club: string | null; personality_type: string | null;
     archetype: string | null; level: number | null; story_count: number;
   }> = [];
-
   if (trendingPlayerIds.length > 0) {
     const { data: enriched } = await supabaseServer
       .from("player_intelligence_card")
       .select("person_id, name, position, club, personality_type, archetype, level")
       .in("person_id", trendingPlayerIds.map((t) => t.person_id));
-
     const enrichedMap = new Map((enriched ?? []).map((e: Record<string, unknown>) => [e.person_id as number, e]));
     trendingPlayers = trendingPlayerIds
       .map((t) => {
@@ -278,11 +335,70 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     ? gafferQuestions[dailySeed() % gafferQuestions.length]
     : null;
 
+  // Contract watch
+  const contractPlayers = ((contractResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const clubs = r.clubs as Record<string, unknown> | null;
+    const profiles = r.player_profiles as Record<string, unknown> | null;
+    return {
+      person_id: r.id as number,
+      name: r.name as string,
+      position: (profiles?.position as string | null) ?? null,
+      club: (clubs?.clubname as string | null) ?? null,
+      contract_expiry_date: r.contract_expiry_date as string,
+    };
+  }) as ContractPlayer[];
+
+  // Rising stars
+  const risingStars = ((risingResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const people = r.people as Record<string, unknown> | null;
+    const clubs = people?.clubs as Record<string, unknown> | null;
+    const profiles = r.player_profiles as Record<string, unknown> | null;
+    return {
+      person_id: r.person_id as number,
+      name: (people?.name as string) ?? "Unknown",
+      position: (profiles?.position as string | null) ?? null,
+      club: (clubs?.clubname as string | null) ?? null,
+      trajectory: r.trajectory as string,
+    };
+  }) as RisingStar[];
+
+  // Market movers — take top 3 overpriced + top 3 undervalued
+  const marketRaw = ((marketResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const people = r.people as Record<string, unknown> | null;
+    const clubs = people?.clubs as Record<string, unknown> | null;
+    const profiles = r.player_profiles as Record<string, unknown> | null;
+    return {
+      person_id: r.person_id as number,
+      name: (people?.name as string) ?? "Unknown",
+      position: (profiles?.position as string | null) ?? null,
+      club: (clubs?.clubname as string | null) ?? null,
+      market_premium: r.market_premium as number,
+    };
+  }) as MarketMover[];
+  // Mix: top overpriced and most undervalued for interesting spread
+  const overpriced = marketRaw.filter((m) => m.market_premium > 0).slice(0, 3);
+  const undervalued = marketRaw.filter((m) => m.market_premium < 0).sort((a, b) => a.market_premium - b.market_premium).slice(0, 3);
+  const marketMovers = [...overpriced, ...undervalued].sort((a, b) => Math.abs(b.market_premium) - Math.abs(a.market_premium)).slice(0, 5);
+
+  // Key moments
+  const keyMoments = ((momentsResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const people = r.people as Record<string, unknown> | null;
+    return {
+      id: r.id as number,
+      person_id: r.person_id as number,
+      name: (people?.name as string) ?? "Unknown",
+      moment_type: r.moment_type as string,
+      title: r.title as string | null,
+      description: r.description as string | null,
+      moment_date: r.moment_date as string,
+    };
+  }) as KeyMoment[];
+
   // Pro data
   let proData = null;
   if (shortlistsEnabled) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(6) as any[];
+    const [pipelineResult, totalResult, fullProfilesResult] = results.slice(10) as any[];
     const pipelinePlayers = (pipelineResult.data ?? []) as PlayerCardType[];
     const pipeline: Record<string, PlayerCardType[]> = {};
     for (const status of PIPELINE_STATUSES) {
@@ -298,7 +414,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     };
   }
 
-  return { featured, featuredReason, featuredPool, news: newsWithTags, trendingPlayers, fixtures, sampleQuestion, proData };
+  return { featured, featuredReason, featuredPool, news: newsWithTags, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, keyMoments, proData };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -322,6 +438,15 @@ function formatFixtureTime(iso: string): string {
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatExpiryDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+}
+
+function daysUntil(dateStr: string): number {
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
 const SENTIMENT_DOT: Record<string, string> = {
   positive: "bg-[var(--color-sentiment-positive)]",
   negative: "bg-[var(--color-sentiment-negative)]",
@@ -331,6 +456,14 @@ const SENTIMENT_DOT: Record<string, string> = {
 const COMP_SHORT: Record<string, string> = {
   "Premier League": "PL", "La Liga": "LL", "Serie A": "SA",
   "Bundesliga": "BL", "Ligue 1": "L1",
+};
+
+const MOMENT_ICON: Record<string, string> = {
+  goal: "\u26A1",
+  assist: "\uD83C\uDFAF",
+  performance: "\uD83D\uDD25",
+  controversy: "\u26A0\uFE0F",
+  milestone: "\uD83C\uDFC6",
 };
 
 async function getShowcasePlayers(): Promise<PlayerCardType[]> {
@@ -348,7 +481,6 @@ async function getShowcasePlayers(): Promise<PlayerCardType[]> {
 }
 
 export default async function DashboardPage() {
-  // Production: show landing page for unauthenticated visitors
   if (isProduction()) {
     const cookieStore = await cookies();
     const hasAuth = cookieStore.getAll().some((c) => c.name.includes("auth-token"));
@@ -371,70 +503,16 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, news, trendingPlayers, fixtures, sampleQuestion, proData } = data;
-
-  const reasonInfo = featuredReason ? REASON_LABELS[featuredReason] : null;
-  const posColor = featured ? (POSITION_COLORS[featured.position ?? ""] ?? "bg-zinc-700/60") : "";
-  const pt = featured?.personality_type ? PERSONALITY_TYPES[featured.personality_type] : null;
-  const theme = featured ? getCardTheme(featured.personality_type) : "default";
-  const styles = THEME_STYLES[theme];
-  const age = featured?.dob
-    ? Math.floor((Date.now() - new Date(featured.dob).getTime()) / 31557600000)
-    : null;
+  const { featured, featuredReason, featuredPool, news, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, keyMoments, proData } = data;
 
   return (
     <div className="space-y-3">
       {/* Row 1: Featured (compact) + Gaffer (compact) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-        {/* Featured Player — condensed, 3 cols */}
+        {/* Featured Player — with radar, scouting notes, prev/next */}
         <div className="lg:col-span-3">
           {featured ? (
-            <Link href={`/players/${featured.person_id}`} className={`${styles.card} p-4 block group`}>
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
-                    {reasonInfo && (
-                      <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
-                        {reasonInfo.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
-                      {featured.position ?? "–"}
-                    </span>
-                    <h2 className={`text-lg ${styles.nameFont} text-[var(--text-primary)] truncate group-hover:text-[var(--color-accent-personality)] transition-colors`}>
-                      {featured.name}
-                    </h2>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    {[featured.club, featured.nation, age ? `${age}y` : null].filter(Boolean).join(" · ")}
-                  </p>
-                  {featured.archetype && (
-                    <p className="text-[11px] text-[var(--color-accent-tactical)] mt-0.5">
-                      {featured.archetype}
-                      {featured.blueprint && <span className="text-[var(--text-muted)]"> · {featured.blueprint}</span>}
-                    </p>
-                  )}
-                </div>
-                {featured.personality_type && (
-                  <div className="shrink-0 text-right">
-                    <span className={`inline-block font-mono text-lg font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
-                      {featured.personality_type}
-                    </span>
-                    {pt && (
-                      <p className="text-[10px] font-medium text-[var(--text-secondary)]">{pt.fullName}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-              {pt && (
-                <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed italic line-clamp-1">
-                  &ldquo;{pt.oneLiner}&rdquo;
-                </p>
-              )}
-            </Link>
+            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
           ) : (
             <div className="glass rounded-xl p-4">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
@@ -454,7 +532,7 @@ export default async function DashboardPage() {
               </div>
               {sampleQuestion ? (
                 <>
-                  <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug line-clamp-2 group-hover:text-[var(--color-accent-personality)] transition-colors">
+                  <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug line-clamp-3 group-hover:text-[var(--color-accent-personality)] transition-colors">
                     &ldquo;{sampleQuestion.question_text}&rdquo;
                   </p>
                   {sampleQuestion.subtitle && (
@@ -477,7 +555,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 2: News (condensed) + Fixtures + League browse */}
+      {/* Row 2: News + Fixtures / Contract Watch / League */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
         {/* News — 3 cols */}
         <div className="lg:col-span-3 glass rounded-xl p-3 flex flex-col" style={{ maxHeight: "400px" }}>
@@ -539,7 +617,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Right column — Fixtures + League browse */}
+        {/* Right column — Fixtures + Contract Watch + League */}
         <div className="lg:col-span-2 space-y-3">
           {/* Upcoming Fixtures */}
           <div className="glass rounded-xl p-3">
@@ -575,6 +653,40 @@ export default async function DashboardPage() {
             )}
           </div>
 
+          {/* Contract Watch */}
+          {contractPlayers.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contract Watch</h3>
+                <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
+                  Free agents &rarr;
+                </Link>
+              </div>
+              <div className="space-y-1.5">
+                {contractPlayers.map((p) => {
+                  const days = daysUntil(p.contract_expiry_date);
+                  const urgent = days <= 60;
+                  return (
+                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                      {p.position && (
+                        <span className={`text-[8px] font-bold tracking-wider px-1 py-0.5 rounded ${POSITION_COLORS[p.position] ?? "bg-zinc-700/60"} text-white`}>
+                          {p.position}
+                        </span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate block">{p.name}</span>
+                        {p.club && <span className="text-[9px] text-[var(--text-muted)]">{p.club}</span>}
+                      </div>
+                      <span className={`text-[9px] font-mono shrink-0 ${urgent ? "text-[var(--color-sentiment-negative)] font-bold" : "text-[var(--text-muted)]"}`}>
+                        {formatExpiryDate(p.contract_expiry_date)}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* By League */}
           <div className="glass rounded-xl p-3">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1.5">League</h3>
@@ -592,6 +704,93 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Row 3: Intelligence cards — only render cards that have data */}
+      {(risingStars.length > 0 || marketMovers.length > 0 || keyMoments.length > 0) && (
+        <div className={`grid grid-cols-1 gap-3 ${
+          (() => {
+            const count = [risingStars.length > 0, marketMovers.length > 0, keyMoments.length > 0].filter(Boolean).length;
+            if (count >= 3) return "md:grid-cols-3";
+            if (count === 2) return "md:grid-cols-2";
+            return "";
+          })()
+        }`}>
+          {/* Rising Stars */}
+          {risingStars.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-2">
+                Rising Stars
+              </h3>
+              <div className="space-y-1.5">
+                {risingStars.map((p) => (
+                  <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                    <span className="text-[var(--color-accent-tactical)] text-[10px] shrink-0">{"\u25B2"}</span>
+                    {p.position && (
+                      <span className={`text-[8px] font-bold tracking-wider px-1 py-0.5 rounded ${POSITION_COLORS[p.position] ?? "bg-zinc-700/60"} text-white`}>
+                        {p.position}
+                      </span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate block">{p.name}</span>
+                      {p.club && <span className="text-[9px] text-[var(--text-muted)]">{p.club}</span>}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Market Movers */}
+          {marketMovers.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-2">
+                Market Movers
+              </h3>
+              <div className="space-y-1.5">
+                {marketMovers.map((p) => {
+                  const isOver = p.market_premium > 0;
+                  return (
+                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate block">{p.name}</span>
+                        {p.club && <span className="text-[9px] text-[var(--text-muted)]">{p.club}</span>}
+                      </div>
+                      <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
+                        {isOver ? "+" : ""}{p.market_premium}%
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Key Moments */}
+          {keyMoments.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-mental)] mb-2">
+                Key Moments <span className="text-[var(--text-muted)] font-normal">7d</span>
+              </h3>
+              <div className="space-y-1.5">
+                {keyMoments.map((m) => (
+                  <Link key={m.id} href={`/players/${m.person_id}`} className="flex items-start gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                    <span className="text-[11px] shrink-0 mt-0.5">{MOMENT_ICON[m.moment_type] ?? "\u2022"}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[11px] font-medium text-[var(--text-primary)] block truncate">
+                        {m.title ?? m.description ?? m.moment_type}
+                      </span>
+                      <span className="text-[9px] text-[var(--text-muted)]">{m.name}</span>
+                    </div>
+                    <span className="text-[8px] text-[var(--text-muted)] font-mono shrink-0">
+                      {new Date(m.moment_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Trending Players */}
       {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}

@@ -70,6 +70,14 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;
 
+  const prevFeatured = () => {
+    if (!canCycle) return;
+    const prev = (poolIndex - 1 + pool.length) % pool.length;
+    setPoolIndex(prev);
+    setCurrentPlayer(pool[prev]);
+    setRadarData(null);
+  };
+
   const nextFeatured = () => {
     if (!canCycle) return;
     const next = (poolIndex + 1) % pool.length;
@@ -148,12 +156,21 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
               </span>
             )}
             {canCycle && (
-              <button
-                onClick={nextFeatured}
-                className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors ml-auto"
-              >
-                Next &rarr;
-              </button>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={prevFeatured}
+                  className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  &larr; Prev
+                </button>
+                <span className="text-[8px] text-[var(--text-muted)] font-mono">{poolIndex + 1}/{pool.length}</span>
+                <button
+                  onClick={nextFeatured}
+                  className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Next &rarr;
+                </button>
+              </div>
             )}
           </div>
           <Link href={`/players/${player.person_id}`} className="group">

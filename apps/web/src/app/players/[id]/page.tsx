@@ -13,6 +13,7 @@ import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
+import { RoleScoreEditor } from "@/components/RoleScoreEditor";
 import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
@@ -280,17 +281,14 @@ export default async function PlayerDetailPage({
               )}
             </div>
 
-            {/* Role badge — right side */}
-            {player.best_role && (
-              <div className="shrink-0">
-                <div className="px-2.5 py-1 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10 text-center">
-                  <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{player.best_role}</span>
-                  {player.best_role_score != null && (
-                    <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] ml-1">{player.best_role_score}</span>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Role badge — right side (editable for admins) */}
+            <div className="shrink-0">
+              <RoleScoreEditor
+                personId={player.person_id}
+                bestRole={player.best_role}
+                bestRoleScore={player.best_role_score}
+              />
+            </div>
           </div>
 
           {/* Row 2: Meta chips — archetype, personality, valuation, tags, links */}

@@ -58,6 +58,11 @@ const SENTIMENT_COLORS: Record<string, string> = {
   neutral: "var(--sentiment-neutral)",
 };
 
+function formatYear(date: string | null): string {
+  if (!date) return "Now";
+  return new Date(date).getFullYear().toString().slice(-2);
+}
+
 function formatDate(date: string | null): string {
   if (!date) return "Present";
   const d = new Date(date);
@@ -65,25 +70,22 @@ function formatDate(date: string | null): string {
   return `${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function calcDuration(start: string | null, end: string | null): string {
+function calcYears(start: string | null, end: string | null): string {
   if (!start) return "";
   const from = new Date(start);
   const to = end ? new Date(end) : new Date();
-  let months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
-  if (months < 0) months = 0;
+  const months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  if (months < 12) return `${Math.max(1, months)}m`;
   const years = Math.floor(months / 12);
   const rem = months % 12;
-  if (years === 0 && rem === 0) return "< 1m";
-  if (years === 0) return `${rem}m`;
-  if (rem === 0) return `${years}y`;
-  return `${years}y ${rem}m`;
+  return rem > 0 ? `${years}y${rem}m` : `${years}y`;
 }
 
 function trajectoryColor(t: string | null): string {
   if (!t) return "var(--text-muted)";
   const lower = t.toLowerCase();
-  if (lower === "upward" || lower === "rising") return "var(--accent-tactical)";
-  if (lower === "stable" || lower === "steady" || lower === "peak") return "var(--accent-technical)";
+  if (lower === "upward" || lower === "rising") return "var(--color-accent-tactical)";
+  if (lower === "stable" || lower === "steady" || lower === "peak") return "var(--color-accent-technical)";
   if (lower === "downward" || lower === "declining") return "#ef4444";
   return "var(--text-secondary)";
 }
@@ -97,7 +99,6 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
   const hasCareer = entries.length > 0;
   const hasXp = xpMilestones.length > 0;
   const [tab, setTab] = useState<Tab>(hasCareer ? "career" : "moments");
-  const [momentsExpanded, setMomentsExpanded] = useState(false);
 
   // Separate entries by team type
   const seniorEntries = entries.filter((e) => !e.team_type || e.team_type === "senior_club");
@@ -109,9 +110,8 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
   // XP totals
   const xpTotal = xpMilestones.reduce((sum, m) => sum + m.xp_value, 0);
   const xpClamped = Math.max(-5, Math.min(8, xpTotal));
-  const sortedXp = [...xpMilestones].sort((a, b) => b.xp_value - a.xp_value);
 
-  // Sort moments chronologically (earliest first)
+  // Sort moments chronologically
   const sortedMoments = [...moments].sort((a, b) => {
     if (!a.moment_date && !b.moment_date) return 0;
     if (!a.moment_date) return 1;
@@ -119,26 +119,25 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
     return a.moment_date.localeCompare(b.moment_date);
   });
 
+  const sortedXp = [...xpMilestones].sort((a, b) => b.xp_value - a.xp_value);
+
   const tabs: { key: Tab; label: string; count?: number }[] = [];
   if (hasCareer) tabs.push({ key: "career", label: "Career" });
-  if (hasMoments) tabs.push({ key: "moments", label: "Key Moments", count: moments.length });
-  if (hasXp) tabs.push({ key: "xp", label: `XP (${xpClamped >= 0 ? "+" : ""}${xpClamped})` });
-
-  const MOMENT_LIMIT = 8;
-  const visibleMoments = momentsExpanded ? sortedMoments : sortedMoments.slice(0, MOMENT_LIMIT);
+  if (hasMoments) tabs.push({ key: "moments", label: "Moments", count: moments.length });
+  if (hasXp) tabs.push({ key: "xp", label: `XP ${xpClamped >= 0 ? "+" : ""}${xpClamped}` });
 
   return (
-    <div className="glass rounded-xl p-4">
+    <div className="glass rounded-xl p-3">
       {/* Tab bar */}
       {tabs.length > 1 ? (
-        <div className="flex gap-4 mb-3 border-b border-[var(--border-subtle)] -mx-4 px-4" role="tablist">
+        <div className="flex gap-3 mb-2.5 border-b border-[var(--border-subtle)] -mx-3 px-3" role="tablist">
           {tabs.map((t) => (
             <button
               key={t.key}
               role="tab"
               aria-selected={tab === t.key}
               onClick={() => setTab(t.key)}
-              className={`pb-2 text-[10px] font-bold tracking-wider uppercase transition-colors relative ${
+              className={`pb-1.5 text-[10px] font-bold tracking-wider uppercase transition-colors relative ${
                 tab === t.key
                   ? "text-[var(--text-primary)]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -149,133 +148,164 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
                 <span className="ml-1 text-[9px] font-mono text-[var(--text-muted)]">{t.count}</span>
               )}
               {tab === t.key && (
-                <span className="absolute bottom-0 left-0 right-0 h-px bg-[var(--accent-personality)]" />
+                <span className="absolute bottom-0 left-0 right-0 h-px bg-[var(--color-accent-personality)]" />
               )}
             </button>
           ))}
         </div>
       ) : (
-        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">
+        <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
           {tabs[0]?.label ?? "Career"}
         </h3>
       )}
 
-      {/* Career tab */}
+      {/* Career tab — compact horizontal flow */}
       {tab === "career" && hasCareer && (
         <div>
           {/* Metrics row */}
           {metrics && (
-            <div className="flex flex-wrap gap-3 mb-3 text-center">
+            <div className="flex flex-wrap gap-2 mb-2.5">
               <MiniStat label="Clubs" value={metrics.clubs_count} />
               <MiniStat label="Years" value={metrics.career_years} />
-              <MiniStat label="Avg Tenure" value={`${metrics.avg_tenure_yrs.toFixed(1)}y`} />
-              <MiniStat label="Trajectory" value={metrics.trajectory ? metrics.trajectory.charAt(0).toUpperCase() + metrics.trajectory.slice(1) : "—"} color={trajectoryColor(metrics.trajectory)} />
+              <MiniStat label="Avg" value={`${metrics.avg_tenure_yrs.toFixed(1)}y`} />
+              <MiniStat
+                label="Trajectory"
+                value={metrics.trajectory ? metrics.trajectory.charAt(0).toUpperCase() + metrics.trajectory.slice(1) : "—"}
+                color={trajectoryColor(metrics.trajectory)}
+              />
+              {metrics.loan_count > 0 && (
+                <MiniStat label="Loans" value={metrics.loan_count} color="var(--color-accent-physical)" />
+              )}
             </div>
           )}
 
-          {/* Senior club career timeline */}
-          <CareerTimeline entries={seniorEntries} />
+          {/* Horizontal career flow — compact chips */}
+          <div className="flex flex-wrap gap-1 mb-2">
+            {seniorEntries.map((e, i) => {
+              const isActive = !e.end_date;
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] border transition-colors ${
+                    isActive
+                      ? "border-[var(--color-accent-tactical)]/40 bg-[var(--color-accent-tactical)]/10"
+                      : e.is_loan
+                      ? "border-[var(--color-accent-physical)]/30 bg-[var(--color-accent-physical)]/5"
+                      : "border-[var(--border-subtle)] bg-[var(--bg-elevated)]/30"
+                  }`}
+                >
+                  {e.club_id ? (
+                    <Link
+                      href={`/clubs/${e.club_id}`}
+                      className="font-medium hover:text-[var(--color-accent-tactical)] transition-colors"
+                    >
+                      {e.club_name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{e.club_name}</span>
+                  )}
+                  <span className="text-[var(--text-muted)] font-mono text-[9px]">
+                    {calcYears(e.start_date, e.end_date)}
+                  </span>
+                  {e.is_loan && (
+                    <span className="text-[7px] font-bold tracking-wider uppercase text-[var(--color-accent-physical)]">L</span>
+                  )}
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent-tactical)] shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-          {/* International section */}
-          {internationalEntries.length > 0 && (
-            <details className="mt-3">
-              <summary className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-mental)] cursor-pointer hover:text-[var(--text-secondary)] transition-colors mb-2">
-                International ({internationalEntries.length})
-              </summary>
-              <CareerTimeline entries={internationalEntries} accent="var(--accent-mental)" />
-            </details>
+          {/* Timeline bar — visual year markers */}
+          {seniorEntries.length > 0 && seniorEntries[0].start_date && (
+            <CareerBar entries={seniorEntries} />
           )}
 
-          {/* Youth / Reserve section */}
-          {youthEntries.length > 0 && (
-            <details className="mt-3">
-              <summary className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)] transition-colors mb-2">
-                Academy &amp; Youth ({youthEntries.length})
-              </summary>
-              <CareerTimeline entries={youthEntries} accent="var(--text-muted)" />
-            </details>
+          {/* International + Youth — compact inline */}
+          {(internationalEntries.length > 0 || youthEntries.length > 0) && (
+            <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]">
+              {internationalEntries.map((e, i) => (
+                <div key={`intl-${i}`} className="flex items-center gap-1 text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent-mental)] shrink-0" />
+                  <span className="font-medium text-[var(--color-accent-mental)]">{e.club_name}</span>
+                  {e.start_date && (
+                    <span className="text-[var(--text-muted)] font-mono text-[9px]">
+                      &apos;{formatYear(e.start_date)}–{formatYear(e.end_date)}
+                    </span>
+                  )}
+                </div>
+              ))}
+              {youthEntries.map((e, i) => (
+                <div key={`youth-${i}`} className="flex items-center gap-1 text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] shrink-0" />
+                  <span className="text-[var(--text-muted)]">{e.club_name}</span>
+                  {e.start_date && (
+                    <span className="text-[var(--text-muted)] font-mono text-[9px] opacity-60">
+                      &apos;{formatYear(e.start_date)}–{formatYear(e.end_date)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
 
       {/* Moments tab */}
       {tab === "moments" && hasMoments && (
-        <div>
-          <div className="space-y-0.5 max-h-[320px] overflow-y-auto">
-            {visibleMoments.map((m) => (
+        <div className="space-y-0.5 max-h-[260px] overflow-y-auto">
+          {sortedMoments.map((m) => (
+            <div key={m.id} className="flex gap-2 items-start px-1 py-1 -mx-1 rounded-md">
               <div
-                key={m.id}
-                className="flex gap-2 items-start px-2 py-1.5 -mx-2 rounded-md"
-              >
-                <div
-                  className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                  style={{ backgroundColor: SENTIMENT_COLORS[m.sentiment ?? "neutral"] ?? "var(--text-muted)" }}
-                />
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium truncate block">{m.title}</span>
-                  {m.description && (
-                    <span className="text-[10px] text-[var(--text-muted)] line-clamp-1 block mt-0.5">{m.description}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {m.moment_date && (
-                    <span className="text-[9px] text-[var(--text-muted)] font-mono">{formatDate(m.moment_date)}</span>
-                  )}
-                  {m.source_url && (
-                    <a
-                      href={m.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[9px] font-medium hover:underline"
-                      style={{ color: "var(--accent-personality)" }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      ref
-                    </a>
-                  )}
-                </div>
+                className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                style={{ backgroundColor: SENTIMENT_COLORS[m.sentiment ?? "neutral"] ?? "var(--text-muted)" }}
+              />
+              <div className="flex-1 min-w-0">
+                <span className="text-[11px] font-medium truncate block">{m.title}</span>
+                {m.description && (
+                  <span className="text-[10px] text-[var(--text-muted)] line-clamp-1 block">{m.description}</span>
+                )}
               </div>
-            ))}
-          </div>
-          {sortedMoments.length > MOMENT_LIMIT && (
-            <button
-              onClick={() => setMomentsExpanded(!momentsExpanded)}
-              className="mt-2 text-[10px] font-medium tracking-wide hover:underline"
-              style={{ color: "var(--accent-personality)" }}
-            >
-              {momentsExpanded ? "Show Less" : `See All (${sortedMoments.length}) →`}
-            </button>
-          )}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {m.moment_date && (
+                  <span className="text-[9px] text-[var(--text-muted)] font-mono">{formatDate(m.moment_date)}</span>
+                )}
+                {m.source_url && (
+                  <a href={m.source_url} target="_blank" rel="noopener noreferrer"
+                    className="text-[9px] font-medium hover:underline"
+                    style={{ color: "var(--color-accent-personality)" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >ref</a>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* XP tab */}
       {tab === "xp" && hasXp && (
         <div>
-          <div className="flex flex-wrap gap-3 mb-3 text-center">
-            <MiniStat label="Total XP" value={`${xpClamped >= 0 ? "+" : ""}${xpClamped}`} color={xpClamped > 0 ? "var(--accent-tactical)" : xpClamped < 0 ? "#ef4444" : "var(--text-primary)"} />
-            <MiniStat label="Milestones" value={xpMilestones.length} />
-            <MiniStat label="Buffs" value={xpMilestones.filter(m => m.xp_value > 0).length} color="var(--accent-tactical)" />
+          <div className="flex flex-wrap gap-2 mb-2">
+            <MiniStat label="Total" value={`${xpClamped >= 0 ? "+" : ""}${xpClamped}`} color={xpClamped > 0 ? "var(--color-accent-tactical)" : xpClamped < 0 ? "#ef4444" : "var(--text-primary)"} />
+            <MiniStat label="Buffs" value={xpMilestones.filter(m => m.xp_value > 0).length} color="var(--color-accent-tactical)" />
             <MiniStat label="Debuffs" value={xpMilestones.filter(m => m.xp_value < 0).length} color="#ef4444" />
           </div>
-          <div className="space-y-0.5 max-h-[320px] overflow-y-auto">
+          <div className="space-y-0.5 max-h-[220px] overflow-y-auto">
             {sortedXp.map((m) => (
-              <div
-                key={m.milestone_key}
-                className="flex gap-2 items-center px-2 py-1.5 -mx-2 rounded-md"
-              >
+              <div key={m.milestone_key} className="flex gap-2 items-center px-1 py-1 -mx-1 rounded-md">
                 <span
-                  className="text-[10px] font-mono font-bold shrink-0 w-7 text-center rounded px-1 py-0.5"
+                  className="text-[10px] font-mono font-bold shrink-0 w-6 text-center rounded px-0.5 py-0.5"
                   style={{
-                    color: m.xp_value > 0 ? "var(--accent-tactical)" : "#ef4444",
+                    color: m.xp_value > 0 ? "var(--color-accent-tactical)" : "#ef4444",
                     backgroundColor: m.xp_value > 0 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
                   }}
                 >
                   {m.xp_value > 0 ? "+" : ""}{m.xp_value}
                 </span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium truncate block">{m.milestone_label}</span>
-                </div>
+                <span className="text-[11px] font-medium truncate flex-1">{m.milestone_label}</span>
                 {m.milestone_date && (
                   <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatDate(m.milestone_date)}</span>
                 )}
@@ -288,46 +318,50 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
   );
 }
 
-function CareerTimeline({ entries, accent }: { entries: CareerEntry[]; accent?: string }) {
-  if (entries.length === 0) return null;
+// ── Career Bar — visual timeline ────────────────────────────────────────────
+
+function CareerBar({ entries }: { entries: CareerEntry[] }) {
+  const firstStart = entries[0]?.start_date;
+  if (!firstStart) return null;
+
+  const startYear = new Date(firstStart).getFullYear();
+  const endYear = new Date().getFullYear();
+  const totalSpan = Math.max(1, endYear - startYear);
+
   return (
-    <div className="relative ml-2 max-h-[280px] overflow-y-auto pb-1">
-      <div className="absolute left-0 top-1 bottom-1 w-px bg-[var(--border-subtle)]" />
-      <div className="space-y-0">
+    <div className="relative">
+      {/* Year markers */}
+      <div className="flex justify-between text-[8px] text-[var(--text-muted)] font-mono mb-0.5">
+        <span>{startYear}</span>
+        {totalSpan > 4 && <span>{startYear + Math.floor(totalSpan / 2)}</span>}
+        <span>{endYear}</span>
+      </div>
+      {/* Bar */}
+      <div className="relative h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
         {entries.map((e, i) => {
-          const isActive = !e.end_date;
-          const activeColor = accent ?? "var(--accent-tactical)";
+          if (!e.start_date) return null;
+          const eStart = new Date(e.start_date).getFullYear() + new Date(e.start_date).getMonth() / 12;
+          const eEnd = e.end_date
+            ? new Date(e.end_date).getFullYear() + new Date(e.end_date).getMonth() / 12
+            : endYear + new Date().getMonth() / 12;
+          const left = ((eStart - startYear) / totalSpan) * 100;
+          const width = Math.max(2, ((eEnd - eStart) / totalSpan) * 100);
           return (
-            <div key={i} className="relative pl-5 pb-3 last:pb-0">
-              <div
-                className="absolute left-0 top-[5px] w-2 h-2 rounded-full -translate-x-[3.5px] border-[1.5px]"
-                style={{
-                  borderColor: isActive ? activeColor : e.is_loan ? "var(--accent-physical)" : "var(--text-secondary)",
-                  backgroundColor: isActive ? activeColor : "transparent",
-                  boxShadow: isActive ? `0 0 6px ${activeColor}66` : undefined,
-                }}
-              />
-              <div className="flex items-baseline justify-between gap-2">
-                <div className="min-w-0 flex items-center gap-1.5">
-                  {e.club_id ? (
-                    <Link href={`/clubs/${e.club_id}`} className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent-tactical)] transition-colors truncate">
-                      {e.club_name}
-                    </Link>
-                  ) : (
-                    <span className="text-xs font-medium text-[var(--text-primary)] truncate">{e.club_name}</span>
-                  )}
-                  {e.is_loan && (
-                    <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded text-[var(--accent-physical)] bg-[var(--accent-physical)]/10">Loan</span>
-                  )}
-                </div>
-                <span className="text-[10px] text-[var(--text-muted)] shrink-0 font-mono">
-                  {calcDuration(e.start_date, e.end_date)}
-                </span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">
-                {formatDate(e.start_date)} — {formatDate(e.end_date)}
-              </div>
-            </div>
+            <div
+              key={i}
+              className="absolute inset-y-0 rounded-full"
+              style={{
+                left: `${Math.max(0, Math.min(100, left))}%`,
+                width: `${Math.min(width, 100 - left)}%`,
+                backgroundColor: !e.end_date
+                  ? "var(--color-accent-tactical)"
+                  : e.is_loan
+                  ? "var(--color-accent-physical)"
+                  : "var(--text-secondary)",
+                opacity: !e.end_date ? 1 : 0.5,
+              }}
+              title={`${e.club_name}: ${formatDate(e.start_date)} – ${formatDate(e.end_date)}`}
+            />
           );
         })}
       </div>
@@ -337,11 +371,11 @@ function CareerTimeline({ entries, accent }: { entries: CareerEntry[]; accent?: 
 
 function MiniStat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
-    <div className="bg-[var(--bg-elevated)] rounded px-2 py-1">
-      <div className="text-xs font-bold font-mono" style={{ color: color ?? "var(--text-primary)" }}>
+    <div className="bg-[var(--bg-elevated)] rounded px-1.5 py-0.5">
+      <span className="text-[10px] font-bold font-mono" style={{ color: color ?? "var(--text-primary)" }}>
         {value}
-      </div>
-      <div className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">{label}</div>
+      </span>
+      <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] ml-1">{label}</span>
     </div>
   );
 }

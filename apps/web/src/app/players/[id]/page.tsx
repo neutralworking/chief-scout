@@ -15,6 +15,7 @@ import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
 import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
+import { SimilarPlayers } from "@/components/SimilarPlayers";
 import type { PlayerValuation } from "@/lib/types";
 
 interface IntelligenceCard {
@@ -199,11 +200,11 @@ export default async function PlayerDetailPage({
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const personalityName = getPersonalityFullName(player.personality_type);
-  const hasStatus = !!(player.squad_role || player.loan_status || playerTags.length > 0);
   const fbrefId = fbrefLink?.external_id;
 
   return (
     <div className="space-y-1.5">
+      {/* Nav + Edit */}
       <div className="flex items-center justify-between">
         <Link
           href="/players"
@@ -224,7 +225,7 @@ export default async function PlayerDetailPage({
         }} />
       </div>
 
-      {/* Identity Bar — name, bio, role badge */}
+      {/* ── Identity Bar ────────────────────────────────────────────────── */}
       <div className="glass rounded-xl p-2.5 sm:p-3">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
@@ -263,7 +264,7 @@ export default async function PlayerDetailPage({
             </div>
           </div>
 
-          {/* Role badge — name prominent, score secondary */}
+          {/* Role badge */}
           {player.best_role && (
             <div className="shrink-0 flex items-center gap-2">
               <div className="px-3 py-1.5 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10">
@@ -276,7 +277,7 @@ export default async function PlayerDetailPage({
           )}
         </div>
 
-        {/* Archetype + Personality + Market + Status — inline row */}
+        {/* Meta row — archetype, personality, valuation, status, links */}
         <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-4 gap-y-1.5">
           {player.archetype && (
             <div>
@@ -329,7 +330,6 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {/* Inline status + external links when few items */}
           {player.squad_role && (
             <div>
               <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Squad Role</span>
@@ -352,17 +352,15 @@ export default async function PlayerDetailPage({
         </div>
       </div>
 
-      {/* News Headlines — compact row */}
+      {/* ── News + Notes + Tags — compact strip ─────────────────────────── */}
       {news.length > 0 && <NewsHeadlines news={news} />}
 
-      {/* Scouting Notes — prominent callout */}
       {player.scouting_notes && (
-        <div className="glass rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5 border-l-2 border-l-[var(--color-accent-personality)]">
+        <div className="glass rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 border-l-2 border-l-[var(--color-accent-personality)]">
           <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{player.scouting_notes}</p>
         </div>
       )}
 
-      {/* Tags */}
       {playerTags.length > 0 && (
         <div className="flex flex-wrap gap-1 px-0.5">
           {player.loan_status && (
@@ -388,20 +386,15 @@ export default async function PlayerDetailPage({
         </div>
       )}
 
-      {/* Assessment */}
+      {/* ── Assessment — full width ─────────────────────────────────────── */}
       <FourPillarDashboard playerId={player.person_id} />
 
-      {/* Two-column layout */}
+      {/* ── Two-column grid — balanced ──────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
-        {/* Left: Valuation + Stats + Radar + Personality */}
+        {/* Left column: Radar + Personality + Valuation + Stats */}
         <div className="space-y-1.5">
-          {valuation && <ValuationPanel valuation={valuation} />}
-
-          {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
-
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
-          {/* Personality */}
           {(player.ei != null || player.personality_type) && (
             <div className="glass rounded-xl p-2.5 sm:p-3">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-2">Personality</h3>
@@ -418,11 +411,17 @@ export default async function PlayerDetailPage({
               />
             </div>
           )}
+
+          {valuation && <ValuationPanel valuation={valuation} />}
+
+          {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
         </div>
 
-        {/* Right: Career & Moments + News */}
+        {/* Right column: Career + Similar Players + News + Shortlists */}
         <div className="space-y-1.5">
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
+
+          <SimilarPlayers playerId={player.person_id} />
 
           {news.length > 0 && <PlayerNews news={news} />}
 

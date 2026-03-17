@@ -88,7 +88,7 @@ const REACTION_LABELS: Record<string, Record<Reaction, string>> = {
   transfer: { fire: "Big move", love: "Great signing", gutted: "Gutted", shocked: "No way" },
   injury: { fire: "Huge blow", love: "Speedy recovery", gutted: "Gutted", shocked: "Not again" },
   performance: { fire: "On fire", love: "Class", gutted: "Poor", shocked: "Unreal" },
-  tactical: { fire: "Genius", love: "Love it", gutted: "Risky", shocked: "Bold" },
+  tactical: { fire: "Spark", love: "Love it", gutted: "Risky", shocked: "Bold" },
   contract: { fire: "Deserved", love: "Locked in", gutted: "Overpaid", shocked: "Wow" },
   discipline: { fire: "Drama", love: "Fair enough", gutted: "Harsh", shocked: "Shocking" },
   international: { fire: "Called up", love: "Proud", gutted: "Snubbed", shocked: "Surprise" },

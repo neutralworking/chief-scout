@@ -80,7 +80,7 @@ export const PERSONALITY_TYPES: Record<string, PersonalityType> = {
     theme: "catalyst",
   },
   IXSP: {
-    code: "IXSP", name: "Genius", fullName: "The Genius",
+    code: "IXSP", name: "Spark", fullName: "The Spark",
     oneLiner: "Improviser who lives for the occasion. Self-contained. Ice-cold under pressure.",
     theme: "maestro",
   },

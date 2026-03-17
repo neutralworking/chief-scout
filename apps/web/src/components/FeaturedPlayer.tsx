@@ -20,6 +20,7 @@ interface FeaturedPlayerData {
   personality_type: string | null;
   market_value_tier: string | null;
   dob: string | null;
+  scouting_notes: string | null;
 }
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
@@ -177,22 +178,17 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
         </div>
         <div className="shrink-0 text-right">
           {player.personality_type && (
-            <div>
-              <span className={`inline-block font-mono text-xl font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
-                {player.personality_type}
-              </span>
-              {personality && (
-                <p className="text-xs font-medium text-[var(--text-primary)] mt-0.5">{personality.name}</p>
-              )}
-            </div>
+            <span className={`inline-block font-mono text-sm font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
+              {player.personality_type}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Personality one-liner */}
-      {personality && (
-        <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed italic">
-          &ldquo;{personality.oneLiner}&rdquo;
+      {/* Scout assessment */}
+      {player.scouting_notes && (
+        <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed border-l-2 border-[var(--color-accent-tactical)] pl-2 line-clamp-3">
+          {player.scouting_notes}
         </p>
       )}
 

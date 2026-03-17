@@ -63,8 +63,8 @@ function formatValue(eur: number | null): string {
 }
 
 const TABS = [
-  { key: "free", label: "Free Agents" },
   { key: "2026", label: "Expiring 2026" },
+  { key: "free", label: "Free Agents" },
   { key: "2027", label: "Expiring 2027" },
 ] as const;
 
@@ -75,7 +75,7 @@ function FreeAgentsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const tab = searchParams.get("tab") ?? "free";
+  const tab = searchParams.get("tab") ?? "2026";
   const position = searchParams.get("position") ?? "";
   const sort = searchParams.get("sort") ?? "level";
   const isFreeTab = tab === "free";
@@ -121,9 +121,12 @@ function FreeAgentsContent() {
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agents & Expiring Contracts</h1>
-        <p className="text-[11px] text-[var(--text-secondary)]">
+        <p className="text-[11px] text-[var(--text-secondary)] mb-1">
           {loading ? "Loading..." : `${players.length} players`}
           {avgScore != null && !loading && ` · avg score ${avgScore}`}
+        </p>
+        <p className="text-[11px] text-[var(--text-muted)]">
+          Summer 2026 window: who&apos;s available on a Bosman? Scouting intelligence for every expiring contract across Europe&apos;s top 5 leagues.
         </p>
       </div>
 
@@ -132,7 +135,7 @@ function FreeAgentsContent() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => updateParam("tab", t.key === "free" ? "" : t.key)}
+            onClick={() => updateParam("tab", t.key === "2026" ? "" : t.key)}
             className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
               tab === t.key
                 ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"

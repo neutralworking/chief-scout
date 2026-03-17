@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 
 const THEMES = [
-  { key: "default", label: "Glass" },
-  { key: "high-contrast", label: "HC" },
+  { key: "default", label: "HC" },
+  { key: "glass", label: "Glass" },
 ] as const;
 
 export function ThemeToggle() {
@@ -12,14 +12,14 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const stored = localStorage.getItem("cs_theme");
-    if (stored === "high-contrast") {
+    if (stored === "glass") {
       setTheme(stored);
       document.documentElement.setAttribute("data-theme", stored);
     }
   }, []);
 
   function toggle() {
-    const next = theme === "default" ? "high-contrast" : "default";
+    const next = theme === "default" ? "glass" : "default";
     setTheme(next);
     if (next === "default") {
       document.documentElement.removeAttribute("data-theme");

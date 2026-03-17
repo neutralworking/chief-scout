@@ -226,3 +226,19 @@ Given `$ARGUMENTS`:
 
 ## Output Format
 Use data-driven language. Reference specific column names from our schema. Recommend specific pipeline scripts to run. When suggesting new metrics, provide the SQL or Python formula. Use tables for comparisons. Always state the comparison pool and minimum minutes threshold when presenting percentile data. Flag sample size concerns before they become bad conclusions.
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

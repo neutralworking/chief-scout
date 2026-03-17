@@ -213,3 +213,20 @@ Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
 - Pursuit status: Pass, Watch, Interested, Scout Further, Monitor, Priority
 - Archetype confidence: high, medium, low
 - Profile tiers: 1 = scout-assessed with archetype, 2 = data-derived, 3 = skeleton
+
+## Persistent Context System
+Three-layer context retention across sessions:
+- **Layer 0** (Identity): `CLAUDE.md`, `docs/systems/SACROSANCT.md` — read-only reference
+- **Layer 1** (Working): `.claude/context/WORKING.md` — active sprint, blockers, recent activity
+- **Layer 2** (Archive): `.claude/context/archive/` — session logs, insights, tools, growth notes
+
+Key commands:
+- `/context start` — begin session (load context, set goal)
+- `/context save` — end session (archive learnings, update working context)
+- `/context status` — review all context layers
+- `/context insight {text}` — log a debugging lesson or pattern
+- `/context tool {text}` — log a useful query or script discovery
+- `/context growth {text}` — log a meta-learning observation
+- `/context metrics` — refresh DB row counts in working context
+
+Session hooks auto-load Layer 1 at startup via `.claude/settings.json`. All role commands include guardrails for task segmentation with exit criteria.

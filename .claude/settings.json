@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "cat .claude/context/WORKING.md 2>/dev/null && echo '---' && git log --oneline -10"
+      }
+    ]
+  }
+}

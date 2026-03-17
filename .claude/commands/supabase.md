@@ -46,3 +46,19 @@ Always use:
 - `CREATE TABLE IF NOT EXISTS`
 - `INSERT ... ON CONFLICT DO NOTHING` for seed data
 - `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN NULL; END $$;` for new enums
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

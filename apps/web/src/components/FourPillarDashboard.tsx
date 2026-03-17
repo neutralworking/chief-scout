@@ -78,10 +78,13 @@ export function FourPillarDashboard({ playerId, compact = false }: FourPillarDas
     <div className="glass rounded-xl p-3 sm:p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-          Four-Pillar Assessment
+          Assessment
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-mono font-bold text-[var(--text-primary)]">{pillars.overall}</span>
+          <div className="text-right">
+            <span className="text-lg font-mono font-bold text-[var(--text-primary)]">{pillars.overall}</span>
+            <span className="block text-[7px] uppercase tracking-widest text-[var(--text-muted)] -mt-0.5">Overall</span>
+          </div>
           <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-semibold ${
             pillars.confidence === "high" ? "bg-green-500/20 text-green-400" :
             pillars.confidence === "medium" ? "bg-amber-500/20 text-amber-400" :

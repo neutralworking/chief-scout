@@ -5,7 +5,8 @@ import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { getFeatureFlags } from "@/lib/features";
 import { prodFilter, isProduction } from "@/lib/env";
-import { FeaturedPlayer } from "@/components/FeaturedPlayer";
+import { PERSONALITY_TYPES } from "@/lib/personality";
+import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { PursuitPanel } from "@/components/PursuitPanel";
 import { LandingPage } from "@/components/LandingPage";
@@ -34,6 +35,17 @@ interface NewsStoryWithTags {
   tags: Array<{ player_id: number; name: string; sentiment: string | null }>;
 }
 
+interface FixtureRow {
+  id: number;
+  competition: string;
+  competition_code: string | null;
+  matchday: number | null;
+  utc_date: string;
+  home_team: string;
+  away_team: string;
+  venue: string | null;
+}
+
 // Deterministic daily rotation
 function dailySeed(): number {
   const d = new Date();
@@ -43,6 +55,12 @@ function dailySeed(): number {
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
 
 const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint, scouting_notes" as const;
+
+const REASON_LABELS: Record<string, { label: string; color: string }> = {
+  dof_pick: { label: "DOF Pick", color: "var(--accent-tactical)" },
+  news_trending: { label: "Trending", color: "var(--accent-physical)" },
+  discovery: { label: "Discovery", color: "var(--accent-personality)" },
+};
 
 async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
@@ -64,28 +82,33 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .select("player_id, sentiment, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(200),
-    // Personality type counts
-    prodFilter(supabaseServer
-      .from("player_intelligence_card")
-      .select("personality_type")
-      .not("personality_type", "is", null)),
-    // Position counts
-    prodFilter(supabaseServer
-      .from("player_intelligence_card")
-      .select("position")
-      .not("position", "is", null)),
     // Recent news with tags
     supabaseServer
       .from("news_stories")
       .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
-      .limit(15),
+      .limit(10),
     // Trending players
     supabaseServer
       .from("news_player_tags")
       .select("player_id, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(50),
+    // Upcoming fixtures (next 14 days)
+    supabaseServer
+      .from("fixtures")
+      .select("id, competition, competition_code, matchday, utc_date, home_team, away_team, venue")
+      .in("status", ["SCHEDULED", "TIMED"])
+      .gte("utc_date", new Date().toISOString())
+      .lte("utc_date", new Date(Date.now() + 14 * 86400000).toISOString())
+      .order("utc_date", { ascending: true })
+      .limit(8),
+    // Sample Gaffer question
+    supabaseServer
+      .from("fc_questions")
+      .select("id, question_text, subtitle, tags")
+      .order("total_votes", { ascending: false })
+      .limit(5),
   ];
 
   if (shortlistsEnabled) {
@@ -102,7 +125,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dofPicksResult, sentimentResult, personalityResult, positionResult, newsResult, trendingResult] = results as any[];
+  const [dofPicksResult, sentimentResult, newsResult, trendingResult, fixturesResult, gafferResult] = results as any[];
 
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
@@ -180,21 +203,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     }
   }
 
-  // Personality type counts
-  const personalityRows = (personalityResult.data ?? []) as { personality_type: string }[];
-  const typeCountMap = new Map<string, number>();
-  for (const row of personalityRows) {
-    typeCountMap.set(row.personality_type, (typeCountMap.get(row.personality_type) ?? 0) + 1);
-  }
-  const typeCounts = Array.from(typeCountMap.entries()).map(([type, count]) => ({ type, count }));
-
-  // Position counts
-  const positionRows = (positionResult.data ?? []) as { position: string }[];
-  const positionCounts: Record<string, number> = {};
-  for (const pos of POSITIONS) {
-    positionCounts[pos] = positionRows.filter((r) => r.position === pos).length;
-  }
-
   // News stories
   const rawNews = (newsResult.data ?? []) as Array<{ id: string; headline: string; url: string | null; published_at: string | null; summary: string | null; story_type: string | null }>;
 
@@ -261,6 +269,15 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .filter((t) => t.name !== "Unknown");
   }
 
+  // Fixtures
+  const fixtures = (fixturesResult.data ?? []) as FixtureRow[];
+
+  // Gaffer sample question
+  const gafferQuestions = (gafferResult.data ?? []) as Array<{ id: number; question_text: string; subtitle: string | null; tags: string[] | null }>;
+  const sampleQuestion = gafferQuestions.length > 0
+    ? gafferQuestions[dailySeed() % gafferQuestions.length]
+    : null;
+
   // Pro data
   let proData = null;
   if (shortlistsEnabled) {
@@ -281,7 +298,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     };
   }
 
-  return { featured, featuredReason, featuredPool, typeCounts, positionCounts, news: newsWithTags, trendingPlayers, proData };
+  return { featured, featuredReason, featuredPool, news: newsWithTags, trendingPlayers, fixtures, sampleQuestion, proData };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -295,10 +312,25 @@ function timeAgo(dateStr: string | null): string {
   return `${days}d ago`;
 }
 
+function formatFixtureDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function formatFixtureTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
 const SENTIMENT_DOT: Record<string, string> = {
-  positive: "bg-[var(--sentiment-positive)]",
-  negative: "bg-[var(--sentiment-negative)]",
-  neutral: "bg-[var(--sentiment-neutral)]",
+  positive: "bg-[var(--color-sentiment-positive)]",
+  negative: "bg-[var(--color-sentiment-negative)]",
+  neutral: "bg-[var(--color-sentiment-neutral)]",
+};
+
+const COMP_SHORT: Record<string, string> = {
+  "Premier League": "PL", "La Liga": "LL", "Serie A": "SA",
+  "Bundesliga": "BL", "Ligue 1": "L1",
 };
 
 async function getShowcasePlayers(): Promise<PlayerCardType[]> {
@@ -339,16 +371,70 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
+  const { featured, featuredReason, featuredPool, news, trendingPlayers, fixtures, sampleQuestion, proData } = data;
+
+  const reasonInfo = featuredReason ? REASON_LABELS[featuredReason] : null;
+  const posColor = featured ? (POSITION_COLORS[featured.position ?? ""] ?? "bg-zinc-700/60") : "";
+  const pt = featured?.personality_type ? PERSONALITY_TYPES[featured.personality_type] : null;
+  const theme = featured ? getCardTheme(featured.personality_type) : "default";
+  const styles = THEME_STYLES[theme];
+  const age = featured?.dob
+    ? Math.floor((Date.now() - new Date(featured.dob).getTime()) / 31557600000)
+    : null;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
-      {/* Row 1: Featured Player + Choices CTA — fixed height */}
-      <div className="shrink-0 grid grid-cols-1 lg:grid-cols-5 gap-2 mb-2">
-        {/* Featured Player — 3 cols */}
+    <div className="space-y-3">
+      {/* Row 1: Featured (compact) + Gaffer (compact) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        {/* Featured Player — condensed, 3 cols */}
         <div className="lg:col-span-3">
           {featured ? (
-            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
+            <Link href={`/players/${featured.person_id}`} className={`${styles.card} p-4 block group`}>
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
+                    {reasonInfo && (
+                      <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
+                        {reasonInfo.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
+                      {featured.position ?? "–"}
+                    </span>
+                    <h2 className={`text-lg ${styles.nameFont} text-[var(--text-primary)] truncate group-hover:text-[var(--color-accent-personality)] transition-colors`}>
+                      {featured.name}
+                    </h2>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    {[featured.club, featured.nation, age ? `${age}y` : null].filter(Boolean).join(" · ")}
+                  </p>
+                  {featured.archetype && (
+                    <p className="text-[11px] text-[var(--color-accent-tactical)] mt-0.5">
+                      {featured.archetype}
+                      {featured.blueprint && <span className="text-[var(--text-muted)]"> · {featured.blueprint}</span>}
+                    </p>
+                  )}
+                </div>
+                {featured.personality_type && (
+                  <div className="shrink-0 text-right">
+                    <span className={`inline-block font-mono text-lg font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
+                      {featured.personality_type}
+                    </span>
+                    {pt && (
+                      <p className="text-[10px] font-medium text-[var(--text-secondary)]">{pt.fullName}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              {pt && (
+                <p className="text-[10px] text-[var(--text-muted)] mt-2 leading-relaxed italic line-clamp-1">
+                  &ldquo;{pt.oneLiner}&rdquo;
+                </p>
+              )}
+            </Link>
           ) : (
             <div className="glass rounded-xl p-4">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
@@ -356,30 +442,45 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Choices CTA — 2 cols */}
+        {/* Gaffer CTA — compact with sample question, 2 cols */}
         <div className="lg:col-span-2">
           <Link href="/choices" className="glass rounded-xl p-4 block h-full hover:bg-[var(--bg-elevated)] transition-colors group relative overflow-hidden">
             <div className="relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
-              <h2 className="text-lg font-bold tracking-tight mt-0.5 group-hover:text-[var(--color-accent-personality)] transition-colors">
-                Make the Calls.
-              </h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
-                Transfer decisions, bench calls, pub debates — discover your footballing identity.
-              </p>
-              <span className="inline-block mt-2 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]">
-                Play Now &rarr;
-              </span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
+                <span className="text-[10px] font-semibold text-[var(--color-accent-personality)] group-hover:translate-x-0.5 transition-transform">
+                  Play &rarr;
+                </span>
+              </div>
+              {sampleQuestion ? (
+                <>
+                  <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug line-clamp-2 group-hover:text-[var(--color-accent-personality)] transition-colors">
+                    &ldquo;{sampleQuestion.question_text}&rdquo;
+                  </p>
+                  {sampleQuestion.subtitle && (
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-1">{sampleQuestion.subtitle}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug group-hover:text-[var(--color-accent-personality)] transition-colors">
+                    Make the Calls. Build Your Identity.
+                  </p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                    Transfer decisions, bench calls, pub debates.
+                  </p>
+                </>
+              )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-personality)]/5 to-transparent pointer-events-none" />
           </Link>
         </div>
       </div>
 
-      {/* Row 2: News + Browse + Trending — fills remaining space */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-2">
-        {/* News — 3 cols, scrolls within */}
-        <div className="lg:col-span-3 glass rounded-xl p-3 flex flex-col min-h-0">
+      {/* Row 2: News (condensed) + Fixtures + League browse */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        {/* News — 3 cols */}
+        <div className="lg:col-span-3 glass rounded-xl p-3 flex flex-col" style={{ maxHeight: "400px" }}>
           <div className="flex items-center justify-between mb-2 shrink-0">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Latest News
@@ -388,7 +489,7 @@ export default async function DashboardPage() {
               All stories &rarr;
             </Link>
           </div>
-          <div className="space-y-2 overflow-y-auto flex-1 min-h-0 -mr-1 pr-1">
+          <div className="space-y-2 overflow-y-auto flex-1 -mr-1 pr-1">
             {news.length === 0 && (
               <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
             )}
@@ -404,11 +505,11 @@ export default async function DashboardPage() {
                     </span>
                   )}
                   {story.url ? (
-                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--color-accent-personality)] transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--color-accent-personality)] transition-colors ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
                       {story.headline}
                     </a>
                   ) : (
-                    <p className={`text-[var(--text-primary)] ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    <p className={`text-[var(--text-primary)] ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
                       {story.headline}
                     </p>
                   )}
@@ -417,7 +518,7 @@ export default async function DashboardPage() {
                   )}
                   {story.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-0.5">
-                      {story.tags.slice(0, 3).map((tag) => {
+                      {story.tags.slice(0, 4).map((tag) => {
                         const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
                         return (
                           <Link
@@ -438,43 +539,40 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Right sidebar — 2 cols, scrolls within */}
-        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0 overflow-y-auto">
-          {/* Trending Players — compact */}
-          {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}
-
-          {/* By Position */}
+        {/* Right column — Fixtures + League browse */}
+        <div className="lg:col-span-2 space-y-3">
+          {/* Upcoming Fixtures */}
           <div className="glass rounded-xl p-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-1.5">Position</h3>
-            <div className="grid grid-cols-3 gap-1">
-              {(["GK","CD","WD","DM","CM","WM","AM","WF","CF"] as const).map((pos) => (
-                <Link
-                  key={pos}
-                  href={`/players?position=${pos}`}
-                  className="text-center py-1 rounded text-[10px] font-bold bg-[var(--bg-elevated)] hover:bg-[var(--color-accent-tactical)]/20 hover:text-[var(--color-accent-tactical)] text-[var(--text-secondary)] transition-colors"
-                >
-                  {pos}
-                  <span className="block text-[8px] font-normal text-[var(--text-muted)]">{positionCounts[pos] ?? 0}</span>
-                </Link>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">Upcoming Fixtures</h3>
+              <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
+                All &rarr;
+              </Link>
             </div>
-          </div>
-
-          {/* By Personality */}
-          <div className="glass rounded-xl p-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-1.5">Personality</h3>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-              {typeCounts.sort((a, b) => b.count - a.count).slice(0, 8).map((t) => (
-                <Link
-                  key={t.type}
-                  href={`/players?personalities=${t.type}`}
-                  className="flex items-center justify-between px-1.5 py-0.5 rounded text-[10px] hover:bg-[var(--color-accent-personality)]/10 transition-colors"
-                >
-                  <span className="font-mono font-bold text-[var(--text-secondary)]">{t.type}</span>
-                  <span className="text-[var(--text-muted)]">{t.count}</span>
-                </Link>
-              ))}
-            </div>
+            {fixtures.length === 0 ? (
+              <p className="text-[10px] text-[var(--text-muted)] py-2 text-center">No upcoming fixtures.</p>
+            ) : (
+              <div className="space-y-1.5">
+                {fixtures.map((f) => (
+                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                    <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-5 shrink-0">
+                      {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
+                        <span className="text-[var(--text-muted)] text-[9px]">v</span>
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="text-[9px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</span>
+                      <span className="text-[8px] text-[var(--text-muted)] font-mono ml-1">{formatFixtureTime(f.utc_date)}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* By League */}
@@ -492,17 +590,20 @@ export default async function DashboardPage() {
               ))}
             </div>
           </div>
-
-          {/* Pro: Pursuit Pipeline */}
-          {proData && (
-            <PursuitPanel
-              pipeline={proData.pipeline}
-              positionCounts={proData.positionCounts}
-              stats={proData.stats}
-            />
-          )}
         </div>
       </div>
+
+      {/* Trending Players */}
+      {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}
+
+      {/* Pro: Pursuit Pipeline */}
+      {proData && (
+        <PursuitPanel
+          pipeline={proData.pipeline}
+          positionCounts={proData.positionCounts}
+          stats={proData.stats}
+        />
+      )}
     </div>
   );
 }

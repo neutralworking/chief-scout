@@ -64,16 +64,19 @@ function EditableCell({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(value ?? ""));
   const [saving, setSaving] = useState(false);
+  const [flash, setFlash] = useState<"saved" | "error" | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editing) {
       setDraft(String(value ?? ""));
-      setTimeout(() => inputRef.current?.select(), 0);
+      setTimeout(() => inputRef.current?.focus(), 50);
+      setTimeout(() => inputRef.current?.select(), 100);
     }
   }, [editing, value]);
 
   async function save() {
+    if (saving) return;
     const num = Number(draft);
     if (isNaN(num) || draft === "") { setEditing(false); return; }
     const clamped = Math.min(max ?? 99, Math.max(min ?? 1, num));
@@ -86,17 +89,31 @@ function EditableCell({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ person_id: personId, table, updates: { [field]: clamped } }),
       });
-      if (res.ok) onSaved?.(clamped);
-    } catch { /* best effort */ }
+      if (res.ok) {
+        onSaved?.(clamped);
+        setFlash("saved");
+      } else {
+        console.error("Save failed:", await res.text());
+        setFlash("error");
+      }
+    } catch (e) {
+      console.error("Save error:", e);
+      setFlash("error");
+    }
     setSaving(false);
     setEditing(false);
+    setTimeout(() => setFlash(null), 1500);
   }
 
   if (!editing) {
     return (
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditing(true); }}
-        className={`font-mono text-xs cursor-text hover:bg-[var(--bg-elevated)] rounded px-1 -mx-1 transition-colors ${ratingColor(value)}`}
+        className={`font-mono text-xs cursor-text hover:bg-[var(--bg-elevated)] rounded px-1 -mx-1 transition-colors ${
+          flash === "saved" ? "text-[var(--color-accent-tactical)]" :
+          flash === "error" ? "text-red-400" :
+          ratingColor(value)
+        }`}
         title={`Edit ${field}`}
       >
         {value ?? "–"}
@@ -108,15 +125,17 @@ function EditableCell({
     <input
       ref={inputRef}
       type="number"
+      inputMode="numeric"
+      pattern="[0-9]*"
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={save}
-      onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); save(); } if (e.key === "Escape") setEditing(false); }}
       onClick={(e) => e.stopPropagation()}
       min={min}
       max={max}
       disabled={saving}
-      className="w-12 px-1 py-0.5 text-xs font-mono rounded bg-[var(--bg-surface-solid)] border border-[var(--color-accent-tactical)] text-[var(--text-primary)] focus:outline-none text-right"
+      className="w-14 px-1 py-0.5 text-xs font-mono rounded bg-[var(--bg-surface-solid)] border border-[var(--color-accent-tactical)] text-[var(--text-primary)] focus:outline-none text-right"
     />
   );
 }

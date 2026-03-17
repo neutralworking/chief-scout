@@ -90,6 +90,12 @@ interface FBRefStat {
   red_cards: number | null;
 }
 
+function formatVal(v: number): string {
+  if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}m`;
+  if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}k`;
+  return `€${v}`;
+}
+
 export default async function PlayerDetailPage({
   params,
 }: {
@@ -203,42 +209,47 @@ export default async function PlayerDetailPage({
   const fbrefId = fbrefLink?.external_id;
 
   return (
-    <div className="space-y-1.5">
-      {/* Nav + Edit */}
-      <div className="flex items-center justify-between">
-        <Link
-          href="/players"
-          className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors inline-block"
-        >
-          &larr; Players
-        </Link>
-        <PlayerQuickEdit player={{
-          person_id: player.person_id,
-          best_role: player.best_role,
-          best_role_score: player.best_role_score,
-          position: player.position,
-          archetype: player.archetype,
-          blueprint: player.blueprint,
-          pursuit_status: player.pursuit_status,
-          squad_role: player.squad_role,
-          scouting_notes: player.scouting_notes,
-        }} />
-      </div>
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
+      {/* ── Header: Identity + Bio + Assessment ─────────────────────────── */}
+      <div className="shrink-0 space-y-1 mb-1">
+        {/* Nav */}
+        <div className="flex items-center justify-between">
+          <Link
+            href="/players"
+            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+          >
+            &larr; Players
+          </Link>
+          <PlayerQuickEdit player={{
+            person_id: player.person_id,
+            best_role: player.best_role,
+            best_role_score: player.best_role_score,
+            position: player.position,
+            archetype: player.archetype,
+            blueprint: player.blueprint,
+            pursuit_status: player.pursuit_status,
+            squad_role: player.squad_role,
+            scouting_notes: player.scouting_notes,
+          }} />
+        </div>
 
-      {/* ── Identity Bar ────────────────────────────────────────────────── */}
-      <div className="glass rounded-xl p-2.5 sm:p-3">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
+        {/* Identity bar — everything in one panel */}
+        <div className="glass rounded-xl p-2.5">
+          {/* Row 1: Avatar + Name + Bio details + Role badge */}
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
             {player.image_url ? (
-              <img src={player.image_url} alt={player.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover shrink-0" />
+              <img src={player.image_url} alt={player.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-xs sm:text-sm font-bold text-[var(--text-muted)] shrink-0">
+              <div className="w-11 h-11 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)] shrink-0">
                 {player.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
               </div>
             )}
-            <div className="min-w-0">
+
+            {/* Name + bio line + scouting notes */}
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-base sm:text-lg font-bold tracking-tight truncate">{player.name}</h1>
+                <h1 className="text-base font-bold tracking-tight truncate">{player.name}</h1>
                 <Link href={`/players?position=${player.position ?? ""}`} className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
                   {player.position ?? "–"}
                 </Link>
@@ -246,7 +257,7 @@ export default async function PlayerDetailPage({
                   <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
                 {player.club && (
                   player.club_id
                     ? <Link href={`/clubs/${player.club_id}`} className="hover:text-[var(--text-primary)] transition-colors">{player.club}</Link>
@@ -255,149 +266,135 @@ export default async function PlayerDetailPage({
                 {player.nation && (
                   <><span className="text-[var(--text-muted)]">&middot;</span><Link href={`/clubs?country=${encodeURIComponent(player.nation)}`} className="hover:text-[var(--text-primary)] transition-colors">{player.nation}</Link></>
                 )}
-                {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span title="Age">{age}y</span></>}
-                {player.height_cm && <><span className="text-[var(--text-muted)]">&middot;</span><span title="Height">{player.height_cm}cm</span></>}
+                {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span>{age}y</span></>}
+                {player.height_cm && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.height_cm}cm</span></>}
                 {player.preferred_foot && (
-                  <><span className="text-[var(--text-muted)]">&middot;</span><span title="Preferred foot">{player.preferred_foot}</span></>
+                  <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.preferred_foot}</span></>
                 )}
               </div>
+              {/* Scouting notes inline */}
+              {player.scouting_notes && (
+                <p className="text-[10px] text-[var(--text-secondary)] leading-snug mt-1 line-clamp-2 border-l-2 border-[var(--color-accent-personality)] pl-2">
+                  {player.scouting_notes}
+                </p>
+              )}
             </div>
+
+            {/* Role badge — right side */}
+            {player.best_role && (
+              <div className="shrink-0">
+                <div className="px-2.5 py-1 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10 text-center">
+                  <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{player.best_role}</span>
+                  {player.best_role_score != null && (
+                    <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] ml-1">{player.best_role_score}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Role badge */}
-          {player.best_role && (
-            <div className="shrink-0 flex items-center gap-2">
-              <div className="px-3 py-1.5 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10">
-                <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{player.best_role}</span>
-                {player.best_role_score != null && (
-                  <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] ml-1.5">{player.best_role_score}</span>
+          {/* Row 2: Meta chips — archetype, personality, valuation, tags, links */}
+          <div className="mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-3 gap-y-1">
+            {player.archetype && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Style</span>
+                <span className="text-[11px] font-semibold text-[var(--color-accent-tactical)]">{player.archetype}</span>
+              </div>
+            )}
+
+            {player.personality_type && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
+                <span className="text-[11px] font-mono font-bold text-[var(--color-accent-personality)]">{player.personality_type}</span>
+                {personalityName && (
+                  <span className="text-[10px] text-[var(--text-muted)]">{personalityName}</span>
                 )}
               </div>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Meta row — archetype, personality, valuation, status, links */}
-        <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          {player.archetype && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Style</span>
-              <span className="text-sm font-semibold text-[var(--color-accent-tactical)]">{player.archetype}</span>
-              {player.blueprint && (
-                <span className="text-[10px] text-[var(--text-muted)] ml-1">{player.blueprint}</span>
-              )}
-            </div>
-          )}
-
-          {player.personality_type && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Personality</span>
-              <span className="text-sm font-mono font-bold text-[var(--color-accent-personality)]">{player.personality_type}</span>
-              {personalityName && (
-                <span className="text-[10px] text-[var(--text-secondary)] ml-1">{personalityName}</span>
-              )}
-            </div>
-          )}
-
-          {valuation?.market_value_p50 != null && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">
-                Valuation
-                <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 align-middle ${
+            {valuation?.market_value_p50 != null && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Val</span>
+                <span className="text-[11px] font-mono font-bold text-[var(--color-accent-tactical)]">
+                  {formatVal(valuation.market_value_p50)}
+                </span>
+                <span className={`w-1.5 h-1.5 rounded-full ${
                   valuation.overall_confidence === "high" ? "bg-green-400" :
                   valuation.overall_confidence === "medium" ? "bg-amber-400" :
                   "bg-red-400"
                 }`} />
-              </span>
-              <span className="text-sm font-mono font-bold text-[var(--color-accent-tactical)]">
-                &euro;{valuation.market_value_p50 >= 1_000_000
-                  ? `${(valuation.market_value_p50 / 1_000_000).toFixed(1)}m`
-                  : valuation.market_value_p50 >= 1_000
-                  ? `${(valuation.market_value_p50 / 1_000).toFixed(0)}k`
-                  : `${valuation.market_value_p50}`}
-              </span>
-            </div>
-          )}
-
-          {player.market_value_eur != null && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">TM Value</span>
-              <span className="text-sm font-mono font-bold text-[var(--color-accent-tactical)]">
-                &euro;{player.market_value_eur >= 1_000_000
-                  ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
-                  : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
-              </span>
-            </div>
-          )}
-
-          {player.squad_role && (
-            <div>
-              <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Squad Role</span>
-              <span className="text-[11px] text-[var(--text-secondary)]">{player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
-            </div>
-          )}
-
-          {/* External links */}
-          <div className="flex items-center gap-2 ml-auto">
-            {player.transfermarkt_id && (
-              <a href={`https://www.transfermarkt.com/spieler/profil/spieler/${player.transfermarkt_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-0.5">TM<svg className="w-2.5 h-2.5 opacity-50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a>
+              </div>
             )}
-            {fbrefId && (
-              <a href={`https://fbref.com/en/players/${fbrefId}/`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-0.5">FBRef<svg className="w-2.5 h-2.5 opacity-50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a>
+
+            {player.market_value_eur != null && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">TM</span>
+                <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
+                  {formatVal(player.market_value_eur)}
+                </span>
+              </div>
             )}
-            {player.wikidata_id && (
-              <a href={`https://www.wikidata.org/wiki/${player.wikidata_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-0.5">Wiki<svg className="w-2.5 h-2.5 opacity-50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a>
+
+            {player.squad_role && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Role</span>
+                <span className="text-[10px] text-[var(--text-secondary)]">{player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
+              </div>
             )}
+
+            {/* Tags inline */}
+            {player.loan_status && (
+              <span className="text-[8px] font-semibold px-1 py-0.5 rounded border bg-amber-500/15 text-amber-400 border-amber-500/25">
+                Loan: {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+              </span>
+            )}
+            {playerTags.slice(0, 5).map((t: { tag_name: string; category: string }, i: number) => (
+              <span
+                key={i}
+                className={`text-[8px] font-semibold px-1 py-0.5 rounded border ${
+                  t.category === "scouting" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/25" :
+                  t.category === "style" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" :
+                  t.category === "fitness" ? "bg-green-500/15 text-green-400 border-green-500/25" :
+                  t.category === "mental" ? "bg-blue-500/15 text-blue-400 border-blue-500/25" :
+                  t.category === "contract" ? "bg-red-500/15 text-red-400 border-red-500/25" :
+                  "bg-gray-500/15 text-gray-400 border-gray-500/25"
+                }`}
+              >
+                {t.tag_name}
+              </span>
+            ))}
+
+            {/* External links — pushed right */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              {player.transfermarkt_id && (
+                <a href={`https://www.transfermarkt.com/spieler/profil/spieler/${player.transfermarkt_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">TM</a>
+              )}
+              {fbrefId && (
+                <a href={`https://fbref.com/en/players/${fbrefId}/`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">FBRef</a>
+              )}
+              {player.wikidata_id && (
+                <a href={`https://www.wikidata.org/wiki/${player.wikidata_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Wiki</a>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* News headlines — slim strip */}
+        {news.length > 0 && <NewsHeadlines news={news} />}
+
+        {/* Assessment — full width */}
+        <FourPillarDashboard playerId={player.person_id} />
       </div>
 
-      {/* ── News + Notes + Tags — compact strip ─────────────────────────── */}
-      {news.length > 0 && <NewsHeadlines news={news} />}
-
-      {player.scouting_notes && (
-        <div className="glass rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 border-l-2 border-l-[var(--color-accent-personality)]">
-          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">{player.scouting_notes}</p>
-        </div>
-      )}
-
-      {playerTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 px-0.5">
-          {player.loan_status && (
-            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md border bg-amber-500/15 text-amber-400 border-amber-500/25">
-              Loan: {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
-            </span>
-          )}
-          {playerTags.map((t: { tag_name: string; category: string }, i: number) => (
-            <span
-              key={i}
-              className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md border ${
-                t.category === "scouting" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/25" :
-                t.category === "style" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" :
-                t.category === "fitness" ? "bg-green-500/15 text-green-400 border-green-500/25" :
-                t.category === "mental" ? "bg-blue-500/15 text-blue-400 border-blue-500/25" :
-                t.category === "contract" ? "bg-red-500/15 text-red-400 border-red-500/25" :
-                "bg-gray-500/15 text-gray-400 border-gray-500/25"
-              }`}
-            >
-              {t.tag_name}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* ── Assessment — full width ─────────────────────────────────────── */}
-      <FourPillarDashboard playerId={player.person_id} />
-
-      {/* ── Two-column grid — balanced ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
-        {/* Left column: Radar + Personality + Valuation + Stats */}
-        <div className="space-y-1.5">
+      {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1">
+        {/* Left: Radar + Personality + Valuation + Stats */}
+        <div className="overflow-y-auto space-y-1 pr-0.5">
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
           {(player.ei != null || player.personality_type) && (
-            <div className="glass rounded-xl p-2.5 sm:p-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-2">Personality</h3>
+            <div className="glass rounded-xl p-2.5">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-1.5">Personality</h3>
               <PersonalityBadge
                 personalityType={player.personality_type}
                 ei={player.ei}
@@ -417,8 +414,8 @@ export default async function PlayerDetailPage({
           {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
         </div>
 
-        {/* Right column: Career + Similar Players + News + Shortlists */}
-        <div className="space-y-1.5">
+        {/* Right: Career + Similar + News + Shortlists */}
+        <div className="overflow-y-auto space-y-1 pl-0.5">
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 
           <SimilarPlayers playerId={player.person_id} />

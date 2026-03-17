@@ -6,11 +6,11 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Design tokens — glass dark theme */
-  --color-bg-base: #06060c;
-  --color-bg-surface: rgba(18, 18, 35, 0.7);
-  --color-bg-elevated: rgba(30, 30, 55, 0.6);
-  --color-border-subtle: rgba(60, 60, 100, 0.25);
+  /* Design tokens — high contrast dark theme (default) */
+  --color-bg-base: #000000;
+  --color-bg-surface: #1e1e1e;
+  --color-bg-elevated: #252526;
+  --color-border-subtle: #6fc3df;
 
   /* Compound category accents */
   --color-accent-mental: #4a90d9;
@@ -39,15 +39,15 @@
 }
 
 :root {
-  --bg-base: #06060c;
-  --bg-surface: rgba(18, 18, 35, 0.7);
-  --bg-surface-solid: #121223;
-  --bg-elevated: rgba(30, 30, 55, 0.6);
-  --border-subtle: rgba(60, 60, 100, 0.25);
-  --border-glow: rgba(100, 100, 180, 0.12);
-  --text-primary: #e8e8f0;
-  --text-secondary: #8888aa;
-  --text-muted: #555570;
+  --bg-base: #000000;
+  --bg-surface: #1e1e1e;
+  --bg-surface-solid: #1e1e1e;
+  --bg-elevated: #252526;
+  --border-subtle: #6fc3df;
+  --border-glow: rgba(111, 195, 223, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: #d4d4d4;
+  --text-muted: #808080;
   --accent-club: #3dba6f;
   --accent-club-primary: #3dba6f;
   --accent-club-secondary: #4a90d9;
@@ -64,19 +64,14 @@ body {
   font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Glass panel utility */
+/* Glass panel utility — high contrast default (no blur) */
 .glass {
   background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 0 0 1px var(--border-glow), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .glass-elevated {
   background: var(--bg-elevated);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
 }
 
@@ -133,31 +128,31 @@ body {
   display: none !important;
 }
 
-/* ── VS Code High Contrast theme ───────────────────────────────────── */
-[data-theme="high-contrast"] {
-  --bg-base: #000000;
-  --bg-surface: #1e1e1e;
-  --bg-surface-solid: #1e1e1e;
-  --bg-elevated: #252526;
-  --border-subtle: #6fc3df;
-  --border-glow: rgba(111, 195, 223, 0.25);
-  --text-primary: #ffffff;
-  --text-secondary: #d4d4d4;
-  --text-muted: #808080;
+/* ── Glass theme (opt-in via toggle) ───────────────────────────────── */
+[data-theme="glass"] {
+  --bg-base: #06060c;
+  --bg-surface: rgba(18, 18, 35, 0.7);
+  --bg-surface-solid: #121223;
+  --bg-elevated: rgba(30, 30, 55, 0.6);
+  --border-subtle: rgba(60, 60, 100, 0.25);
+  --border-glow: rgba(100, 100, 180, 0.12);
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888aa;
+  --text-muted: #555570;
 }
 
-[data-theme="high-contrast"] .glass {
+[data-theme="glass"] .glass {
   background: var(--bg-surface);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  box-shadow: none;
+  box-shadow: 0 0 0 1px var(--border-glow), 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="high-contrast"] .glass-elevated {
+[data-theme="glass"] .glass-elevated {
   background: var(--bg-elevated);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
 }
 

@@ -339,74 +339,69 @@ export default async function DashboardPage() {
   const { featured, featuredReason, featuredPool, typeCounts, positionCounts, news, trendingPlayers, proData } = data;
 
   return (
-    <div className="space-y-4">
-      {/* Row 1: Featured Player + Choices CTA */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
+      {/* Row 1: Featured Player + Choices CTA — fixed height */}
+      <div className="shrink-0 grid grid-cols-1 lg:grid-cols-5 gap-2 mb-2">
         {/* Featured Player — 3 cols */}
         <div className="lg:col-span-3">
           {featured ? (
             <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
           ) : (
-            <div className="glass rounded-xl p-6">
+            <div className="glass rounded-xl p-4">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
             </div>
           )}
         </div>
 
-        {/* Choices CTA — 2 cols, full height */}
+        {/* Choices CTA — 2 cols */}
         <div className="lg:col-span-2">
-          <Link href="/choices" className="glass rounded-xl p-6 block h-full hover:bg-[var(--bg-elevated)] transition-colors group relative overflow-hidden">
+          <Link href="/choices" className="glass rounded-xl p-4 block h-full hover:bg-[var(--bg-elevated)] transition-colors group relative overflow-hidden">
             <div className="relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)]">Gaffer</span>
-              <h2 className="text-xl font-bold tracking-tight mt-1 group-hover:text-[var(--accent-personality)] transition-colors">
-                Make the Calls. Build Your Identity.
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
+              <h2 className="text-lg font-bold tracking-tight mt-0.5 group-hover:text-[var(--color-accent-personality)] transition-colors">
+                Make the Calls.
               </h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
-                Transfer decisions, bench calls, pub debates — make the choices a manager would and discover your footballing identity.
+              <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                Transfer decisions, bench calls, pub debates — discover your footballing identity.
               </p>
-              <div className="flex items-center gap-3 mt-4">
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[var(--accent-personality)]/20 text-[var(--accent-personality)]">
-                  Play Now &rarr;
-                </span>
-              </div>
+              <span className="inline-block mt-2 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]">
+                Play Now &rarr;
+              </span>
             </div>
-            {/* Decorative gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-personality)]/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent-personality)]/5 to-transparent pointer-events-none" />
           </Link>
         </div>
       </div>
 
-      {/* Row 2: News Feed (scrollable, fills space) + Browse */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* News — 3 cols, scrollable */}
-        <div className="lg:col-span-3 glass rounded-xl p-4 sm:p-5 flex flex-col" style={{ maxHeight: "520px" }}>
-          <div className="flex items-center justify-between mb-3 shrink-0">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+      {/* Row 2: News + Browse + Trending — fills remaining space */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 gap-2">
+        {/* News — 3 cols, scrolls within */}
+        <div className="lg:col-span-3 glass rounded-xl p-3 flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-2 shrink-0">
+            <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Latest News
             </h2>
-            <Link href="/news" className="text-xs text-[var(--accent-personality)] hover:underline">
+            <Link href="/news" className="text-[10px] text-[var(--color-accent-personality)] hover:underline">
               All stories &rarr;
             </Link>
           </div>
-          <div className="space-y-2.5 overflow-y-auto flex-1 -mr-2 pr-2">
+          <div className="space-y-2 overflow-y-auto flex-1 min-h-0 -mr-1 pr-1">
             {news.length === 0 && (
               <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
             )}
             {news.map((story, i) => (
-              <div key={story.id} className={`flex gap-3 ${i === 0 ? "pb-3 border-b border-[var(--border-subtle)]" : ""}`}>
-                <span className="text-[10px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
+              <div key={story.id} className={`flex gap-2 ${i === 0 ? "pb-2 border-b border-[var(--border-subtle)]" : ""}`}>
+                <span className="text-[9px] text-[var(--text-muted)] w-7 shrink-0 pt-0.5 font-mono">
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    {story.story_type && (
-                      <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded bg-[var(--accent-tactical)]/15 text-[var(--accent-tactical)]">
-                        {story.story_type}
-                      </span>
-                    )}
-                  </div>
+                  {story.story_type && (
+                    <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] mr-1">
+                      {story.story_type}
+                    </span>
+                  )}
                   {story.url ? (
-                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--accent-personality)] block transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--color-accent-personality)] transition-colors ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
                       {story.headline}
                     </a>
                   ) : (
@@ -415,10 +410,10 @@ export default async function DashboardPage() {
                     </p>
                   )}
                   {i === 0 && story.summary && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-2">{story.summary}</p>
+                    <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 line-clamp-2">{story.summary}</p>
                   )}
                   {story.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <div className="flex flex-wrap gap-1 mt-0.5">
                       {story.tags.slice(0, 3).map((tag) => {
                         const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
                         return (
@@ -440,17 +435,20 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Browse — 2 cols */}
-        <div className="lg:col-span-2 space-y-3">
+        {/* Right sidebar — 2 cols, scrolls within */}
+        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0 overflow-y-auto">
+          {/* Trending Players — compact */}
+          {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}
+
           {/* By Position */}
-          <div className="glass rounded-xl p-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-2">Position</h3>
+          <div className="glass rounded-xl p-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-1.5">Position</h3>
             <div className="grid grid-cols-3 gap-1">
               {(["GK","CD","WD","DM","CM","WM","AM","WF","CF"] as const).map((pos) => (
                 <Link
                   key={pos}
                   href={`/players?position=${pos}`}
-                  className="text-center py-1.5 rounded text-[10px] font-bold bg-[var(--bg-elevated)] hover:bg-[var(--accent-tactical)]/20 hover:text-[var(--accent-tactical)] text-[var(--text-secondary)] transition-colors"
+                  className="text-center py-1 rounded text-[10px] font-bold bg-[var(--bg-elevated)] hover:bg-[var(--color-accent-tactical)]/20 hover:text-[var(--color-accent-tactical)] text-[var(--text-secondary)] transition-colors"
                 >
                   {pos}
                   <span className="block text-[8px] font-normal text-[var(--text-muted)]">{positionCounts[pos] ?? 0}</span>
@@ -460,14 +458,14 @@ export default async function DashboardPage() {
           </div>
 
           {/* By Personality */}
-          <div className="glass rounded-xl p-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-2">Personality</h3>
-            <div className="space-y-1 max-h-[140px] overflow-y-auto">
+          <div className="glass rounded-xl p-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-1.5">Personality</h3>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
               {typeCounts.sort((a, b) => b.count - a.count).slice(0, 8).map((t) => (
                 <Link
                   key={t.type}
                   href={`/players?personalities=${t.type}`}
-                  className="flex items-center justify-between px-2 py-1 rounded text-[10px] hover:bg-[var(--accent-personality)]/10 transition-colors"
+                  className="flex items-center justify-between px-1.5 py-0.5 rounded text-[10px] hover:bg-[var(--color-accent-personality)]/10 transition-colors"
                 >
                   <span className="font-mono font-bold text-[var(--text-secondary)]">{t.type}</span>
                   <span className="text-[var(--text-muted)]">{t.count}</span>
@@ -477,34 +475,31 @@ export default async function DashboardPage() {
           </div>
 
           {/* By League */}
-          <div className="glass rounded-xl p-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-2">League</h3>
-            <div className="space-y-1 max-h-[140px] overflow-y-auto">
+          <div className="glass rounded-xl p-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1.5">League</h3>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
               {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
                 <Link
                   key={league}
                   href={`/clubs?league=${encodeURIComponent(league)}`}
-                  className="flex items-center px-2 py-1 rounded text-[10px] hover:bg-green-500/10 transition-colors"
+                  className="px-1.5 py-0.5 rounded text-[10px] hover:bg-green-500/10 text-[var(--text-secondary)] transition-colors truncate"
                 >
-                  <span className="text-[var(--text-secondary)]">{league}</span>
+                  {league}
                 </Link>
               ))}
             </div>
           </div>
+
+          {/* Pro: Pursuit Pipeline */}
+          {proData && (
+            <PursuitPanel
+              pipeline={proData.pipeline}
+              positionCounts={proData.positionCounts}
+              stats={proData.stats}
+            />
+          )}
         </div>
       </div>
-
-      {/* Trending Players */}
-      {trendingPlayers.length > 0 && <TrendingPlayers players={trendingPlayers} />}
-
-      {/* Pro: Pursuit Pipeline */}
-      {proData && (
-        <PursuitPanel
-          pipeline={proData.pipeline}
-          positionCounts={proData.positionCounts}
-          stats={proData.stats}
-        />
-      )}
     </div>
   );
 }

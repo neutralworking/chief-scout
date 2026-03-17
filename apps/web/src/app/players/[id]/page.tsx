@@ -388,7 +388,7 @@ export default async function PlayerDetailPage({
 
       {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1">
-        {/* Left: Radar + Personality + Valuation + Stats */}
+        {/* Left: Radar + Personality + Stats */}
         <div className="overflow-y-auto space-y-1 pr-0.5">
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
@@ -409,13 +409,13 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {valuation && <ValuationPanel valuation={valuation} />}
-
           {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
         </div>
 
-        {/* Right: Career + Similar + News + Shortlists */}
+        {/* Right: Valuation + Career + Similar + News + Shortlists */}
         <div className="overflow-y-auto space-y-1 pl-0.5">
+          {valuation && <ValuationPanel valuation={valuation} />}
+
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 
           <SimilarPlayers playerId={player.person_id} />

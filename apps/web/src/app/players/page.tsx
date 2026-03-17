@@ -102,7 +102,7 @@ function PlayersContent() {
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
       {/* Header + Filters — fixed */}
       <div className="shrink-0">
-        {/* Title + position pills */}
+        {/* Title + position pills + pagination */}
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-lg font-bold tracking-tight">Players</h1>
           <div className="flex flex-wrap gap-1">
@@ -122,6 +122,26 @@ function PlayersContent() {
                 {POSITION_SHORT[pos]}
               </button>
             ))}
+          </div>
+          {/* Pagination inline */}
+          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            <button
+              onClick={() => setPage(Math.max(0, page - 1))}
+              disabled={page === 0 || loading}
+              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              &larr;
+            </button>
+            <span className="text-[10px] font-mono text-[var(--text-muted)]">
+              {loading ? "..." : `${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + players.length}`}
+            </span>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={!hasMore || loading}
+              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              &rarr;
+            </button>
           </div>
         </div>
 
@@ -289,34 +309,6 @@ function PlayersContent() {
         )}
       </div>
 
-      {/* Pagination — fixed bottom */}
-      {!loading && !error && players.length > 0 && (
-        <div className="shrink-0 flex items-center justify-between pt-2">
-          <p className="text-[10px] text-[var(--text-muted)]">
-            {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + players.length}
-            {hasMore && " of many"}
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setPage(Math.max(0, page - 1))}
-              disabled={page === 0}
-              className="px-3 py-1 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              &larr; Prev
-            </button>
-            <span className="text-[10px] font-mono text-[var(--text-muted)] px-2">
-              Page {page + 1}
-            </span>
-            <button
-              onClick={() => setPage(page + 1)}
-              disabled={!hasMore}
-              className="px-3 py-1 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              Next &rarr;
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

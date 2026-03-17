@@ -55,7 +55,7 @@ wikidata-clubs:
 	cd $(PIPELINE) && $(PYTHON) 17_wikidata_clubs.py --batch-sparql
 
 transfermarkt:
-	cd $(PIPELINE) && $(PYTHON) 25_transfermarkt_ingest.py
+	cd $(PIPELINE) && $(PYTHON) 28_transfermarkt_ingest.py
 
 # ── Kaggle datasets ──────────────────────────────────────────────────────────
 
@@ -63,19 +63,19 @@ kaggle-download:
 	$(PYTHON) $(PIPELINE)/50_kaggle_download.py
 
 kaggle-euro:
-	cd $(PIPELINE) && $(PYTHON) 45_kaggle_euro_leagues.py
+	cd $(PIPELINE) && $(PYTHON) 51_kaggle_euro_leagues.py
 
 kaggle-transfers:
-	cd $(PIPELINE) && $(PYTHON) 46_kaggle_transfer_values.py
+	cd $(PIPELINE) && $(PYTHON) 52_kaggle_transfer_values.py
 
 kaggle-fifa:
-	cd $(PIPELINE) && $(PYTHON) 47_kaggle_fifa_historical.py
+	cd $(PIPELINE) && $(PYTHON) 53_kaggle_fifa_historical.py
 
 kaggle-pl:
-	cd $(PIPELINE) && $(PYTHON) 48_kaggle_pl_stats.py
+	cd $(PIPELINE) && $(PYTHON) 54_kaggle_pl_stats.py
 
 kaggle-injuries:
-	cd $(PIPELINE) && $(PYTHON) 49_kaggle_injuries.py --tags --traits
+	cd $(PIPELINE) && $(PYTHON) 55_kaggle_injuries.py --tags --traits
 
 kaggle-all: kaggle-euro kaggle-transfers kaggle-fifa kaggle-pl kaggle-injuries
 

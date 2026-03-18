@@ -68,8 +68,13 @@ function nationFlag(nation: string | null | undefined): string {
   };
   const code = ISO[nation];
   if (!code) { NATION_FLAGS[nation] = nation.slice(0, 3); return NATION_FLAGS[nation]; }
-  // England/Scotland/Wales don't have emoji flags — use 3-letter abbrev
-  if (code.startsWith("GB-")) { NATION_FLAGS[nation] = nation.slice(0, 3).toUpperCase(); return NATION_FLAGS[nation]; }
+  // England/Scotland/Wales use subdivision tag sequences (🏴 + tag chars + cancel tag)
+  const GB_FLAGS: Record<string, string> = {
+    "GB-ENG": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F",
+    "GB-SCT": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F",
+    "GB-WLS": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73\uDB40\uDC7F",
+  };
+  if (GB_FLAGS[code]) { NATION_FLAGS[nation] = GB_FLAGS[code]; return NATION_FLAGS[nation]; }
   const flag = String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
   NATION_FLAGS[nation] = flag;
   return flag;
@@ -415,8 +420,8 @@ function PlayersContent() {
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
       {/* Header + Filters — fixed */}
       <div className="shrink-0">
-        {/* Title + position pills + pagination */}
-        <div className="flex items-center gap-3 mb-2">
+        {/* Title + admin */}
+        <div className="flex items-center gap-2 mb-1.5">
           <h1 className="text-lg font-bold tracking-tight">Players</h1>
           {!isAdmin ? (
             <button
@@ -436,38 +441,18 @@ function PlayersContent() {
             </span>
           )}
           {showLogin && (
-            <div className="flex items-center gap-1">
-              <input
-                type="password"
-                value={loginPass}
-                onChange={(e) => setLoginPass(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
-                placeholder="PIN"
-                className="w-24 px-2 py-0.5 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
-                autoFocus
-              />
-            </div>
+            <input
+              type="password"
+              value={loginPass}
+              onChange={(e) => setLoginPass(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
+              placeholder="PIN"
+              className="w-20 px-2 py-0.5 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+              autoFocus
+            />
           )}
-          <div className="flex flex-wrap gap-1">
-            <button onClick={() => updateParam("position", "")}
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors ${
-                !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-              }`}>
-              All
-            </button>
-            {POSITIONS.map((pos) => (
-              <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors ${
-                  position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-                    : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-                }`}>
-                {POSITION_SHORT[pos]}
-              </button>
-            ))}
-          </div>
-          {/* Pagination + page size + autoscroll */}
-          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          {/* Pagination — right side */}
+          <div className="flex items-center gap-1 ml-auto shrink-0">
             <button
               onClick={toggleAutoScroll}
               className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
@@ -475,7 +460,7 @@ function PlayersContent() {
                   ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
                   : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
               }`}
-              title="Infinite scroll — loads more as you scroll down"
+              title="Infinite scroll"
             >
               Auto
             </button>
@@ -485,68 +470,83 @@ function PlayersContent() {
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
                   className="text-[10px] font-mono px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
-                  title="Players per page"
                 >
                   {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <button
-                  onClick={() => setPage(Math.max(0, page - 1))}
-                  disabled={page === 0 || loading}
-                  className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  &larr;
-                </button>
+                <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0 || loading}
+                  className="px-1.5 py-0.5 text-[10px] glass rounded text-[var(--text-secondary)] disabled:opacity-30">&larr;</button>
                 <span className="text-[10px] font-mono text-[var(--text-muted)]">
                   {loading ? "..." : `${page * pageSize + 1}–${page * pageSize + players.length}`}
                 </span>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={!hasMore || loading}
-                  className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  &rarr;
-                </button>
+                <button onClick={() => setPage(page + 1)} disabled={!hasMore || loading}
+                  className="px-1.5 py-0.5 text-[10px] glass rounded text-[var(--text-secondary)] disabled:opacity-30">&rarr;</button>
               </>
             )}
             {autoScroll && (
-              <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                {players.length} loaded
-              </span>
+              <span className="text-[10px] font-mono text-[var(--text-muted)]">{players.length}</span>
             )}
           </div>
         </div>
 
-        {/* Filters row */}
-        <div className="glass rounded-lg p-2 mb-2 flex flex-col sm:flex-row gap-1.5">
-          <SearchInput value={searchInput} onChange={setSearchInput} onSearch={(val) => updateParam("q", val)} />
-          <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
-            className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
-            <option value="">All Statuses</option>
-            {PURSUIT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select value={tier} onChange={(e) => updateParam("tier", e.target.value)}
-            className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
-            <option value="">All Tiers</option>
-            <option value="1">Tier 1</option>
-            <option value="2">Tier 2</option>
-          </select>
-          <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
-            className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
-            <option value="role_score">Role Score</option>
-            <option value="level">Overall</option>
-            <option value="level_raw">Level</option>
-            <option value="review">Needs Review</option>
-            <option value="cs_value">CS Value</option>
-            <option value="tm_value">TM Value</option>
-            <option value="rating">Rating</option>
-            <option value="name">Name</option>
-          </select>
-          {hasFilters && (
-            <button onClick={() => { setSearchInput(""); router.push("/players"); }}
-              className="px-2.5 py-1 rounded border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-              Clear
-            </button>
-          )}
+        {/* Compact controls */}
+        <div className="glass rounded-lg p-1.5 mb-2 overflow-hidden">
+          {/* Row 1: Position pills — scrollable on mobile */}
+          <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
+            <div className="flex gap-0.5 shrink-0">
+              <button onClick={() => updateParam("position", "")}
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
+                  !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                }`}>
+                ALL
+              </button>
+              {POSITIONS.map((pos) => (
+                <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
+                  className={`text-[9px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                    position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                  }`}>
+                  {pos}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 shrink-0 ml-auto">
+              <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
+                <option value="role_score">Role Score</option>
+                <option value="level">Overall</option>
+                <option value="level_raw">Level</option>
+                <option value="review">Review</option>
+                <option value="cs_value">CS Value</option>
+                <option value="tm_value">TM Value</option>
+                <option value="rating">Rating</option>
+                <option value="name">Name</option>
+              </select>
+              <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
+                <option value="">Status</option>
+                {PURSUIT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select value={tier} onChange={(e) => updateParam("tier", e.target.value)}
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
+                <option value="">Tier</option>
+                <option value="1">T1</option>
+                <option value="2">T2</option>
+              </select>
+            </div>
+          </div>
+          {/* Row 2: Search + clear */}
+          <div className="flex gap-1">
+            <div className="flex-1">
+              <SearchInput value={searchInput} onChange={setSearchInput} onSearch={(val) => updateParam("q", val)} />
+            </div>
+            {hasFilters && (
+              <button onClick={() => { setSearchInput(""); router.push("/players"); }}
+                className="px-1.5 py-0.5 rounded text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

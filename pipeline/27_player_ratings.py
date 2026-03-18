@@ -39,6 +39,8 @@ parser.add_argument("--dry-run", action="store_true",
                     help="Print summaries without writing to database")
 parser.add_argument("--force", action="store_true",
                     help="Overwrite existing ratings")
+parser.add_argument("--incremental", action="store_true",
+                    help="Only process players with data changes since last run")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
@@ -393,9 +395,9 @@ def compute_best_role(model_scores, position):
 def has_differentiated_data(model_scores):
     """Check if data has real variation (not all flat eafc defaults)."""
     values = list(model_scores.values())
-    if len(values) < 3:
+    if len(values) < 2:
         return False
-    return len(set(values)) > 2
+    return len(set(values)) > 1
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -407,6 +409,26 @@ def main():
 
     cur = conn.cursor()
 
+    # ── Incremental mode: only process changed players ──────────────────────
+    incremental_ids = None
+    if args.incremental and not args.player:
+        try:
+            from lib.incremental import get_changed_player_ids, mark_step_complete
+            changed = get_changed_player_ids(
+                conn, "ratings",
+                tables=["attribute_grades", "player_profiles", "player_personality"],
+            )
+            if changed is None:
+                print("  Incremental: first run — processing all players")
+            elif not changed:
+                print("  Incremental: no changes since last run — skipping")
+                return
+            else:
+                incremental_ids = changed
+                print(f"  Incremental: {len(changed)} players changed since last run")
+        except ImportError:
+            print("  [warn] lib.incremental not available — running full")
+
     # ── Step 1: Fetch all attribute grades ────────────────────────────────────
 
     where_clauses = []
@@ -415,6 +437,9 @@ def main():
     if args.player:
         where_clauses.append("ag.player_id = %s")
         params.append(int(args.player))
+    elif incremental_ids:
+        where_clauses.append("ag.player_id = ANY(%s)")
+        params.append(list(incremental_ids))
 
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
@@ -509,16 +534,47 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        # Raw scores for role selection (no level inflation distorting role fit)
-        best_role, best_role_score = compute_best_role(raw_scores, position)
+        # Blend raw + anchored scores for role computation.
+        # Thin data → lean on anchored (level-boosted) scores.
+        # Rich data → trust raw data-driven scores.
+        grade_count = len(grades)
+        if grade_count >= 50:
+            role_scores = raw_scores
+        else:
+            # Blend factor: how much anchored influence (0.0 = all raw, 0.4 = heavy anchor)
+            anchor_pct = max(0.05, 0.40 - grade_count * 0.007)
+            role_scores = {}
+            for k in set(raw_scores.keys()) | set(anchored_scores.keys()):
+                r = raw_scores.get(k, 0)
+                a = anchored_scores.get(k, 0)
+                role_scores[k] = round(r * (1 - anchor_pct) + a * anchor_pct)
+
+        best_role, best_role_score = compute_best_role(role_scores, position)
 
         # Level floor: role score can't drop too far below level.
-        # Tighter floor for elite players (they have proven role fit),
-        # looser for lower levels where data gaps are more real.
-        if level and best_role_score:
-            gap = 6 if level >= 80 else 15
-            level_floor = max(level - gap, 50)
+        # Gap scales with data density — sparse data trusts level more.
+        # Floor capped at 90 so truly elite players (level 92+) must prove
+        # role fit through data — prevents auto-inflation.
+        if level and best_role_score is not None:
+            if grade_count < 10:
+                gap = 1   # Very sparse: almost entirely trust level
+            elif grade_count < 30:
+                gap = 3   # Moderate data
+            elif level >= 80:
+                gap = 2   # Elite with rich data — tight floor
+            else:
+                gap = 10  # Lower level with rich data — let data speak
+            level_floor = min(max(level - gap, 50), 90)
             best_role_score = max(best_role_score, level_floor)
+
+            # GK data gap: GK-specific attributes (positioning, throwing, etc.)
+            # are poorly captured by non-scout data sources.
+            # Compensate with a level-trust boost for unscouted GKs.
+            if position == "GK":
+                has_scout = any(g.get("source") == "scout_assessment" for g in grades)
+                if not has_scout:
+                    gk_floor = min(level + 3, 92)
+                    best_role_score = max(best_role_score, gk_floor)
 
         results.append({
             "person_id": pid,
@@ -658,6 +714,14 @@ def main():
     print(f"  Skipped (no pos):    {stats['skipped_no_position']}")
     if DRY_RUN:
         print("  (dry-run — no data was written)")
+
+    # Mark step complete for incremental tracking
+    if not DRY_RUN and args.incremental:
+        try:
+            from lib.incremental import mark_step_complete
+            mark_step_complete(conn, "ratings", stats["computed"])
+        except Exception:
+            pass
 
     cur.close()
     conn.close()

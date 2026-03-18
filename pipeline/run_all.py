@@ -39,6 +39,7 @@ class Step:
     flags: list[str] = field(default_factory=list)  # Extra flags to pass
     depends_on: list[str] = field(default_factory=list)
     optional: bool = False       # Skip failures without aborting
+    supports_incremental: bool = False  # Script accepts --incremental flag
 
 
 # Ordered pipeline steps — each step's scripts run sequentially
@@ -55,7 +56,8 @@ STEPS: list[Step] = [
     # ── Ratings & profiling ──
     Step("ratings", ["27_player_ratings.py"], "Composite ratings + best_role + compound scores",
          flags=["--force"],
-         depends_on=["understat_grades", "statsbomb_grades"]),
+         depends_on=["understat_grades", "statsbomb_grades"],
+         supports_incremental=True),
     Step("scouting_tags", ["32_scouting_tags.py"], "Auto-assign scouting tags",
          depends_on=["ratings"]),
     Step("squad_roles", ["33_squad_roles.py"], "DOF squad role assessment",
@@ -189,6 +191,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Show what would run without executing")
     parser.add_argument("--list", action="store_true", help="List all steps and exit")
     parser.add_argument("--force", action="store_true", help="Pass --force to all scripts")
+    parser.add_argument("--incremental", action="store_true", help="Pass --incremental to scripts that support it (skip unchanged data)")
     parser.add_argument("--skip-optional", action="store_true", help="Skip optional steps")
     args = parser.parse_args()
 
@@ -244,6 +247,8 @@ def main():
             flags = list(step.flags)
             if args.force and "--force" not in flags:
                 flags.append("--force")
+            if args.incremental and step.supports_incremental and "--incremental" not in flags:
+                flags.append("--incremental")
 
             ok, duration, output = run_script(script, flags, dry_run=args.dry_run)
 

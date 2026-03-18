@@ -95,6 +95,9 @@ run-grades:
 run-from:
 	$(PYTHON) $(PIPELINE)/run_all.py --from ratings
 
+run-incremental:
+	$(PYTHON) $(PIPELINE)/run_all.py --incremental --skip-optional
+
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run
 	cd $(PIPELINE) && $(PYTHON) 02_insert_missing.py --dry-run

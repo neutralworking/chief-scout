@@ -7,6 +7,7 @@ import { MODEL_LABEL } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { RadarChart } from "./RadarChart";
+import { ScoutingNotes } from "./ScoutingNotes";
 
 interface FeaturedPlayerData {
   person_id: number;
@@ -213,9 +214,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
       {/* Scout assessment */}
       {player.scouting_notes && (
-        <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed border-l-2 border-[var(--color-accent-tactical)] pl-2 line-clamp-3">
-          {player.scouting_notes}
-        </p>
+        <ScoutingNotes text={player.scouting_notes} clamp={3} className="mb-4" />
       )}
 
       {/* Radar section */}

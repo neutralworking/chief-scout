@@ -13,6 +13,7 @@ import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
+import { ScoutingNotes } from "@/components/ScoutingNotes";
 import { RoleScoreEditor } from "@/components/RoleScoreEditor";
 import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
@@ -323,11 +324,9 @@ export default async function PlayerDetailPage({
                   {latestAfSeason.rating != null && <span className="text-amber-400"> · {latestAfSeason.rating.toFixed(1)}★ avg</span>}
                 </p>
               )}
-              {/* Scouting notes inline */}
+              {/* Scouting notes inline — tap to expand */}
               {player.scouting_notes && (
-                <p className="text-[10px] text-[var(--text-secondary)] leading-snug mt-1 line-clamp-2 border-l-2 border-[var(--color-accent-personality)] pl-2">
-                  {player.scouting_notes}
-                </p>
+                <ScoutingNotes text={player.scouting_notes} clamp={2} />
               )}
             </div>
 

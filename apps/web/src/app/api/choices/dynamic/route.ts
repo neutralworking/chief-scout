@@ -13,7 +13,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 interface PlayerRow {
   person_id: number;
   name: string;
-  date_of_birth: string | null;
+  dob: string | null;
   position: string | null;
   level: number | null;
   overall: number | null;
@@ -92,7 +92,7 @@ function makeOption(
   index: number,
   weights: Record<string, number>
 ): DynamicOption {
-  const age = computeAge(player.date_of_birth);
+  const age = computeAge(player.dob);
   return {
     id: -(player.person_id * 100 + index),
     person_id: player.person_id,
@@ -142,7 +142,7 @@ function makeQuestion(
 }
 
 const COLS =
-  "person_id, name, date_of_birth, position, level, overall, archetype, model_id, personality_type, club, nation, preferred_foot, image_url, best_role, best_role_score, profile_tier, market_value_tier";
+  "person_id, name, dob, position, level, overall, archetype, model_id, personality_type, club, nation, preferred_foot, image_url, best_role, best_role_score, profile_tier, market_value_tier";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -203,7 +203,7 @@ const bestYoungPlayer: TemplateGenerator = async (sb) => {
   const { data } = await sb
     .from("player_intelligence_card")
     .select(COLS)
-    .gte("date_of_birth", cutoff.toISOString().slice(0, 10))
+    .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("overall", "is", null)
     .not("position", "is", null)
     .order("overall", { ascending: false })
@@ -309,7 +309,7 @@ const ballonDor: TemplateGenerator = async (sb) => {
   const { data } = await sb
     .from("player_intelligence_card")
     .select(COLS)
-    .gte("date_of_birth", cutoff.toISOString().slice(0, 10))
+    .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("overall", "is", null)
     .gte("level", 12)
     .order("overall", { ascending: false })
@@ -453,7 +453,7 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .from("player_intelligence_card")
       .select(COLS)
       .eq("position", pos)
-      .gte("date_of_birth", youngCutoff.toISOString().slice(0, 10))
+      .gte("dob", youngCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
       .gte("level", 11)
       .order("overall", { ascending: false })
@@ -462,7 +462,7 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .from("player_intelligence_card")
       .select(COLS)
       .eq("position", pos)
-      .lte("date_of_birth", oldCutoff.toISOString().slice(0, 10))
+      .lte("dob", oldCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
       .gte("level", 12)
       .order("overall", { ascending: false })
@@ -486,7 +486,7 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
     `Youth or experience at ${POS_LABELS[pos] ?? pos}?`,
     "Potential ceiling vs proven floor. What matters more?",
     players.map((p, i) => {
-      const age = computeAge(p.date_of_birth);
+      const age = computeAge(p.dob);
       const isYoung = age !== null && age < 24;
       return makeOption(p, i, {
         youth_vs_experience: isYoung ? 15 : -15,
@@ -744,7 +744,7 @@ const youngAtPosition: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .eq("position", pos)
-    .gte("date_of_birth", cutoff.toISOString().slice(0, 10))
+    .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
     .gte("level", 9)
     .order("overall", { ascending: false })
@@ -876,7 +876,7 @@ const veteranPick: TemplateGenerator = async (sb) => {
   const { data } = await sb
     .from("player_intelligence_card")
     .select(COLS)
-    .lte("date_of_birth", cutoff.toISOString().slice(0, 10))
+    .lte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
     .gte("level", 13)
     .order("overall", { ascending: false })
@@ -946,7 +946,7 @@ const breakoutPlayer: TemplateGenerator = async (sb) => {
   const { data } = await sb
     .from("player_intelligence_card")
     .select(COLS)
-    .gte("date_of_birth", cutoff.toISOString().slice(0, 10))
+    .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
     .gte("level", 10)
     .lte("level", 14)

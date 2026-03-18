@@ -379,7 +379,7 @@ export default async function DashboardPage() {
   const { featured, featuredReason, featuredPool, news, fixtures, contractPlayers, risingStars, marketMovers } = data;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)] gap-2 overflow-hidden">
+    <div className="flex flex-col gap-2 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
       {/* Row 1: Featured Player + Fixtures / League / Contracts */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0">
         {/* Featured Player — 3 cols */}

@@ -703,14 +703,14 @@ function PlayersContent() {
                         )}
                       </div>
                     </div>
-                    {/* Data row */}
-                    <div className="flex items-center justify-between mt-1.5 pl-7">
+                    {/* Data row: Role + scores */}
+                    <div className="flex items-center justify-between mt-1 pl-7">
                       <span className="text-[10px] text-[var(--text-secondary)] truncate max-w-[120px]">
                         {player.best_role || "–"}
                       </span>
-                      <div className="flex items-center gap-3">
-                        <div className="text-center">
-                          <span className="text-[8px] text-[var(--text-muted)] block">Score</span>
+                      <div className="flex items-center gap-1">
+                        <div className="text-center px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]">
+                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Role</span>
                           {isAdmin ? (
                             <EditableCell
                               value={player.best_role_score}
@@ -728,8 +728,8 @@ function PlayersContent() {
                             </span>
                           )}
                         </div>
-                        <div className="text-center">
-                          <span className="text-[8px] text-[var(--text-muted)] block">Lvl</span>
+                        <div className="text-center px-1.5 py-0.5">
+                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Lvl</span>
                           {isAdmin ? (
                             <EditableCell
                               value={player.level}

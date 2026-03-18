@@ -66,10 +66,9 @@ ROLE_AXES = {
     "Enganche":           ["Creator", "Dribbler", "Controller", "Passer"],
     # WF
     "Inside Forward":     ["Dribbler", "Sprinter", "Striker", "Creator"],
-    "Inventor":           ["Creator", "Dribbler", "Passer", "Sprinter"],
     "Extremo":            ["Sprinter", "Dribbler", "Striker", "Creator"],
     "Wide Forward":       ["Striker", "Dribbler", "Sprinter", "Passer"],
-    "Inverted Winger":    ["Sprinter", "Creator", "Dribbler", "Passer"],
+    "Inverted Winger":    ["Creator", "Dribbler", "Passer", "Sprinter"],
     # CF
     "Target Man":         ["Striker", "Target", "Powerhouse", "Commander"],
     "Complete Forward":   ["Target", "Powerhouse", "Striker", "Engine"],

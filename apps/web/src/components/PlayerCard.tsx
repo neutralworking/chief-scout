@@ -36,7 +36,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
       className="block group"
     >
       <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name + Level */}
+        {/* Row 1: Position badge + Name + Pursuit */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <span
@@ -49,11 +49,6 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
             </h3>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            {player.best_role_score != null && (
-              <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none" title={player.best_role ?? "Role Score"}>
-                {player.best_role_score}
-              </span>
-            )}
             {showPursuit && player.pursuit_status && (
               <span
                 className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
@@ -92,19 +87,24 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Personality (codename + code) · Best Role */}
+        {/* Row 3: Role score + role · Personality */}
         {(mentalLabel || player.best_role) && (
           <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
-            {mentalLabel && (
-              <span className="text-purple-400 font-medium">
-                {mentalLabel}
-                <span className="text-[var(--text-muted)] font-mono ml-1 text-[8px]">{player.personality_type}</span>
+            {player.best_role && (
+              <span className="text-[var(--color-accent-tactical)] font-medium">
+                {player.best_role_score != null && (
+                  <span className="font-mono font-bold text-sm mr-1 leading-none align-baseline">{player.best_role_score}</span>
+                )}
+                {player.best_role}
               </span>
             )}
-            {player.best_role && (
+            {mentalLabel && (
               <>
-                {mentalLabel && <span className="text-[var(--text-muted)]">·</span>}
-                <span className="text-[var(--color-accent-tactical)] font-medium">{player.best_role}</span>
+                {player.best_role && <span className="text-[var(--text-muted)]">·</span>}
+                <span className="text-purple-400 font-medium">
+                  {mentalLabel}
+                  <span className="text-[var(--text-muted)] font-mono ml-1 text-[8px]">{player.personality_type}</span>
+                </span>
               </>
             )}
           </div>

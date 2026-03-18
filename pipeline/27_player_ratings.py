@@ -146,7 +146,7 @@ TACTICAL_ROLES = {
     "WF": [
         ("Dribbler", "Sprinter","Inside Forward"),   # Robben → Salah → Yamal. Historical English term from W-M era
         ("Sprinter", "Striker", "Extremo"),           # Portuguese: the wide attacker — Henry, Mbappé
-        ("Creator", "Dribbler", "Inventor"),          # the creator who makes something from nothing — Grealish
+        ("Creator", "Dribbler", "Inverted Winger"),    # cuts inside to create — Saka, Grealish
     ],
     "CF": [
         ("Target", "Powerhouse","Prima Punta"),      # Italian: "first striker" — Toni, Giroud. Holds up, aerial

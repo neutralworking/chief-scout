@@ -80,10 +80,10 @@ export function RoleScoreEditor({ personId, bestRole, bestRoleScore }: Props) {
     if (!bestRole) return null;
     return (
       <div className="px-2.5 py-1 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10 text-center">
-        <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{bestRole}</span>
         {bestRoleScore != null && (
-          <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] ml-1">{bestRoleScore}</span>
+          <span className="text-lg font-mono font-bold text-[var(--color-accent-tactical)] mr-1">{bestRoleScore}</span>
         )}
+        <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{bestRole}</span>
       </div>
     );
   }
@@ -97,8 +97,8 @@ export function RoleScoreEditor({ personId, bestRole, bestRoleScore }: Props) {
       >
         {bestRole ? (
           <>
+            <span className="text-lg font-mono font-bold text-[var(--color-accent-tactical)] mr-1">{score ?? bestRoleScore}</span>
             <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{role || bestRole}</span>
-            <span className="text-[10px] font-mono font-bold text-[var(--text-muted)] ml-1">{score ?? bestRoleScore}</span>
           </>
         ) : (
           <span className="text-[10px] text-[var(--text-muted)]">+ Role</span>

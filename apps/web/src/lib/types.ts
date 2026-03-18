@@ -25,6 +25,12 @@ export interface PlayerCard {
   // Engine valuation (joined from player_valuations)
   engine_value_p50: number | null;
   engine_confidence: string | null;
+  // Season stats (from stats cascade: API-Football → FBRef → Kaggle)
+  apps: number | null;
+  goals: number | null;
+  assists: number | null;
+  xg: number | null;
+  rating: number | null;
   // Radar fingerprint: position/role-specific 4-5 axis percentile ranks (see role-radar.ts)
   fingerprint?: number[] | null;
 }

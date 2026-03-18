@@ -1,6 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
+import { fetchSeasonStats } from "@/lib/stats";
 
 const SELECT =
   "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
@@ -93,6 +94,10 @@ export async function GET(req: NextRequest) {
     case "value":
       query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
       break;
+    case "rating":
+      // Sort by rating after stats enrichment
+      query = query.order("overall", { ascending: false, nullsFirst: false });
+      break;
     case "overall":
     case "level":
     default:
@@ -108,13 +113,32 @@ export async function GET(req: NextRequest) {
 
   const rawPlayers = data ?? [];
 
+  // Enrich with season stats
+  const pids = rawPlayers.map((p: Record<string, unknown>) => p.person_id as number).filter(Boolean);
+  const statsMap = pids.length > 0 ? await fetchSeasonStats(supabase, pids) : new Map();
+
   // Fingerprints come precomputed from the view (pipeline 51)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const players = rawPlayers.map((p: any) => ({
-    ...p,
-    contract_expiry_date: contractDates[p.person_id as number] ?? null,
-    contract_tag: contractTags[p.person_id as number] ?? null,
-  }));
+  let players = rawPlayers.map((p: any) => {
+    const s = statsMap.get(p.person_id as number);
+    return {
+      ...p,
+      contract_expiry_date: contractDates[p.person_id as number] ?? null,
+      contract_tag: contractTags[p.person_id as number] ?? null,
+      goals: s?.goals || null,
+      assists: s?.assists || null,
+      rating: s?.rating ? Math.round(s.rating * 100) / 100 : null,
+    };
+  });
+
+  // Sort by rating if requested (needs stats enrichment first)
+  if (sort === "rating") {
+    players.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+      const ra = (a.rating as number) ?? 0;
+      const rb = (b.rating as number) ?? 0;
+      return rb - ra;
+    });
+  }
 
   return NextResponse.json({ players, total: players.length });
 }

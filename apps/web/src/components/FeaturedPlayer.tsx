@@ -22,6 +22,11 @@ interface FeaturedPlayerData {
   market_value_tier: string | null;
   dob: string | null;
   scouting_notes: string | null;
+  // Season stats (optional — passed from dashboard)
+  af_appearances?: number | null;
+  af_goals?: number | null;
+  af_assists?: number | null;
+  af_rating?: number | null;
 }
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
@@ -186,6 +191,14 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             <p className="text-xs text-[var(--accent-tactical)] mt-1">
               {player.archetype}
               {player.blueprint && <span className="text-[var(--text-muted)]"> · {player.blueprint}</span>}
+            </p>
+          )}
+          {(player.af_appearances ?? 0) > 0 && (
+            <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
+              <span className="text-[var(--color-accent-tactical)]">{player.af_appearances}</span> apps
+              {(player.af_goals ?? 0) > 0 && <span className="text-green-400"> · {player.af_goals} goals</span>}
+              {(player.af_assists ?? 0) > 0 && <span className="text-blue-400"> · {player.af_assists} assists</span>}
+              {player.af_rating != null && <span className="text-amber-400"> · {player.af_rating.toFixed(1)}★</span>}
             </p>
           )}
         </div>

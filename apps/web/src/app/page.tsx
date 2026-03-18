@@ -251,6 +251,26 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     }
   }
 
+  // Fetch API-Football stats for featured player (will be enriched after selection)
+  async function enrichFeatured(fp: FeaturedProfile): Promise<FeaturedProfile & { af_appearances?: number; af_goals?: number; af_assists?: number; af_rating?: number | null }> {
+    const { data: afRows } = await supabaseServer!
+      .from("api_football_player_stats")
+      .select("appearances, goals, assists, rating")
+      .eq("person_id", fp.person_id)
+      .eq("season", "2025");
+    if (!afRows || afRows.length === 0) return fp;
+    let apps = 0, goals = 0, assists = 0;
+    let bestRating: number | null = null;
+    for (const r of afRows as Array<Record<string, unknown>>) {
+      apps += (r.appearances as number) || 0;
+      goals += (r.goals as number) || 0;
+      assists += (r.assists as number) || 0;
+      const rtg = r.rating as number | null;
+      if (rtg != null && (bestRating == null || rtg > bestRating)) bestRating = rtg;
+    }
+    return { ...fp, af_appearances: apps, af_goals: goals, af_assists: assists, af_rating: bestRating };
+  }
+
   if (!featured) {
     const { data: fallbacks } = await supabaseServer
       .from("player_intelligence_card")
@@ -265,6 +285,11 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       featuredReason = "discovery";
       featuredPool = candidates;
     }
+  }
+
+  // Enrich featured player with API-Football stats
+  if (featured) {
+    featured = await enrichFeatured(featured);
   }
 
   // News stories with tags

@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const ALL_NAV_ITEMS = [
   { label: "Dashboard", href: "/", exact: true },
   { label: "Players", href: "/players" },
+  { label: "Stats", href: "/stats" },
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },
   { label: "Tactics", href: "/formations", stagingOnly: true },

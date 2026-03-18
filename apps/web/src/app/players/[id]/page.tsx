@@ -91,6 +91,31 @@ interface FBRefStat {
   red_cards: number | null;
 }
 
+interface ApiFootballStat {
+  season: string;
+  league_name: string | null;
+  team_name: string | null;
+  appearances: number | null;
+  minutes: number | null;
+  goals: number | null;
+  assists: number | null;
+  rating: number | null;
+  shots_total: number | null;
+  shots_on: number | null;
+  passes_accuracy: number | null;
+  tackles_total: number | null;
+  interceptions: number | null;
+  blocks: number | null;
+  duels_total: number | null;
+  duels_won: number | null;
+  dribbles_attempted: number | null;
+  dribbles_success: number | null;
+  fouls_drawn: number | null;
+  fouls_committed: number | null;
+  cards_yellow: number | null;
+  cards_red: number | null;
+}
+
 function formatVal(v: number): string {
   if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}m`;
   if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}k`;
@@ -109,7 +134,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult, xpResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult, xpResult, afStatsResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -158,6 +183,11 @@ export default async function PlayerDetailPage({
       .select("milestone_key, milestone_label, xp_value, milestone_date, source, details")
       .eq("person_id", playerId)
       .order("xp_value", { ascending: false }),
+    supabaseServer
+      .from("api_football_player_stats")
+      .select("season, league_name, team_name, appearances, minutes, goals, assists, rating, shots_total, shots_on, passes_accuracy, tackles_total, interceptions, blocks, duels_total, duels_won, dribbles_attempted, dribbles_success, fouls_drawn, fouls_committed, cards_yellow, cards_red")
+      .eq("person_id", playerId)
+      .order("season", { ascending: false }),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -203,6 +233,16 @@ export default async function PlayerDetailPage({
 
   const valuation = valuationResult.data as PlayerValuation | null;
   const xpMilestones = (xpResult.data ?? []) as XpMilestone[];
+  const afStats = (afStatsResult.data ?? []) as ApiFootballStat[];
+
+  // Build season summary from API-Football (latest season)
+  const latestAfSeason = afStats.length > 0 ? afStats.reduce((best, row) => {
+    const apps = (row.appearances ?? 0) + (best.appearances ?? 0);
+    const goals = (row.goals ?? 0) + (best.goals ?? 0);
+    const assists = (row.assists ?? 0) + (best.assists ?? 0);
+    const rating = row.rating ?? best.rating;
+    return { season: best.season, appearances: apps, goals, assists, rating };
+  }, { season: afStats[0].season, appearances: 0, goals: 0, assists: 0, rating: afStats[0].rating }) : null;
 
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
@@ -273,6 +313,16 @@ export default async function PlayerDetailPage({
                   <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.preferred_foot}</span></>
                 )}
               </div>
+              {/* Season stats summary */}
+              {latestAfSeason && (latestAfSeason.appearances ?? 0) > 0 && (
+                <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
+                  <span className="text-[var(--text-secondary)]">{latestAfSeason.season.slice(2)}/{(parseInt(latestAfSeason.season) + 1).toString().slice(2)}:</span>
+                  {" "}{latestAfSeason.appearances} apps
+                  {(latestAfSeason.goals ?? 0) > 0 && <span className="text-green-400"> · {latestAfSeason.goals}G</span>}
+                  {(latestAfSeason.assists ?? 0) > 0 && <span className="text-blue-400"> {latestAfSeason.assists}A</span>}
+                  {latestAfSeason.rating != null && <span className="text-amber-400"> · {latestAfSeason.rating.toFixed(1)}★ avg</span>}
+                </p>
+              )}
               {/* Scouting notes inline */}
               {player.scouting_notes && (
                 <p className="text-[10px] text-[var(--text-secondary)] leading-snug mt-1 line-clamp-2 border-l-2 border-[var(--color-accent-personality)] pl-2">
@@ -407,7 +457,9 @@ export default async function PlayerDetailPage({
             </div>
           )}
 
-          {fbrefStats.length > 0 && <PlayerStats stats={fbrefStats} />}
+          {(fbrefStats.length > 0 || afStats.length > 0) && (
+            <PlayerStats fbrefStats={fbrefStats} afStats={afStats} />
+          )}
         </div>
 
         {/* Right: Valuation + Career + Similar + News + Shortlists */}

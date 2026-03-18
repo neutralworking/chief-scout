@@ -110,6 +110,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           </div>
         )}
 
+        {/* Row 3b: Stats line — goals/assists/rating */}
+        {(player.goals != null || player.assists != null) && (
+          <div className="text-[10px] font-mono mb-2">
+            {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
+            {player.goals != null && player.assists != null && " "}
+            {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
+            {player.rating != null && <span className="text-amber-400"> · {player.rating.toFixed(1)}★</span>}
+          </div>
+        )}
+
         {/* Row 4: Market Value + Archetype + CSPER badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

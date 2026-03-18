@@ -7,6 +7,7 @@ import { isProduction } from "@/lib/env";
 const ALL_NAV_ITEMS = [
   { label: "Home", href: "/", exact: true },
   { label: "Players", href: "/players" },
+  { label: "Stats", href: "/stats" },
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },
   { label: "Tactics", href: "/formations", stagingOnly: true },

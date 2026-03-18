@@ -39,10 +39,6 @@ function ratingColor(level: number | null): string {
 // Extend PlayerCard with stats fields
 interface PlayerRow extends PlayerCardType {
   overall: number | null;
-  apps: number | null;
-  goals: number | null;
-  assists: number | null;
-  xg: number | null;
 }
 
 // Nation → flag emoji (2-letter ISO → regional indicator symbols)
@@ -519,6 +515,7 @@ function PlayersContent() {
             <option value="review">Needs Review</option>
             <option value="cs_value">CS Value</option>
             <option value="tm_value">TM Value</option>
+            <option value="rating">Rating</option>
             <option value="name">Name</option>
           </select>
           {hasFilters && (
@@ -550,6 +547,7 @@ function PlayersContent() {
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">G</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">A</th>
                     <th className="text-right py-1.5 px-3 font-medium w-12 hidden lg:table-cell">xG</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-12 hidden lg:table-cell">Rtg</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -633,6 +631,11 @@ function PlayersContent() {
                         <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
                           {player.xg ?? "–"}
                         </td>
+                        <td className="py-1.5 px-3 text-right font-mono text-[10px] hidden lg:table-cell">
+                          {player.rating != null ? (
+                            <span className="text-amber-400">{player.rating.toFixed(2)}</span>
+                          ) : "–"}
+                        </td>
                       </tr>
                     );
                   })}
@@ -659,6 +662,14 @@ function PlayersContent() {
                             {player.nation && <span className="text-[10px] ml-1" title={player.nation}>{nationFlag(player.nation)}</span>}
                           </p>
                           <p className="text-[10px] text-[var(--text-muted)] truncate">{player.club || ""}</p>
+                          {(player.goals != null || player.assists != null) && (
+                            <p className="text-[10px] font-mono text-[var(--text-muted)]">
+                              {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
+                              {player.goals != null && player.assists != null && " "}
+                              {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
+                              {player.rating != null && <span className="text-amber-400"> · {player.rating.toFixed(1)}★</span>}
+                            </p>
+                          )}
                         </Link>
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-2">

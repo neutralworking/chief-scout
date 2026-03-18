@@ -1,6 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
+import { fetchSeasonStats } from "@/lib/stats";
 
 const SELECT =
   "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
@@ -111,6 +112,10 @@ export async function GET(req: NextRequest) {
       case "value":
         query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
         break;
+      case "rating":
+        // Rating sort uses client-side re-sort after stats enrichment
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
       default:
         query = query.order("best_role_score", { ascending: false, nullsFirst: false });
         break;
@@ -143,81 +148,30 @@ export async function GET(req: NextRequest) {
     players = players.slice(offset, offset + limit);
   }
 
-  // Enrich with season stats from FBRef (primary) + Kaggle (fallback)
+  // Enrich with season stats: API-Football → FBRef → Kaggle cascade
   if (wantStats && players.length > 0) {
     const ids = players.map((p) => p.person_id as number).filter(Boolean);
-
-    // FBRef via player_id_links — has real goals/assists/xG data
-    const { data: fbrefLinks } = await supabase
-      .from("player_id_links")
-      .select("person_id, external_id")
-      .eq("source", "fbref")
-      .in("person_id", ids);
-
-    const fbrefIds = (fbrefLinks ?? []).map((l) => l.external_id as string).filter(Boolean);
-    const pidByFbref = new Map((fbrefLinks ?? []).map((l) => [l.external_id as string, l.person_id as number]));
-
-    let fbrefStats: Record<string, unknown>[] = [];
-    if (fbrefIds.length > 0) {
-      const { data } = await supabase
-        .from("fbref_player_season_stats")
-        .select("fbref_id, matches_played, goals, assists, xg, xag, minutes")
-        .in("fbref_id", fbrefIds);
-      fbrefStats = (data ?? []) as Record<string, unknown>[];
-    }
-
-    // Kaggle fallback for players without FBRef data
-    const { data: euroStats } = await supabase
-      .from("kaggle_euro_league_stats")
-      .select("person_id, matches_played, goals, assists, xg, xa")
-      .in("person_id", ids);
-
-    const { data: plStats } = await supabase
-      .from("kaggle_pl_stats")
-      .select("person_id, matches_played, goals, assists, xg, xa")
-      .in("person_id", ids);
-
-    // Aggregate: FBRef first, then Kaggle fills gaps
-    const statsMap: Record<number, { apps: number; goals: number; assists: number; xg: number }> = {};
-
-    // FBRef stats (most reliable — take latest season only per player)
-    for (const row of fbrefStats) {
-      const fbrefId = row.fbref_id as string;
-      const pid = pidByFbref.get(fbrefId);
-      if (!pid) continue;
-      const existing = statsMap[pid] ?? { apps: 0, goals: 0, assists: 0, xg: 0 };
-      existing.apps += (row.matches_played as number) || 0;
-      existing.goals += (row.goals as number) || 0;
-      existing.assists += (row.assists as number) || 0;
-      existing.xg += (row.xg as number) || 0;
-      statsMap[pid] = existing;
-    }
-
-    // Kaggle fallback — only for players not already in statsMap
-    const kaggleRows = [...(euroStats ?? []), ...(plStats ?? [])] as Array<Record<string, unknown>>;
-    for (const row of kaggleRows) {
-      const pid = row.person_id as number;
-      if (!pid || statsMap[pid]) continue;
-      const goals = (row.goals as number) || 0;
-      const assists = (row.assists as number) || 0;
-      if (goals === 0 && assists === 0) continue;
-      const entry = { apps: 0, goals: 0, assists: 0, xg: 0 };
-      entry.apps += (row.matches_played as number) || 0;
-      entry.goals += goals;
-      entry.assists += assists;
-      entry.xg += (row.xg as number) || 0;
-      statsMap[pid] = entry;
-    }
+    const statsMap = await fetchSeasonStats(supabase, ids);
 
     players = players.map((p) => {
-      const s = statsMap[p.person_id as number];
+      const s = statsMap.get(p.person_id as number);
       return {
         ...p,
         apps: s?.apps || null,
         goals: s?.goals || null,
         assists: s?.assists || null,
         xg: s?.xg ? Math.round(s.xg * 10) / 10 : null,
+        rating: s?.rating ? Math.round(s.rating * 100) / 100 : null,
       };
+    });
+  }
+
+  // Client-side rating sort (needs stats enrichment first)
+  if (sort === "rating" && wantStats) {
+    players.sort((a, b) => {
+      const ra = (a.rating as number) ?? 0;
+      const rb = (b.rating as number) ?? 0;
+      return rb - ra;
     });
   }
 

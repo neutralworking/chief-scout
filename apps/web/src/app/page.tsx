@@ -90,7 +90,7 @@ async function getDashboardData() {
       .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
       .limit(8),
-    // 3: Upcoming fixtures
+    // 3: Upcoming fixtures (next 14 days, enough to fill the panel)
     supabaseServer
       .from("fixtures")
       .select("id, competition, competition_code, matchday, utc_date, home_team, away_team, venue")
@@ -98,7 +98,7 @@ async function getDashboardData() {
       .gte("utc_date", new Date().toISOString())
       .lte("utc_date", new Date(Date.now() + 14 * 86400000).toISOString())
       .order("utc_date", { ascending: true })
-      .limit(5),
+      .limit(15),
     // 4: Contract watch — expiring within 6 months
     supabaseServer
       .from("people")
@@ -393,11 +393,11 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Right column — Fixtures + League + Contracts */}
-        <div className="lg:col-span-2 flex flex-col gap-2">
-          {/* Upcoming Fixtures */}
-          <div className="glass rounded-xl p-2.5">
-            <div className="flex items-center justify-between mb-1.5">
+        {/* Right column — Fixtures (fills space) + League + Contracts */}
+        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
+          {/* Upcoming Fixtures — expands to fill available space */}
+          <div className="glass rounded-xl p-2.5 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-1.5 shrink-0">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">Upcoming Fixtures</h3>
               <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
                 All &rarr;
@@ -406,7 +406,7 @@ export default async function DashboardPage() {
             {fixtures.length === 0 ? (
               <p className="text-[10px] text-[var(--text-muted)] py-1 text-center">No upcoming fixtures.</p>
             ) : (
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1">
                 {fixtures.map((f) => (
                   <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
                     <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-5 shrink-0">
@@ -426,54 +426,55 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {/* League shortcuts */}
-          <div className="glass rounded-xl p-2.5">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1">League</h3>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-0">
-              {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
-                <Link
-                  key={league}
-                  href={`/clubs?league=${encodeURIComponent(league)}`}
-                  className="px-1.5 py-0.5 rounded text-[10px] hover:bg-green-500/10 text-[var(--text-secondary)] transition-colors truncate"
-                >
-                  {league}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Contract Watch */}
-          {contractPlayers.length > 0 && (
+          {/* League + Contracts side by side */}
+          <div className="grid grid-cols-2 gap-2 shrink-0">
+            {/* League shortcuts */}
             <div className="glass rounded-xl p-2.5">
-              <div className="flex items-center justify-between mb-1.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contract Watch</h3>
-                <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
-                  Free agents &rarr;
-                </Link>
-              </div>
-              <div className="space-y-0.5">
-                {contractPlayers.map((p) => {
-                  const days = daysUntil(p.contract_expiry_date);
-                  const urgent = days <= 60;
-                  return (
-                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                      {p.position && (
-                        <span className={`text-[8px] font-bold tracking-wider px-1 py-0.5 rounded ${POSITION_COLORS[p.position] ?? "bg-zinc-700/60"} text-white`}>
-                          {p.position}
-                        </span>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate block">{p.name}</span>
-                      </div>
-                      <span className={`text-[9px] font-mono shrink-0 ${urgent ? "text-[var(--color-sentiment-negative)] font-bold" : "text-[var(--text-muted)]"}`}>
-                        {formatExpiryDate(p.contract_expiry_date)}
-                      </span>
-                    </Link>
-                  );
-                })}
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1">League</h3>
+              <div className="space-y-0">
+                {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
+                  <Link
+                    key={league}
+                    href={`/clubs?league=${encodeURIComponent(league)}`}
+                    className="block px-1 py-0.5 rounded text-[10px] hover:bg-green-500/10 text-[var(--text-secondary)] transition-colors truncate"
+                  >
+                    {league}
+                  </Link>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Contract Watch */}
+            {contractPlayers.length > 0 ? (
+              <div className="glass rounded-xl p-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contracts</h3>
+                  <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
+                    &rarr;
+                  </Link>
+                </div>
+                <div className="space-y-0.5">
+                  {contractPlayers.map((p) => {
+                    const days = daysUntil(p.contract_expiry_date);
+                    const urgent = days <= 60;
+                    return (
+                      <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
+                        <span className={`text-[9px] font-mono shrink-0 ${urgent ? "text-[var(--color-sentiment-negative)] font-bold" : "text-[var(--text-muted)]"}`}>
+                          {formatExpiryDate(p.contract_expiry_date)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="glass rounded-xl p-2.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1">Contracts</h3>
+                <p className="text-[10px] text-[var(--text-muted)]">No expiring contracts</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

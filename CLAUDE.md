@@ -268,6 +268,24 @@ Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
 - Archetype confidence: high, medium, low
 - Profile tiers: 1 = scout-assessed with archetype, 2 = data-derived, 3 = skeleton
 
+## Roadmap: Sibling Products
+
+Two separate products are planned, each in their own repo, using Chief Scout as a data source:
+
+| Product | Repo | Description | Status |
+|---------|------|-------------|--------|
+| **Kickoff Clash** | `kickoff-clash` | Loot bin (gacha packs) + Balatro-style roguelike card battler with comedic fictional players. Builds from CS archetypes (Tiki-Taka, Gegenpressing, Catenaccio, etc.) | Planned |
+| **Punter's Pad** | `punters-pad` | Virtual sportsbook — betting on real fixtures with virtual currency | Planned |
+
+**Data flow**: Chief Scout → (pipeline export) → Kickoff Clash + Punter's Pad. Game repos never write back to CS.
+
+**Key design doc**: See `/root/.claude/plans/hidden-giggling-yao.md` for full architecture (schemas, APIs, game mechanics, build order).
+
+**Chief Scout touchpoints**:
+- `pipeline/80_export_character_templates.py` — Export player templates for Kickoff Clash character generation
+- Fixture data from pipeline 61 feeds Punter's Pad markets
+- Shared auth (optional) via Supabase
+
 ## Persistent Context System
 Three-layer context retention across sessions:
 - **Layer 0** (Identity): `CLAUDE.md`, `docs/systems/SACROSANCT.md` — read-only reference

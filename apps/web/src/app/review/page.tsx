@@ -33,6 +33,7 @@ interface QueuePlayer {
   person_id: number;
   name: string;
   level: number | null;
+  peak: number | null;
   position: string | null;
   archetype: string | null;
   blueprint: string | null;
@@ -49,6 +50,8 @@ interface QueuePlayer {
   scouting_notes: string | null;
   pursuit_status: string | null;
   squad_role: string | null;
+  active: boolean | null;
+  kc: boolean | null;
   is_inferred: boolean;
   personality_confidence: string;
   trajectory: string | null;
@@ -66,39 +69,120 @@ export default function PersonalityReassessmentPage() {
   const [players, setPlayers] = useState<QueuePlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<"inferred" | "reviewed" | "all">("inferred");
+  const [filter, setFilter] = useState<"inferred" | "reviewed" | "all">("all");
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showActions, setShowActions] = useState(false);
+  const [includeRetired, setIncludeRetired] = useState(false);
+  const [sortBy, setSortBy] = useState<"peak" | "level">("peak");
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showActions) return;
+    const handler = () => setShowActions(false);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [showActions]);
 
   const loadPlayers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/personality-queue?limit=50&filter=${filter}`);
+      const res = await fetch(`/api/admin/personality-queue?limit=100&filter=${filter}&retired=${includeRetired}&sort=${sortBy}`);
       if (res.ok) {
         const data = await res.json();
         setPlayers(data.players ?? []);
       }
     } catch { /* */ }
     setLoading(false);
-  }, [filter]);
+  }, [filter, includeRetired, sortBy]);
 
   useEffect(() => { loadPlayers(); }, [loadPlayers]);
 
+  // Clear selection when filter/data changes
+  useEffect(() => { setSelectedIds(new Set()); }, [filter, includeRetired, sortBy]);
+
   const activePlayer = players.find(p => p.person_id === activeId) ?? null;
 
+  // Selection helpers
+  const allSelected = players.length > 0 && selectedIds.size === players.length;
+  const someSelected = selectedIds.size > 0;
+
+  function toggleSelect(pid: number) {
+    setSelectedIds((prev: Set<number>) => {
+      const next = new Set(prev);
+      if (next.has(pid)) next.delete(pid);
+      else next.add(pid);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(players.map((p: QueuePlayer) => p.person_id)));
+    }
+  }
+
+  // Bulk actions
+  async function bulkSetKC(value: boolean) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setShowActions(false);
+    try {
+      const res = await fetch("/api/admin/bulk-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_ids: ids, table: "people", updates: { kc: value } }),
+      });
+      if (res.ok) {
+        // Update local state
+        setPlayers((prev: QueuePlayer[]) => prev.map((p: QueuePlayer) => ids.includes(p.person_id) ? { ...p, kc: value } : p));
+        setActionFeedback(`${ids.length} player${ids.length > 1 ? "s" : ""} ${value ? "flagged" : "unflagged"} for KC`);
+        setTimeout(() => setActionFeedback(null), 3000);
+        setSelectedIds(new Set());
+      }
+    } catch { /* */ }
+  }
+
   // Stats
-  const reviewed = players.filter(p => !p.is_inferred || savedIds.has(p.person_id)).length;
+  const reviewed = players.filter((p: QueuePlayer) => !p.is_inferred || savedIds.has(p.person_id)).length;
   const total = players.length;
+  const kcCount = players.filter((p: QueuePlayer) => p.kc).length;
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-lg font-bold tracking-tight">Personality Reassessment</h1>
+          <h1 className="text-lg font-bold tracking-tight">Player Review</h1>
           <p className="text-[11px] text-[var(--text-secondary)]">
-            {loading ? "Loading..." : `${total} players · ${reviewed} reviewed`}
+            {loading ? "Loading..." : `${total} players · ${reviewed} reviewed · ${kcCount} KC flagged`}
           </p>
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Sort toggle */}
+          <button
+            onClick={() => setSortBy(s => s === "peak" ? "level" : "peak")}
+            className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
+            title={`Sorting by ${sortBy}`}
+          >
+            Sort: {sortBy === "peak" ? "Peak" : "Level"}
+          </button>
+
+          {/* Retired toggle */}
+          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-secondary)] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeRetired}
+              onChange={e => setIncludeRetired(e.target.checked)}
+              className="rounded border-[var(--border-subtle)] accent-[var(--color-accent-personality)]"
+            />
+            Retired
+          </label>
+
+          {/* Filter buttons */}
           {(["inferred", "reviewed", "all"] as const).map(f => (
             <button
               key={f}
@@ -115,6 +199,52 @@ export default function PersonalityReassessmentPage() {
         </div>
       </div>
 
+      {/* Action feedback */}
+      {actionFeedback && (
+        <div className="text-[11px] font-semibold text-green-400 bg-green-400/10 border border-green-400/20 rounded-lg px-3 py-1.5">
+          {actionFeedback}
+        </div>
+      )}
+
+      {/* Actions bar (shows when items selected) */}
+      {someSelected && (
+        <div className="flex items-center gap-2 bg-[var(--bg-elevated)] rounded-lg px-3 py-2 border border-[var(--border-subtle)]">
+          <span className="text-[11px] font-semibold text-[var(--text-primary)]">
+            {selectedIds.size} selected
+          </span>
+          <div className="relative">
+            <button
+              onClick={() => setShowActions(prev => !prev)}
+              className="text-[10px] font-semibold px-3 py-1 rounded-md bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30 hover:bg-[var(--color-accent-personality)]/30 transition-colors"
+            >
+              Actions ▾
+            </button>
+            {showActions && (
+              <div className="absolute top-full left-0 mt-1 z-50 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-lg shadow-lg py-1 min-w-[180px]">
+                <button
+                  onClick={() => bulkSetKC(true)}
+                  className="w-full text-left px-3 py-1.5 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                >
+                  Flag as KC template
+                </button>
+                <button
+                  onClick={() => bulkSetKC(false)}
+                  className="w-full text-left px-3 py-1.5 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                >
+                  Remove KC flag
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => { setSelectedIds(new Set()); setShowActions(false); }}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] ml-auto"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-3">
         {/* Queue list */}
         <div className="glass rounded-xl overflow-hidden">
@@ -124,18 +254,30 @@ export default function PersonalityReassessmentPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="text-left py-2 px-3 font-medium w-10">Pos</th>
-                  <th className="text-left py-2 px-3 font-medium">Player</th>
-                  <th className="text-left py-2 px-3 font-medium hidden md:table-cell">Archetype</th>
-                  <th className="text-center py-2 px-3 font-medium w-16">Current</th>
-                  <th className="text-right py-2 px-3 font-medium w-12">OVR</th>
-                  <th className="text-center py-2 px-3 font-medium w-10">St</th>
+                  <th className="text-center py-2 px-2 w-8">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      className="rounded border-[var(--border-subtle)] accent-[var(--color-accent-personality)]"
+                    />
+                  </th>
+                  <th className="text-left py-2 px-2 font-medium w-10">Pos</th>
+                  <th className="text-left py-2 px-2 font-medium">Player</th>
+                  <th className="text-left py-2 px-2 font-medium hidden md:table-cell">Archetype</th>
+                  <th className="text-center py-2 px-2 font-medium w-14">Type</th>
+                  <th className="text-right py-2 px-2 font-medium w-12">Peak</th>
+                  <th className="text-right py-2 px-2 font-medium w-12">OVR</th>
+                  <th className="text-center py-2 px-2 font-medium w-8" title="Kickoff Clash template">KC</th>
+                  <th className="text-center py-2 px-2 font-medium w-10">St</th>
                 </tr>
               </thead>
               <tbody>
                 {players.map(p => {
                   const isActive = p.person_id === activeId;
                   const isSaved = savedIds.has(p.person_id);
+                  const isSelected = selectedIds.has(p.person_id);
+                  const isRetired = p.active === false;
                   const isSuspect = p.is_inferred && !isSaved && (
                     (p.ei >= 48 && p.ei <= 52) || (p.sn >= 48 && p.sn <= 52) ||
                     (p.tf >= 48 && p.tf <= 52) || (p.jp >= 48 && p.jp <= 52)
@@ -144,32 +286,73 @@ export default function PersonalityReassessmentPage() {
                   return (
                     <tr
                       key={p.person_id}
-                      onClick={() => setActiveId(isActive ? null : p.person_id)}
-                      className={`border-b border-[var(--border-subtle)]/30 cursor-pointer transition-colors ${
-                        isActive ? "bg-[var(--color-accent-personality)]/10" : "hover:bg-[var(--bg-elevated)]/30"
-                      }`}
+                      className={`border-b border-[var(--border-subtle)]/30 transition-colors ${
+                        isActive ? "bg-[var(--color-accent-personality)]/10" :
+                        isSelected ? "bg-[var(--color-accent-personality)]/5" :
+                        "hover:bg-[var(--bg-elevated)]/30"
+                      } ${isRetired ? "opacity-60" : ""}`}
                     >
-                      <td className="py-1.5 px-3">
+                      <td className="py-1.5 px-2 text-center" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(p.person_id)}
+                          className="rounded border-[var(--border-subtle)] accent-[var(--color-accent-personality)]"
+                        />
+                      </td>
+                      <td
+                        className="py-1.5 px-2 cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60"} text-white`}>
                           {p.position ?? "–"}
                         </span>
                       </td>
-                      <td className="py-1.5 px-3">
-                        <span className="font-medium text-[var(--text-primary)]">{p.name}</span>
+                      <td
+                        className="py-1.5 px-2 cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
+                        <span className={`font-medium text-[var(--text-primary)] ${isRetired ? "italic" : ""}`}>{p.name}</span>
+                        {isRetired && <span className="text-[9px] text-amber-400/70 ml-1">RET</span>}
                         <span className="text-[10px] text-[var(--text-muted)] ml-1.5">{p.club}</span>
                       </td>
-                      <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden md:table-cell">
+                      <td
+                        className="py-1.5 px-2 text-xs text-[var(--text-secondary)] hidden md:table-cell cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
                         {p.archetype || "–"}
                       </td>
-                      <td className="py-1.5 px-3 text-center">
+                      <td
+                        className="py-1.5 px-2 text-center cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
                         <span className={`font-mono text-xs font-bold ${isSuspect ? "text-red-400" : "text-[var(--color-accent-personality)]"}`}>
                           {p.personality_type}
                         </span>
                       </td>
-                      <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)]">
+                      <td
+                        className="py-1.5 px-2 text-right font-mono text-xs text-[var(--text-secondary)] cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
+                        {p.peak ?? "–"}
+                      </td>
+                      <td
+                        className="py-1.5 px-2 text-right font-mono text-xs text-[var(--text-muted)] cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
                         {p.level ?? "–"}
                       </td>
-                      <td className="py-1.5 px-3 text-center">
+                      <td className="py-1.5 px-2 text-center">
+                        {p.kc ? (
+                          <span className="text-[9px] font-bold text-amber-400 bg-amber-400/15 px-1.5 py-0.5 rounded">KC</span>
+                        ) : (
+                          <span className="text-[var(--text-muted)] text-[10px]">–</span>
+                        )}
+                      </td>
+                      <td
+                        className="py-1.5 px-2 text-center cursor-pointer"
+                        onClick={() => setActiveId(isActive ? null : p.person_id)}
+                      >
                         {isSaved ? (
                           <span className="text-green-400 text-xs">&#10003;</span>
                         ) : !p.is_inferred ? (
@@ -192,7 +375,6 @@ export default function PersonalityReassessmentPage() {
             player={activePlayer}
             onSave={(pid) => {
               setSavedIds(prev => new Set(prev).add(pid));
-              // Move to next player
               const idx = players.findIndex(p => p.person_id === pid);
               const next = players[idx + 1];
               if (next) setActiveId(next.person_id);
@@ -226,7 +408,6 @@ function AssessmentPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset when player changes
   useEffect(() => {
     setEi(player.ei);
     setSn(player.sn);
@@ -287,9 +468,16 @@ function AssessmentPanel({
             <p className="text-[10px] text-[var(--text-muted)]">
               {player.club} · {player.nation} · {age != null ? `${age}y` : "?"} · {player.position}
               {player.archetype && ` · ${player.archetype}`}
+              {player.peak != null && ` · Peak: ${player.peak}`}
+              {player.active === false && " · Retired"}
             </p>
           </div>
-          <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level ?? "–"}</span>
+          <div className="text-right">
+            <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level ?? "–"}</span>
+            {player.kc && (
+              <span className="block text-[9px] font-bold text-amber-400">KC</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -441,7 +629,6 @@ function AssessmentPanel({
         {saving ? "Saving..." : changed ? "Save & Next" : "Confirm & Next"}
       </button>
 
-      {/* Keyboard hint */}
       <p className="text-[8px] text-[var(--text-muted)] text-center">
         Click a row to assess · saves to player_personality with is_inferred=false
       </p>

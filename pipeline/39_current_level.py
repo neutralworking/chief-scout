@@ -498,19 +498,31 @@ def main():
             })
 
     # ── Step 4: Write ─────────────────────────────────────────────────────────
+    # GUARD: never overwrite manually-edited levels (network_edits table)
 
     if not DRY_RUN and results:
-        print(f"\n  Writing {len(results)} updates...")
+        result_ids = [r["person_id"] for r in results]
+        cur.execute("""
+            SELECT DISTINCT person_id FROM network_edits
+            WHERE field = 'level' AND old_value != new_value
+            AND person_id = ANY(%s)
+        """, (result_ids,))
+        manual_pids = {row[0] for row in cur.fetchall()}
+        if manual_pids:
+            print(f"\n  Skipping {len(manual_pids)} manually-edited levels (protected)")
+
+        filtered = [r for r in results if r["person_id"] not in manual_pids]
+        print(f"\n  Writing {len(filtered)} updates ({len(results) - len(filtered)} protected)...")
         batch_size = 100
-        for i in range(0, len(results), batch_size):
-            batch = results[i:i + batch_size]
+        for i in range(0, len(filtered), batch_size):
+            batch = filtered[i:i + batch_size]
             for r in batch:
                 cur.execute(
                     "UPDATE player_profiles SET level = %s WHERE person_id = %s",
                     (r["level"], r["person_id"])
                 )
-            if (i + batch_size) % 500 == 0 or i + batch_size >= len(results):
-                print(f"    Written {min(i + batch_size, len(results))}/{len(results)}")
+            if (i + batch_size) % 500 == 0 or i + batch_size >= len(filtered):
+                print(f"    Written {min(i + batch_size, len(filtered))}/{len(filtered)}")
     elif DRY_RUN and results:
         print(f"\n  [dry-run] Would update {len(results)} player_profiles.level values")
 

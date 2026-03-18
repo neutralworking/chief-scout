@@ -408,10 +408,26 @@ def main():
             print(f"    ... ({remaining} more)")
 
     # ── Step 7: Write results ─────────────────────────────────────────────────
+    # GUARD: never overwrite manually-edited levels (network_edits table)
 
     if not DRY_RUN and results:
+        # Find player IDs that have been manually edited
+        result_ids = [r["person_id"] for r in results]
+        cur.execute("""
+            SELECT DISTINCT person_id FROM network_edits
+            WHERE field = 'level' AND old_value != new_value
+            AND person_id = ANY(%s)
+        """, (result_ids,))
+        manual_pids = {row[0] for row in cur.fetchall()}
+        if manual_pids:
+            print(f"\n  Skipping {len(manual_pids)} manually-edited levels (protected)")
+
         written = 0
+        skipped = 0
         for r in results:
+            if r["person_id"] in manual_pids:
+                skipped += 1
+                continue
             cur.execute("""
                 UPDATE player_profiles
                 SET level = %s, model_id = %s
@@ -420,6 +436,7 @@ def main():
             written += 1
 
         print(f"\n  Written {written} inferred levels to player_profiles")
+        print(f"  Skipped {skipped} manually-edited (protected)")
         print(f"  (model_id={MODEL_ID} — distinguishable from hand-graded)")
 
     elif DRY_RUN:

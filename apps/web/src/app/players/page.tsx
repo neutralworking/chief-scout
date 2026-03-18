@@ -80,8 +80,8 @@ function nationFlag(nation: string | null | undefined): string {
 }
 
 // ── Inline editable number cell with +/- arrows + keyboard nav ──────────────
-// data-edit-field and data-edit-row attributes enable Tab navigation:
-//   Tab → next row same field, Shift+Tab → prev row, Arrow Up/Down → adjust value
+// Click +/- to step (debounced save). Click number to type directly.
+// Tab → next row same field. Arrow Up/Down → step value.
 function EditableCell({
   value,
   personId,
@@ -101,91 +101,181 @@ function EditableCell({
   max?: number;
   onSaved?: (newVal: number) => void;
 }) {
-  const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<"saved" | "error" | null>(null);
   const [displayValue, setDisplayValue] = useState(value);
+  const [typing, setTyping] = useState(false);
+  const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const lastSaved = useRef(value);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setDisplayValue(value); }, [value]);
+  useEffect(() => { setDisplayValue(value); lastSaved.current = value; }, [value]);
 
-  async function saveValue(newVal: number) {
+  // Debounced save: updates display instantly, batches API call
+  function queueSave(newVal: number) {
     const clamped = Math.min(max, Math.max(min, newVal));
-    if (clamped === displayValue || saving) return;
+    setDisplayValue(clamped);
+    onSaved?.(clamped);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => flushSave(clamped), 500);
+  }
 
-    setSaving(true);
+  async function flushSave(val: number) {
+    if (val === lastSaved.current) return;
+    lastSaved.current = val;
     try {
       const res = await fetch("/api/admin/player-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ person_id: personId, table, updates: { [field]: clamped } }),
+        body: JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
       });
-      if (res.ok) {
-        setDisplayValue(clamped);
-        onSaved?.(clamped);
-        setFlash("saved");
-      } else {
-        setFlash("error");
-      }
+      setFlash(res.ok ? "saved" : "error");
     } catch {
       setFlash("error");
     }
-    setSaving(false);
-    setTimeout(() => setFlash(null), 1000);
+    setTimeout(() => setFlash(null), 800);
+  }
+
+  // Flush on unmount
+  useEffect(() => () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      const pending = displayValue;
+      if (pending !== null && pending !== lastSaved.current) {
+        // fire-and-forget
+        fetch("/api/admin/player-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ person_id: personId, table, updates: { [field]: pending } }),
+        }).catch(() => {});
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function commitTyping() {
+    const num = Number(draft);
+    if (!isNaN(num) && draft !== "") {
+      queueSave(num);
+    }
+    setTyping(false);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (typing) {
+      if (e.key === "Enter") { e.preventDefault(); commitTyping(); }
+      if (e.key === "Escape") { setTyping(false); }
+      return;
+    }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      saveValue((displayValue ?? 50) + 1);
+      queueSave((displayValue ?? 50) + 1);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      saveValue((displayValue ?? 50) - 1);
+      queueSave((displayValue ?? 50) - 1);
     } else if (e.key === "Tab") {
       e.preventDefault();
-      // Find next/prev row with same field
+      // Flush any pending save before moving
+      if (saveTimer.current) { clearTimeout(saveTimer.current); if (displayValue !== null) flushSave(displayValue); }
       const direction = e.shiftKey ? -1 : 1;
       const nextRow = rowIndex + direction;
       const target = document.querySelector(`[data-edit-field="${field}"][data-edit-row="${nextRow}"]`) as HTMLElement;
       if (target) target.focus();
+    } else if (e.key >= "0" && e.key <= "9") {
+      // Start typing mode
+      e.preventDefault();
+      setTyping(true);
+      setDraft(e.key);
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
   }
 
   const colorClass = flash === "saved" ? "text-[var(--color-accent-tactical)]" :
     flash === "error" ? "text-red-400" : ratingColor(displayValue);
 
+  if (typing) {
+    return (
+      <input
+        ref={inputRef}
+        type="number"
+        inputMode="numeric"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commitTyping}
+        onKeyDown={handleKeyDown}
+        onClick={(e) => e.stopPropagation()}
+        min={min}
+        max={max}
+        autoFocus
+        className="w-12 px-1 py-0.5 text-xs font-mono rounded bg-[var(--bg-surface-solid)] border border-[var(--color-accent-tactical)] text-[var(--text-primary)] focus:outline-none text-right"
+        data-edit-field={field}
+        data-edit-row={rowIndex}
+      />
+    );
+  }
+
   return (
     <div
-      ref={containerRef}
       className={`inline-flex items-center gap-0.5 rounded px-0.5 -mx-0.5 outline-none transition-colors ${focused ? "ring-1 ring-[var(--color-accent-tactical)]/50 bg-[var(--bg-elevated)]" : ""}`}
       tabIndex={0}
       data-edit-field={field}
       data-edit-row={rowIndex}
       onClick={(e) => e.stopPropagation()}
       onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onBlur={(e) => {
+        setFocused(false);
+        // Flush pending save when leaving cell
+        if (saveTimer.current && displayValue !== null) { clearTimeout(saveTimer.current); flushSave(displayValue); }
+      }}
       onKeyDown={handleKeyDown}
     >
       <button
-        onClick={() => saveValue((displayValue ?? 50) - 1)}
-        disabled={saving || (displayValue ?? 50) <= min}
+        onClick={() => queueSave((displayValue ?? 50) - 1)}
+        disabled={(displayValue ?? 50) <= min}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}
       >
         &minus;
       </button>
-      <span className={`font-mono text-xs font-bold min-w-[1.5rem] text-center ${colorClass}`}>
+      <span
+        className={`font-mono text-xs font-bold min-w-[1.5rem] text-center cursor-text ${colorClass}`}
+        onClick={() => { setTyping(true); setDraft(String(displayValue ?? "")); setTimeout(() => inputRef.current?.focus(), 0); }}
+      >
         {displayValue ?? "–"}
       </span>
       <button
-        onClick={() => saveValue((displayValue ?? 50) + 1)}
-        disabled={saving || (displayValue ?? 50) >= max}
+        onClick={() => queueSave((displayValue ?? 50) + 1)}
+        disabled={(displayValue ?? 50) >= max}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}
       >
         +
       </button>
     </div>
+  );
+}
+
+// ── Debounced search input ───────────────────────────────────────────────────
+function SearchInput({ value, onChange, onSearch }: { value: string; onChange: (v: string) => void; onSearch: (v: string) => void }) {
+  const timer = useRef<ReturnType<typeof setTimeout>>(null);
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    onChange(val);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      if (val.length === 0 || val.length >= 2) onSearch(val);
+    }, 350);
+  }
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={handleChange}
+      placeholder="Search players..."
+      className="flex-1 px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
+    />
   );
 }
 
@@ -362,19 +452,7 @@ function PlayersContent() {
 
         {/* Filters row */}
         <div className="glass rounded-lg p-2 mb-2 flex flex-col sm:flex-row gap-1.5">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => {
-              setSearchInput(e.target.value);
-              const val = e.target.value;
-              setTimeout(() => {
-                if (val.length === 0 || val.length >= 2) updateParam("q", val);
-              }, 300);
-            }}
-            placeholder="Search players..."
-            className="flex-1 px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
-          />
+          <SearchInput value={searchInput} onChange={setSearchInput} onSearch={(val) => updateParam("q", val)} />
           <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
             className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
             <option value="">All Statuses</option>

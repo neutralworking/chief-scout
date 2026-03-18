@@ -43,7 +43,43 @@ export async function GET(req: NextRequest) {
   if (full === "1") {
     query = query.not("archetype", "is", null).not("personality_type", "is", null).not("overall", "is", null);
   }
-  if (q) query = query.ilike("name", `%${q}%`);
+  if (q) {
+    // Accent-insensitive search: split into words, match each independently.
+    // "fermin lopez" → must match BOTH a "fermin/fermín" variant AND a "lopez/lópez" variant.
+    const ACCENT_EXPAND: Record<string, string> = {
+      a: "á", e: "é", i: "í", o: "ó", u: "ú", n: "ñ", c: "ç", d: "đ",
+    };
+    const DEACCENT: Record<string, string> = {
+      ø: "o", ð: "d", æ: "a", đ: "d",
+      á: "a", à: "a", â: "a", ã: "a", ä: "a", å: "a",
+      é: "e", è: "e", ê: "e", ë: "e",
+      í: "i", ì: "i", î: "i", ï: "i",
+      ó: "o", ò: "o", ô: "o", õ: "o", ö: "o",
+      ú: "u", ù: "u", û: "u", ü: "u",
+      ñ: "n", ç: "c", ý: "y", ÿ: "y", š: "s", ž: "z",
+    };
+    function wordVariants(word: string): string[] {
+      const stripped = [...word].map((ch) => DEACCENT[ch] ?? DEACCENT[ch.toLowerCase()] ?? ch).join("");
+      const variants = new Set<string>([word, stripped]);
+      for (let i = 0; i < stripped.length; i++) {
+        const acc = ACCENT_EXPAND[stripped[i].toLowerCase()];
+        if (acc) variants.add(stripped.slice(0, i) + acc + stripped.slice(i + 1));
+      }
+      return [...variants];
+    }
+
+    const words = q.trim().split(/\s+/).filter((w) => w.length >= 2);
+    if (words.length === 1) {
+      const orFilter = wordVariants(words[0]).map((v) => `name.ilike.%${v}%`).join(",");
+      query = query.or(orFilter);
+    } else {
+      // Multiple words: each word must match (AND between words, OR between variants)
+      for (const word of words) {
+        const orFilter = wordVariants(word).map((v) => `name.ilike.%${v}%`).join(",");
+        query = query.or(orFilter);
+      }
+    }
+  }
 
   // "Needs Review" sort: fetch wider set, sort by |level - overall| divergence
   const isReviewSort = sort === "review";

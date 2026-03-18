@@ -3,19 +3,13 @@
 import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
 import Link from "next/link";
+import { MODEL_SHORT } from "@/lib/models";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 
 // Models shown on the position radar (outfield — exclude GK model for outfield, exclude outfield for GK)
 const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
 const GK_MODELS = ["GK", "Cover", "Commander", "Controller", "Passer"];
-
-// Short labels for radar axes
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 const MODEL_ATTRS: Record<string, string> = {
   Controller: "Anticipation, Composure, Decisions, Tempo",

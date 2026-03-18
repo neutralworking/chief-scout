@@ -4,23 +4,14 @@
  * Each tactical role maps to 4-5 key models that define what makes
  * someone good at that role. The MiniRadar uses these as axes instead
  * of the generic DEF/CRE/ATK/PWR/PAC/DRV.
- *
- * Model short codes:
- *   CTR=Controller CMD=Commander CRE=Creator TGT=Target SPR=Sprinter
- *   PWR=Powerhouse COV=Cover ENG=Engine DES=Destroyer DRB=Dribbler
- *   PAS=Passer STR=Striker GK=GK
  */
+
+import { MODEL_SHORT } from "@/lib/models";
 
 export interface RoleRadarConfig {
   models: string[];  // Full model names (e.g. "Controller")
   labels: string[];  // Short display labels (e.g. "CTR")
 }
-
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 /** Role name → radar axes (4-5 models most relevant to that role) */
 export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {

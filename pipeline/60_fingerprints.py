@@ -21,26 +21,7 @@ import sys
 import numpy as np
 
 from lib.db import require_conn
-
-# 13 models → 4 attributes each
-MODEL_ATTRIBUTES = {
-    "Controller":  ["anticipation", "composure", "decisions", "tempo"],
-    "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
-    "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
-    "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
-    "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
-    "Engine":      ["intensity", "pressing", "stamina", "versatility"],
-    "Destroyer":   ["blocking", "clearances", "marking", "tackling"],
-    "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
-    "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    "GK":          ["agility", "footwork", "handling", "reactions"],
-}
-
-ATTR_ALIASES = {"takeons": "take_ons", "unpredicability": "unpredictability"}
-SOURCE_PRIORITY = {"scout_assessment": 5, "statsbomb": 4, "fbref": 3, "understat": 2, "eafc_inferred": 1, "computed": 1}
+from lib.models import MODEL_ATTRIBUTES, MODEL_SHORT, ATTR_ALIASES, SOURCE_PRIORITY
 
 # Role → relevant models (4-5 axes). Must match apps/web/src/lib/role-radar.ts.
 ROLE_AXES = {
@@ -100,11 +81,6 @@ ROLE_AXES = {
     "Seconda Punta":      ["Striker", "Dribbler", "Sprinter", "Creator"],
 }
 
-MODEL_SHORT = {
-    "Controller": "CTR", "Commander": "CMD", "Creator": "CRE", "Target": "TGT",
-    "Sprinter": "SPR", "Powerhouse": "PWR", "Cover": "COV", "Engine": "ENG",
-    "Destroyer": "DES", "Dribbler": "DRB", "Passer": "PAS", "Striker": "STR", "GK": "GK",
-}
 
 
 def compute_model_scores(grades):

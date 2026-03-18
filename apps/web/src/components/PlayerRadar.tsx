@@ -2,13 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
+import { MODEL_SHORT } from "@/lib/models";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 const MODEL_ATTRS: Record<string, string> = {
   Controller: "Anticipation, Composure, Decisions, Tempo",

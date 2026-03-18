@@ -2,13 +2,16 @@
 """Pipeline orchestrator — run scripts in dependency order with timing and logging.
 
 Usage:
-    python pipeline/run_all.py                    # Run all steps
+    python pipeline/run_all.py                    # Run all steps (sequential)
+    python pipeline/run_all.py --parallel          # Run independent steps concurrently
+    python pipeline/run_all.py --parallel --workers 8
     python pipeline/run_all.py --steps grades,ratings,fingerprints
     python pipeline/run_all.py --from ratings      # Start from a specific step
     python pipeline/run_all.py --dry-run           # Show what would run
     python pipeline/run_all.py --list              # List all steps
 
 Each step maps to one or more pipeline scripts. Steps run in dependency order.
+When --parallel is enabled, steps at the same dependency level run concurrently.
 Results are logged to the cron_log table with timing and row counts.
 """
 
@@ -18,6 +21,7 @@ import os
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -138,6 +142,33 @@ def topo_sort(steps: list[Step], start_from: str | None = None) -> list[Step]:
     return result
 
 
+def compute_levels(ordered: list[Step]) -> list[list[Step]]:
+    """Group topo-sorted steps into execution levels.
+
+    Level 0 = no dependencies (or all deps outside the ordered set).
+    Level N = depends only on steps at levels < N.
+    Steps within the same level can run in parallel.
+    """
+    ordered_names = {s.name for s in ordered}
+    step_level: dict[str, int] = {}
+
+    for step in ordered:
+        # Only consider deps that are in the ordered set
+        deps_in_set = [d for d in step.depends_on if d in ordered_names]
+        if not deps_in_set:
+            step_level[step.name] = 0
+        else:
+            step_level[step.name] = max(step_level[d] for d in deps_in_set) + 1
+
+    # Group by level
+    max_level = max(step_level.values()) if step_level else 0
+    levels: list[list[Step]] = [[] for _ in range(max_level + 1)]
+    for step in ordered:
+        levels[step_level[step.name]].append(step)
+
+    return levels
+
+
 def run_script(script: str, extra_flags: list[str], dry_run: bool = False) -> tuple[bool, float, str]:
     """Run a single pipeline script. Returns (success, duration_seconds, output)."""
     path = os.path.join(PIPELINE_DIR, script)
@@ -198,6 +229,8 @@ def main():
     parser.add_argument("--force", action="store_true", help="Pass --force to all scripts")
     parser.add_argument("--incremental", action="store_true", help="Pass --incremental to scripts that support it (skip unchanged data)")
     parser.add_argument("--skip-optional", action="store_true", help="Skip optional steps")
+    parser.add_argument("--parallel", action="store_true", help="Run independent steps concurrently")
+    parser.add_argument("--workers", type=int, default=4, help="Max parallel workers (default: 4, requires --parallel)")
     args = parser.parse_args()
 
     if args.list:
@@ -230,6 +263,8 @@ def main():
     print(f"Pipeline Orchestrator — {len(ordered)} steps")
     if args.dry_run:
         print("  [DRY RUN]")
+    if args.parallel:
+        print(f"  [PARALLEL] max workers: {args.workers}")
     print()
 
     # Run steps
@@ -237,16 +272,11 @@ def main():
     total_start = time.time()
     failed = False
 
-    for step in ordered:
-        prefix = f"  [{step.name}]"
-        if args.skip_optional and step.optional:
-            print(f"{prefix} SKIPPED (optional)")
-            continue
-
-        print(f"{prefix} {step.description}")
-
+    def run_step(step: Step) -> dict:
+        """Run a single step (all its scripts). Returns result dict."""
         step_start = time.time()
         step_ok = True
+        lines: list[str] = []
 
         for script in step.scripts:
             flags = list(step.flags)
@@ -258,30 +288,87 @@ def main():
             ok, duration, output = run_script(script, flags, dry_run=args.dry_run)
 
             if ok:
-                print(f"    ✓ {script} ({duration:.1f}s)")
+                lines.append(f"    \u2713 {script} ({duration:.1f}s)")
             else:
-                print(f"    ✗ {script} ({duration:.1f}s)")
-                # Print last few lines of error
+                lines.append(f"    \u2717 {script} ({duration:.1f}s)")
                 for line in output.strip().split("\n")[-3:]:
-                    print(f"      {line}")
+                    lines.append(f"      {line}")
                 step_ok = False
 
         step_duration = time.time() - step_start
-
-        result = {
+        return {
             "step": step.name,
             "status": "ok" if step_ok else "failed",
             "duration_s": round(step_duration, 1),
             "scripts": step.scripts,
+            "optional": step.optional,
+            "output_lines": lines,
         }
-        results.append(result)
 
-        if not step_ok and not step.optional:
-            print(f"\n  ✗ {step.name} FAILED — aborting pipeline")
-            failed = True
-            break
-        elif not step_ok:
-            print(f"    (optional — continuing)")
+    if args.parallel:
+        # ── Parallel mode: run steps level-by-level ──
+        levels = compute_levels(ordered)
+
+        for level_idx, level_steps in enumerate(levels):
+            # Filter out skipped optional steps
+            if args.skip_optional:
+                level_steps = [s for s in level_steps if not s.optional]
+            if not level_steps:
+                continue
+
+            step_names = ", ".join(s.name for s in level_steps)
+            if len(level_steps) > 1:
+                print(f"  [parallel] {step_names}")
+            else:
+                print(f"  [level {level_idx}] {step_names}")
+
+            for s in level_steps:
+                print(f"  [{s.name}] {s.description}")
+
+            with ThreadPoolExecutor(max_workers=args.workers) as executor:
+                futures = {executor.submit(run_step, s): s for s in level_steps}
+                level_results = []
+                for future in as_completed(futures):
+                    result = future.result()
+                    level_results.append(result)
+
+            # Print output and collect results (in original order for determinism)
+            level_results.sort(key=lambda r: [s.name for s in level_steps].index(r["step"]))
+            for result in level_results:
+                for line in result["output_lines"]:
+                    print(line)
+                results.append(result)
+
+                if result["status"] != "ok" and not result["optional"]:
+                    print(f"\n  \u2717 {result['step']} FAILED \u2014 aborting pipeline")
+                    failed = True
+                elif result["status"] != "ok":
+                    print(f"    (optional \u2014 continuing)")
+
+            if failed:
+                break
+            print()
+    else:
+        # ── Sequential mode (default) ──
+        for step in ordered:
+            prefix = f"  [{step.name}]"
+            if args.skip_optional and step.optional:
+                print(f"{prefix} SKIPPED (optional)")
+                continue
+
+            print(f"{prefix} {step.description}")
+
+            result = run_step(step)
+            for line in result["output_lines"]:
+                print(line)
+            results.append(result)
+
+            if result["status"] != "ok" and not step.optional:
+                print(f"\n  \u2717 {step.name} FAILED \u2014 aborting pipeline")
+                failed = True
+                break
+            elif result["status"] != "ok":
+                print(f"    (optional \u2014 continuing)")
 
     total_duration = time.time() - total_start
 
@@ -297,10 +384,11 @@ def main():
         icon = "✓" if r["status"] == "ok" else "✗"
         print(f"    {icon} {r['step']:<20s} {r['duration_s']:>6.1f}s")
 
-    # Log to DB
+    # Log to DB (strip output_lines from results before logging)
     if not args.dry_run:
+        log_results = [{k: v for k, v in r.items() if k not in ("output_lines", "optional")} for r in results]
         log_to_db("pipeline_run", {
-            "steps": results,
+            "steps": log_results,
             "total_duration_s": round(total_duration, 1),
             "ok": ok_count,
             "failed": fail_count,

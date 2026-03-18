@@ -1,30 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
 import { NextResponse } from "next/server";
-
-// 13 SACROSANCT playing models, each averaging 4 core attributes
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller:  ["anticipation", "composure", "decisions", "tempo"],
-  Commander:   ["communication", "concentration", "drive", "leadership"],
-  Creator:     ["creativity", "unpredictability", "vision", "guile"],
-  Target:      ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter:    ["acceleration", "balance", "movement", "pace"],
-  Powerhouse:  ["aggression", "duels", "shielding", "stamina"],
-  Cover:       ["awareness", "discipline", "interceptions", "positioning"],
-  Engine:      ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer:   ["blocking", "clearances", "marking", "tackling"],
-  Dribbler:    ["carries", "first_touch", "skills", "take_ons"],
-  Passer:      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker:     ["close_range", "mid_range", "long_range", "penalties"],
-  GK:          ["agility", "footwork", "handling", "reactions"],
-};
-
-// Attribute aliases (DB inconsistencies)
-const ATTR_ALIASES: Record<string, string> = {
-  takeons: "take_ons",
-  leadership: "leadership",
-  unpredicability: "unpredictability",
-};
 
 // Which models matter for each position (weights 0-1)
 // Reviewed by DOF: Passer added to CD, Powerhouse to DM, Cover raised for CM,
@@ -80,17 +57,6 @@ for (const [roleName, intel] of Object.entries(ROLE_INTELLIGENCE)) {
     }
   }
 }
-
-// Source priority for fallback scoring (higher = preferred)
-// For each attribute, we use the score from the highest-priority source that has data.
-// This prevents eafc_inferred garbage (undifferentiated all-10s) from polluting real data.
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5,
-  statsbomb: 4,
-  fbref: 3,
-  understat: 2,
-  eafc_inferred: 1,
-};
 
 export async function GET(
   _req: Request,

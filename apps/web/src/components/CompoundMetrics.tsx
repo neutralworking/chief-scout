@@ -1,24 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-// ── Model-to-attribute mapping (from CHIEF_SCOUT_PROMPT.md) ──────────────────
-
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  // Technical
-  Dribbler:    ["carries", "first_touch", "skills", "take_ons"],
-  Passer:      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker:     ["short_range", "mid_range", "long_range", "penalties"],
-  GK:          ["agility", "footwork", "handling", "reactions"],
-  // Tactical
-  Cover:       ["awareness", "discipline", "interceptions", "positioning"],
-  Destroyer:   ["blocking", "clearances", "marking", "tackling"],
-  Engine:      ["intensity", "pressing", "stamina", "versatility"],
-  // Physical
-  Sprinter:    ["acceleration", "balance", "movement", "pace"],
-  Powerhouse:  ["aggression", "duels", "shielding", "throwing"],
-  Target:      ["aerial_duels", "heading", "jumping", "volleys"],
-};
+import { MODEL_ATTRIBUTES } from "@/lib/models";
 
 const COMPOUND_MODELS: Record<string, string[]> = {
   Technical: ["Dribbler", "Passer", "Striker"],

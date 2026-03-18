@@ -25,6 +25,7 @@ from __future__ import annotations
 import sys
 
 from config import POSTGRES_DSN
+from lib.models import MODEL_ATTRIBUTES, ATTR_ALIASES
 
 DRY_RUN = "--dry-run" in sys.argv
 
@@ -41,28 +42,7 @@ TOP_LEAGUES = TOP_5_LEAGUES | frozenset({
 })
 
 
-# ── SACROSANCT: 13 Playing Models ────────────────────────────────────────────
-
-MODEL_ATTRIBUTES: dict[str, list[str]] = {
-    # Mental
-    "Controller":  ["anticipation", "composure", "decisions", "tempo"],
-    "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
-    # Physical
-    "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
-    "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
-    # Tactical
-    "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
-    "Engine":      ["intensity", "pressing", "stamina", "versatility"],
-    "Destroyer":   ["blocking", "clearances", "marking", "tackling"],
-    # Technical
-    "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
-    "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    # Specialist
-    "GK":          ["agility", "footwork", "handling", "reactions"],
-}
+# MODEL_ATTRIBUTES imported from lib.models
 
 # Compound categories (for determining if secondary model adds diversity)
 MODEL_COMPOUNDS: dict[str, str] = {
@@ -73,12 +53,7 @@ MODEL_COMPOUNDS: dict[str, str] = {
     "GK": "Specialist",
 }
 
-# DB attribute name aliases (typos, casing inconsistencies)
-ATTR_ALIASES: dict[str, str] = {
-    "takeons": "take_ons",
-    "Leadership": "leadership",
-    "unpredicability": "unpredictability",
-}
+# ATTR_ALIASES imported from lib.models
 
 
 # ── Market Value Tier ─────────────────────────────────────────────────────────

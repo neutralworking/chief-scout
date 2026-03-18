@@ -11,33 +11,7 @@ import {
   type FullAssessment,
 } from "@/lib/assessment/four-pillars";
 import { computeAge } from "@/lib/types";
-
-// ── Attribute resolution (mirrors radar route logic) ─────────────────────────
-
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller: ["anticipation", "composure", "decisions", "tempo"],
-  Commander: ["communication", "concentration", "drive", "leadership"],
-  Creator: ["creativity", "unpredictability", "vision", "guile"],
-  Target: ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter: ["acceleration", "balance", "movement", "pace"],
-  Powerhouse: ["aggression", "duels", "shielding", "stamina"],
-  Cover: ["awareness", "discipline", "interceptions", "positioning"],
-  Engine: ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer: ["blocking", "clearances", "marking", "tackling"],
-  Dribbler: ["carries", "first_touch", "skills", "take_ons"],
-  Passer: ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker: ["close_range", "mid_range", "long_range", "penalties"],
-  GK: ["agility", "footwork", "handling", "reactions"],
-};
-
-const ATTR_ALIASES: Record<string, string> = {
-  takeons: "take_ons",
-  unpredicability: "unpredictability",
-};
-
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5, statsbomb: 4, fbref: 3, understat: 2, eafc_inferred: 1,
-};
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
 
 export async function GET(
   _req: Request,

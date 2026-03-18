@@ -3,7 +3,7 @@
  *
  * Each tactical role maps to 4-5 key models that define what makes
  * someone good at that role. The MiniRadar uses these as axes instead
- * of the generic DEF/CRE/ATK/PWR/PAC/DRV.
+ * of a generic radar. Falls back to position-specific axes.
  */
 
 import { MODEL_SHORT } from "@/lib/models";
@@ -84,21 +84,32 @@ for (const config of Object.values(ROLE_RADAR_AXES)) {
   config.labels = config.models.map((m) => MODEL_SHORT[m] ?? m.slice(0, 3).toUpperCase());
 }
 
-/** Generic 6-axis config for players without a best_role */
-export const GENERIC_OUTFIELD_AXES: RoleRadarConfig = {
-  models: ["Cover+Destroyer", "Creator+Passer", "Striker+Dribbler", "Powerhouse+Target", "Sprinter", "Engine+Commander+Controller"],
-  labels: ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"],
+/** Position-specific fallback axes for players without a best_role */
+export const POSITION_AXES: Record<string, RoleRadarConfig> = {
+  GK: { models: ["GK", "Commander", "Cover", "Passer"],                   labels: [] },
+  CD: { models: ["Destroyer", "Cover", "Commander", "Passer"],            labels: [] },
+  WD: { models: ["Engine", "Cover", "Passer", "Sprinter"],               labels: [] },
+  DM: { models: ["Cover", "Destroyer", "Controller", "Engine"],           labels: [] },
+  CM: { models: ["Controller", "Passer", "Cover", "Engine"],              labels: [] },
+  WM: { models: ["Dribbler", "Sprinter", "Passer", "Engine"],            labels: [] },
+  AM: { models: ["Creator", "Dribbler", "Controller", "Striker"],         labels: [] },
+  WF: { models: ["Dribbler", "Sprinter", "Striker", "Creator"],           labels: [] },
+  CF: { models: ["Striker", "Target", "Dribbler", "Sprinter"],            labels: [] },
 };
 
-export const GENERIC_GK_AXES: RoleRadarConfig = {
-  models: ["GK", "Commander", "Cover", "Passer"],
-  labels: ["STP", "CMD", "SWP", "DST"],
-};
+// Auto-fill position axis labels
+for (const config of Object.values(POSITION_AXES)) {
+  config.labels = config.models.map((m) => MODEL_SHORT[m] ?? m.slice(0, 3).toUpperCase());
+}
 
-/** Get radar config for a role. Falls back to generic position-based config. */
+/** Get radar config for a role. Falls back to position-specific config. */
 export function getRoleRadarConfig(bestRole: string | null, position: string | null): RoleRadarConfig {
   if (bestRole && ROLE_RADAR_AXES[bestRole]) {
     return ROLE_RADAR_AXES[bestRole];
   }
-  return position === "GK" ? GENERIC_GK_AXES : GENERIC_OUTFIELD_AXES;
+  if (position && POSITION_AXES[position]) {
+    return POSITION_AXES[position];
+  }
+  // Ultimate fallback: generic midfielder
+  return POSITION_AXES["CM"];
 }

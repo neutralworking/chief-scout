@@ -117,19 +117,23 @@ def role_axes(model_scores, role):
     return [model_scores.get(m) or 0 for m in models]
 
 
+POSITION_AXES = {
+    "GK": ["GK", "Commander", "Cover", "Passer"],
+    "CD": ["Destroyer", "Cover", "Commander", "Passer"],
+    "WD": ["Engine", "Cover", "Passer", "Sprinter"],
+    "DM": ["Cover", "Destroyer", "Controller", "Engine"],
+    "CM": ["Controller", "Passer", "Cover", "Engine"],
+    "WM": ["Dribbler", "Sprinter", "Passer", "Engine"],
+    "AM": ["Creator", "Dribbler", "Controller", "Striker"],
+    "WF": ["Dribbler", "Sprinter", "Striker", "Creator"],
+    "CF": ["Striker", "Target", "Dribbler", "Sprinter"],
+}
+
+
 def generic_axes(model_scores, position):
-    """Fallback: generic 6-axis (outfield) or 4-axis (GK)."""
-    def avg(*models):
-        vals = [model_scores[m] for m in models if model_scores.get(m) is not None]
-        return round(sum(vals) / len(vals)) if vals else 0
-
-    if position == "GK":
-        return [model_scores.get("GK") or 0, model_scores.get("Commander") or 0,
-                model_scores.get("Cover") or 0, model_scores.get("Passer") or 0]
-
-    return [avg("Cover", "Destroyer"), avg("Creator", "Passer"),
-            avg("Striker", "Dribbler"), avg("Powerhouse", "Target"),
-            model_scores.get("Sprinter") or 0, avg("Engine", "Commander", "Controller")]
+    """Fallback: position-specific 4-axis radar."""
+    models = POSITION_AXES.get(position, POSITION_AXES["CM"])
+    return [model_scores.get(m) or 0 for m in models]
 
 
 def compute_percentiles(player_group):

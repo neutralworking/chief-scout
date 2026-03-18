@@ -148,12 +148,9 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         {/* Row 5: MiniRadar fingerprint (role-specific axes) */}
         {player.fingerprint && player.fingerprint.some((v) => v > 0) && (() => {
           const radarConfig = getRoleRadarConfig(player.best_role, player.position);
-          // Only use role labels if axis count matches fingerprint length
           const labels = radarConfig.labels.length === player.fingerprint!.length
             ? radarConfig.labels
-            : player.position === "GK"
-            ? ["STP", "CMD", "SWP", "DST"]
-            : ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
+            : radarConfig.labels.slice(0, player.fingerprint!.length);
           return (
             <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
               <MiniRadar

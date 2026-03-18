@@ -39,8 +39,7 @@ const RADAR_COLORS: Record<CardTheme, string> = {
   default: "#4ade80",
 };
 
-const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
-const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
+// Labels now derived from getRoleRadarConfig() — position-specific 4-axis
 
 function ratingColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";

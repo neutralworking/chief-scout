@@ -129,6 +129,10 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `55_kaggle_injuries.py` → Injuries 2020-2025 → fitness tags + durability traits
 - `56_eafc_reimport.py` → EA FC 25 ratings → attribute_grades
 
+### 65-66: API-Football
+- `65_api_football_ingest.py` → Fetch player stats from API-Football Pro. Flags: `--league`, `--season`, `--all-leagues`, `--dry-run`, `--force`, `--match-only`
+- `66_api_football_grades.py` → API-Football stats → attribute_grades (14 attrs, position-group percentiles). Flags: `--season`, `--min-minutes`, `--dry-run`
+
 ### 60-62: Output & delivery
 - `60_fingerprints.py` → Role-specific percentile radar fingerprints. Flags: `--pool role|position|global`, `--force`
 - `61_fixture_ingest.py` → Fixtures from football-data.org
@@ -153,7 +157,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `understat_matches` + `understat_player_match_stats` | Understat | xG/xA/npxG per match |
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging (migration 003 + 005) |
 | `fbref_players` + `fbref_player_season_stats` | FBRef | Season stats (35+ cols: xG, passing, defense, possession, GK) (migration 004) |
-| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref) |
+| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref, api_football) |
 | `player_nationalities` | Wikidata P27 | Dual/multiple citizenships per player (migration 014) |
 | `player_career_history` | Wikidata P54 | Full club career with dates, loan flags, jersey numbers (migration 014) |
 | `fc_users/questions/options/votes` | Gaffer | Manager decision game + user footballing identity (migration 015) |
@@ -165,6 +169,7 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `kaggle_fifa_matches` + `kaggle_fifa_rankings` | Kaggle (zkskhurram) | FIFA international match results 1930-2022 + rankings (migration 033) |
 | `kaggle_pl_stats` | Kaggle (furkanark) | Premier League 2024-2025 player + match stats (migration 033) |
 | `kaggle_injuries` | Kaggle (sananmuzaffarov) | European football injuries 2020-2025, feeds fitness tags + durability traits (migration 033) |
+| `api_football_players` + `api_football_player_stats` | API-Football Pro | Per-season stats: goals, assists, shots, passes, tackles, duels, dribbles, cards, ratings (migration 034) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.

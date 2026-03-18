@@ -572,21 +572,19 @@ def chunked_upsert_xp(rows):
 
 
 def update_xp_modifiers(modifier_rows):
-    """Update xp_modifier on player_profiles."""
+    """Update xp_modifier on player_profiles via batch psycopg2 (avoids Supabase timeout)."""
     if not modifier_rows:
         return 0
     if DRY_RUN:
         print(f"  [dry-run] would update {len(modifier_rows)} xp_modifier values")
         return len(modifier_rows)
-    total = 0
-    for i in range(0, len(modifier_rows), CHUNK_SIZE):
-        chunk = modifier_rows[i:i + CHUNK_SIZE]
-        for row in chunk:
-            sb_client.table("player_profiles").update(
-                {"xp_modifier": row["xp_modifier"]}
-            ).eq("person_id", row["person_id"]).execute()
-            total += 1
-    return total
+    cur = conn.cursor()
+    psycopg2.extras.execute_batch(cur, """
+        UPDATE player_profiles SET xp_modifier = %(xp_modifier)s
+        WHERE person_id = %(person_id)s
+    """, modifier_rows, page_size=500)
+    conn.commit() if not conn.autocommit else None
+    return len(modifier_rows)
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────

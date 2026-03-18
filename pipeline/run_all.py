@@ -28,10 +28,14 @@ from datetime import datetime
 import psycopg2
 from dotenv import load_dotenv
 
-load_dotenv()
+_pipeline_dir = os.path.dirname(os.path.abspath(__file__))
+_repo_root = os.path.dirname(_pipeline_dir)
+_env_local = os.path.join(_repo_root, ".env.local")
+_env = os.path.join(_repo_root, ".env")
+load_dotenv(_env_local if os.path.exists(_env_local) else _env)
 
 DSN = os.environ.get("POSTGRES_DSN")
-PIPELINE_DIR = os.path.dirname(os.path.abspath(__file__))
+PIPELINE_DIR = _pipeline_dir
 PYTHON = sys.executable
 
 
@@ -44,6 +48,8 @@ class Step:
     depends_on: list[str] = field(default_factory=list)
     optional: bool = False       # Skip failures without aborting
     supports_incremental: bool = False  # Script accepts --incremental flag
+    supports_force: bool = True        # Script accepts --force flag
+    timeout: int = 900                   # Per-script timeout in seconds
 
 
 # Ordered pipeline steps — each step's scripts run sequentially
@@ -52,16 +58,22 @@ STEPS: list[Step] = [
     Step("news", ["12_news_ingest.py"], "Fetch + process news stories",
          flags=["--limit", "50"]),
 
+    # ── External data ingest ──
+    Step("api_football_ingest", ["65_api_football_ingest.py"], "Fetch API-Football stats (top 5 leagues)",
+         optional=True, supports_force=False),  # Requires API key + rate-limited; --force re-fetches from API
+
     # ── Grade computation ──
     Step("understat_grades", ["30_understat_grades.py"], "Understat → attribute grades",
          flags=["--force"]),
     Step("statsbomb_grades", ["31_statsbomb_grades.py"], "StatsBomb → attribute grades",
-         optional=True),  # Can timeout on large event datasets
+         optional=True, supports_force=False),  # Can timeout on large event datasets
+    Step("api_football_grades", ["66_api_football_grades.py"], "API-Football → attribute grades",
+         depends_on=["api_football_ingest"], optional=True, supports_force=False),
 
     # ── Ratings & profiling ──
     Step("ratings", ["27_player_ratings.py"], "Composite ratings + best_role + compound scores",
          flags=["--force"],
-         depends_on=["understat_grades", "statsbomb_grades"],
+         depends_on=["understat_grades", "statsbomb_grades", "api_football_grades"],
          supports_incremental=True),
     Step("scouting_tags", ["32_scouting_tags.py"], "Auto-assign scouting tags",
          depends_on=["ratings"]),
@@ -84,7 +96,7 @@ STEPS: list[Step] = [
 
     # ── Valuation ──
     Step("valuation", ["40_valuation_engine.py"], "Transfer valuations",
-         depends_on=["ratings"]),
+         depends_on=["ratings"], timeout=1800, optional=True),  # Heavy: 4k+ Monte Carlo, can timeout
     Step("dof_valuation", ["41_dof_valuations.py"], "DoF-anchored valuations",
          depends_on=["valuation"], optional=True),
     Step("cs_value", ["43_cs_value.py"], "Chief Scout value",
@@ -169,7 +181,7 @@ def compute_levels(ordered: list[Step]) -> list[list[Step]]:
     return levels
 
 
-def run_script(script: str, extra_flags: list[str], dry_run: bool = False) -> tuple[bool, float, str]:
+def run_script(script: str, extra_flags: list[str], dry_run: bool = False, timeout: int = 900) -> tuple[bool, float, str]:
     """Run a single pipeline script. Returns (success, duration_seconds, output)."""
     path = os.path.join(PIPELINE_DIR, script)
     if not os.path.exists(path):
@@ -187,7 +199,7 @@ def run_script(script: str, extra_flags: list[str], dry_run: bool = False) -> tu
             cmd,
             capture_output=True,
             text=True,
-            timeout=600,  # 10 min per script max
+            timeout=timeout,
             cwd=os.path.dirname(PIPELINE_DIR),  # repo root
             env={**os.environ, "POSTGRES_DSN": DSN or ""},
         )
@@ -198,7 +210,7 @@ def run_script(script: str, extra_flags: list[str], dry_run: bool = False) -> tu
             return False, duration, f"Exit code {result.returncode}: {error}"
         return True, duration, output
     except subprocess.TimeoutExpired:
-        return False, 600, "Timed out after 600s"
+        return False, timeout, f"Timed out after {timeout}s"
     except Exception as e:
         return False, time.time() - start, str(e)
 
@@ -280,12 +292,12 @@ def main():
 
         for script in step.scripts:
             flags = list(step.flags)
-            if args.force and "--force" not in flags:
+            if args.force and step.supports_force and "--force" not in flags:
                 flags.append("--force")
             if args.incremental and step.supports_incremental and "--incremental" not in flags:
                 flags.append("--incremental")
 
-            ok, duration, output = run_script(script, flags, dry_run=args.dry_run)
+            ok, duration, output = run_script(script, flags, dry_run=args.dry_run, timeout=step.timeout)
 
             if ok:
                 lines.append(f"    \u2713 {script} ({duration:.1f}s)")

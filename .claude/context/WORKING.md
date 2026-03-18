@@ -1,35 +1,24 @@
 # Working Context — Chief Scout
-> Auto-updated at session start/end. Last updated: 2026-03-17
+> Auto-updated at session start/end. Last updated: 2026-03-18
 
 ## Current Sprint
-1. **Data Density** — Run `22_fbref_grades.py`, scale to 200+ full profiles by end of March — IN PROGRESS
-2. **External Data Replacement** — Build API-Football + Fotmob ingest (FBRef scraper dead) — TODO
-3. **Radar Fingerprints Expansion** — Role-specific radar axes, MiniRadar on more pages, comparison overlay — IN PROGRESS
+1. **Data Density** — API-Football live (13,211 grades), FBRef grades still TODO, scale to 200+ profiles by end of March — IN PROGRESS
+2. **External Data Replacement** — API-Football DONE, Fotmob SKIPPED. Remaining: extend to secondary leagues, improve matching — IN PROGRESS
+3. **Radar Fingerprints Expansion** — Role-specific radar axes done, MiniRadar on 3 more pages remaining — IN PROGRESS
 
 ## Active Decisions
-- External data strategy: API-Football vs Fotmob vs both — needs evaluation
 - XP system v2: move to real XP scale (Ballon d'Or=1000) vs keep interim system
 - Women's players: decide long-term approach (separate pipeline? same tables?)
-- Pipeline script renumbering: scripts 31-37 have duplicate numbers
 
 ## Blockers
-- FBRef scraper dead — CSV import workaround in place, but need API-Football/Fotmob for automation
+- FBRef scraper dead — CSV import + API-Football workarounds in place
 - Manual personality review needed for top 50 players (LLM pass done, needs human QA at `/admin/personality`)
 - ~2,600 clubs without wikidata_ids — bulk SPARQL matcher needed
+- Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator — need perf optimization or out-of-band execution
 
-## Recent Git Activity
-```
-c9b9f15 Merge pull request #88 from neutralworking/claude/player-profile-design-updates-bWf8F
-1b88b89 Player profile design updates: role name prominence, news headlines, HC theme
-272b01e Calibrate role scoring: Kaggle data, alias system, level floors, understat compression
-9654c05 Redesign editor: scout-first layout with compound archetype selector
-0a6ecbd Update tasks.md: mark session completions, add role-specific radar to backlog
-8dfe096 Switch to percentile-based radar fingerprints (pipeline 51)
-3691d7d Contrast-boost radar fingerprints for distinctive shapes
-d2763ae Rename Blade→Mamba, Warrior→Catalyst; centralise personality definitions
-e3ed516 Filter inactive/retired players from Network page
-2bde64c Add analytics, SEO, and redesign pricing page
-```
+## Next Session
+- Plan API-Football data integration into frontend (how grades affect ratings, display, etc.)
+- Consider extending API-Football to secondary leagues (Eredivisie, Championship, etc.)
 
 ## Key Metrics
 | Table | Count | Last Updated |
@@ -37,9 +26,11 @@ e3ed516 Filter inactive/retired players from Network page
 | people | ~4,600 | 2026-03-17 |
 | player_profiles | ~4,600 | 2026-03-17 |
 | Tier 1 profiles | ~276 | 2026-03-16 |
-| attribute_grades | needs check | — |
+| attribute_grades (api_football) | 13,211 | 2026-03-18 |
+| api_football_player_stats | 2,642 | 2026-03-18 |
 | clubs | needs check | — |
-| news_stories | needs check | — |
 
-## Session #8 Notes
-> Context system being built this session. Previous sessions tracked in tasks.md, now migrated to SESSIONS.md.
+## Session #9 Notes
+> API-Football pipeline built end-to-end. Full pipeline run successful (16/18 passed, 2 pre-existing timeouts).
+> 4 pipeline bugs fixed (infer_levels, career_xp, dof_valuation, orchestrator .env loading).
+> `/next-up` skill created for session-start task prioritisation.

@@ -17,16 +17,19 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 |--------|----------------|------------------|--------|
 | **FBRef CSV** | `pipeline/11_fbref_ingest.py` | Season stats via pasted CSVs | DONE (PR #84, #86) |
 | **Kaggle datasets** | `pipeline/45-50_kaggle_*.py` | Euro leagues, transfers, FIFA historical, PL stats, injuries | DONE — 5 datasets downloaded, 4 ingested (2026-03-17) |
-| **API-Football** | `pipeline/XX_api_football_ingest.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | TODO — build |
-| **Fotmob** | `pipeline/XX_fotmob_ingest.py` | xG, defensive actions, passing, match ratings | TODO — build |
+| **API-Football** | `pipeline/65_api_football_ingest.py` + `66_api_football_grades.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | DONE — 2,642 rows, 13,211 grades (2026-03-18) |
+| **Fotmob** | — | xG, defensive actions, passing, match ratings | SKIPPED — unofficial API risk |
 | **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
 | **Understat** (existing) | `pipeline/09_understat_ingest.py` | xG/xA per match (top 5 leagues) | DONE |
 
-- [ ] **Build API-Football ingest** — Pro subscription ($30/mo), build `65_api_football_ingest.py` + `66_api_football_grades.py`, map 14 attributes to `attribute_grades`
-- [x] ~~Build Fotmob ingest~~ — SKIPPED: unofficial API, same risk as FBRef scraper death. Not worth the maintenance burden.
+- [x] ~~Build API-Football ingest~~ — Pro sub ($30/mo), scripts 65+66, migration 034, 14 attributes, 1,301 players graded (2026-03-18)
+- [x] ~~Build Fotmob ingest~~ — SKIPPED: unofficial API, same risk as FBRef scraper death
 - [ ] **Update script 22** — generalize grade computation to accept multi-source season stats (not just FBRef)
-- [ ] **Update `player_id_links`** — add `source='api_football'` and `source='fotmob'` matching
-- [ ] **Update `SOURCE_PRIORITY`** in frontend API routes — add new sources to priority chain
+- [x] ~~Update `player_id_links`~~ — `source='api_football'` matching built into 65_api_football_ingest.py (2026-03-18)
+- [x] ~~Update `SOURCE_PRIORITY`~~ — `api_football` added to models.py, models.ts, valuation_core/config.py (2026-03-18)
+- [ ] **Extend API-Football to secondary leagues** — Eredivisie, Liga Portugal, Championship, Super Lig, Jupiler Pro (configured, not yet fetched)
+- [ ] **Improve API-Football matching** — 83 PL unmatched (not in DB), ~33% unmatched across other leagues. Fuzzy matching needed.
+- [ ] **Add API-Football to Vercel env** — `API_FOOTBALL_KEY` needed for automated pipeline runs
 
 ### Data Freshness (Strategic Priority #2)
 - [ ] **News cron** — automated refresh every 2-4h (#53). Sprint item #1. Last automation gap.
@@ -108,6 +111,17 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-18, session 9)
+- [x] `/next-up` skill — prioritised task queue with skill suggestions, auto-run candidates
+- [x] External data strategy decided — API-Football Pro ($30/mo), Fotmob skipped (unofficial API risk)
+- [x] API-Football pipeline — migration 034, scripts 65 (ingest) + 66 (grades), 2,642 player-season rows across top 5 leagues
+- [x] Player matching: 1,758/2,642 matched (67%), multi-word surname + initial matching + club disambiguation
+- [x] 13,211 attribute_grades written (source='api_football'), 14 attributes, position-group percentiles
+- [x] SOURCE_PRIORITY updated in all 3 locations (models.py, models.ts, valuation_core/config.py)
+- [x] Full pipeline run — ratings, fingerprints, tags, roles, personality, valuations all recomputed with new data
+- [x] Pipeline orchestrator fixes: .env.local loading, per-step timeout, supports_force flag, valuation marked optional
+- [x] Fixed infer_levels (model_id NULL instead of string), career_xp (batch psycopg2 instead of REST), dof_valuation (mode constraint)
 
 ## Completed (2026-03-18, session 8)
 - [x] Dashboard overhaul — condensed featured, fixed sentiment dots (`--sentiment-*` → `--color-sentiment-*`), removed position/personality panels, added fixtures/contract watch/rising stars/market movers/key moments intelligence widgets

@@ -302,6 +302,7 @@ LOW_OBSERVABILITY_ATTRIBUTES = {
 SOURCE_PRIORITY = {
     "scout_assessment": 5,
     "fbref": 4,
+    "api_football": 3,
     "statsbomb": 3,
     "understat": 2,
     "computed": 1,

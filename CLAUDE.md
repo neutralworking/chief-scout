@@ -274,7 +274,7 @@ Two separate products are planned, each in their own repo, using Chief Scout as 
 
 | Product | Repo | Description | Status |
 |---------|------|-------------|--------|
-| **Kickoff Clash** | `kickoff-clash` | Loot bin (gacha packs) + TCG card battler with comedic fictional players built from CS archetypes/stats | Planned |
+| **Kickoff Clash** | `kickoff-clash` | Loot bin (gacha packs) + Balatro-style roguelike card battler with comedic fictional players. Builds from CS archetypes (Tiki-Taka, Gegenpressing, Catenaccio, etc.) | Planned |
 | **Punter's Pad** | `punters-pad` | Virtual sportsbook — betting on real fixtures with virtual currency | Planned |
 
 **Data flow**: Chief Scout → (pipeline export) → Kickoff Clash + Punter's Pad. Game repos never write back to CS.

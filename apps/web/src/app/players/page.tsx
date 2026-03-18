@@ -108,17 +108,19 @@ function EditableCell({
   const [focused, setFocused] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const lastSaved = useRef(value);
+  const pendingRef = useRef(value);  // Always tracks latest value (no stale closure)
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setDisplayValue(value); lastSaved.current = value; }, [value]);
+  useEffect(() => { setDisplayValue(value); lastSaved.current = value; pendingRef.current = value; }, [value]);
 
   // Debounced save: updates display instantly, batches API call
   function queueSave(newVal: number) {
     const clamped = Math.min(max, Math.max(min, newVal));
     setDisplayValue(clamped);
+    pendingRef.current = clamped;
     onSaved?.(clamped);
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => flushSave(clamped), 500);
+    saveTimer.current = setTimeout(() => flushSave(clamped), 400);
   }
 
   async function flushSave(val: number) {
@@ -137,19 +139,25 @@ function EditableCell({
     setTimeout(() => setFlash(null), 800);
   }
 
-  // Flush on unmount
+  // Flush pending value immediately (reads from ref, never stale)
+  function flushPending() {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    const val = pendingRef.current;
+    if (val !== null && val !== lastSaved.current) {
+      flushSave(val);
+    }
+  }
+
+  // Flush on unmount — ref is always current
   useEffect(() => () => {
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-      const pending = displayValue;
-      if (pending !== null && pending !== lastSaved.current) {
-        // fire-and-forget
-        fetch("/api/admin/player-update", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ person_id: personId, table, updates: { [field]: pending } }),
-        }).catch(() => {});
-      }
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    const val = pendingRef.current;
+    if (val !== null && val !== lastSaved.current) {
+      fetch("/api/admin/player-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
+      }).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -176,8 +184,7 @@ function EditableCell({
       queueSave((displayValue ?? 50) - 1);
     } else if (e.key === "Tab") {
       e.preventDefault();
-      // Flush any pending save before moving
-      if (saveTimer.current) { clearTimeout(saveTimer.current); if (displayValue !== null) flushSave(displayValue); }
+      flushPending();
       const direction = e.shiftKey ? -1 : 1;
       const nextRow = rowIndex + direction;
       const target = document.querySelector(`[data-edit-field="${field}"][data-edit-row="${nextRow}"]`) as HTMLElement;
@@ -223,10 +230,9 @@ function EditableCell({
       data-edit-row={rowIndex}
       onClick={(e) => e.stopPropagation()}
       onFocus={() => setFocused(true)}
-      onBlur={(e) => {
+      onBlur={() => {
         setFocused(false);
-        // Flush pending save when leaving cell
-        if (saveTimer.current && displayValue !== null) { clearTimeout(saveTimer.current); flushSave(displayValue); }
+        flushPending();
       }}
       onKeyDown={handleKeyDown}
     >

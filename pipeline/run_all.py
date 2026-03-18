@@ -102,6 +102,10 @@ STEPS: list[Step] = [
          depends_on=["news"], optional=True),
     Step("career_metrics", ["23_career_metrics.py"], "Career trajectory metrics",
          flags=["--force"], optional=True),
+
+    # ── Validation (always last) ──
+    Step("validate", ["63_validate.py"], "Post-pipeline data quality checks",
+         depends_on=["ratings", "fingerprints"]),
 ]
 
 STEP_MAP = {s.name: s for s in STEPS}

@@ -3,7 +3,7 @@
 ## High Priority
 
 ### Data Density (Strategic Priority #1)
-- [ ] **Run `22_fbref_grades.py`** — 0 fbref-sourced grades in attribute_grades table. Requires FBRef CSV data in `fbref_player_season_stats`.
+- [x] ~~Run `22_fbref_grades.py`~~ — 1,418 grades (limited by FBRef CSV coverage: only goals/assists columns populated). Stale rows cleaned (2026-03-18)
 - [x] **Apply migration 029** (`pipeline/sql/029_trait_scores.sql`) — player_trait_scores table + availability columns
 - [x] **Run personality rules** — `python 34_personality_rules.py` (15 players updated)
 - [x] **Run personality LLM** — `python 35_personality_llm.py --min-level 85 --limit 50`
@@ -17,7 +17,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 |--------|----------------|------------------|--------|
 | **FBRef CSV** | `pipeline/11_fbref_ingest.py` | Season stats via pasted CSVs | DONE (PR #84, #86) |
 | **Kaggle datasets** | `pipeline/45-50_kaggle_*.py` | Euro leagues, transfers, FIFA historical, PL stats, injuries | DONE — 5 datasets downloaded, 4 ingested (2026-03-17) |
-| **API-Football** | `pipeline/65_api_football_ingest.py` + `66_api_football_grades.py` | Season stats: passes, tackles, dribbles, shots, cards, ratings | DONE — 2,642 rows, 13,211 grades (2026-03-18) |
+| **API-Football** | `pipeline/65-69_api_football_*.py` | Season stats + match + import + positions + grades | DONE — 4,906 rows, 36,799 grades, 4,666 matched (2026-03-18) |
 | **Fotmob** | — | xG, defensive actions, passing, match ratings | SKIPPED — unofficial API risk |
 | **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
 | **Understat** (existing) | `pipeline/09_understat_ingest.py` | xG/xA per match (top 5 leagues) | DONE |
@@ -28,7 +28,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~Update `player_id_links`~~ — `source='api_football'` matching built into 65_api_football_ingest.py (2026-03-18)
 - [x] ~~Update `SOURCE_PRIORITY`~~ — `api_football` added to models.py, models.ts, valuation_core/config.py (2026-03-18)
 - [ ] **Extend API-Football to secondary leagues** — Eredivisie, Liga Portugal, Championship, Super Lig, Jupiler Pro (configured, not yet fetched)
-- [ ] **Improve API-Football matching** — 83 PL unmatched (not in DB), ~33% unmatched across other leagues. Fuzzy matching needed.
+- [x] ~~Improve API-Football matching~~ — Script 67 (match+import): 4,666 matched (was 600), 1,507 new players imported, 5-strategy matching (2026-03-18)
 - [ ] **Add API-Football to Vercel env** — `API_FOOTBALL_KEY` needed for automated pipeline runs
 
 ### Data Freshness (Strategic Priority #2)
@@ -83,6 +83,8 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Add materialized view auto-refresh after pipeline scripts
 - [ ] Women's players: decide long-term approach
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
+- [ ] **Fix script 04** (`refine_players.py`) — crashes on news_sentiment_agg `story_types` (string not dict)
+- [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)
 
 ### Pipeline Infrastructure (ALL COMPLETE)
 - [x] ~~Script renumbering~~ — 37 files, clean ranges 01-79, zero collisions (2026-03-18)
@@ -94,7 +96,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~Single MODEL_ATTRIBUTES source~~ — `lib/models.ts` + `lib/models.py`, removed from 10+ files (2026-03-18)
 
 ### Product & Features
-- [ ] **Comparison tool** — side-by-side player radar + stats (ROADMAP Phase 2)
+- [x] ~~Comparison tool~~ — /compare with radar overlay, four-pillar bars, 13 model scores, roles, personality, market, verdict (2026-03-18)
 - [ ] **Formations seed** — populate from research data (#54, sprint item #2)
 - [x] ~~Editor redesign~~ — scout-first layout, compound archetype selector, position-filtered blueprints, collapsible sections, mobile touch targets (2026-03-17)
 - [ ] **Product polish** — glass consistency, archetype styling (#55, sprint item #3)
@@ -105,12 +107,31 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 ### Data Enrichment
 - [ ] Apply migration 024 (network_roles + network_edits tables)
 
+### New Scripts (session 10)
+- [x] ~~67_af_match_and_import.py~~ — 3-phase: sync person_id, improved matching, import new players (2026-03-18)
+- [x] ~~68_af_infer_positions.py~~ — infer position from AF stats heuristics (2026-03-18)
+- [x] ~~69_wikidata_quick_enrich.py~~ — search API + entity data for DOB/height/nation/foot (2026-03-18)
+- [x] ~~29_fix_club_assignments.py rewrite~~ — multi-source priority (AF→TM→WD), youth/reserve detection, 50+ AF short names (2026-03-18)
+- [x] ~~60_fingerprints.py fix~~ — position-specific 4-axis replacing generic 6-axis (2026-03-18)
+
 ## Low Priority
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-18, session 10)
+- [x] Radar fix: position-specific 4-axis replacing generic 6-axis (CD shows DES/COV/CMD/PAS, not DEF/CRE/ATK/PWR/PAC/DRV)
+- [x] Club assignment overhaul: script 29 rewritten with AF→TM→WD priority, youth/reserve detection, 50+ AF short name mappings
+- [x] 1,100+ club assignments fixed, Benzema manually corrected (wrong Wikidata entity)
+- [x] 133 stale "Free Agent" + 78 stale "Expiring" contract tags cleared (players actively playing in AF data)
+- [x] AF matching + import: 4,666 matched (was 600), 1,507 new players imported (script 67)
+- [x] Position inference from AF stats: 1,468 positions inferred (script 68)
+- [x] Wikidata quick enrichment: 201 top players enriched with DOB/height/nation/foot (script 69)
+- [x] FBRef grades refreshed (1,418), 991 stale rows from old scale cleaned
+- [x] Full enrichment chain re-run: grades (36,799 AF), ratings (8,591), fingerprints (8,594), levels (1,175 inferred), personalities (1,135), blueprints (30), scouting tags (455)
+- [x] 813 missing player_profiles stubs + 2,215 player_status + 2,204 player_market stubs created
 
 ## Completed (2026-03-18, session 9)
 - [x] `/next-up` skill — prioritised task queue with skill suggestions, auto-run candidates

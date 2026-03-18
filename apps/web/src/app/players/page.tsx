@@ -6,7 +6,8 @@ import { Suspense } from "react";
 import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS, PURSUIT_COLORS } from "@/lib/types";
 import Link from "next/link";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZES = [25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 50;
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_STATUSES = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
@@ -41,50 +42,76 @@ interface PlayerRow extends PlayerCardType {
   apps: number | null;
   goals: number | null;
   assists: number | null;
+  xg: number | null;
 }
 
-// ── Inline editable number cell ──────────────────────────────────────────────
+// Nation → flag emoji (2-letter ISO → regional indicator symbols)
+const NATION_FLAGS: Record<string, string> = {};
+function nationFlag(nation: string | null | undefined): string {
+  if (!nation) return "";
+  if (NATION_FLAGS[nation]) return NATION_FLAGS[nation];
+  // Common nation name → ISO 2-letter mapping
+  const ISO: Record<string, string> = {
+    "Argentina": "AR", "Australia": "AU", "Austria": "AT", "Belgium": "BE", "Brazil": "BR",
+    "Cameroon": "CM", "Canada": "CA", "Chile": "CL", "Colombia": "CO", "Croatia": "HR",
+    "Czech Republic": "CZ", "Czechia": "CZ", "Denmark": "DK", "Ecuador": "EC", "Egypt": "EG",
+    "England": "GB-ENG", "France": "FR", "Germany": "DE", "Ghana": "GH", "Greece": "GR",
+    "Hungary": "HU", "Iceland": "IS", "Iran": "IR", "Ireland": "IE", "Israel": "IL",
+    "Italy": "IT", "Ivory Coast": "CI", "Jamaica": "JM", "Japan": "JP", "Mali": "ML",
+    "Mexico": "MX", "Morocco": "MA", "Netherlands": "NL", "Nigeria": "NG", "North Macedonia": "MK",
+    "Norway": "NO", "Paraguay": "PY", "Peru": "PE", "Poland": "PL", "Portugal": "PT",
+    "Republic of Ireland": "IE", "Romania": "RO", "Russia": "RU", "Scotland": "GB-SCT",
+    "Senegal": "SN", "Serbia": "RS", "Slovakia": "SK", "Slovenia": "SI", "South Korea": "KR",
+    "Spain": "ES", "Sweden": "SE", "Switzerland": "CH", "Turkey": "TR", "Ukraine": "UA",
+    "United States": "US", "Uruguay": "UY", "Venezuela": "VE", "Wales": "GB-WLS",
+    "Algeria": "DZ", "Tunisia": "TN", "DR Congo": "CD", "Guinea": "GN", "Gabon": "GA",
+    "Burkina Faso": "BF", "Togo": "TG", "Benin": "BJ", "Niger": "NE", "Chad": "TD",
+    "Congo": "CG", "Costa Rica": "CR", "Honduras": "HN", "Panama": "PA", "Georgia": "GE",
+    "Armenia": "AM", "Albania": "AL", "Bosnia and Herzegovina": "BA", "Montenegro": "ME",
+    "Kosovo": "XK", "Finland": "FI", "New Zealand": "NZ", "China": "CN", "India": "IN",
+  };
+  const code = ISO[nation];
+  if (!code) { NATION_FLAGS[nation] = nation.slice(0, 3); return NATION_FLAGS[nation]; }
+  // England/Scotland/Wales don't have emoji flags — use 3-letter abbrev
+  if (code.startsWith("GB-")) { NATION_FLAGS[nation] = nation.slice(0, 3).toUpperCase(); return NATION_FLAGS[nation]; }
+  const flag = String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  NATION_FLAGS[nation] = flag;
+  return flag;
+}
+
+// ── Inline editable number cell with +/- arrows + keyboard nav ──────────────
+// data-edit-field and data-edit-row attributes enable Tab navigation:
+//   Tab → next row same field, Shift+Tab → prev row, Arrow Up/Down → adjust value
 function EditableCell({
   value,
   personId,
   field,
   table,
-  min,
-  max,
+  rowIndex,
+  min = 1,
+  max = 99,
   onSaved,
 }: {
   value: number | null;
   personId: number;
   field: string;
   table: string;
+  rowIndex: number;
   min?: number;
   max?: number;
   onSaved?: (newVal: number) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value ?? ""));
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<"saved" | "error" | null>(null);
   const [displayValue, setDisplayValue] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync displayValue with prop when prop changes (e.g. page navigation)
   useEffect(() => { setDisplayValue(value); }, [value]);
 
-  useEffect(() => {
-    if (editing) {
-      setDraft(String(value ?? ""));
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setTimeout(() => inputRef.current?.select(), 100);
-    }
-  }, [editing, value]);
-
-  async function save() {
-    if (saving) return;
-    const num = Number(draft);
-    if (isNaN(num) || draft === "") { setEditing(false); return; }
-    const clamped = Math.min(max ?? 99, Math.max(min ?? 1, num));
-    if (clamped === value) { setEditing(false); return; }
+  async function saveValue(newVal: number) {
+    const clamped = Math.min(max, Math.max(min, newVal));
+    if (clamped === displayValue || saving) return;
 
     setSaving(true);
     try {
@@ -98,50 +125,67 @@ function EditableCell({
         onSaved?.(clamped);
         setFlash("saved");
       } else {
-        console.error("Save failed:", await res.text());
         setFlash("error");
       }
-    } catch (e) {
-      console.error("Save error:", e);
+    } catch {
       setFlash("error");
     }
     setSaving(false);
-    setEditing(false);
-    setTimeout(() => setFlash(null), 1500);
+    setTimeout(() => setFlash(null), 1000);
   }
 
-  if (!editing) {
-    return (
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditing(true); }}
-        className={`font-mono text-xs cursor-text hover:bg-[var(--bg-elevated)] rounded px-1 -mx-1 transition-colors ${
-          flash === "saved" ? "text-[var(--color-accent-tactical)]" :
-          flash === "error" ? "text-red-400" :
-          ratingColor(displayValue)
-        }`}
-        title={`Edit ${field}`}
-      >
-        {displayValue ?? "–"}
-      </button>
-    );
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      saveValue((displayValue ?? 50) + 1);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      saveValue((displayValue ?? 50) - 1);
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      // Find next/prev row with same field
+      const direction = e.shiftKey ? -1 : 1;
+      const nextRow = rowIndex + direction;
+      const target = document.querySelector(`[data-edit-field="${field}"][data-edit-row="${nextRow}"]`) as HTMLElement;
+      if (target) target.focus();
+    }
   }
+
+  const colorClass = flash === "saved" ? "text-[var(--color-accent-tactical)]" :
+    flash === "error" ? "text-red-400" : ratingColor(displayValue);
 
   return (
-    <input
-      ref={inputRef}
-      type="number"
-      inputMode="numeric"
-      pattern="[0-9]*"
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={save}
-      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); save(); } if (e.key === "Escape") setEditing(false); }}
+    <div
+      ref={containerRef}
+      className={`inline-flex items-center gap-0.5 rounded px-0.5 -mx-0.5 outline-none transition-colors ${focused ? "ring-1 ring-[var(--color-accent-tactical)]/50 bg-[var(--bg-elevated)]" : ""}`}
+      tabIndex={0}
+      data-edit-field={field}
+      data-edit-row={rowIndex}
       onClick={(e) => e.stopPropagation()}
-      min={min}
-      max={max}
-      disabled={saving}
-      className="w-14 px-1 py-0.5 text-xs font-mono rounded bg-[var(--bg-surface-solid)] border border-[var(--color-accent-tactical)] text-[var(--text-primary)] focus:outline-none text-right"
-    />
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        onClick={() => saveValue((displayValue ?? 50) - 1)}
+        disabled={saving || (displayValue ?? 50) <= min}
+        className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
+        tabIndex={-1}
+      >
+        &minus;
+      </button>
+      <span className={`font-mono text-xs font-bold min-w-[1.5rem] text-center ${colorClass}`}>
+        {displayValue ?? "–"}
+      </span>
+      <button
+        onClick={() => saveValue((displayValue ?? 50) + 1)}
+        disabled={saving || (displayValue ?? 50) >= max}
+        className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
+        tabIndex={-1}
+      >
+        +
+      </button>
+    </div>
   );
 }
 
@@ -154,6 +198,7 @@ function PlayersContent() {
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [loginPass, setLoginPass] = useState("");
@@ -161,7 +206,7 @@ function PlayersContent() {
   const position = searchParams.get("position") ?? "";
   const pursuit = searchParams.get("pursuit") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "role_score";
+  const sort = searchParams.get("sort") ?? "level_raw";
   const tier = searchParams.get("tier") ?? "";
 
   useEffect(() => {
@@ -190,14 +235,14 @@ function PlayersContent() {
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (tier) params.set("tier", tier);
-    params.set("limit", String(PAGE_SIZE));
+    params.set("limit", String(pageSize));
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, pursuit, q, sort, tier]);
+  }, [position, pursuit, q, sort, tier, pageSize]);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier]);
+  // Reset page when filters or page size change
+  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, pageSize]);
 
   useEffect(() => {
     let cancelled = false;
@@ -205,7 +250,7 @@ function PlayersContent() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(buildUrl(page * PAGE_SIZE));
+        const res = await fetch(buildUrl(page * pageSize));
         if (!res.ok) { setError(`Failed: ${res.statusText}`); setLoading(false); return; }
         const data = await res.json();
         if (!cancelled) {
@@ -285,8 +330,16 @@ function PlayersContent() {
               </button>
             ))}
           </div>
-          {/* Pagination inline */}
+          {/* Pagination + page size */}
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="text-[10px] font-mono px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
+              title="Players per page"
+            >
+              {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0 || loading}
@@ -295,7 +348,7 @@ function PlayersContent() {
               &larr;
             </button>
             <span className="text-[10px] font-mono text-[var(--text-muted)]">
-              {loading ? "..." : `${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + players.length}`}
+              {loading ? "..." : `${page * pageSize + 1}–${page * pageSize + players.length}`}
             </span>
             <button
               onClick={() => setPage(page + 1)}
@@ -364,17 +417,18 @@ function PlayersContent() {
                     <th className="text-left py-1.5 px-3 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-12">Score</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-12">Lvl</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-14">Score</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-14">Lvl</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16">CS Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16 hidden lg:table-cell">TM Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">App</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">G</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">A</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-12 hidden lg:table-cell">xG</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {players.map((player) => {
+                  {players.map((player, idx) => {
                     const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
 
                     return (
@@ -385,11 +439,19 @@ function PlayersContent() {
                           </span>
                         </td>
                         <td className="py-1.5 px-3">
-                          <Link href={`/players/${player.person_id}`}
-                            className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-xs">
-                            {player.name}
-                          </Link>
-                          <span className="text-[10px] text-[var(--text-muted)] ml-1.5">{player.club || ""}</span>
+                          <div className="flex items-center gap-1.5">
+                            <Link href={`/players/${player.person_id}`}
+                              className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-xs">
+                              {player.name}
+                            </Link>
+                            {player.dob && (
+                              <span className="text-[9px] text-[var(--text-muted)] font-mono">{computeAge(player.dob)}</span>
+                            )}
+                            {player.nation && (
+                              <span className="text-[10px]" title={player.nation}>{nationFlag(player.nation)}</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[var(--text-muted)]">{player.club || ""}</span>
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-right">
@@ -399,6 +461,7 @@ function PlayersContent() {
                               personId={player.person_id}
                               field="best_role_score"
                               table="player_profiles"
+                              rowIndex={idx}
                               min={1}
                               max={99}
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
@@ -416,6 +479,7 @@ function PlayersContent() {
                               personId={player.person_id}
                               field="level"
                               table="player_profiles"
+                              rowIndex={idx}
                               min={1}
                               max={99}
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}
@@ -441,6 +505,9 @@ function PlayersContent() {
                         <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
                           {player.assists ?? "–"}
                         </td>
+                        <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                          {player.xg ?? "–"}
+                        </td>
                       </tr>
                     );
                   })}
@@ -450,7 +517,7 @@ function PlayersContent() {
 
             {/* Mobile card list */}
             <div className="sm:hidden flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]/30">
-              {players.map((player) => {
+              {players.map((player, idx) => {
                 const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
 
                 return (
@@ -461,7 +528,11 @@ function PlayersContent() {
                           {player.position ?? "–"}
                         </span>
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
-                          <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
+                          <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
+                            {player.name}
+                            {player.dob && <span className="text-[10px] text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
+                            {player.nation && <span className="text-[10px] ml-1" title={player.nation}>{nationFlag(player.nation)}</span>}
+                          </p>
                           <p className="text-[10px] text-[var(--text-muted)] truncate">{player.club || ""}</p>
                         </Link>
                       </div>
@@ -487,6 +558,7 @@ function PlayersContent() {
                               personId={player.person_id}
                               field="best_role_score"
                               table="player_profiles"
+                              rowIndex={idx}
                               min={1}
                               max={99}
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
@@ -505,6 +577,7 @@ function PlayersContent() {
                               personId={player.person_id}
                               field="level"
                               table="player_profiles"
+                              rowIndex={idx}
                               min={1}
                               max={99}
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}

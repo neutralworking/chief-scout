@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { MODEL_SHORT } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { RadarChart } from "./RadarChart";
@@ -26,11 +27,6 @@ interface FeaturedPlayerData {
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
 const GK_MODELS = ["GK", "Cover", "Commander", "Controller", "Passer"];
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 interface RadarData {
   modelScores: Record<string, number>;

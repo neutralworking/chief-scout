@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 
 from config import POSTGRES_DSN
 from lib.db import require_conn, get_supabase
+from lib.models import MODEL_ATTRIBUTES as _BASE_MODEL_ATTRIBUTES, SOURCE_PRIORITY, ATTR_ALIASES as _BASE_ATTR_ALIASES
 
 # ── Argument parsing ───────────────────────────────────────────────────────────
 
@@ -52,29 +53,19 @@ conn = require_conn(autocommit=True)
 sb_client = get_supabase()
 
 
-# ── Model Definitions (matches radar route.ts) ───────────────────────────────
-
-MODEL_ATTRIBUTES = {
-    "Controller":  ["anticipation", "composure", "decisions", "tempo"],
-    "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
-    "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
-    "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
-    "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
-    "Engine":      ["intensity", "pressing", "stamina", "versatility"],
-    "Destroyer":   ["blocking", "clearances", "marking", "tackling"],
-    "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
-    "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    "GK":          ["positioning", "awareness", "pass_range", "throwing"],
-}
+# ── Model Definitions ─────────────────────────────────────────────────────────
+# Base MODEL_ATTRIBUTES imported from lib.models.
+# Override GK model for ratings: uses positional/distribution attributes
+# rather than the standard reflex-based GK model used by radar/fingerprints.
+MODEL_ATTRIBUTES = {**_BASE_MODEL_ATTRIBUTES, "GK": ["positioning", "awareness", "pass_range", "throwing"]}
 
 # Fallback aliases: when the primary attribute is missing, try these instead.
 # Only used if the primary has zero data. Keeps models functional with sparse data.
 # IMPORTANT: aliases must not map to another attribute already in the same model,
 # or the model will double-count. Each alias should be a distinct proxy.
+# Extends the base ATTR_ALIASES from lib.models with ratings-specific proxies.
 ATTRIBUTE_ALIASES = {
+    **_BASE_ATTR_ALIASES,
     "unpredictability": "take_ons",     # flair proxy (skills is in Dribbler, avoid double-count)
     "guile":            "through_balls", # cunning ≈ incisive passing
     "decisions":        "positioning",  # decision-making ≈ reading the game
@@ -179,15 +170,7 @@ POSITION_COMPOUND_WEIGHTS = {
     "CF":  {"Technical": 0.3, "Tactical": 0.1, "Physical": 0.3, "Mental": 0.3},
 }
 
-# Source priority (higher = preferred)
-SOURCE_PRIORITY = {
-    "scout_assessment": 5,
-    "fbref": 4,
-    "statsbomb": 3,
-    "understat": 2,
-    "computed": 1,
-    "eafc_inferred": 0,
-}
+# SOURCE_PRIORITY imported from lib.models
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

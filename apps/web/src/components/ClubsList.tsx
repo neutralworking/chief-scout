@@ -49,12 +49,14 @@ export function ClubsList({
     if (league) {
       list = list.filter((c) => c.league_name === league);
     }
-    // Sort: weighted score = avg_level * min(squad_size, 15) / 15
-    // This prevents 1-player clubs from topping the list
+    // Sort: avg_level primary, but clubs with <5 players sink to the bottom
     return list.sort((a, b) => {
-      const scoreA = (a.avg_level ?? 0) * Math.min(a.player_count, 15) / 15;
-      const scoreB = (b.avg_level ?? 0) * Math.min(b.player_count, 15) / 15;
-      return scoreB - scoreA;
+      const aSmall = a.player_count < 5 ? 1 : 0;
+      const bSmall = b.player_count < 5 ? 1 : 0;
+      if (aSmall !== bSmall) return aSmall - bSmall;
+      const diff = (b.avg_level ?? 0) - (a.avg_level ?? 0);
+      if (diff !== 0) return diff;
+      return b.player_count - a.player_count;
     });
   }, [clubs, search, league]);
 

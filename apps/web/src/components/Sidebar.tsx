@@ -17,6 +17,7 @@ const ALL_NAV_ITEMS = [
   { label: "Fixtures", href: "/fixtures" },
   { label: "News Feed", href: "/news" },
   { label: "Free Agents", href: "/free-agents" },
+  { label: "Compare", href: "/compare" },
   { label: "Gaffer", href: "/choices" },
   { label: "Network", href: "/network", stagingOnly: true },
   { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },

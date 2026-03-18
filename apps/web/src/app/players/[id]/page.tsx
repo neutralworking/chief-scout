@@ -250,7 +250,7 @@ export default async function PlayerDetailPage({
   const fbrefId = fbrefLink?.external_id;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]">
+    <div className="flex flex-col lg:h-[calc(100vh-4rem)]">
       {/* ── Header: Identity + Bio + Assessment ─────────────────────────── */}
       <div className="shrink-0 space-y-1 mb-1">
         {/* Nav */}
@@ -437,7 +437,7 @@ export default async function PlayerDetailPage({
       {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1">
         {/* Left: Radar + Personality + Stats */}
-        <div className="overflow-y-auto space-y-1 pr-0.5">
+        <div className="lg:overflow-y-auto space-y-1 pr-0.5">
           <PlayerRadar playerId={player.person_id} position={player.position} compact />
 
           {(player.ei != null || player.personality_type) && (
@@ -463,7 +463,7 @@ export default async function PlayerDetailPage({
         </div>
 
         {/* Right: Valuation + Career + Similar + News + Shortlists */}
-        <div className="overflow-y-auto space-y-1 pl-0.5">
+        <div className="lg:overflow-y-auto space-y-1 pl-0.5">
           {valuation && <ValuationPanel valuation={valuation} />}
 
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />

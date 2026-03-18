@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
 import { fetchSeasonStats } from "@/lib/stats";
 
+// Never cache — admin edits must reflect immediately on refresh
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const SELECT =
   "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
 
@@ -177,5 +181,8 @@ export async function GET(req: NextRequest) {
 
   // Fingerprints now come precomputed from the view (pipeline 51)
   // Return hasMore flag instead of total count (avoids expensive count query on view)
-  return NextResponse.json({ players, hasMore: players.length === limit });
+  return NextResponse.json(
+    { players, hasMore: players.length === limit },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" } },
+  );
 }

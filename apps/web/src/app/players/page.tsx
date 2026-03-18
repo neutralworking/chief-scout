@@ -76,8 +76,8 @@ function nationFlag(nation: string | null | undefined): string {
 }
 
 // ── Inline editable number cell ──────────────────────────────────────────────
-// Display updates instantly on +/- clicks. Saves to DB ONLY when leaving the
-// cell (blur/Tab/Enter). One save per cell, always the final value. No races.
+// Saves on EVERY change (click, arrow, typed value). Serialized: rapid clicks
+// collapse — only the latest value is sent. Survives page refresh via sendBeacon.
 function EditableCell({
   value,
   personId,
@@ -102,8 +102,9 @@ function EditableCell({
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
-  const pendingRef = useRef(value);
-  const savedRef = useRef(value);
+  const pendingRef = useRef(value);    // latest value to save
+  const savedRef = useRef(value);      // last value confirmed saved
+  const savingRef = useRef(false);     // is a save in flight?
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -112,37 +113,66 @@ function EditableCell({
     savedRef.current = value;
   }, [value]);
 
-  // Update display instantly — no API call yet
-  function step(newVal: number) {
+  // Serialized save: sends the latest pending value. If a save is in flight,
+  // it waits and re-checks — so rapid clicks collapse to one final save.
+  async function flushSave() {
+    if (savingRef.current) return; // another flush is already looping
+    savingRef.current = true;
+    while (pendingRef.current !== savedRef.current && pendingRef.current !== null) {
+      const val = pendingRef.current;
+      try {
+        const res = await fetch("/api/admin/player-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
+        });
+        if (res.ok) {
+          savedRef.current = val;
+          setFlash("saved");
+          setTimeout(() => setFlash(null), 600);
+        } else {
+          setFlash("error");
+          setTimeout(() => setFlash(null), 600);
+          break; // don't retry on error
+        }
+      } catch {
+        setFlash("error");
+        setTimeout(() => setFlash(null), 600);
+        break;
+      }
+    }
+    savingRef.current = false;
+  }
+
+  // Save on every change: update display + trigger serialized save
+  function saveValue(newVal: number) {
     const clamped = Math.min(max, Math.max(min, newVal));
+    if (clamped === pendingRef.current) return;
     setDisplayValue(clamped);
     pendingRef.current = clamped;
     onSaved?.(clamped);
+    flushSave();
   }
 
-  // Save to DB — called on blur/Tab/Enter only
-  async function persist() {
-    const val = pendingRef.current;
-    if (val === null || val === savedRef.current) return;
-    savedRef.current = val;
-    try {
-      const res = await fetch("/api/admin/player-update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
-      });
-      setFlash(res.ok ? "saved" : "error");
-    } catch {
-      setFlash("error");
+  // Safety net: if page unloads with unsaved data, use sendBeacon
+  useEffect(() => {
+    function handleUnload() {
+      const val = pendingRef.current;
+      if (val !== null && val !== savedRef.current) {
+        navigator.sendBeacon(
+          "/api/admin/player-update",
+          JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
+        );
+      }
     }
-    setTimeout(() => setFlash(null), 800);
-  }
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [personId, table, field]);
 
   function commitTyping() {
     const num = Number(draft);
-    if (!isNaN(num) && draft !== "") step(num);
+    if (!isNaN(num) && draft !== "") saveValue(num);
     setTyping(false);
-    // persist happens on the container's blur which fires after typing blur
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -150,22 +180,20 @@ function EditableCell({
       if (e.key === "Enter") {
         e.preventDefault();
         const num = Number(draft);
-        if (!isNaN(num) && draft !== "") step(num);
+        if (!isNaN(num) && draft !== "") saveValue(num);
         setTyping(false);
-        persist();
       }
       if (e.key === "Escape") { setTyping(false); }
       return;
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      step((pendingRef.current ?? 50) + 1);
+      saveValue((pendingRef.current ?? 50) + 1);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      step((pendingRef.current ?? 50) - 1);
+      saveValue((pendingRef.current ?? 50) - 1);
     } else if (e.key === "Tab") {
       e.preventDefault();
-      persist();
       const direction = e.shiftKey ? -1 : 1;
       const nextRow = rowIndex + direction;
       const target = document.querySelector(`[data-edit-field="${field}"][data-edit-row="${nextRow}"]`) as HTMLElement;
@@ -176,11 +204,6 @@ function EditableCell({
       setDraft(e.key);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }
-
-  function handleBlur() {
-    setFocused(false);
-    persist();
   }
 
   const colorClass = flash === "saved" ? "text-[var(--color-accent-tactical)]" :
@@ -215,11 +238,11 @@ function EditableCell({
       data-edit-row={rowIndex}
       onClick={(e) => e.stopPropagation()}
       onFocus={() => setFocused(true)}
-      onBlur={handleBlur}
+      onBlur={() => setFocused(false)}
       onKeyDown={handleKeyDown}
     >
       <button
-        onClick={() => step((pendingRef.current ?? 50) - 1)}
+        onClick={() => saveValue((pendingRef.current ?? 50) - 1)}
         disabled={(displayValue ?? 50) <= min}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}
@@ -233,7 +256,7 @@ function EditableCell({
         {displayValue ?? "–"}
       </span>
       <button
-        onClick={() => step((pendingRef.current ?? 50) + 1)}
+        onClick={() => saveValue((pendingRef.current ?? 50) + 1)}
         disabled={(displayValue ?? 50) >= max}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}

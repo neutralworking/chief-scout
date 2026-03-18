@@ -16,19 +16,11 @@ Usage:
 
 import argparse
 import json
-import os
 import sys
 
-import psycopg2
 import numpy as np
-from dotenv import load_dotenv
 
-load_dotenv()
-
-DSN = os.environ.get("POSTGRES_DSN")
-if not DSN:
-    print("POSTGRES_DSN not set")
-    sys.exit(1)
+from lib.db import require_conn
 
 # 13 models → 4 attributes each
 MODEL_ATTRIBUTES = {
@@ -199,7 +191,7 @@ def main():
                              "'position' (rank within position group), 'global' (all outfield together)")
     args = parser.parse_args()
 
-    conn = psycopg2.connect(DSN)
+    conn = require_conn()
     cur = conn.cursor()
 
     print("51 — Role-Specific Percentile Radar Fingerprints")

@@ -24,9 +24,8 @@ import math
 import sys
 from datetime import datetime, timezone
 
-from supabase import create_client
-
-from config import POSTGRES_DSN, SUPABASE_URL, SUPABASE_SERVICE_KEY
+from config import POSTGRES_DSN
+from lib.db import require_conn, get_supabase
 
 # ── Argument parsing ───────────────────────────────────────────────────────────
 
@@ -49,23 +48,8 @@ CHUNK_SIZE = 200
 
 # ── Connections ────────────────────────────────────────────────────────────────
 
-try:
-    import psycopg2
-    import psycopg2.extras
-except ImportError:
-    print("ERROR: psycopg2 not installed. Run: pip install psycopg2-binary")
-    sys.exit(1)
-
-if not POSTGRES_DSN:
-    print("ERROR: Set POSTGRES_DSN in .env")
-    sys.exit(1)
-if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY in .env")
-    sys.exit(1)
-
-conn = psycopg2.connect(POSTGRES_DSN)
-conn.autocommit = True
-sb_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+conn = require_conn(autocommit=True)
+sb_client = get_supabase()
 
 
 # ── Model Definitions (matches radar route.ts) ───────────────────────────────

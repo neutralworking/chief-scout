@@ -69,16 +69,6 @@ interface MarketMover {
   market_premium: number;
 }
 
-interface KeyMoment {
-  id: number;
-  person_id: number;
-  name: string;
-  moment_type: string;
-  title: string | null;
-  description: string | null;
-  moment_date: string;
-}
-
 // Deterministic daily rotation
 function dailySeed(): number {
   const d = new Date();
@@ -99,7 +89,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   if (!supabaseServer) return null;
 
   const sixMonthsOut = new Date(Date.now() + 180 * 86400000).toISOString().split("T")[0];
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
@@ -168,13 +157,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
       .not("market_premium", "is", null)
       .order("market_premium", { ascending: false })
       .limit(10),
-    // 9: Key moments — last 7 days
-    supabaseServer
-      .from("key_moments")
-      .select("id, person_id, moment_type, title, description, moment_date, people!inner(name)")
-      .gte("moment_date", sevenDaysAgo)
-      .order("moment_date", { ascending: false })
-      .limit(5),
   ];
 
   if (shortlistsEnabled) {
@@ -194,7 +176,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dofPicksResult, sentimentResult, newsResult, trendingResult, fixturesResult, gafferResult, contractResult, risingResult, marketResult, momentsResult] = results as any[];
+  const [dofPicksResult, sentimentResult, newsResult, trendingResult, fixturesResult, gafferResult, contractResult, risingResult, marketResult] = results as any[];
 
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
@@ -405,19 +387,6 @@ async function getDashboardData(shortlistsEnabled: boolean) {
   const undervalued = marketRaw.filter((m) => m.market_premium < 0).sort((a, b) => a.market_premium - b.market_premium).slice(0, 3);
   const marketMovers = [...overpriced, ...undervalued].sort((a, b) => Math.abs(b.market_premium) - Math.abs(a.market_premium)).slice(0, 5);
 
-  // Key moments
-  const keyMoments = ((momentsResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
-    const people = r.people as Record<string, unknown> | null;
-    return {
-      id: r.id as number,
-      person_id: r.person_id as number,
-      name: (people?.name as string) ?? "Unknown",
-      moment_type: r.moment_type as string,
-      title: r.title as string | null,
-      description: r.description as string | null,
-      moment_date: r.moment_date as string,
-    };
-  }) as KeyMoment[];
 
   // Pro data
   let proData = null;
@@ -439,7 +408,7 @@ async function getDashboardData(shortlistsEnabled: boolean) {
     };
   }
 
-  return { featured, featuredReason, featuredPool, news: newsWithTags, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, keyMoments, proData };
+  return { featured, featuredReason, featuredPool, news: newsWithTags, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, proData };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -483,14 +452,6 @@ const COMP_SHORT: Record<string, string> = {
   "Bundesliga": "BL", "Ligue 1": "L1",
 };
 
-const MOMENT_ICON: Record<string, string> = {
-  goal: "\u26A1",
-  assist: "\uD83C\uDFAF",
-  performance: "\uD83D\uDD25",
-  controversy: "\u26A0\uFE0F",
-  milestone: "\uD83C\uDFC6",
-};
-
 async function getShowcasePlayers(): Promise<PlayerCardType[]> {
   if (!supabaseServer) return [];
   const { data } = await supabaseServer
@@ -528,7 +489,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, news, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, keyMoments, proData } = data;
+  const { featured, featuredReason, featuredPool, news, trendingPlayers, fixtures, sampleQuestion, contractPlayers, risingStars, marketMovers, proData } = data;
 
   return (
     <div className="space-y-3">
@@ -731,14 +692,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Row 3: Intelligence cards — only render cards that have data */}
-      {(risingStars.length > 0 || marketMovers.length > 0 || keyMoments.length > 0) && (
+      {(risingStars.length > 0 || marketMovers.length > 0) && (
         <div className={`grid grid-cols-1 gap-3 ${
-          (() => {
-            const count = [risingStars.length > 0, marketMovers.length > 0, keyMoments.length > 0].filter(Boolean).length;
-            if (count >= 3) return "md:grid-cols-3";
-            if (count === 2) return "md:grid-cols-2";
-            return "";
-          })()
+          risingStars.length > 0 && marketMovers.length > 0 ? "md:grid-cols-2" : ""
         }`}>
           {/* Rising Stars */}
           {risingStars.length > 0 && (
@@ -790,30 +746,6 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Key Moments */}
-          {keyMoments.length > 0 && (
-            <div className="glass rounded-xl p-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-mental)] mb-2">
-                Key Moments <span className="text-[var(--text-muted)] font-normal">7d</span>
-              </h3>
-              <div className="space-y-1.5">
-                {keyMoments.map((m) => (
-                  <Link key={m.id} href={`/players/${m.person_id}`} className="flex items-start gap-2 py-1 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                    <span className="text-[11px] shrink-0 mt-0.5">{MOMENT_ICON[m.moment_type] ?? "\u2022"}</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[11px] font-medium text-[var(--text-primary)] block truncate">
-                        {m.title ?? m.description ?? m.moment_type}
-                      </span>
-                      <span className="text-[9px] text-[var(--text-muted)]">{m.name}</span>
-                    </div>
-                    <span className="text-[8px] text-[var(--text-muted)] font-mono shrink-0">
-                      {new Date(m.moment_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 

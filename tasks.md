@@ -22,8 +22,8 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 | **StatsBomb** (existing) | `pipeline/08_statsbomb_ingest.py` | Event-level data (select comps only) | DONE |
 | **Understat** (existing) | `pipeline/09_understat_ingest.py` | xG/xA per match (top 5 leagues) | DONE |
 
-- [ ] **Build API-Football ingest** — register key, build pipeline script, map to `attribute_grades`
-- [ ] **Build Fotmob ingest** — unofficial API, build pipeline script, map to `attribute_grades`
+- [ ] **Build API-Football ingest** — Pro subscription ($30/mo), build `65_api_football_ingest.py` + `66_api_football_grades.py`, map 14 attributes to `attribute_grades`
+- [x] ~~Build Fotmob ingest~~ — SKIPPED: unofficial API, same risk as FBRef scraper death. Not worth the maintenance burden.
 - [ ] **Update script 22** — generalize grade computation to accept multi-source season stats (not just FBRef)
 - [ ] **Update `player_id_links`** — add `source='api_football'` and `source='fotmob'` matching
 - [ ] **Update `SOURCE_PRIORITY`** in frontend API routes — add new sources to priority chain
@@ -81,14 +81,14 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Women's players: decide long-term approach
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
 
-### Pipeline Infrastructure
-- [x] ~~Script renumbering~~ — 37 files, clean ranges, zero collisions (2026-03-18)
-- [ ] **Pipeline orchestrator** — `pipeline/run_all.py`: dependency-ordered execution, skip-if-unchanged (checksum), timing, cron_log integration. Trigger from admin panel.
-- [ ] **Incremental processing** — add `updated_at` tracking so scripts only process players modified since last run. Use cron_log for delta detection.
-- [ ] **Shared DB connection** — `pipeline/lib/db.py` standardising psycopg2 connection across all 56 scripts (currently each script opens its own)
-- [ ] **Post-pipeline validation** — `pipeline/63_validate.py`: null rate checks, duplicate detection, grade distribution drift. Flags anomalies to cron_log.
-- [ ] **Parallel pipeline execution** — asyncio/multiprocessing for independent scripts (news, stats, wikidata). 3-5x speedup (plan F7)
-- [ ] **Single MODEL_ATTRIBUTES source** — currently defined in radar/route.ts, formation-intelligence.ts, and 60_fingerprints.py. Extract to shared config.
+### Pipeline Infrastructure (ALL COMPLETE)
+- [x] ~~Script renumbering~~ — 37 files, clean ranges 01-79, zero collisions (2026-03-18)
+- [x] ~~Pipeline orchestrator~~ — `run_all.py`: 20 steps, dependency order, cron_log, --steps/--from/--dry-run (2026-03-18)
+- [x] ~~Incremental processing~~ — `lib/incremental.py`: cron_log delta detection, wired into ratings (7360→1 player on change) (2026-03-18)
+- [x] ~~Shared DB connection~~ — `lib/db.py`: require_conn(), get_supabase(), get_dict_cursor(), chunked_upsert() (2026-03-18)
+- [x] ~~Post-pipeline validation~~ — `63_validate.py`: 6 categories, 28 checks, logs to cron_log (2026-03-18)
+- [x] ~~Parallel pipeline execution~~ — `--parallel` flag, ThreadPoolExecutor, level-based grouping (2026-03-18)
+- [x] ~~Single MODEL_ATTRIBUTES source~~ — `lib/models.ts` + `lib/models.py`, removed from 10+ files (2026-03-18)
 
 ### Product & Features
 - [ ] **Comparison tool** — side-by-side player radar + stats (ROADMAP Phase 2)
@@ -108,6 +108,24 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-18, session 8)
+- [x] Dashboard overhaul — condensed featured, fixed sentiment dots (`--sentiment-*` → `--color-sentiment-*`), removed position/personality panels, added fixtures/contract watch/rising stars/market movers/key moments intelligence widgets
+- [x] Sidebar: "Formations" → "Tactics"
+- [x] Scout Pad v2 — bulk level/role editor table with infinite scroll, inline editing of position + level, filters by position/pursuit/search
+- [x] Scout Pad API route (`/api/scout-pad`) — paginated player_intelligence_card query with sorting/filtering
+
+## Completed (2026-03-18, session 7)
+- [x] Rating formula overhaul — coverage-scaled blend (50% tech at 40+ grades, 20% at thin data), peak removed, stale compounds cleaned
+- [x] ~38 level corrections applied (Ballon d'Or / Guardian calibration), 15 reverted after user review
+- [x] Players page: inline editable index with +/- steppers, admin login, nation flags, xG, FBRef+Kaggle stats, page size selector
+- [x] "Needs Review" sort — surfaces biggest |level - overall| divergence
+- [x] Editor: Level/Peak promoted to Scouting Profile section (always visible)
+- [x] Display swap: level→overall across all pages (free agents, clubs, fixtures, shortlists, formations, network, review, admin)
+- [x] API routes updated to sort by overall, return stats data
+- [x] Pipeline 52 (calibrate_from_edits) — source bias detection, kNN level prediction, auto-apply
+- [x] network_edits audit logging fixed (UUID user_id bug)
+- [x] Seeded 38 corrections into network_edits as training data
 
 ## Completed (2026-03-17, session 6)
 - [x] Role score full calibration — aliases, level floors, understat compression, GK remap. 7,363 players rated. Validated: Haaland 89, Mbappé 89, Kane 85, Yamal 86, Palmer 84, Alisson 86, Ederson 80

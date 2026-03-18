@@ -7,7 +7,7 @@ import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS, PURSUIT_COLO
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
-const DEFAULT_PAGE_SIZE = 50;
+const DEFAULT_PAGE_SIZE = 100;
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_STATUSES = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
@@ -289,6 +289,9 @@ function PlayersContent() {
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [autoScroll, setAutoScroll] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [loginPass, setLoginPass] = useState("");
@@ -344,15 +347,47 @@ function PlayersContent() {
         if (!res.ok) { setError(`Failed: ${res.statusText}`); setLoading(false); return; }
         const data = await res.json();
         if (!cancelled) {
-          setPlayers(data.players ?? []);
+          // In autoScroll mode on page > 0, append instead of replace
+          if (autoScroll && page > 0) {
+            setPlayers((prev) => [...prev, ...(data.players ?? [])]);
+          } else {
+            setPlayers(data.players ?? []);
+          }
           setHasMore(data.hasMore ?? false);
         }
       } catch (e) { if (!cancelled) setError(String(e)); }
-      if (!cancelled) setLoading(false);
+      if (!cancelled) { setLoading(false); setLoadingMore(false); }
     }
     load();
     return () => { cancelled = true; };
-  }, [buildUrl, page]);
+  }, [buildUrl, page, autoScroll, pageSize]);
+
+  // Infinite scroll: IntersectionObserver on sentinel
+  useEffect(() => {
+    if (!autoScroll || !sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          setLoadingMore(true);
+          setPage((p) => p + 1);
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [autoScroll, hasMore, loading, loadingMore]);
+
+  // Reset players when toggling autoScroll off
+  function toggleAutoScroll() {
+    if (autoScroll) {
+      setAutoScroll(false);
+      setPage(0);
+    } else {
+      setAutoScroll(true);
+      setPage(0);
+    }
+  }
 
   useEffect(() => { setSearchInput(q); }, [q]);
 
@@ -420,33 +455,53 @@ function PlayersContent() {
               </button>
             ))}
           </div>
-          {/* Pagination + page size */}
+          {/* Pagination + page size + autoscroll */}
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="text-[10px] font-mono px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
-              title="Players per page"
-            >
-              {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
             <button
-              onClick={() => setPage(Math.max(0, page - 1))}
-              disabled={page === 0 || loading}
-              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={toggleAutoScroll}
+              className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+                autoScroll
+                  ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
+                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+              }`}
+              title="Infinite scroll — loads more as you scroll down"
             >
-              &larr;
+              Auto
             </button>
-            <span className="text-[10px] font-mono text-[var(--text-muted)]">
-              {loading ? "..." : `${page * pageSize + 1}–${page * pageSize + players.length}`}
-            </span>
-            <button
-              onClick={() => setPage(page + 1)}
-              disabled={!hasMore || loading}
-              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              &rarr;
-            </button>
+            {!autoScroll && (
+              <>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="text-[10px] font-mono px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
+                  title="Players per page"
+                >
+                  {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <button
+                  onClick={() => setPage(Math.max(0, page - 1))}
+                  disabled={page === 0 || loading}
+                  className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  &larr;
+                </button>
+                <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                  {loading ? "..." : `${page * pageSize + 1}–${page * pageSize + players.length}`}
+                </span>
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={!hasMore || loading}
+                  className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  &rarr;
+                </button>
+              </>
+            )}
+            {autoScroll && (
+              <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                {players.length} loaded
+              </span>
+            )}
           </div>
         </div>
 
@@ -672,11 +727,21 @@ function PlayersContent() {
                 );
               })}
             </div>
+
+            {/* Infinite scroll sentinel + loading indicator */}
+            {autoScroll && hasMore && (
+              <div ref={sentinelRef} className="py-3 text-center">
+                {loadingMore && <p className="text-[10px] text-[var(--text-muted)]">Loading more...</p>}
+              </div>
+            )}
+            {autoScroll && !hasMore && players.length > 0 && (
+              <p className="text-[10px] text-[var(--text-muted)] py-2 text-center">All players loaded</p>
+            )}
           </div>
         )}
 
         {/* Loading state */}
-        {loading && (
+        {loading && !loadingMore && (
           <div className="glass rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading players...</p>
           </div>

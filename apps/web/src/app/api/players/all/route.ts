@@ -34,8 +34,10 @@ export async function GET(req: NextRequest) {
 
   let query = prodFilter(supabase.from("player_intelligence_card").select(SELECT));
 
-  // Exclude retired/inactive players by default
-  query = query.eq("active", true);
+  // Exclude retired/inactive players and women's teams by default
+  query = query.eq("active", true)
+    .not("club", "ilike", "%women%")
+    .not("club", "ilike", "%wfc%");
 
   // Server-side filters
   if (position) query = query.eq("position", position);

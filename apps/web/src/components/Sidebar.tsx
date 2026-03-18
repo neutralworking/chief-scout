@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
@@ -70,6 +71,22 @@ const NAV_CATEGORIES: NavCategory[] = isProduction()
 export function Sidebar() {
   const pathname = usePathname();
   const { user, loading: authLoading } = useAuth();
+  const [showPin, setShowPin] = useState(false);
+  const [pin, setPin] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    setIsAdmin(sessionStorage.getItem("network_admin") === "1");
+  }, []);
+
+  function handlePin() {
+    if (pin === "0.123456789") {
+      sessionStorage.setItem("network_admin", "1");
+      setIsAdmin(true);
+      setShowPin(false);
+      setPin("");
+    }
+  }
 
   return (
     <>
@@ -151,12 +168,37 @@ export function Sidebar() {
               </div>
             </Link>
           ) : (
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 rounded-lg hover:bg-[var(--accent-tactical)]/10 transition-colors"
-            >
-              Sign in
-            </Link>
+            <div className="space-y-2">
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 rounded-lg hover:bg-[var(--accent-tactical)]/10 transition-colors"
+              >
+                Sign in
+              </Link>
+              {isAdmin ? (
+                <div className="text-[10px] text-[var(--color-accent-tactical)] text-center">Admin active</div>
+              ) : showPin ? (
+                <div className="flex gap-1">
+                  <input
+                    type="password"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handlePin(); }}
+                    placeholder="PIN"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+                    autoFocus
+                  />
+                  <button onClick={handlePin} className="px-2 py-1 text-[10px] text-[var(--color-accent-tactical)] hover:bg-[var(--bg-elevated)] rounded">Go</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowPin(true)}
+                  className="w-full text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors py-1"
+                >
+                  Admin
+                </button>
+              )}
+            </div>
           )}
         </div>
       </aside>

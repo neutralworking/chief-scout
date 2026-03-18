@@ -80,9 +80,8 @@ function nationFlag(nation: string | null | undefined): string {
 }
 
 // ── Inline editable number cell ──────────────────────────────────────────────
-// No debounce. Every change saves immediately (fire-and-forget).
-// Click +/- or Arrow Up/Down to step. Click number or type digits to enter directly.
-// Tab → next row same field.
+// Display updates instantly on +/- clicks. Saves to DB ONLY when leaving the
+// cell (blur/Tab/Enter). One save per cell, always the final value. No races.
 function EditableCell({
   value,
   personId,
@@ -107,49 +106,70 @@ function EditableCell({
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
+  const pendingRef = useRef(value);
+  const savedRef = useRef(value);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setDisplayValue(value); }, [value]);
+  useEffect(() => {
+    setDisplayValue(value);
+    pendingRef.current = value;
+    savedRef.current = value;
+  }, [value]);
 
-  // Save immediately — no debounce, no batching, no closures to go stale
-  function saveNow(newVal: number) {
+  // Update display instantly — no API call yet
+  function step(newVal: number) {
     const clamped = Math.min(max, Math.max(min, newVal));
-    if (clamped === displayValue) return;
     setDisplayValue(clamped);
+    pendingRef.current = clamped;
     onSaved?.(clamped);
-    fetch("/api/admin/player-update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ person_id: personId, table, updates: { [field]: clamped } }),
-    }).then((res) => {
+  }
+
+  // Save to DB — called on blur/Tab/Enter only
+  async function persist() {
+    const val = pendingRef.current;
+    if (val === null || val === savedRef.current) return;
+    savedRef.current = val;
+    try {
+      const res = await fetch("/api/admin/player-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_id: personId, table, updates: { [field]: val } }),
+      });
       setFlash(res.ok ? "saved" : "error");
-      setTimeout(() => setFlash(null), 600);
-    }).catch(() => {
+    } catch {
       setFlash("error");
-      setTimeout(() => setFlash(null), 600);
-    });
+    }
+    setTimeout(() => setFlash(null), 800);
   }
 
   function commitTyping() {
     const num = Number(draft);
-    if (!isNaN(num) && draft !== "") saveNow(num);
+    if (!isNaN(num) && draft !== "") step(num);
     setTyping(false);
+    // persist happens on the container's blur which fires after typing blur
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (typing) {
-      if (e.key === "Enter") { e.preventDefault(); commitTyping(); }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const num = Number(draft);
+        if (!isNaN(num) && draft !== "") step(num);
+        setTyping(false);
+        persist();
+      }
       if (e.key === "Escape") { setTyping(false); }
       return;
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      saveNow((displayValue ?? 50) + 1);
+      step((pendingRef.current ?? 50) + 1);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      saveNow((displayValue ?? 50) - 1);
+      step((pendingRef.current ?? 50) - 1);
     } else if (e.key === "Tab") {
       e.preventDefault();
+      persist();
       const direction = e.shiftKey ? -1 : 1;
       const nextRow = rowIndex + direction;
       const target = document.querySelector(`[data-edit-field="${field}"][data-edit-row="${nextRow}"]`) as HTMLElement;
@@ -160,6 +180,11 @@ function EditableCell({
       setDraft(e.key);
       setTimeout(() => inputRef.current?.focus(), 0);
     }
+  }
+
+  function handleBlur() {
+    setFocused(false);
+    persist();
   }
 
   const colorClass = flash === "saved" ? "text-[var(--color-accent-tactical)]" :
@@ -194,11 +219,11 @@ function EditableCell({
       data-edit-row={rowIndex}
       onClick={(e) => e.stopPropagation()}
       onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
       <button
-        onClick={() => saveNow((displayValue ?? 50) - 1)}
+        onClick={() => step((pendingRef.current ?? 50) - 1)}
         disabled={(displayValue ?? 50) <= min}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}
@@ -207,12 +232,12 @@ function EditableCell({
       </button>
       <span
         className={`font-mono text-xs font-bold min-w-[1.5rem] text-center cursor-text ${colorClass}`}
-        onClick={() => { setTyping(true); setDraft(String(displayValue ?? "")); setTimeout(() => inputRef.current?.focus(), 0); }}
+        onClick={() => { setTyping(true); setDraft(String(pendingRef.current ?? "")); setTimeout(() => inputRef.current?.focus(), 0); }}
       >
         {displayValue ?? "–"}
       </span>
       <button
-        onClick={() => saveNow((displayValue ?? 50) + 1)}
+        onClick={() => step((pendingRef.current ?? 50) + 1)}
         disabled={(displayValue ?? 50) >= max}
         className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 px-0.5"
         tabIndex={-1}

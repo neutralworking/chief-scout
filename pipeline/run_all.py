@@ -51,7 +51,8 @@ STEPS: list[Step] = [
     # ── Grade computation ──
     Step("understat_grades", ["30_understat_grades.py"], "Understat → attribute grades",
          flags=["--force"]),
-    Step("statsbomb_grades", ["31_statsbomb_grades.py"], "StatsBomb → attribute grades"),
+    Step("statsbomb_grades", ["31_statsbomb_grades.py"], "StatsBomb → attribute grades",
+         optional=True),  # Can timeout on large event datasets
 
     # ── Ratings & profiling ──
     Step("ratings", ["27_player_ratings.py"], "Composite ratings + best_role + compound scores",

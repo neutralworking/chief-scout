@@ -345,6 +345,12 @@ def compute_biographical_signals(
 
     if news:
         story_types = news.get("story_types") or {}
+        if isinstance(story_types, str):
+            import json
+            try:
+                story_types = json.loads(story_types)
+            except (json.JSONDecodeError, TypeError):
+                story_types = {}
         sentiment = float(news.get("sentiment_score") or 10)   # 1-20
         total_stories = sum(story_types.values()) if story_types else 0
 

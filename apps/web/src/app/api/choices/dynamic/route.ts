@@ -192,6 +192,12 @@ const ATK_POSITIONS = ["CF", "WF", "AM", "WM"];
 const DEF_POSITIONS = ["GK", "CD", "WD", "DM"];
 const MID_POSITIONS = ["DM", "CM", "WM", "AM"];
 
+// Quality tiers — levels are 70-95 scale
+const LVL_ELITE = 88;     // ~50 players — Ballon d'Or tier, everyone knows them
+const LVL_STAR = 85;      // ~1,400 — mainstream top players, recognisable names
+const LVL_STRONG = 82;    // ~2,500 — solid first-team quality
+const LVL_PROSPECT = 78;  // for youth questions — hot prospects
+
 // ── Template Generators ──────────────────────────────────────────────────────
 
 // 1. Best young player (U-19/20/21/23)
@@ -204,9 +210,10 @@ const bestYoungPlayer: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
-    .not("overall", "is", null)
+    .not("level", "is", null)
+    .gte("level", LVL_PROSPECT)
     .not("position", "is", null)
-    .order("overall", { ascending: false })
+    .order("level", { ascending: false })
     .limit(12);
 
   if (!data || data.length < 4) return null;
@@ -232,8 +239,9 @@ const bestAtPosition: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .eq("position", pos)
-    .not("overall", "is", null)
-    .order("overall", { ascending: false })
+    .not("level", "is", null)
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -264,8 +272,8 @@ const roleChallenge: TemplateGenerator = async (sb) => {
     .in("position", positions)
     .not("archetype", "is", null)
     .not("level", "is", null)
-    .gte("level", 10)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STRONG)
+    .order("level", { ascending: false })
     .limit(20);
 
   if (!data || data.length < 4) return null;
@@ -310,9 +318,9 @@ const ballonDor: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
-    .not("overall", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .not("level", "is", null)
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -344,8 +352,8 @@ const archetypePick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
-    .gte("level", 10)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STRONG)
+    .order("level", { ascending: false })
     .limit(20);
 
   if (!data || data.length < 3) return null;
@@ -383,8 +391,8 @@ const positionDuel: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(12);
 
   if (!data || data.length < 2) return null;
@@ -421,8 +429,8 @@ const dreamXiSlot: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", pos)
     .not("level", "is", null)
-    .gte("level", 13)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -455,8 +463,8 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .gte("dob", youngCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
-      .gte("level", 11)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STRONG)
+      .order("level", { ascending: false })
       .limit(6),
     sb
       .from("player_intelligence_card")
@@ -464,8 +472,8 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .lte("dob", oldCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
-      .gte("level", 12)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STAR)
+      .order("level", { ascending: false })
       .limit(6),
   ]);
 
@@ -509,8 +517,8 @@ const footPreference: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .eq("preferred_foot", "Left")
       .not("level", "is", null)
-      .gte("level", 11)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STRONG)
+      .order("level", { ascending: false })
       .limit(4),
     sb
       .from("player_intelligence_card")
@@ -518,8 +526,8 @@ const footPreference: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .eq("preferred_foot", "Right")
       .not("level", "is", null)
-      .gte("level", 11)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STRONG)
+      .order("level", { ascending: false })
       .limit(4),
   ]);
 
@@ -561,8 +569,8 @@ const scarcityPick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
-    .gte("level", 11)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STRONG)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -593,8 +601,8 @@ const headToHead: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", pos)
     .not("level", "is", null)
-    .gte("level", 13)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(8);
 
   if (!data || data.length < 2) return null;
@@ -623,16 +631,16 @@ const buildDirection: TemplateGenerator = async (sb) => {
       .select(COLS)
       .in("position", ATK_POSITIONS)
       .not("level", "is", null)
-      .gte("level", 13)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STAR)
+      .order("level", { ascending: false })
       .limit(6),
     sb
       .from("player_intelligence_card")
       .select(COLS)
       .in("position", DEF_POSITIONS)
       .not("level", "is", null)
-      .gte("level", 13)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STAR)
+      .order("level", { ascending: false })
       .limit(6),
   ]);
 
@@ -671,8 +679,8 @@ const midfieldEngine: TemplateGenerator = async (sb) => {
     .in("position", MID_POSITIONS)
     .not("archetype", "is", null)
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(15);
 
   if (!data || data.length < 4) return null;
@@ -710,9 +718,9 @@ const captainPick: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .not("level", "is", null)
-    .gte("level", 13)
+    .gte("level", LVL_STAR)
     .not("personality_type", "is", null)
-    .order("overall", { ascending: false })
+    .order("level", { ascending: false })
     .limit(15);
 
   if (!data || data.length < 4) return null;
@@ -746,8 +754,8 @@ const youngAtPosition: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
-    .gte("level", 9)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_PROSPECT)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -776,7 +784,7 @@ const clubShowcase: TemplateGenerator = async (sb) => {
     .select("club")
     .not("club", "is", null)
     .not("level", "is", null)
-    .gte("level", 12)
+    .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(100);
 
@@ -801,8 +809,8 @@ const clubShowcase: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("club", club)
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(8);
 
   if (!data || data.length < 4) return null;
@@ -834,16 +842,16 @@ const crossPosition: TemplateGenerator = async (sb) => {
       .select(COLS)
       .eq("position", posA)
       .not("level", "is", null)
-      .gte("level", 13)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STAR)
+      .order("level", { ascending: false })
       .limit(4),
     sb
       .from("player_intelligence_card")
       .select(COLS)
       .eq("position", posB)
       .not("level", "is", null)
-      .gte("level", 13)
-      .order("overall", { ascending: false })
+      .gte("level", LVL_STAR)
+      .order("level", { ascending: false })
       .limit(4),
   ]);
 
@@ -878,8 +886,8 @@ const veteranPick: TemplateGenerator = async (sb) => {
     .select(COLS)
     .lte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
-    .gte("level", 13)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;
@@ -916,8 +924,8 @@ const partnershipPick: TemplateGenerator = async (sb) => {
     .select(COLS)
     .in("position", [scenario.posA, scenario.posB])
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(12);
 
   if (!data || data.length < 4) return null;
@@ -948,10 +956,10 @@ const breakoutPlayer: TemplateGenerator = async (sb) => {
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
-    .gte("level", 10)
-    .lte("level", 14)
+    .gte("level", LVL_PROSPECT)
+    .lte("level", LVL_STRONG)
     .not("archetype", "is", null)
-    .order("overall", { ascending: false })
+    .order("level", { ascending: false })
     .limit(12);
 
   if (!data || data.length < 4) return null;
@@ -979,8 +987,8 @@ const freeAgentPick: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .not("level", "is", null)
-    .gte("level", 11)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STRONG)
+    .order("level", { ascending: false })
     .limit(20);
 
   if (!data || data.length < 4) return null;
@@ -1012,8 +1020,8 @@ const nationalTeamPick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("nation", "is", null)
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(15);
 
   if (!data || data.length < 4) return null;
@@ -1056,7 +1064,7 @@ const positionDepth: TemplateGenerator = async (sb) => {
         .select(COLS)
         .eq("position", pos)
         .not("level", "is", null)
-        .order("overall", { ascending: false })
+        .order("level", { ascending: false })
         .limit(1)
     )
   );
@@ -1089,8 +1097,8 @@ const pickYourKeeper: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", "GK")
     .not("level", "is", null)
-    .gte("level", 12)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(8);
 
   if (!data || data.length < 4) return null;
@@ -1119,8 +1127,8 @@ const forwardLine: TemplateGenerator = async (sb) => {
     .select(COLS)
     .in("position", ["CF", "WF"])
     .not("level", "is", null)
-    .gte("level", 13)
-    .order("overall", { ascending: false })
+    .gte("level", LVL_STAR)
+    .order("level", { ascending: false })
     .limit(10);
 
   if (!data || data.length < 4) return null;

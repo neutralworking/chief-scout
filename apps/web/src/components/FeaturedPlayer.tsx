@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
-import { MODEL_SHORT } from "@/lib/models";
+import { MODEL_LABEL } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { RadarChart } from "./RadarChart";
@@ -116,7 +116,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   // Radar computations
   const isGK = selectedPos === "GK";
   const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
-  const radarLabels = models.map((m) => MODEL_SHORT[m]);
+  const radarLabels = models.map((m) => MODEL_LABEL[m]);
   const radarValues = radarData ? models.map((m) => radarData.modelScores[m] ?? 0) : [];
   const roles = radarData?.roleScores?.[selectedPos] ?? [];
   const activeRole = roles.find((r) => r.name === selectedRole) ?? roles[0];

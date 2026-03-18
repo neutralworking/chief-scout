@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RadarChart } from "@/components/RadarChart";
-import { MODEL_ATTRIBUTES, MODEL_SHORT } from "@/lib/models";
+import { MODEL_ATTRIBUTES, MODEL_LABEL, MODEL_SHORT } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { POSITION_COLORS } from "@/lib/types";
 
@@ -383,7 +383,7 @@ export default function ComparePage() {
   }
 
   // Radar data: all 13 models as axes
-  const radarLabels = ALL_MODELS.map((m) => MODEL_SHORT[m] ?? m.slice(0, 3));
+  const radarLabels = ALL_MODELS.map((m) => MODEL_LABEL[m] ?? m.slice(0, 3));
   const radarLayers = players.map((p, i) => ({
     values: ALL_MODELS.map((m) => p.modelScores[m] ?? 0),
     color: PLAYER_COLORS[i],

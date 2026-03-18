@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
 import Link from "next/link";
-import { MODEL_SHORT } from "@/lib/models";
+import { MODEL_LABEL } from "@/lib/models";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 
@@ -102,7 +102,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
 
   const isGK = selectedPos === "GK";
   const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
-  const radarLabels = models.map((m) => MODEL_SHORT[m]);
+  const radarLabels = models.map((m) => MODEL_LABEL[m]);
   const radarTooltips = models.map((m) => `${m}: ${MODEL_ATTRS[m] ?? ""}`);
   const radarValues = models.map((m) => data.modelScores[m] ?? 0);
 

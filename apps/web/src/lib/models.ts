@@ -29,6 +29,13 @@ export const MODEL_SHORT: Record<string, string> = {
   Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
 };
 
+/** Human-readable labels for radar axes */
+export const MODEL_LABEL: Record<string, string> = {
+  Controller: "Control", Commander: "Command", Creator: "Create", Target: "Aerial",
+  Sprinter: "Pace", Powerhouse: "Power", Cover: "Cover", Engine: "Engine",
+  Destroyer: "Destroy", Dribbler: "Dribble", Passer: "Pass", Striker: "Shoot", GK: "GK",
+};
+
 /** Source priority for fallback scoring (higher = preferred) */
 export const SOURCE_PRIORITY: Record<string, number> = {
   scout_assessment: 5,

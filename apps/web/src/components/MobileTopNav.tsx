@@ -5,20 +5,25 @@ import { usePathname } from "next/navigation";
 import { isProduction } from "@/lib/env";
 
 const ALL_NAV_ITEMS = [
+  // Scouting
   { label: "Home", href: "/", exact: true },
   { label: "Players", href: "/players" },
   { label: "Stats", href: "/stats" },
+  { label: "Free Agents", href: "/free-agents" },
+  { label: "Compare", href: "/compare" },
+  // Browse
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },
-  { label: "Tactics", href: "/formations", stagingOnly: true },
   { label: "Fixtures", href: "/fixtures" },
   { label: "News", href: "/news" },
-  { label: "Free Agents", href: "/free-agents" },
+  // Games
   { label: "Gaffer", href: "/choices" },
-  { label: "Network", href: "/network", stagingOnly: true },
+  // Admin (staging only)
+  { label: "Tactics", href: "/formations", stagingOnly: true },
   { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },
-  { label: "Review", href: "/review", stagingOnly: true },
   { label: "Editor", href: "/editor", stagingOnly: true },
+  { label: "Review", href: "/review", stagingOnly: true },
+  { label: "Network", href: "/network", stagingOnly: true },
   { label: "Admin", href: "/admin", stagingOnly: true },
 ];
 

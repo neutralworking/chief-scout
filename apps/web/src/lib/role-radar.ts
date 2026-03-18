@@ -6,7 +6,7 @@
  * of a generic radar. Falls back to position-specific axes.
  */
 
-import { MODEL_SHORT } from "@/lib/models";
+import { MODEL_LABEL } from "@/lib/models";
 
 export interface RoleRadarConfig {
   models: string[];  // Full model names (e.g. "Controller")
@@ -81,7 +81,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
 
 // Auto-fill labels from model short codes
 for (const config of Object.values(ROLE_RADAR_AXES)) {
-  config.labels = config.models.map((m) => MODEL_SHORT[m] ?? m.slice(0, 3).toUpperCase());
+  config.labels = config.models.map((m) => MODEL_LABEL[m] ?? m.slice(0, 3).toUpperCase());
 }
 
 /** Position-specific fallback axes for players without a best_role */
@@ -99,7 +99,7 @@ export const POSITION_AXES: Record<string, RoleRadarConfig> = {
 
 // Auto-fill position axis labels
 for (const config of Object.values(POSITION_AXES)) {
-  config.labels = config.models.map((m) => MODEL_SHORT[m] ?? m.slice(0, 3).toUpperCase());
+  config.labels = config.models.map((m) => MODEL_LABEL[m] ?? m.slice(0, 3).toUpperCase());
 }
 
 /** Get radar config for a role. Falls back to position-specific config. */

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
-import { MODEL_SHORT } from "@/lib/models";
+import { MODEL_LABEL } from "@/lib/models";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 
@@ -74,7 +74,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
 
   const models = radarData.positionModels?.[selectedPos] ??
     Object.keys(radarData.modelScores);
-  const radarLabels = models.map((m) => MODEL_SHORT[m] ?? m);
+  const radarLabels = models.map((m) => MODEL_LABEL[m] ?? m);
   const radarTooltips = models.map((m) => `${m}: ${MODEL_ATTRS[m] ?? ""}`);
   const radarValues = models.map((m) => radarData.modelScores[m] ?? 0);
   const roles = radarData.roleScores?.[selectedPos] ?? [];
@@ -95,11 +95,11 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
 
   const layers = [];
   if (roleOverlay) {
-    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.5)", fillOpacity: 0.06, strokeWidth: 1 });
+    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.7)", fillOpacity: 0.12, strokeWidth: 1 });
   }
-  layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.25, strokeWidth: 2 });
+  layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.30, strokeWidth: 2.5 });
 
-  const radarSize = compact ? 170 : 200;
+  const radarSize = compact ? 190 : 200;
 
   return (
     <div className="glass rounded-xl p-3 sm:p-4">

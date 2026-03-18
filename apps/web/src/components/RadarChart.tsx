@@ -40,7 +40,7 @@ export function RadarChart({ labels: labelsProp, tooltips, layers: layersProp, d
   const topLayer = layers.length > 0 ? layers[layers.length - 1] : null;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="block mx-auto">
+    <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="block mx-auto max-w-full" style={{ maxHeight: size }}>
       {/* Glow filter for vertex dots */}
       <defs>
         <filter id="dot-glow" x="-50%" y="-50%" width="200%" height="200%">

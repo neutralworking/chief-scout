@@ -138,10 +138,10 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
   const layers = [];
   if (roleOverlay && showRadar) {
-    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.5)", fillOpacity: 0.06, strokeWidth: 1 });
+    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.7)", fillOpacity: 0.12, strokeWidth: 1 });
   }
   if (showRadar) {
-    layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.25, strokeWidth: 2 });
+    layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.30, strokeWidth: 2.5 });
   }
 
   return (
@@ -226,7 +226,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             <select
               value={selectedPos}
               onChange={(e) => setSelectedPos(e.target.value)}
-              className="text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-1.5 py-0.5 text-[var(--text-primary)] cursor-pointer"
+              className="text-xs sm:text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-2 py-1 sm:px-1.5 sm:py-0.5 text-[var(--text-primary)] cursor-pointer"
             >
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>{p}{p === player.position ? " *" : ""}</option>
@@ -234,15 +234,16 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Radar + scores: stack on mobile, side-by-side on sm+ */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-2">
             {/* Radar */}
-            <div className="flex-1 min-w-0">
+            <div className="w-full sm:flex-1 sm:min-w-0 max-w-[220px] mx-auto sm:mx-0">
               <RadarChart labels={radarLabels} layers={layers} size={200} />
             </div>
 
-            {/* Scores */}
-            <div className="w-20 shrink-0 space-y-2">
-              <div>
+            {/* Scores row on mobile, column on sm+ */}
+            <div className="flex sm:flex-col sm:w-20 sm:shrink-0 gap-3 sm:gap-0 sm:space-y-2 justify-center w-full">
+              <div className="text-center sm:text-left">
                 <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
                 <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
                   {posScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -250,7 +251,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 <div className={`text-[9px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
               </div>
               {activeRole && (
-                <div>
+                <div className="text-center sm:text-left">
                   <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
                   <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
                     {roleScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -258,7 +259,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                   <div className={`text-[9px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
                 </div>
               )}
-              <div className="space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
+              <div className="hidden sm:block space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(56,189,248,0.9)" }} />
                   <span className="text-[7px] text-[var(--text-muted)]">Player</span>
@@ -278,7 +279,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 <button
                   key={role.name}
                   onClick={() => setSelectedRole(role.name)}
-                  className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
+                  className={`text-[10px] sm:text-[9px] px-2 py-1 sm:px-1.5 sm:py-0.5 rounded font-medium transition-colors ${
                     selectedRole === role.name
                       ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
                       : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"

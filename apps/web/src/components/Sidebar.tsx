@@ -140,65 +140,35 @@ export function Sidebar() {
           <ThemeToggle />
         </div>
 
-        {/* Auth section */}
+        {/* Admin login */}
         <div className="p-4 border-t border-[var(--border-subtle)]">
-          {authLoading ? (
-            <div className="h-10" />
-          ) : user ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-3 p-2 -m-2 rounded-lg hover:bg-[var(--bg-elevated)]/50 transition-colors"
-            >
-              {user.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt=""
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-[var(--accent-tactical)] flex items-center justify-center text-white text-xs font-bold">
-                  {(user.user_metadata?.full_name ?? user.email ?? "?")[0].toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "Scout"}
-                </div>
-                <div className="text-[10px] text-[var(--text-muted)] truncate">{user.email}</div>
-              </div>
-            </Link>
-          ) : (
-            <div className="space-y-2">
-              <Link
-                href="/login"
-                className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 rounded-lg hover:bg-[var(--accent-tactical)]/10 transition-colors"
-              >
-                Sign in
-              </Link>
-              {isAdmin ? (
-                <div className="text-[10px] text-[var(--color-accent-tactical)] text-center">Admin active</div>
-              ) : showPin ? (
-                <div className="flex gap-1">
-                  <input
-                    type="password"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") handlePin(); }}
-                    placeholder="PIN"
-                    className="flex-1 px-2 py-1 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
-                    autoFocus
-                  />
-                  <button onClick={handlePin} className="px-2 py-1 text-[10px] text-[var(--color-accent-tactical)] hover:bg-[var(--bg-elevated)] rounded">Go</button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowPin(true)}
-                  className="w-full text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors py-1"
-                >
-                  Admin
-                </button>
-              )}
+          {isAdmin ? (
+            <div className="flex items-center gap-2 text-[11px] text-[var(--color-accent-tactical)]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Admin active
             </div>
+          ) : showPin ? (
+            <div className="flex gap-1">
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handlePin(); }}
+                placeholder="PIN"
+                className="flex-1 px-2 py-1.5 text-xs rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+                autoFocus
+              />
+              <button onClick={handlePin} className="px-2.5 py-1.5 text-xs font-medium text-[var(--color-accent-tactical)] hover:bg-[var(--bg-elevated)] rounded transition-colors">Go</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowPin(true)}
+              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-lg hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
+            >
+              Admin Login
+            </button>
           )}
         </div>
       </aside>

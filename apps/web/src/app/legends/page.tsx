@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
+import { EditableCell } from "@/components/EditableCell";
 import Link from "next/link";
 
 const PAGE_SIZE = 50;
@@ -43,6 +44,17 @@ function LegendsContent() {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    setIsAdmin(sessionStorage.getItem("network_admin") === "1");
+  }, []);
+
+  function updateLocal(personId: number, field: string, value: number) {
+    setPlayers((prev) =>
+      prev.map((p) => (p.person_id === personId ? { ...p, [field]: value } : p))
+    );
+  }
 
   const position = searchParams.get("position") ?? "";
   const q = searchParams.get("q") ?? "";
@@ -165,11 +177,11 @@ function LegendsContent() {
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-14 hidden lg:table-cell">Overall</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-14 hidden lg:table-cell">Lvl</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {players.map((player) => {
+                  {players.map((player, idx) => {
                     const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
                     const pName = getPersonalityName(player.personality_type);
 
@@ -193,11 +205,19 @@ function LegendsContent() {
                         <td className="py-1.5 px-3 text-xs text-purple-400 hidden xl:table-cell">
                           {pName || "–"}
                         </td>
-                        <td className={`py-1.5 px-3 text-right font-mono font-bold text-sm ${peakColor(player.peak)}`}>
-                          {player.peak ?? "–"}
+                        <td className="py-1.5 px-3 text-right">
+                          {isAdmin ? (
+                            <EditableCell value={player.peak} personId={player.person_id} field="peak" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "peak", v)} />
+                          ) : (
+                            <span className={`font-mono font-bold text-sm ${peakColor(player.peak)}`}>{player.peak ?? "–"}</span>
+                          )}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
-                          {player.overall ?? "–"}
+                        <td className="py-1.5 px-3 text-right hidden lg:table-cell">
+                          {isAdmin ? (
+                            <EditableCell value={player.level} personId={player.person_id} field="level" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "level", v)} />
+                          ) : (
+                            <span className="font-mono text-xs text-[var(--text-muted)]">{player.level ?? "–"}</span>
+                          )}
                         </td>
                       </tr>
                     );

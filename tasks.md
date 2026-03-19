@@ -27,13 +27,19 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~Update script 22~~ — unified multi-source grade engine (cross-source percentiles). Replaces scripts 22/30/31/66. 6 adapters (FBRef, API-Football, Understat, StatsBomb, Kaggle Euro, Kaggle PL). 59,924 grades for 6,044 players (2026-03-19)
 - [x] ~~Update `player_id_links`~~ — `source='api_football'` matching built into 65_api_football_ingest.py (2026-03-18)
 - [x] ~~Update `SOURCE_PRIORITY`~~ — `api_football` added to models.py, models.ts, valuation_core/config.py (2026-03-18)
-- [ ] **Extend API-Football to secondary leagues** — Eredivisie, Liga Portugal, Championship, Super Lig, Jupiler Pro (configured, not yet fetched)
+- [x] ~~Extend API-Football to 43 leagues~~ — 22 European + Americas/Asia/youth leagues added, 10,982+ player-season rows (2026-03-19)
 - [x] ~~Improve API-Football matching~~ — Script 67 (match+import): 4,666 matched (was 600), 1,507 new players imported, 5-strategy matching (2026-03-18)
 - [x] ~~Add API-Football to Vercel env~~ — `API_FOOTBALL_KEY` set in Vercel (2026-03-19)
 
 ### Data Freshness (Strategic Priority #2)
 - [ ] **News cron** — automated refresh every 2-4h (#53). Sprint item #1. Last automation gap.
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
+
+### Four-Pillar Assessment (Post-Rebuild)
+- [ ] **Broad QA pass** — spot-check 20-30 players across `/api/players/{id}/assessment` to validate score distributions at scale, flag outliers
+- [ ] **Editor pillar tabs** — reorganize editor into Technical/Tactical/Mental/Physical sections, surface new physical breakdown (athleticism/durability/dominance sub-scores)
+- [ ] **Precompute pillar scores** — batch-compute and store in DB for player list spark bars + sorting (currently on-demand per player)
+- [ ] **Valuation integration** — feed four-pillar scores into valuation engine as inputs (Phase 5 item, depends on precompute)
 
 ### Product & UX
 - [x] ~~Production deployment to Vercel~~ — chief-scout-prod.vercel.app live (2026-03-16)
@@ -77,9 +83,8 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **StatsBomb event extraction** — extract progressive carries, pressure events, shot-creating actions from existing `sb_events` data (plan B2)
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
-- [ ] Build trait inference script — infer traits from FBRef stats for four-pillar (slot: 63+)
-- [ ] Build physical metrics script — aggregate FBRef minutes into availability scores (slot: 64+)
-- [ ] Editor pillar tabs — reorganize into Technical/Tactical/Mental/Physical sections
+- [x] ~~Build trait inference script~~ — trait scores wired into tactical pillar via computeTraitProfileScore (2026-03-19)
+- [x] ~~Build physical metrics script~~ — physical pillar now uses AF minutes, duels, fitness_tag, durability traits, height, Sprinter/Powerhouse models (2026-03-19)
 - [ ] Add materialized view auto-refresh after pipeline scripts
 - [ ] Women's players: decide long-term approach
 - [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
@@ -133,11 +138,25 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **PWA** — manifest + service worker for add-to-homescreen
 
 ## Low Priority
-- [ ] Player list pillar spark bars (needs precomputed scores or batch API)
-- [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-19, session 13)
+- [x] Four-pillar assessment rebuild — all 4 pillars fixed: Technical (removed level anchor), Tactical (fixed normalization to 280 ceiling, wired keyAttributes + trait scores), Mental (fixed 0-10→0-100 scale bug, added MBTI fallback), Physical (new 5-component formula: athleticism/availability/durability/ageCurve/dominance)
+- [x] Physical pillar redesign — replaced static age/trajectory formula with data-driven: Sprinter+Powerhouse models (30%), AF/FBRef minutes (25%), fitness_tag+durability trait (20%), age curve (15%), duel win rate+height fit (10%)
+- [x] Route handler: added queries for player_trait_scores, api_football_player_stats (duels), people (height)
+- [x] FourPillarDashboard.tsx updated for new PhysicalBreakdown interface
+- [x] QA validated: type check clean, 4 data sources confirmed (traits 5.5k, AF 11.8k, comp/coach 0-10, MBTI 39-79), live endpoint tested for 4 players across data tiers
+
+## Completed (2026-03-19, session 12)
+- [x] Stats page: expanded from 10 to 32 leagues, grouped by tier (Top 5 / Europe T2 / T3 / Americas / Asia)
+- [x] Fixtures page: added Championship, Eredivisie, Primeira Liga, Champions League tabs
+- [x] Leagues page: added 15 missing country mappings for API-Football leagues
+- [x] Clubs page: fixed sort — clubs with no league_name sink to bottom (Al-Hazem/Al-Okhdood no longer top)
+- [x] Clubs page: explicit `en` locale for league dropdown sort
+- [x] Players page: persist page number in URL params for back-button retention
+- [x] Player detail: BackLink component uses router.back() instead of hardcoded /players
 
 ## Completed (2026-03-19, session 11)
 - [x] Git merge: stashed local changes, committed, pulled 124 commits, resolved conflicts in pipeline/11 + pipeline/27 (took upstream)

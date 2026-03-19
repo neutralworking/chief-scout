@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 
+// Matches pipeline/61_fixture_ingest.py COMPETITIONS
+// Extend as more competitions are ingested
 const COMPETITIONS = [
   { code: "", label: "All Leagues" },
   { code: "PL", label: "Premier League" },
@@ -12,6 +14,10 @@ const COMPETITIONS = [
   { code: "BL1", label: "Bundesliga" },
   { code: "SA", label: "Serie A" },
   { code: "FL1", label: "Ligue 1" },
+  { code: "ELC", label: "Championship" },
+  { code: "DED", label: "Eredivisie" },
+  { code: "PPL", label: "Primeira Liga" },
+  { code: "CL", label: "Champions League" },
 ] as const;
 
 interface Fixture {

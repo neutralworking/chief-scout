@@ -49,8 +49,14 @@ export function ClubsList({
     if (league) {
       list = list.filter((c) => c.league_name === league);
     }
-    // Sort: avg_level primary, but clubs with <5 players sink to the bottom
+    // Sort: clubs with no league sink, then <5 players sink, then avg_level desc
     return list.sort((a, b) => {
+      // Clubs without a recognized league go to the bottom (unless filtering by league)
+      if (!league) {
+        const aNoLeague = a.league_name ? 0 : 1;
+        const bNoLeague = b.league_name ? 0 : 1;
+        if (aNoLeague !== bNoLeague) return aNoLeague - bNoLeague;
+      }
       const aSmall = a.player_count < 5 ? 1 : 0;
       const bSmall = b.player_count < 5 ? 1 : 0;
       if (aSmall !== bSmall) return aSmall - bSmall;

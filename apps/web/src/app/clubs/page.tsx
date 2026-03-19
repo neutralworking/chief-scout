@@ -48,7 +48,7 @@ export default async function ClubsPage({ searchParams }: { searchParams: Promis
     });
   }
 
-  const leagues = Array.from(leagueSet).sort((a, b) => a.localeCompare(b));
+  const leagues = Array.from(leagueSet).sort((a, b) => a.localeCompare(b, "en"));
 
   return <ClubsList clubs={clubRows} leagues={leagues} initialLeague={initialLeague} />;
 }

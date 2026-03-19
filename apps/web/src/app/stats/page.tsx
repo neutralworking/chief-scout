@@ -6,18 +6,68 @@ import { Suspense } from "react";
 import { POSITION_COLORS } from "@/lib/types";
 import Link from "next/link";
 
-const LEAGUES = [
-  { id: 39, name: "Premier League", short: "PL" },
-  { id: 140, name: "La Liga", short: "LL" },
-  { id: 135, name: "Serie A", short: "SA" },
-  { id: 78, name: "Bundesliga", short: "BL" },
-  { id: 61, name: "Ligue 1", short: "L1" },
-  { id: 88, name: "Eredivisie", short: "ERE" },
-  { id: 94, name: "Primeira Liga", short: "PRI" },
-  { id: 40, name: "Championship", short: "EFL" },
-  { id: 203, name: "Super Lig", short: "SUP" },
-  { id: 144, name: "Jupiler Pro", short: "JPL" },
-] as const;
+// Mirrors pipeline/65_api_football_ingest.py LEAGUES (senior only)
+const LEAGUE_TIERS = [
+  {
+    label: "Top 5",
+    leagues: [
+      { id: 39, name: "Premier League", short: "PL" },
+      { id: 140, name: "La Liga", short: "Liga" },
+      { id: 135, name: "Serie A", short: "SA" },
+      { id: 78, name: "Bundesliga", short: "BL" },
+      { id: 61, name: "Ligue 1", short: "L1" },
+    ],
+  },
+  {
+    label: "Europe T2",
+    leagues: [
+      { id: 88, name: "Eredivisie", short: "ERE" },
+      { id: 94, name: "Primeira Liga", short: "PRI" },
+      { id: 40, name: "Championship", short: "EFL" },
+      { id: 203, name: "Süper Lig", short: "SÜP" },
+      { id: 144, name: "Jupiler Pro League", short: "JPL" },
+      { id: 179, name: "Scottish Premiership", short: "SPL" },
+      { id: 218, name: "Austrian Bundesliga", short: "AUT" },
+      { id: 207, name: "Swiss Super League", short: "SUI" },
+      { id: 119, name: "Danish Superliga", short: "DAN" },
+      { id: 197, name: "Greek Super League", short: "GRE" },
+    ],
+  },
+  {
+    label: "Europe T3",
+    leagues: [
+      { id: 210, name: "Croatian HNL", short: "CRO" },
+      { id: 286, name: "Serbian Super Liga", short: "SRB" },
+      { id: 283, name: "Romanian Liga I", short: "ROU" },
+      { id: 345, name: "Czech Liga", short: "CZE" },
+      { id: 106, name: "Ekstraklasa", short: "POL" },
+      { id: 113, name: "Allsvenskan", short: "SWE" },
+      { id: 103, name: "Eliteserien", short: "NOR" },
+      { id: 172, name: "Bulgarian First League", short: "BUL" },
+    ],
+  },
+  {
+    label: "Americas",
+    leagues: [
+      { id: 128, name: "Argentine Liga Profesional", short: "ARG" },
+      { id: 71, name: "Brasileirão Série A", short: "BRA" },
+      { id: 262, name: "Liga MX", short: "MEX" },
+      { id: 239, name: "Colombian Primera A", short: "COL" },
+      { id: 253, name: "MLS", short: "MLS" },
+    ],
+  },
+  {
+    label: "Asia / Other",
+    leagues: [
+      { id: 307, name: "Saudi Pro League", short: "KSA" },
+      { id: 292, name: "K League 1", short: "KOR" },
+      { id: 169, name: "Chinese Super League", short: "CHN" },
+      { id: 188, name: "A-League", short: "AUS" },
+    ],
+  },
+];
+
+const ALL_LEAGUES = LEAGUE_TIERS.flatMap((t) => t.leagues);
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 
@@ -180,7 +230,7 @@ function StatsContent() {
     );
   }
 
-  const currentLeague = LEAGUES.find((l) => l.id === leagueId);
+  const currentLeague = ALL_LEAGUES.find((l) => l.id === leagueId);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
@@ -188,23 +238,31 @@ function StatsContent() {
       <div className="shrink-0 mb-2">
         <h1 className="text-lg font-bold tracking-tight mb-1">League Stats</h1>
         <p className="text-[11px] text-[var(--text-muted)] mb-2">
-          API-Football season stats across 10 leagues. {!loading && `${sorted.length} players.`}
+          API-Football season stats across {ALL_LEAGUES.length} leagues. {!loading && `${sorted.length} players.`}
         </p>
 
-        {/* League tabs */}
-        <div className="flex flex-wrap gap-1 mb-2">
-          {LEAGUES.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => updateParam("league_id", String(l.id))}
-              className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
-                leagueId === l.id
-                  ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-              }`}
-            >
-              {l.short}
-            </button>
+        {/* League tabs — grouped by tier */}
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 mb-2">
+          {LEAGUE_TIERS.map((tier, ti) => (
+            <div key={tier.label} className="contents">
+              {ti > 0 && (
+                <span className="text-[8px] text-[var(--text-muted)]/40 mx-0.5 select-none">|</span>
+              )}
+              {tier.leagues.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => updateParam("league_id", String(l.id))}
+                  title={l.name}
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors ${
+                    leagueId === l.id
+                      ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
+                      : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+                  }`}
+                >
+                  {l.short}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
 

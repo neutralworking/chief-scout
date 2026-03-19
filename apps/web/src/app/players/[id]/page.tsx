@@ -13,6 +13,7 @@ import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
+import { BackLink } from "@/components/BackLink";
 import { ScoutingNotes } from "@/components/ScoutingNotes";
 import { RoleScoreEditor } from "@/components/RoleScoreEditor";
 import { ValuationPanel } from "@/components/ValuationPanel";
@@ -256,12 +257,7 @@ export default async function PlayerDetailPage({
       <div className="shrink-0 space-y-1 mb-1">
         {/* Nav */}
         <div className="flex items-center justify-between">
-          <Link
-            href="/players"
-            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-          >
-            &larr; Players
-          </Link>
+          <BackLink fallback="/players" label="Players" />
           <PlayerQuickEdit player={{
             person_id: player.person_id,
             best_role: player.best_role,

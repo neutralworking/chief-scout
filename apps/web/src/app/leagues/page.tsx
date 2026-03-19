@@ -5,32 +5,58 @@ const TOP_5 = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
 const SECOND_DIVISIONS = ["Championship", "Serie B", "2. Bundesliga", "Segunda División", "Ligue 2"];
 
 const LEAGUE_COUNTRY: Record<string, string> = {
+  // Top 5
   "Premier League": "England",
   "La Liga": "Spain",
   "Serie A": "Italy",
   "Bundesliga": "Germany",
   "Ligue 1": "France",
+  // Second divisions
   "Championship": "England",
   "Serie B": "Italy",
   "2. Bundesliga": "Germany",
   "Segunda División": "Spain",
   "Ligue 2": "France",
+  // Europe tier 2
   "Liga Portugal": "Portugal",
+  "Primeira Liga": "Portugal",
   "Eredivisie": "Netherlands",
   "Scottish Premiership": "Scotland",
   "Süper Lig": "Turkey",
+  "Super Lig": "Turkey",
   "Belgian Pro League": "Belgium",
+  "Jupiler Pro League": "Belgium",
   "Austrian Bundesliga": "Austria",
   "Swiss Super League": "Switzerland",
   "Danish Superliga": "Denmark",
+  "Greek Super League": "Greece",
+  // Europe tier 3
+  "Croatian HNL": "Croatia",
+  "Serbian Super Liga": "Serbia",
+  "Romanian Liga I": "Romania",
+  "Czech Liga": "Czech Republic",
   "Ekstraklasa": "Poland",
+  "Allsvenskan": "Sweden",
+  "Eliteserien": "Norway",
+  "Bulgarian First League": "Bulgaria",
+  // Americas
   "Major League Soccer": "USA",
-  "Saudi Pro League": "Saudi Arabia",
+  "MLS": "USA",
   "Liga MX": "Mexico",
   "Campeonato Brasileiro Série A": "Brazil",
+  "Brasileirão Série A": "Brazil",
   "Argentine Primera División": "Argentina",
+  "Argentine Liga Profesional": "Argentina",
+  "Colombian Primera A": "Colombia",
+  // Asia / Middle East / Oceania
+  "Saudi Pro League": "Saudi Arabia",
+  "K League 1": "South Korea",
+  "Chinese Super League": "China",
+  "A-League": "Australia",
+  // England lower
   "League One": "England",
   "League Two": "England",
+  // Women's
   "Women's Super League": "England",
   "Liga F": "Spain",
   "Frauen Bundesliga": "Germany",

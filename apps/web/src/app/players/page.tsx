@@ -113,7 +113,8 @@ function PlayersContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
-  const [page, setPage] = useState(0);
+  const initialPage = Number(searchParams.get("page") ?? "0");
+  const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [autoScroll, setAutoScroll] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -162,6 +163,16 @@ function PlayersContent() {
 
   // Reset page when filters or page size change
   useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, pageSize]);
+
+  // Sync page to URL (for back-button retention)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    const urlPage = Number(params.get("page") ?? "0");
+    if (urlPage !== page) {
+      if (page > 0) params.set("page", String(page)); else params.delete("page");
+      router.replace(`/players?${params.toString()}`, { scroll: false });
+    }
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false;

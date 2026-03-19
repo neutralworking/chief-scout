@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS, PURSUIT_COLORS } from "@/lib/types";
 import { EditableCell } from "@/components/EditableCell";
+import { InsightsPanel } from "@/components/InsightsPanel";
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
@@ -116,6 +117,7 @@ function PlayersContent() {
   const sort = searchParams.get("sort") ?? "level_raw";
   const tier = searchParams.get("tier") ?? "";
   const league = searchParams.get("league") ?? "";
+  const view = searchParams.get("view") ?? "table";
 
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
@@ -255,6 +257,17 @@ function PlayersContent() {
           {/* Pagination */}
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <button
+              onClick={() => updateParam("view", view === "insights" ? "" : "insights")}
+              className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+                view === "insights"
+                  ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
+                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+              }`}
+              title="Scout insights"
+            >
+              Gems
+            </button>
+            <button
               onClick={toggleAutoScroll}
               className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
                 autoScroll
@@ -356,9 +369,14 @@ function PlayersContent() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Content */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {!loading && !error && players.length > 0 && (
+        {view === "insights" ? (
+          <div className="flex-1 overflow-y-auto">
+            <InsightsPanel position={position || undefined} league={league || undefined} />
+          </div>
+        ) : null}
+        {view !== "insights" && !loading && !error && players.length > 0 && (
           <div className="glass rounded-xl overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
@@ -588,17 +606,17 @@ function PlayersContent() {
           </div>
         )}
 
-        {loading && !loadingMore && (
+        {view !== "insights" && loading && !loadingMore && (
           <div className="glass rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading players...</p>
           </div>
         )}
-        {error && (
+        {view !== "insights" && error && (
           <div className="glass rounded-xl p-4">
             <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
           </div>
         )}
-        {!loading && !error && players.length === 0 && (
+        {view !== "insights" && !loading && !error && players.length === 0 && (
           <div className="glass rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">
               {hasFilters ? "No players match the current filters." : "No player data found."}

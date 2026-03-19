@@ -185,6 +185,24 @@ export async function GET(
     }
   }
 
+  // ── Contrast stretch for radar display ──
+  // Raw model scores cluster 50-70 making radars blobby. Stretch the player's
+  // own range so their profile shape is visible. This is purely visual —
+  // position/role scores below still use raw values for accuracy.
+  const rawModelScores = { ...modelScores };
+  const modelVals = Object.values(modelScores);
+  if (modelVals.length >= 3) {
+    const min = Math.min(...modelVals);
+    const max = Math.max(...modelVals);
+    const spread = max - min;
+    if (spread > 0 && spread < 40) {
+      // Map [min, max] → [20, 95] so shape is distinctive
+      for (const [model, score] of Object.entries(modelScores)) {
+        modelScores[model] = Math.round(20 + ((score - min) / spread) * 75);
+      }
+    }
+  }
+
   // ── Level anchor ──
   // For players with established level/peak, anchor scores to their quality
   const levelAnchor = playerLevel ? Math.min(playerLevel, 100) : null;
@@ -195,8 +213,8 @@ export async function GET(
     let weightedSum = 0;
     let totalWeight = 0;
     for (const [model, weight] of Object.entries(weights)) {
-      if (modelScores[model] !== undefined) {
-        weightedSum += modelScores[model] * weight;
+      if (rawModelScores[model] !== undefined) {
+        weightedSum += rawModelScores[model] * weight;
         totalWeight += weight;
       }
     }
@@ -234,8 +252,8 @@ export async function GET(
 
   for (const [pos, roles] of Object.entries(TACTICAL_ROLES)) {
     roleScores[pos] = roles.map((r) => {
-      const pScore = modelScores[r.primary] ?? 0;
-      const sScore = modelScores[r.secondary] ?? 0;
+      const pScore = rawModelScores[r.primary] ?? 0;
+      const sScore = rawModelScores[r.secondary] ?? 0;
       let score = pScore * 0.6 + sScore * 0.4;
 
       // Apply level anchor to role scores too

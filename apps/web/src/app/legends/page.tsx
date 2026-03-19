@@ -8,6 +8,42 @@ import { getPersonalityName } from "@/lib/personality";
 import { EditableCell } from "@/components/EditableCell";
 import Link from "next/link";
 
+const NATION_FLAGS: Record<string, string> = {};
+function nationFlag(nation: string | null | undefined): string {
+  if (!nation) return "";
+  if (NATION_FLAGS[nation]) return NATION_FLAGS[nation];
+  const ISO: Record<string, string> = {
+    "Argentina": "AR", "Australia": "AU", "Austria": "AT", "Belgium": "BE", "Brazil": "BR",
+    "Cameroon": "CM", "Canada": "CA", "Chile": "CL", "Colombia": "CO", "Croatia": "HR",
+    "Czech Republic": "CZ", "Czechia": "CZ", "Denmark": "DK", "Ecuador": "EC", "Egypt": "EG",
+    "England": "GB-ENG", "France": "FR", "Germany": "DE", "Ghana": "GH", "Greece": "GR",
+    "Hungary": "HU", "Iceland": "IS", "Iran": "IR", "Ireland": "IE", "Israel": "IL",
+    "Italy": "IT", "Ivory Coast": "CI", "Jamaica": "JM", "Japan": "JP", "Mali": "ML",
+    "Mexico": "MX", "Morocco": "MA", "Netherlands": "NL", "Nigeria": "NG", "North Macedonia": "MK",
+    "Norway": "NO", "Paraguay": "PY", "Peru": "PE", "Poland": "PL", "Portugal": "PT",
+    "Republic of Ireland": "IE", "Romania": "RO", "Russia": "RU", "Scotland": "GB-SCT",
+    "Senegal": "SN", "Serbia": "RS", "Slovakia": "SK", "Slovenia": "SI", "South Korea": "KR",
+    "Spain": "ES", "Sweden": "SE", "Switzerland": "CH", "Turkey": "TR", "Ukraine": "UA",
+    "United States": "US", "Uruguay": "UY", "Venezuela": "VE", "Wales": "GB-WLS",
+    "Algeria": "DZ", "Tunisia": "TN", "DR Congo": "CD", "Guinea": "GN", "Gabon": "GA",
+    "Burkina Faso": "BF", "Togo": "TG", "Benin": "BJ", "Niger": "NE", "Chad": "TD",
+    "Congo": "CG", "Costa Rica": "CR", "Honduras": "HN", "Panama": "PA", "Georgia": "GE",
+    "Armenia": "AM", "Albania": "AL", "Bosnia and Herzegovina": "BA", "Montenegro": "ME",
+    "Kosovo": "XK", "Finland": "FI", "New Zealand": "NZ", "China": "CN", "India": "IN",
+  };
+  const code = ISO[nation];
+  if (!code) { NATION_FLAGS[nation] = nation.slice(0, 3); return NATION_FLAGS[nation]; }
+  const GB_FLAGS: Record<string, string> = {
+    "GB-ENG": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F",
+    "GB-SCT": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F",
+    "GB-WLS": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73\uDB40\uDC7F",
+  };
+  if (GB_FLAGS[code]) { NATION_FLAGS[nation] = GB_FLAGS[code]; return NATION_FLAGS[nation]; }
+  const flag = String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  NATION_FLAGS[nation] = flag;
+  return flag;
+}
+
 const PAGE_SIZE = 50;
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 
@@ -199,7 +235,7 @@ function LegendsContent() {
                           </Link>
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)]">{player.club || "–"}</td>
-                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.nation || "–"}</td>
+                        <td className="py-1.5 px-3 text-xs hidden lg:table-cell" title={player.nation || ""}>{player.nation ? nationFlag(player.nation) : "–"}</td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-xs text-purple-400 hidden xl:table-cell">
@@ -241,7 +277,7 @@ function LegendsContent() {
                         <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
                         <p className="text-[10px] text-[var(--text-muted)]">
                           {player.club || "Unknown"}
-                          {player.nation && ` · ${player.nation}`}
+                          {player.nation && <span className="ml-1">{nationFlag(player.nation)}</span>}
                         </p>
                       </div>
                     </div>

@@ -40,6 +40,7 @@ function ratingColor(level: number | null): string {
 // Extend PlayerCard with stats fields
 interface PlayerRow extends PlayerCardType {
   overall: number | null;
+  peak: number | null;
 }
 
 // Nation → flag emoji (2-letter ISO → regional indicator symbols)
@@ -368,11 +369,13 @@ function PlayersContent() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-[var(--bg-surface)] z-10">
                   <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                    <th className="text-left py-1.5 px-3 font-medium w-10">Pos</th>
+                    <th className="text-center py-1.5 px-2 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
+                    <th className="text-center py-1.5 px-2 font-medium w-10">Age</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Score</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Lvl</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16">CS Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16 hidden lg:table-cell">TM Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">App</th>
@@ -388,8 +391,8 @@ function PlayersContent() {
 
                     return (
                       <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
-                        <td className="py-1.5 px-3">
-                          <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
+                        <td className="py-1.5 px-2 text-center">
+                          <span className={`text-[10px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
                             {player.position ?? "–"}
                           </span>
                         </td>
@@ -399,14 +402,14 @@ function PlayersContent() {
                               className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-xs">
                               {player.name}
                             </Link>
-                            {player.dob && (
-                              <span className="text-[9px] text-[var(--text-muted)] font-mono">{computeAge(player.dob)}</span>
-                            )}
                             {player.nation && (
-                              <span className="text-[10px]" title={player.nation}>{nationFlag(player.nation)}</span>
+                              <span className="text-[11px]" title={player.nation}>{nationFlag(player.nation)}</span>
                             )}
                           </div>
                           <span className="text-[10px] text-[var(--text-muted)]">{player.club || ""}</span>
+                        </td>
+                        <td className="py-1.5 px-2 text-center font-mono text-xs text-[var(--text-secondary)]">
+                          {player.dob ? computeAge(player.dob) : "–"}
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-right">
@@ -442,6 +445,24 @@ function PlayersContent() {
                           ) : (
                             <span className={`font-mono text-xs ${ratingColor(player.level)}`}>
                               {player.level ?? "–"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-1.5 px-3 text-right">
+                          {isAdmin ? (
+                            <EditableCell
+                              value={player.peak}
+                              personId={player.person_id}
+                              field="peak"
+                              table="player_profiles"
+                              rowIndex={idx}
+                              min={1}
+                              max={99}
+                              onSaved={(v) => updateLocal(player.person_id, "peak", v)}
+                            />
+                          ) : (
+                            <span className="font-mono text-xs text-[var(--text-muted)]">
+                              {player.peak ?? "–"}
                             </span>
                           )}
                         </td>
@@ -490,10 +511,12 @@ function PlayersContent() {
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
                           <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                             {player.name}
-                            {player.dob && <span className="text-[10px] text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
-                            {player.nation && <span className="text-[10px] ml-1" title={player.nation}>{nationFlag(player.nation)}</span>}
+                            {player.dob && <span className="text-[11px] text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
+                            {player.nation && <span className="text-[11px] ml-1" title={player.nation}>{nationFlag(player.nation)}</span>}
                           </p>
-                          <p className="text-[10px] text-[var(--text-muted)] truncate">{player.club || ""}</p>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">
+                            {player.club || ""}
+                          </p>
                           {(player.goals != null || player.assists != null) && (
                             <p className="text-[10px] font-mono text-[var(--text-muted)]">
                               {player.goals != null && <span className="text-green-400">{player.goals}G</span>}

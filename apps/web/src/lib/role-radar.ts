@@ -15,67 +15,81 @@ export interface RoleRadarConfig {
 
 /** Role name → radar axes (4-5 models most relevant to that role) */
 export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
-  // GK
+  // ── GK ──────────────────────────────────────────────────────
   "Shot Stopper":       { models: ["GK", "Cover", "Commander", "Target"],                labels: [] },
   "Sweeper Keeper":     { models: ["GK", "Passer", "Controller", "Cover"],               labels: [] },
   "Sweeper":            { models: ["GK", "Passer", "Controller", "Cover"],               labels: [] },
+  "Torwart":            { models: ["GK", "Cover", "Commander", "Target"],                labels: [] },
+  "Ball-Playing GK":    { models: ["GK", "Passer", "Controller", "Cover"],               labels: [] },
 
-  // CD
+  // ── CD ─────────────────────────────────────────────────────
   "Stopper":            { models: ["Destroyer", "Cover", "Powerhouse", "Target", "Commander"], labels: [] },
   "Ball-Playing CB":    { models: ["Cover", "Passer", "Controller", "Destroyer"],        labels: [] },
   "Enforcer":           { models: ["Destroyer", "Commander", "Powerhouse", "Cover"],     labels: [] },
   "Ball-Carrier":       { models: ["Cover", "Dribbler", "Passer", "Controller"],         labels: [] },
   "Ball-Carrying CB":   { models: ["Cover", "Dribbler", "Passer", "Controller"],         labels: [] },
+  "Libero":             { models: ["Cover", "Passer", "Controller", "Dribbler"],         labels: [] },
+  "Vorstopper":         { models: ["Destroyer", "Cover", "Powerhouse", "Commander"],     labels: [] },
+  "Zagueiro":           { models: ["Cover", "Passer", "Destroyer", "Commander"],         labels: [] },
 
-  // WD
+  // ── WD ─────────────────────────────────────────────────────
   "Overlapping FB":     { models: ["Engine", "Dribbler", "Sprinter", "Passer"],          labels: [] },
   "Overlapping Full-Back": { models: ["Engine", "Dribbler", "Sprinter", "Passer"],       labels: [] },
   "Inverted FB":        { models: ["Cover", "Passer", "Controller", "Engine"],           labels: [] },
   "Inverted Full-Back": { models: ["Cover", "Passer", "Controller", "Engine"],           labels: [] },
   "Wing-Back":          { models: ["Engine", "Sprinter", "Dribbler", "Cover"],           labels: [] },
-  "Lateral":            { models: ["Engine", "Sprinter", "Dribbler", "Cover"],           labels: [] },
+  "Lateral":            { models: ["Engine", "Passer", "Cover", "Sprinter"],             labels: [] },
+  "Carrilero":          { models: ["Engine", "Destroyer", "Cover", "Sprinter"],          labels: [] },
+  "Invertido":          { models: ["Cover", "Passer", "Controller", "Dribbler"],         labels: [] },
 
-  // DM
+  // ── DM ─────────────────────────────────────────────────────
   "Anchor":             { models: ["Cover", "Destroyer", "Controller", "Commander"],     labels: [] },
   "Sentinelle":         { models: ["Cover", "Destroyer", "Controller", "Commander"],     labels: [] },
   "Regista":            { models: ["Controller", "Passer", "Creator", "Cover"],          labels: [] },
+  "Volante":            { models: ["Destroyer", "Engine", "Dribbler", "Cover"],          labels: [] },
   "Ball Winner":        { models: ["Destroyer", "Engine", "Powerhouse", "Cover"],        labels: [] },
   "Ball-Winner":        { models: ["Destroyer", "Engine", "Powerhouse", "Cover"],        labels: [] },
 
-  // CM
+  // ── CM ─────────────────────────────────────────────────────
   "Deep Playmaker":     { models: ["Controller", "Passer", "Creator", "Cover"],          labels: [] },
   "Metodista":          { models: ["Controller", "Passer", "Creator", "Cover"],          labels: [] },
   "Box-to-Box":         { models: ["Engine", "Cover", "Destroyer", "Powerhouse", "Sprinter"], labels: [] },
   "Tuttocampista":      { models: ["Engine", "Cover", "Destroyer", "Powerhouse", "Sprinter"], labels: [] },
   "Mezzala":            { models: ["Passer", "Creator", "Dribbler", "Engine"],           labels: [] },
+  "Relayeur":           { models: ["Engine", "Passer", "Cover", "Controller"],           labels: [] },
 
-  // WM
+  // ── WM ─────────────────────────────────────────────────────
   "Wide Playmaker":     { models: ["Dribbler", "Passer", "Creator", "Controller"],      labels: [] },
   "Traditional Winger": { models: ["Engine", "Sprinter", "Dribbler", "Passer"],         labels: [] },
   "Direct Winger":      { models: ["Sprinter", "Dribbler", "Engine", "Passer"],         labels: [] },
   "Wide Provider":      { models: ["Passer", "Engine", "Controller", "Dribbler"],       labels: [] },
+  "Winger":             { models: ["Sprinter", "Dribbler", "Engine", "Passer"],         labels: [] },
+  "Fantasista":         { models: ["Creator", "Dribbler", "Controller", "Passer"],      labels: [] },
+  "Raumdeuter":         { models: ["Cover", "Striker", "Engine", "Sprinter"],            labels: [] },
 
-  // AM
+  // ── AM ─────────────────────────────────────────────────────
   "Trequartista":       { models: ["Creator", "Dribbler", "Controller", "Striker"],      labels: [] },
   "Advanced Playmaker": { models: ["Controller", "Creator", "Passer", "Dribbler"],      labels: [] },
-  "Shadow Striker":     { models: ["Dribbler", "Striker", "Sprinter", "Engine"],         labels: [] },
-  "Enganche":           { models: ["Creator", "Dribbler", "Controller", "Passer"],       labels: [] },
+  "Second Striker":     { models: ["Dribbler", "Striker", "Sprinter", "Engine"],         labels: [] },
+  "Enganche":           { models: ["Creator", "Controller", "Passer", "Dribbler"],       labels: [] },
+  "Seconda Punta":      { models: ["Striker", "Dribbler", "Sprinter", "Creator"],        labels: [] },
 
-  // WF
+  // ── WF ─────────────────────────────────────────────────────
   "Inside Forward":     { models: ["Dribbler", "Sprinter", "Striker", "Creator"],        labels: [] },
   "Extremo":            { models: ["Sprinter", "Dribbler", "Striker", "Creator"],        labels: [] },
   "Wide Forward":       { models: ["Striker", "Dribbler", "Sprinter", "Passer"],         labels: [] },
   "Inverted Winger":    { models: ["Creator", "Dribbler", "Passer", "Sprinter"],         labels: [] },
+  "Inventor":           { models: ["Creator", "Dribbler", "Passer", "Engine"],           labels: [] },
 
-  // CF
+  // ── CF ─────────────────────────────────────────────────────
   "Target Man":         { models: ["Striker", "Target", "Powerhouse", "Commander"],      labels: [] },
   "Complete Forward":   { models: ["Target", "Powerhouse", "Striker", "Engine"],         labels: [] },
   "Poacher":            { models: ["Striker", "Sprinter", "Dribbler", "Target"],         labels: [] },
+  "Prima Punta":        { models: ["Striker", "Sprinter", "Target", "Powerhouse"],       labels: [] },
+  "Falso Nove":         { models: ["Creator", "Dribbler", "Striker", "Controller"],      labels: [] },
   "False 9":            { models: ["Dribbler", "Striker", "Creator", "Controller"],      labels: [] },
   "Deep-Lying Forward": { models: ["Creator", "Striker", "Passer", "Engine"],            labels: [] },
   "Pressing Forward":   { models: ["Engine", "Destroyer", "Striker", "Sprinter"],        labels: [] },
-  "Raumdeuter":         { models: ["Cover", "Striker", "Engine", "Sprinter"],            labels: [] },
-  "Seconda Punta":      { models: ["Striker", "Dribbler", "Sprinter", "Creator"],        labels: [] },
 };
 
 // Auto-fill labels from model short codes

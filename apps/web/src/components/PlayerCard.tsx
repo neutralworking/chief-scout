@@ -7,6 +7,7 @@ import {
 import { getPersonalityName } from "@/lib/personality";
 import { getRoleRadarConfig } from "@/lib/role-radar";
 import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
+import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import { MiniRadar } from "@/components/MiniRadar";
 
 // Hex colors for radar polygon per theme (matches theme accent)
@@ -73,7 +74,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           )}
         </div>
 
-        {/* Row 3: Role score + role · Personality */}
+        {/* Row 3: Role + Personality + Physical */}
         {(mentalLabel || player.best_role) && (
           <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
             {player.best_role && (
@@ -89,10 +90,25 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
                 {player.best_role && <span className="text-[var(--text-muted)]">·</span>}
                 <span className="text-purple-400 font-medium">
                   {mentalLabel}
-                  <span className="text-[var(--text-muted)] font-mono ml-1 text-[8px]">{player.personality_type}</span>
                 </span>
               </>
             )}
+            {age !== null && (() => {
+              const phys = ageCurveScore(player.position, age);
+              return (
+                <>
+                  <span className="text-[var(--text-muted)]">·</span>
+                  <span className={`font-mono font-bold ${
+                    phys >= 80 ? "text-[var(--color-accent-physical)]" :
+                    phys >= 60 ? "text-[var(--text-secondary)]" :
+                    "text-[var(--text-muted)]"
+                  }`}>
+                    {phys}
+                    <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">PHY</span>
+                  </span>
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -130,11 +146,20 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
                 <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">TM</span>
               </span>
             ) : null}
-            {player.archetype && (
-              <span className="text-[10px] text-[var(--text-secondary)]">
+            {player.earned_archetype ? (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                player.archetype_tier === "elite" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+                player.archetype_tier === "established" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30" :
+                player.archetype_tier === "aspiring" ? "bg-blue-500/10 text-blue-400/70 border border-blue-500/20" :
+                "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
+              }`}>
+                {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
+              </span>
+            ) : player.archetype ? (
+              <span className="text-[10px] text-[var(--text-muted)]">
                 {player.archetype}
               </span>
-            )}
+            ) : null}
           </div>
           {player.legacy_score != null && player.legacy_score > 0 ? (
             <span className="text-[10px] font-mono font-bold" style={{

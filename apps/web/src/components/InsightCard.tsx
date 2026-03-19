@@ -83,6 +83,7 @@ interface InsightPlayer {
   assists: number | null;
   apps: number | null;
   rating: number | null;
+  tactical_roles?: { name: string; formations: string[] }[];
 }
 
 interface InsightEvidence {
@@ -199,6 +200,7 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
           )}
           <div className="text-[10px] text-zinc-500 truncate">
             {player.club || "\u2013"} · {player.league_name || ""}
+            {player.best_role && <span className="text-zinc-400"> · {player.best_role}</span>}
           </div>
         </div>
 
@@ -208,21 +210,21 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
         </div>
       </div>
 
-      {/* ── Context pills (always visible) ─────────────────────── */}
-      {flags.length > 0 && (
-        <div className="flex flex-wrap gap-1 px-3 pb-2">
-          {flags.includes("homegrown_abroad") && <Pill color="green">HG</Pill>}
-          {flags.includes("young_upstep") && <Pill color="blue">U23</Pill>}
-          {flags.includes("contract_opportunity") && <Pill color="red">Expiring</Pill>}
-          {flags.includes("loan_performer") && <Pill color="amber">On Loan</Pill>}
-          {flags.includes("rising_trajectory") && <Pill color="purple">Rising</Pill>}
-          {flags.includes("grade_mismatch") && <Pill color="cyan">Undervalued</Pill>}
-        </div>
-      )}
-
       {/* ── Expanded detail ────────────────────────────────────── */}
       {expanded && (
         <div className="border-t border-white/5">
+          {/* Context pills */}
+          {flags.length > 0 && (
+            <div className="flex flex-wrap gap-1 px-3 pt-2.5">
+              {flags.includes("homegrown_abroad") && <Pill color="green">HG</Pill>}
+              {flags.includes("young_upstep") && <Pill color="blue">U23</Pill>}
+              {flags.includes("contract_opportunity") && <Pill color="red">Expiring</Pill>}
+              {flags.includes("loan_performer") && <Pill color="amber">On Loan</Pill>}
+              {flags.includes("rising_trajectory") && <Pill color="purple">Rising</Pill>}
+              {flags.includes("grade_mismatch") && <Pill color="cyan">Undervalued</Pill>}
+            </div>
+          )}
+
           {/* Prose — prominent, KC bio style */}
           {insight.prose && (
             <div className="mx-3 mt-2.5 rounded-lg bg-black/30 border border-white/5 px-3 py-2">
@@ -269,6 +271,25 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
               </div>
             )}
           </div>
+
+          {/* ── Tactical roles ──────────────────────────────── */}
+          {player.tactical_roles && player.tactical_roles.length > 0 && (
+            <div className="px-3 mt-2">
+              <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-600 mb-1">Roles</div>
+              <div className="space-y-0.5">
+                {player.tactical_roles.slice(0, 3).map((role) => (
+                  <div key={role.name} className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-zinc-300 w-28 shrink-0 truncate">{role.name}</span>
+                    <div className="flex gap-1 flex-wrap">
+                      {role.formations.map((f) => (
+                        <span key={f} className="text-[8px] font-mono text-zinc-600 bg-white/5 rounded px-1 py-0.5">{f}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ── Admin assessment zone ─────────────────────────── */}
           {isAdmin && (

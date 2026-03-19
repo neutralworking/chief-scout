@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const position = searchParams.get("position");
   const sort = searchParams.get("sort") ?? "overall";
-  const tab = searchParams.get("tab") ?? "2026"; // 2026 | free | 2027
+  const tab = searchParams.get("tab") ?? "free"; // free | 2026 | 2027 | 2028
 
   // Determine date ranges based on tab
   const now = new Date();

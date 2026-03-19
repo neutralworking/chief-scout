@@ -27,7 +27,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
       { label: "Players", href: "/players" },
       { label: "Network", href: "/network", stagingOnly: true },
       { label: "Stats", href: "/stats" },
-      { label: "Free Agents", href: "/free-agents" },
+      { label: "Free Agency", href: "/free-agents" },
       { label: "Compare", href: "/compare" },
       { label: "Legends", href: "/legends" },
     ],

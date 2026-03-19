@@ -65,9 +65,10 @@ function formatValue(eur: number | null): string {
 }
 
 const TABS = [
-  { key: "2026", label: "Expiring 2026" },
   { key: "free", label: "Free Agents" },
-  { key: "2027", label: "Expiring 2027" },
+  { key: "2026", label: "2026" },
+  { key: "2027", label: "2027" },
+  { key: "2028", label: "2028" },
 ] as const;
 
 function FreeAgentsContent() {
@@ -77,7 +78,7 @@ function FreeAgentsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const tab = searchParams.get("tab") ?? "2026";
+  const tab = searchParams.get("tab") ?? "free";
   const position = searchParams.get("position") ?? "";
   const sort = searchParams.get("sort") ?? "overall";
   const isFreeTab = tab === "free";
@@ -122,7 +123,7 @@ function FreeAgentsContent() {
     <div>
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agents & Expiring Contracts</h1>
+        <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agency</h1>
         <p className="text-[11px] text-[var(--text-secondary)] mb-1">
           {loading ? "Loading..." : `${players.length} players`}
           {avgScore != null && !loading && ` · avg score ${avgScore}`}
@@ -137,7 +138,7 @@ function FreeAgentsContent() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => updateParam("tab", t.key === "2026" ? "" : t.key)}
+            onClick={() => updateParam("tab", t.key === "free" ? "" : t.key)}
             className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
               tab === t.key
                 ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"

@@ -507,6 +507,19 @@ def main():
             total_inserted += len(rows)
             continue
 
+        # Reconnect before writing — large leagues take 10+ min to fetch,
+        # and the pooler drops idle connections
+        try:
+            cur.execute("SELECT 1")
+        except Exception:
+            print("  (reconnecting before write...)")
+            try:
+                conn.close()
+            except Exception:
+                pass
+            conn = require_conn()
+            cur = conn.cursor()
+
         # Delete existing data for this league/season if forcing
         if FORCE:
             cur.execute("""

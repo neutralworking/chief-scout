@@ -1,0 +1,35 @@
+name: News Cron (4-hourly)
+
+on:
+  schedule:
+    - cron: '0 2,6,10,14,18,22 * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger news cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          STAGING_URL: https://chief-scout.vercel.app
+        run: |
+          echo "Triggering news cron at $(date -u)"
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${STAGING_URL}/api/cron/news")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "::error::News cron failed with HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+
+          # Extract stats
+          echo "$BODY" | jq -r '.stats // empty' 2>/dev/null || true

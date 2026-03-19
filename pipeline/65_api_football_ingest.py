@@ -30,17 +30,56 @@ RATE_LIMIT_DELAY = 6.5  # seconds between requests (10 req/min on Pro)
 
 # League IDs: https://www.api-football.com/documentation-v3#tag/Leagues
 LEAGUES = {
+    # ── Top 5 ──
     39:  "Premier League",
     140: "La Liga",
     78:  "Bundesliga",
     135: "Serie A",
     61:  "Ligue 1",
-    # Extended coverage
+    # ── Europe tier 2 ──
     88:  "Eredivisie",
     94:  "Primeira Liga",
     40:  "Championship",
     203: "Super Lig",
     144: "Jupiler Pro League",
+    179: "Scottish Premiership",
+    218: "Austrian Bundesliga",
+    207: "Swiss Super League",
+    119: "Danish Superliga",
+    197: "Greek Super League",
+    # ── Europe tier 3 ──
+    210: "Croatian HNL",
+    286: "Serbian Super Liga",
+    283: "Romanian Liga I",
+    345: "Czech Liga",
+    106: "Ekstraklasa",
+    113: "Allsvenskan",
+    103: "Eliteserien",
+    172: "Bulgarian First League",
+    # ── Americas ──
+    128: "Argentine Liga Profesional",
+    71:  "Brasileirao Serie A",
+    262: "Liga MX",
+    239: "Colombian Primera A",
+    253: "MLS",
+    # ── Asia / Middle East / Oceania ──
+    307: "Saudi Pro League",
+    292: "K League 1",
+    169: "Chinese Super League",
+    188: "A-League",
+    # ── Youth / Academy ──
+    14:  "UEFA Youth League",
+    705: "Campionato Primavera 1",
+    695: "U18 Premier League North",
+    696: "U18 Premier League South",
+    675: "Netherlands U21 Divisie 1",
+    701: "Portugal Liga Revelacao U23",
+    488: "Germany U19 Bundesliga",
+    740: "Brasileiro U20",
+    # ── International Youth ──
+    38:  "UEFA U21 Championship",
+    490: "World Cup U20",
+    493: "UEFA U19 Championship",
 }
 
 TOP_5_IDS = {39, 140, 78, 135, 61}

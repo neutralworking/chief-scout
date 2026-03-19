@@ -11,6 +11,7 @@ const ALL_NAV_ITEMS = [
   { label: "Stats", href: "/stats" },
   { label: "Free Agents", href: "/free-agents" },
   { label: "Compare", href: "/compare" },
+  { label: "Legends", href: "/legends" },
   // Browse
   { label: "Clubs", href: "/clubs" },
   { label: "Leagues", href: "/leagues" },

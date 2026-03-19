@@ -112,12 +112,27 @@ export async function GET(
   // ── Priority fallback per attribute ──
   // For each attribute, use the score from the highest-priority source.
   // This prevents eafc garbage (all 10s) from diluting real statistical data.
-  // Per-source scale detection: eafc/understat are 0-10, legacy data may be 0-20.
   // Source-specific scales (not heuristic — based on actual data ranges)
   const SOURCE_SCALE: Record<string, number> = {
     scout_assessment: 20, eafc_inferred: 20, statsbomb: 20,
     api_football: 10, fbref: 10, understat: 10, computed: 10,
   };
+
+  // Some attributes are quality ratings (how good is this player at X?) while
+  // external sources grade them from rate stats (how often does X happen per 90?).
+  // Rate stats penalise players whose role doesn't involve that action frequently.
+  // e.g. a striker with pass_accuracy=1 isn't bad — they just don't pass much.
+  // For these attributes, only trust quality-rating sources (scout + eafc).
+  const QUALITY_ONLY_ATTRS = new Set([
+    "composure",      // avg_rating ≠ composure
+    "creativity",     // key_passes_p90 penalises non-creators
+    "vision",         // assists_p90 penalises non-assisters
+    "guile",          // fouls_drawn_p90 — barely related
+    "pass_accuracy",  // pass % — position-dependent
+    "take_ons",       // dribble success % — sample size issues
+    "duels",          // duel win % — position-dependent
+  ]);
+  const QUALITY_SOURCES = new Set(["scout_assessment", "eafc_inferred"]);
 
   const attrBest = new Map<string, { normalized: number; priority: number; source: string }>();
   const sourcesSeen = new Set<string>();
@@ -129,8 +144,13 @@ export async function GET(
     let attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
     attr = ATTR_ALIASES[attr] ?? attr;
     const source = g.source ?? "eafc_inferred";
-    const priority = SOURCE_PRIORITY[source] ?? 1;
+    let priority = SOURCE_PRIORITY[source] ?? 1;
     sourcesSeen.add(source);
+
+    // For quality-only attributes, skip non-quality sources entirely
+    if (QUALITY_ONLY_ATTRS.has(attr) && !QUALITY_SOURCES.has(source)) {
+      continue;
+    }
 
     const scale = SOURCE_SCALE[source] ?? (raw > 10 ? 20.0 : 10.0);
     const normalized = (raw / scale) * 100;
@@ -195,10 +215,10 @@ export async function GET(
     const min = Math.min(...modelVals);
     const max = Math.max(...modelVals);
     const spread = max - min;
-    if (spread > 0 && spread < 40) {
-      // Map [min, max] → [20, 95] so shape is distinctive
+    if (spread > 0 && spread < 60) {
+      // Map [min, max] → [15, 95] so shape is distinctive
       for (const [model, score] of Object.entries(modelScores)) {
-        modelScores[model] = Math.round(20 + ((score - min) / spread) * 75);
+        modelScores[model] = Math.round(15 + ((score - min) / spread) * 80);
       }
     }
   }

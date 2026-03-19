@@ -49,6 +49,12 @@ export async function GET(req: NextRequest) {
   if (tier) query = query.eq("profile_tier", parseInt(tier, 10));
   const league = searchParams.get("league");
   if (league) query = query.eq("league_name", league);
+  const maxAge = searchParams.get("max_age");
+  if (maxAge) {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - parseInt(maxAge, 10));
+    query = query.gte("dob", cutoff.toISOString().split("T")[0]);
+  }
   if (full === "1") {
     query = query.not("archetype", "is", null).not("personality_type", "is", null).not("overall", "is", null);
   }

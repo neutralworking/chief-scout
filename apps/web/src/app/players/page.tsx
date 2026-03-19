@@ -116,6 +116,7 @@ function PlayersContent() {
   const sort = searchParams.get("sort") ?? "level_raw";
   const tier = searchParams.get("tier") ?? "";
   const league = searchParams.get("league") ?? "";
+  const maxAge = searchParams.get("max_age") ?? "";
 
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
@@ -144,14 +145,15 @@ function PlayersContent() {
     if (sort) params.set("sort", sort);
     if (tier) params.set("tier", tier);
     if (league) params.set("league", league);
+    if (maxAge) params.set("max_age", maxAge);
     params.set("limit", String(pageSize));
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, pursuit, q, sort, tier, league, pageSize]);
+  }, [position, pursuit, q, sort, tier, league, maxAge, pageSize]);
 
   // Reset page when filters or page size change
-  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, league, pageSize]);
+  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, league, maxAge, pageSize]);
 
   // Sync page to URL (for back-button retention)
   useEffect(() => {
@@ -216,7 +218,7 @@ function PlayersContent() {
     );
   }
 
-  const hasFilters = !!(position || pursuit || q || tier || league);
+  const hasFilters = !!(position || pursuit || q || tier || league || maxAge);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
@@ -308,6 +310,17 @@ function PlayersContent() {
                       : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                   }`}>
                   {pos}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-0.5 shrink-0 ml-1">
+              {[["U16", "16"], ["U18", "18"], ["U21", "21"], ["U23", "23"]].map(([label, val]) => (
+                <button key={val} onClick={() => updateParam("max_age", maxAge === val ? "" : val)}
+                  className={`text-[9px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                    maxAge === val ? "bg-blue-500/20 text-blue-400"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                  }`}>
+                  {label}
                 </button>
               ))}
             </div>

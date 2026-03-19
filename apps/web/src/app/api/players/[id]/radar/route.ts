@@ -1,6 +1,29 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
 import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+
+// Proxy mapping: canonical model attributes → existing DB attributes we have data for.
+// These are not identity mappings — they're "best available proxy" for attributes
+// that no external source provides. The SACROSANCT model definitions stay pure;
+// this is a radar-display concern only.
+const ATTR_PROXIES: Record<string, string> = {
+  // Commander: mental/leadership traits → proxied from composite mental scores
+  communication:    "tactical",      // tactical awareness implies game-reading + organising
+  concentration:    "composure",     // composure IS concentration under pressure
+  drive:            "intensity",     // intensity captures work ethic / drive
+  leadership:       "mental",        // general mental score is the best proxy
+
+  // Controller: game management traits
+  anticipation:     "awareness",     // awareness = reading the play ahead
+  decisions:        "tactical",      // tactical score reflects decision quality
+  tempo:            "composure",     // composure governs tempo control
+
+  // Creator: unpredictability has no proxy but creativity+vision+guile cover 3/4
+
+  // GK: agility + handling have no direct proxies
+  agility:          "reactions",     // reaction speed approximates agility
+  handling:         "footwork",      // footwork is the closest GK proxy
+};
 import { NextResponse } from "next/server";
 
 // Which models matter for each position (weights 0-1)
@@ -150,14 +173,10 @@ export async function GET(
   const modelScores: Record<string, number> = {};
   for (const [model, attrs] of Object.entries(MODEL_ATTRIBUTES)) {
     const vals = attrs
-      .map((a) => attrScores.get(a))
+      .map((a) => attrScores.get(a) ?? attrScores.get(ATTR_PROXIES[a] ?? ""))
       .filter((v): v is number => v !== undefined);
     if (vals.length > 0) {
       modelScores[model] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-    } else if (playerLevel) {
-      // No attribute data for this model (e.g. Commander — mental attrs not in any source).
-      // Use level anchor as a neutral fallback so the radar axis isn't empty.
-      modelScores[model] = Math.round(playerLevel * 0.75);
     }
   }
 

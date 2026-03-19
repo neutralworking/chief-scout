@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   PlayerCard as PlayerCardType,
   computeAge,
-  PURSUIT_COLORS,
   POSITION_COLORS,
 } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
@@ -20,11 +19,9 @@ const RADAR_COLORS: Record<CardTheme, string> = {
   default: "#4ade80",   // green-400
 };
 
-export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
+export function PlayerCard({ player }: { player: PlayerCardType }) {
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
-  const pursuitColor =
-    PURSUIT_COLORS[player.pursuit_status ?? ""] ?? "bg-[var(--text-muted)]";
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
 
@@ -36,27 +33,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
       className="block group"
     >
       <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name + Pursuit */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span
-              className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}
-            >
-              {player.position ?? "–"}
-            </span>
-            <h3 className={`text-sm text-[var(--text-primary)] truncate ${styles.nameFont}`}>
-              {player.name}
-            </h3>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {showPursuit && player.pursuit_status && (
-              <span
-                className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
-              >
-                {player.pursuit_status}
-              </span>
-            )}
-          </div>
+        {/* Row 1: Position badge + Name */}
+        <div className="flex items-center gap-2 mb-2 min-w-0">
+          <span
+            className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}
+          >
+            {player.position ?? "–"}
+          </span>
+          <h3 className={`text-sm text-[var(--text-primary)] truncate ${styles.nameFont}`}>
+            {player.name}
+          </h3>
         </div>
 
         {/* Row 2: Club, Nation, Age */}
@@ -150,9 +136,16 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
               </span>
             )}
           </div>
-          {player.archetype && !player.engine_value_p50 && !player.market_value_eur && (
+          {player.legacy_score != null && player.legacy_score > 0 ? (
+            <span className="text-[10px] font-mono font-bold" style={{
+              color: player.legacy_score >= 5000 ? "#f59e0b" : player.legacy_score >= 2500 ? "#a855f7" : player.legacy_score >= 1000 ? "#3b82f6" : "var(--text-muted)"
+            }}>
+              {player.legacy_score.toLocaleString()}
+              <span className="text-[8px] font-normal ml-0.5 opacity-60">XP</span>
+            </span>
+          ) : player.archetype && !player.engine_value_p50 && !player.market_value_eur ? (
             <span className="text-[9px] font-mono text-[var(--text-muted)]">{player.personality_type}</span>
-          )}
+          ) : null}
         </div>
 
         {/* Row 5: MiniRadar fingerprint (role-specific axes) */}

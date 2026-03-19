@@ -25,7 +25,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Dashboard", href: "/", exact: true },
       { label: "Players", href: "/players" },
-      { label: "Gems", href: "/network", stagingOnly: true },
+      { label: "Network", href: "/network", stagingOnly: true },
       { label: "Stats", href: "/stats" },
       { label: "Free Agents", href: "/free-agents" },
       { label: "Compare", href: "/compare" },

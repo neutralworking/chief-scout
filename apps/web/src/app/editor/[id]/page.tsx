@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import DofAssessmentSection from "./DofAssessmentSection";
+import AttributeGradeEditor from "./AttributeGradeEditor";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
@@ -588,10 +589,12 @@ export default function PlayerEditorPage() {
         )}
       </div>
 
+      {/* Attribute Grades */}
+      <AttributeGradeEditor personId={personId} />
+
       {/* Status (collapsible, closed by default) */}
       <CollapsibleSection title="Status" defaultOpen={false}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <FieldSelect label="Pursuit Status" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
           <FieldSelect label="Contract" value={String(profile.contract_tag ?? "")} options={CONTRACT_TAGS} onChange={(v) => setProfileField("contract_tag", v)} />
           <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
         </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS, PURSUIT_COLORS } from "@/lib/types";
+import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS } from "@/lib/types";
 import { EditableCell } from "@/components/EditableCell";
 import Link from "next/link";
 
@@ -11,7 +11,7 @@ const PAGE_SIZES = [25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 100;
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
-const PURSUIT_STATUSES = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
+
 
 const LEAGUES = [
   "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
@@ -111,7 +111,6 @@ function PlayersContent() {
   const [loginPass, setLoginPass] = useState("");
 
   const position = searchParams.get("position") ?? "";
-  const pursuit = searchParams.get("pursuit") ?? "";
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "level_raw";
   const tier = searchParams.get("tier") ?? "";
@@ -140,7 +139,6 @@ function PlayersContent() {
   const buildUrl = useCallback((offset: number) => {
     const params = new URLSearchParams();
     if (position) params.set("position", position);
-    if (pursuit) params.set("pursuit", pursuit);
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (tier) params.set("tier", tier);
@@ -150,10 +148,10 @@ function PlayersContent() {
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, pursuit, q, sort, tier, league, maxAge, pageSize]);
+  }, [position, q, sort, tier, league, maxAge, pageSize]);
 
   // Reset page when filters or page size change
-  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, league, maxAge, pageSize]);
+  useEffect(() => { setPage(0); }, [position, q, sort, tier, league, maxAge, pageSize]);
 
   // Sync page to URL (for back-button retention)
   useEffect(() => {
@@ -218,7 +216,7 @@ function PlayersContent() {
     );
   }
 
-  const hasFilters = !!(position || pursuit || q || tier || league || maxAge);
+  const hasFilters = !!(position || q || tier || league || maxAge);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
@@ -340,11 +338,6 @@ function PlayersContent() {
                 className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] max-w-[120px]">
                 <option value="">League</option>
                 {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
-              </select>
-              <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
-                <option value="">Status</option>
-                {PURSUIT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
               <select value={tier} onChange={(e) => updateParam("tier", e.target.value)}
                 className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">

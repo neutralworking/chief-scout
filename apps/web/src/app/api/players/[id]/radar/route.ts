@@ -113,6 +113,12 @@ export async function GET(
   // For each attribute, use the score from the highest-priority source.
   // This prevents eafc garbage (all 10s) from diluting real statistical data.
   // Per-source scale detection: eafc/understat are 0-10, legacy data may be 0-20.
+  // Source-specific scales (not heuristic — based on actual data ranges)
+  const SOURCE_SCALE: Record<string, number> = {
+    scout_assessment: 20, eafc_inferred: 20, statsbomb: 20,
+    api_football: 10, fbref: 10, understat: 10, computed: 10,
+  };
+
   const attrBest = new Map<string, { normalized: number; priority: number; source: string }>();
   const sourcesSeen = new Set<string>();
 
@@ -126,8 +132,7 @@ export async function GET(
     const priority = SOURCE_PRIORITY[source] ?? 1;
     sourcesSeen.add(source);
 
-    // Per-source scale: scout grades can be 0-20, stats are 0-10
-    const scale = raw > 10 ? 20.0 : 10.0;
+    const scale = SOURCE_SCALE[source] ?? (raw > 10 ? 20.0 : 10.0);
     const normalized = (raw / scale) * 100;
 
     const existing = attrBest.get(attr);

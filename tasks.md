@@ -32,7 +32,7 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~Add API-Football to Vercel env~~ — `API_FOOTBALL_KEY` set in Vercel (2026-03-19)
 
 ### Data Freshness (Strategic Priority #2)
-- [ ] **News cron** — automated refresh every 2-4h (#53). Sprint item #1. Last automation gap.
+- [x] ~~News cron~~ — GitHub Actions workflow, 6x/day (every 4h), Vercel crons reduced to 1 for Hobby plan (2026-03-19)
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
 
 ### Four-Pillar Assessment (Post-Rebuild)

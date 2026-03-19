@@ -261,20 +261,44 @@ POSITION_SCARCITY = {
 
 # ── League strength adjustments ───────────────────────────────────────────────
 
+# Derived from UEFA country coefficients (script 70_coefficients_ingest.py).
+# strength_factor = 0.40 + 0.75 * sqrt(coeff / max_coeff)
+# Valuation uses these as multiplicative adjustments on base market value.
 LEAGUE_STRENGTH = {
-    "Premier League": 1.15,
-    "La Liga": 1.05,
-    "Bundesliga": 1.00,
-    "Serie A": 1.00,
-    "Ligue 1": 0.95,
-    "Eredivisie": 0.80,
-    "Primeira Liga": 0.78,
-    "Super Lig": 0.75,
-    "Championship": 0.70,
-    "Belgian Pro League": 0.70,
-    "Scottish Premiership": 0.60,
-    "MLS": 0.55,
-    "default": 0.50,
+    "Premier League": 1.150,
+    "La Liga": 1.081,
+    "Serie A": 1.096,
+    "Bundesliga": 1.064,
+    "Ligue 1": 1.032,
+    "Eredivisie": 0.971,
+    "Primeira Liga": 0.960,
+    "Jupiler Pro League": 0.903,
+    "Super Lig": 0.885,
+    "Austrian Bundesliga": 0.869,
+    "Scottish Premiership": 0.858,
+    "Greek Super League": 0.843,
+    "Swiss Super League": 0.836,
+    "Eliteserien": 0.830,
+    "Serbian Super Liga": 0.827,
+    "Danish Superliga": 0.819,
+    "Allsvenskan": 0.805,
+    "Croatian HNL": 0.791,
+    "Czech Liga": 0.894,
+    "Ekstraklasa": 0.776,
+    "Romanian Liga I": 0.768,
+    "Bulgarian First League": 0.740,
+    "Championship": 0.920,
+    # Non-UEFA
+    "Brasileirao Serie A": 0.750,
+    "Argentine Liga Profesional": 0.720,
+    "Liga MX": 0.650,
+    "Saudi Pro League": 0.620,
+    "MLS": 0.600,
+    "Colombian Primera A": 0.580,
+    "K League 1": 0.550,
+    "A-League": 0.520,
+    "Chinese Super League": 0.500,
+    "default": 0.500,
 }
 
 # ── Contract cliff effects ────────────────────────────────────────────────────

@@ -140,6 +140,12 @@ def main():
 
     # ── 1. Load player stats with position data ──────────────────────────────
 
+    # Load league strength factors for grade scaling
+    cur.execute("SELECT league_name, strength_factor FROM league_coefficients WHERE season = %s", (args.season,))
+    league_strength = {r["league_name"]: float(r["strength_factor"]) for r in cur.fetchall()}
+    default_strength = 0.50
+    print(f"  Loaded {len(league_strength)} league strength factors")
+
     cur.execute("""
         SELECT
             s.person_id,
@@ -156,7 +162,8 @@ def main():
             s.fouls_drawn, s.fouls_committed,
             s.cards_yellow, s.cards_red,
             s.penalties_scored, s.penalties_missed,
-            pp.position
+            pp.position,
+            s.league_name
         FROM api_football_player_stats s
         JOIN player_profiles pp ON pp.person_id = s.person_id
         WHERE s.season = %s
@@ -176,12 +183,16 @@ def main():
 
     player_metrics = {}  # person_id → {metric_name: value}
     player_positions = {}  # person_id → position_group
+    player_league_strength = {}  # person_id → strength_factor (0.40-1.15)
 
     for p in players:
         pid = p["person_id"]
         mins = p["minutes"]
         pos_group = get_position_group(p["position"])
         player_positions[pid] = pos_group
+        player_league_strength[pid] = league_strength.get(
+            p["league_name"], default_strength
+        )
 
         metrics = {}
 
@@ -262,7 +273,13 @@ def main():
             for pid, pct in ranks.items():
                 if is_inverted:
                     pct = 100 - pct  # fewer cards = better discipline
-                score = percentile_to_score(pct)
+                # Apply league strength discount: scale the percentile
+                # before converting to 1-10. A player at the 80th
+                # percentile in the Bulgarian league (strength=0.74)
+                # gets 80 * 0.74 = 59th effective percentile.
+                strength = player_league_strength.get(pid, 1.0)
+                adjusted_pct = pct * strength
+                score = percentile_to_score(adjusted_pct)
                 grades_to_write.append({
                     "player_id": pid,
                     "attribute": attr_name,

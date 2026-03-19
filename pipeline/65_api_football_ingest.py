@@ -460,6 +460,18 @@ def main():
         league_name = LEAGUES.get(league_id, f"League {league_id}")
         print(f"── {league_name} (ID: {league_id}) ──")
 
+        # Reconnect between leagues to avoid pooler timeouts
+        try:
+            cur.execute("SELECT 1")
+        except Exception:
+            print("  (reconnecting to DB...)")
+            try:
+                conn.close()
+            except Exception:
+                pass
+            conn = require_conn()
+            cur = conn.cursor()
+
         # Check if we already have data for this league/season
         if not FORCE:
             cur.execute("""
@@ -513,7 +525,7 @@ def main():
             """, [(p["api_football_id"], p["name"]) for p in player_registry])
             total_players_registered += len(player_registry)
 
-        # Insert stats
+        # Insert stats in chunks to avoid pooler timeouts on large leagues
         if rows:
             from psycopg2.extras import execute_values
             cols = [
@@ -530,40 +542,42 @@ def main():
                 "fetched_at",
             ]
             values = [tuple(row[c] for c in cols) for row in rows]
-            placeholders = ",".join(["%s"] * len(cols))
-            execute_values(cur, f"""
-                INSERT INTO api_football_player_stats ({",".join(cols)})
-                VALUES %s
-                ON CONFLICT (api_football_id, season, league_id) DO UPDATE SET
-                    appearances = EXCLUDED.appearances,
-                    minutes = EXCLUDED.minutes,
-                    rating = EXCLUDED.rating,
-                    goals = EXCLUDED.goals,
-                    assists = EXCLUDED.assists,
-                    shots_total = EXCLUDED.shots_total,
-                    shots_on = EXCLUDED.shots_on,
-                    passes_total = EXCLUDED.passes_total,
-                    passes_key = EXCLUDED.passes_key,
-                    passes_accuracy = EXCLUDED.passes_accuracy,
-                    tackles_total = EXCLUDED.tackles_total,
-                    blocks = EXCLUDED.blocks,
-                    interceptions = EXCLUDED.interceptions,
-                    duels_total = EXCLUDED.duels_total,
-                    duels_won = EXCLUDED.duels_won,
-                    dribbles_attempted = EXCLUDED.dribbles_attempted,
-                    dribbles_success = EXCLUDED.dribbles_success,
-                    fouls_drawn = EXCLUDED.fouls_drawn,
-                    fouls_committed = EXCLUDED.fouls_committed,
-                    cards_yellow = EXCLUDED.cards_yellow,
-                    cards_red = EXCLUDED.cards_red,
-                    penalties_scored = EXCLUDED.penalties_scored,
-                    penalties_missed = EXCLUDED.penalties_missed,
-                    fetched_at = EXCLUDED.fetched_at
-            """, values)
+            CHUNK = 200
+            for i in range(0, len(values), CHUNK):
+                chunk = values[i:i + CHUNK]
+                execute_values(cur, f"""
+                    INSERT INTO api_football_player_stats ({",".join(cols)})
+                    VALUES %s
+                    ON CONFLICT (api_football_id, season, league_id) DO UPDATE SET
+                        appearances = EXCLUDED.appearances,
+                        minutes = EXCLUDED.minutes,
+                        rating = EXCLUDED.rating,
+                        goals = EXCLUDED.goals,
+                        assists = EXCLUDED.assists,
+                        shots_total = EXCLUDED.shots_total,
+                        shots_on = EXCLUDED.shots_on,
+                        passes_total = EXCLUDED.passes_total,
+                        passes_key = EXCLUDED.passes_key,
+                        passes_accuracy = EXCLUDED.passes_accuracy,
+                        tackles_total = EXCLUDED.tackles_total,
+                        blocks = EXCLUDED.blocks,
+                        interceptions = EXCLUDED.interceptions,
+                        duels_total = EXCLUDED.duels_total,
+                        duels_won = EXCLUDED.duels_won,
+                        dribbles_attempted = EXCLUDED.dribbles_attempted,
+                        dribbles_success = EXCLUDED.dribbles_success,
+                        fouls_drawn = EXCLUDED.fouls_drawn,
+                        fouls_committed = EXCLUDED.fouls_committed,
+                        cards_yellow = EXCLUDED.cards_yellow,
+                        cards_red = EXCLUDED.cards_red,
+                        penalties_scored = EXCLUDED.penalties_scored,
+                        penalties_missed = EXCLUDED.penalties_missed,
+                        fetched_at = EXCLUDED.fetched_at
+                """, chunk)
+                conn.commit()
 
             total_inserted += len(rows)
 
-        conn.commit()
         print(f"  Upserted {len(rows)} rows")
 
     print(f"\n{'=' * 50}")

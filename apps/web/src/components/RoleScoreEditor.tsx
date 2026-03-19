@@ -10,10 +10,10 @@ const TACTICAL_ROLES = [
   "Regista", "Anchor", "Ball-Winner",
   "Mezzala", "Box-to-Box", "Deep Playmaker",
   "Wide Playmaker", "Wide Provider", "Direct Winger", "Traditional Winger",
-  "Trequartista", "Advanced Playmaker", "Shadow Striker",
+  "Trequartista", "Advanced Playmaker", "Second Striker",
   "Inside Forward", "Inverted Winger", "Wide Forward",
   "Target Man", "Poacher", "False 9", "Complete Forward", "Pressing Forward", "Raumdeuter",
-  "Destroyer-Creator",
+  "Carrier",
 ];
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";

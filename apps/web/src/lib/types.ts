@@ -38,6 +38,11 @@ export interface PlayerCard {
   // Career XP v2
   xp_level?: number | null;
   legacy_score?: number | null;
+  // Earned archetype system
+  earned_archetype?: string | null;
+  archetype_tier?: string | null;
+  legacy_tag?: string | null;
+  behavioral_tag?: string | null;
 }
 
 export interface PlayerValuation {

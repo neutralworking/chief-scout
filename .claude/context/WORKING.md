@@ -2,20 +2,13 @@
 > Auto-updated at session start/end. Last updated: 2026-03-19
 
 ## Current Sprint
-1. **Data Density** — 25/43 AF leagues ingested (12,372 rows), coefficient-scaled grades. Next: finish remaining ~18 leagues, re-run grades+ratings+fingerprints — IN PROGRESS
+1. **Data Density** — 43/43 AF leagues fetched (32 senior + 11 youth). 119k grades, 9,471 players graded, 8,723 fingerprints — DONE
 2. **Four-Pillar QA** — rebuilt with real data, physical pillar 5-component formula. 7 issues found, 5 fix tasks created — QA PASS NEEDED
 3. **Scale to 200+ Tier 1** — currently ~50 on prod (276 total but most skeleton). LLM profiling button in admin. Needs automated batch generation — NOT STARTED
 
 ## Resume Tasks (next session)
-Run these in order to finish the AF league expansion:
-```bash
-cd pipeline
-python3 65_api_football_ingest.py --all-leagues    # skips 25 done, fetches ~18 remaining
-python3 67_af_match_and_import.py                  # match new players to people
-python3 66_api_football_grades.py                  # regrade with coefficient scaling
-python3 27_player_ratings.py --force               # recompute ratings
-python3 60_fingerprints.py --force                 # recompute fingerprints
-```
+- Four-pillar QA pass
+- Scale to 200+ Tier 1 profiles (LLM batch profiling)
 
 ## Active Decisions
 - XP system v2: move to real XP scale (Ballon d'Or=1000) vs keep interim system
@@ -46,12 +39,12 @@ python3 60_fingerprints.py --force                 # recompute fingerprints
 | Table | Count | Last Updated |
 |-------|-------|-------------|
 | people | 21,683+ | 2026-03-19 |
-| AF player-season rows | 12,372 | 2026-03-19 |
-| AF leagues ingested | 25 / 43 | 2026-03-19 |
+| AF player-season rows | 14,429 | 2026-03-19 |
+| AF leagues ingested | 43 / 43 (32 senior) | 2026-03-19 |
 | league_coefficients | 53 | 2026-03-19 |
 | clubs with uefa_coefficient | 68 | 2026-03-19 |
 | nations with fifa_rank | 80 | 2026-03-19 |
-| attribute_grades | 414k+ | 2026-03-18 |
+| attribute_grades | 500k+ | 2026-03-19 |
 | Tier 1 on prod | 276 | 2026-03-16 |
 
 ## Infrastructure Notes

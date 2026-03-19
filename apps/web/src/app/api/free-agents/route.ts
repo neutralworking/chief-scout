@@ -4,7 +4,7 @@ import { prodFilter } from "@/lib/env";
 import { fetchSeasonStats } from "@/lib/stats";
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint, earned_archetype, archetype_tier, legacy_tag, behavioral_tag";
 
 // Fingerprints are precomputed by pipeline/51_fingerprints.py (percentile ranks within position group).
 

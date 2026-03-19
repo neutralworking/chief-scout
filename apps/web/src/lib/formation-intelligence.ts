@@ -109,23 +109,6 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Stamina", "Pace", "Crossing", "Tackling"],
     reference: "The Moses/Maggio role — wide midfielder covering full flank in 3-5-2 systems",
   },
-  "Fluidificante": {
-    archetypes: ["Engine", "Sprinter", "Dribbler"],
-    personalities: ["ANSC", "INSC", "AXSC"],
-    minLevel: 12,
-    positions: ["WD"],
-    keyAttributes: ["Pace", "Stamina", "Acceleration", "Crossing"],
-    reference: "The Facchetti role — fullback who surges forward, turns defence into attack",
-  },
-  "Tornante": {
-    archetypes: ["Engine", "Sprinter", "Dribbler"],
-    personalities: ["ANSC", "AXSC", "INSC"],
-    minLevel: 11,
-    positions: ["WM"],
-    keyAttributes: ["Stamina", "Pace", "Crossing", "Tackling"],
-    reference: "The Kostic role — wide midfielder who covers full flank, tracks back and surges forward",
-  },
-
   // ── DM ──────────────────────────────────────────────────────────────────
   "Regista": {
     archetypes: ["Controller", "Passer", "Creator"],
@@ -229,13 +212,13 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Vision", "Decisions", "Pass Accuracy", "Composure"],
     reference: "The De Bruyne role — links midfield to attack, controls the final third",
   },
-  "Shadow Striker": {
+  "Second Striker": {
     archetypes: ["Sprinter", "Striker", "Engine"],
     personalities: ["INSC", "IXSC", "AXSC"],
     minLevel: 12,
     positions: ["AM", "CF"],
     keyAttributes: ["Movement", "Pace", "Short Range", "Acceleration"],
-    reference: "The Muller role — late runs into the box, always finds space between the lines",
+    reference: "The Bergkamp role — drops into pockets, links play, arrives late in the box",
   },
 
   // ── WF ──────────────────────────────────────────────────────────────────
@@ -275,7 +258,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
   },
   "Poacher": {
     archetypes: ["Striker", "Sprinter"],
-    personalities: ["INSC", "IXSC", "AXSC"],
+    personalities: ["ANSC", "INSC", "IXSC"],
     minLevel: 13,
     positions: ["CF"],
     keyAttributes: ["Short Range", "Movement", "Penalties", "Reactions"],
@@ -306,22 +289,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     reference: "The Firmino role — defends from the front, triggers the press, sacrifices for the team",
   },
   "Raumdeuter": {
-    archetypes: ["Cover", "Striker", "Engine"],
-    personalities: ["ANSC", "INSC", "ANLC"],
+    archetypes: ["Cover", "Controller", "Engine"],
+    personalities: ["ANLC", "INSC", "ANSC"],
     minLevel: 13,
     positions: ["CF", "AM", "WF"],
     keyAttributes: ["Anticipation", "Movement", "Positioning", "Awareness"],
-    reference: "The Muller role — space interpreter, arrives in the box with perfect timing, reads the game",
+    reference: "The Muller role — reads space before it opens, arrives in the box with perfect timing",
   },
 
   // ── DM (additional) ──────────────────────────────────────────────────────
-  "Destroyer-Creator": {
-    archetypes: ["Destroyer", "Controller", "Passer"],
+  "Carrier": {
+    archetypes: ["Destroyer", "Engine", "Passer"],
     personalities: ["ANLC", "ANSC", "INLC"],
     minLevel: 14,
     positions: ["DM", "CM"],
-    keyAttributes: ["Tackling", "Pass Range", "Composure", "Interceptions"],
-    reference: "The Vieira / Yaya Touré role — does everything, tackles AND creates, box to box from deep",
+    keyAttributes: ["Tackling", "Carries", "Pass Range", "Stamina"],
+    reference: "The Yaya Touré / Vieira role — wins back possession and surges forward, dominates both halves",
   },
 };
 
@@ -683,7 +666,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Box-to-Box", blueprint: "Tiago", demand: "Links defence to attack, keeps it simple, covers the wide areas" },
         { role: "Ball-Winner", blueprint: "Koke", demand: "Presses, creates, works — the system's most versatile piece" },
       ],
-      AM: [{ role: "Shadow Striker", blueprint: "Arda Turan", demand: "Drifts between the lines, finds pockets, feeds the strikers" }],
+      AM: [{ role: "Second Striker", blueprint: "Arda Turan", demand: "Drifts between the lines, finds pockets, feeds the strikers" }],
       CF: [
         { role: "Target Man", blueprint: "Costa", demand: "Physical, aggressive, holds it up, bullies centre-backs" },
         { role: "Poacher", blueprint: "Villa/Griezmann", demand: "Runs off the target man, finishes clinically, intelligent movement" },

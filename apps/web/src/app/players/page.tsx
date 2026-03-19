@@ -408,7 +408,18 @@ function PlayersContent() {
                               </span>
                             )}
                           </div>
-                          <span className="text-xs text-[var(--text-muted)]">{player.club || ""}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-[var(--text-muted)]">{player.club || ""}</span>
+                            {player.earned_archetype && (
+                              <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${
+                                player.archetype_tier === "elite" ? "bg-amber-500/20 text-amber-400" :
+                                player.archetype_tier === "established" ? "bg-emerald-500/15 text-emerald-400" :
+                                "bg-blue-500/10 text-blue-400/70"
+                              }`}>
+                                {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-1.5 px-2 text-center font-mono text-sm text-[var(--text-secondary)]">
                           {player.dob ? computeAge(player.dob) : "–"}

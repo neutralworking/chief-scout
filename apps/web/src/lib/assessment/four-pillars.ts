@@ -212,16 +212,18 @@ export function computeTactical(
     }
   }
 
-  // Flexibility: count viable roles (score > 40% of fixed ceiling)
-  const viableThreshold = MAX_REALISTIC_ROLE_SCORE * 0.4;
+  // Flexibility: count viable roles (score > 55% of fixed ceiling)
+  // Raised from 40% to 55% to prevent everyone scoring 80 flexibility
+  const viableThreshold = MAX_REALISTIC_ROLE_SCORE * 0.55;
   const viableRoles = roleResults.filter(r => r.score > viableThreshold);
   const viableRoleCount = viableRoles.length;
   let flexibility: number;
-  if (viableRoleCount >= 6) flexibility = 80;
-  else if (viableRoleCount >= 4) flexibility = 60;
-  else if (viableRoleCount >= 3) flexibility = 50;
-  else if (viableRoleCount >= 2) flexibility = 35;
-  else flexibility = 20;
+  if (viableRoleCount >= 6) flexibility = 85;
+  else if (viableRoleCount >= 4) flexibility = 70;
+  else if (viableRoleCount >= 3) flexibility = 55;
+  else if (viableRoleCount >= 2) flexibility = 40;
+  else if (viableRoleCount >= 1) flexibility = 25;
+  else flexibility = 15;
 
   // Trait profile score from trait-role-impact
   const traitProfile = traitScore ?? 50;

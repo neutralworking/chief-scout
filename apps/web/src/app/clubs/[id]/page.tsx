@@ -118,7 +118,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   // Key players
   const keyPlayers = players.filter((p) => p.overall != null).slice(0, 5);
 
-  // Archetypes
+  // Archetypes (needed for both strengths analysis and playing styles display)
   const archetypeCounts: Record<string, number> = {};
   for (const p of players) {
     if (p.archetype) {
@@ -126,6 +126,63 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
     }
   }
   const archetypeEntries = Object.entries(archetypeCounts).sort((a, b) => b[1] - a[1]);
+
+  // ── Strengths & Weaknesses analysis ──────────────────────────────────────
+  const strengths: string[] = [];
+  const weaknesses: string[] = [];
+
+  // Squad size
+  if (players.length >= 25) strengths.push("Deep squad — well covered across positions");
+  else if (players.length >= 18) { /* normal */ }
+  else if (players.length >= 5) weaknesses.push("Thin squad — vulnerable to injuries and fixture congestion");
+
+  // Star power
+  const elitePlayers = players.filter((p) => (p.overall ?? 0) >= 83);
+  const strongPlayers = players.filter((p) => (p.overall ?? 0) >= 78);
+  if (elitePlayers.length >= 5) strengths.push(`Elite core — ${elitePlayers.length} players rated 83+`);
+  else if (elitePlayers.length >= 2) strengths.push(`${elitePlayers.length} high-quality starters (83+)`);
+  if (strongPlayers.length < 11 && players.length >= 11) weaknesses.push("Lacks quality depth — fewer than 11 players at 78+");
+
+  // Age balance
+  const primeCount = ageCounts.prime;
+  const academyCount = ageCounts.academy;
+  const veteranCount = ageCounts.veteran;
+  const developingCount = ageCounts.developing;
+  if (academyCount >= 5 && developingCount >= 3) strengths.push("Strong youth pipeline — good mix of academy and developing talent");
+  else if (academyCount + developingCount <= 2 && players.length >= 10) weaknesses.push("Ageing squad — limited young talent coming through");
+  if (primeCount >= 8) strengths.push("Peak-age core — most of the squad in their prime years");
+  if (veteranCount >= 6 && players.length >= 10) weaknesses.push("Heavy veteran presence — squad renewal needed soon");
+
+  // Positional balance
+  const positionsWithCover = POSITIONS.filter((pos) => (positionGroups[pos]?.length ?? 0) >= 2);
+  if (positionsWithCover.length >= 8) strengths.push("Excellent positional coverage across the pitch");
+  if (gaps.length >= 4) weaknesses.push(`${gaps.length} positional gaps — needs significant recruitment`);
+  else if (gaps.length >= 2) {
+    const gapLabels = gaps.slice(0, 3).join(", ");
+    weaknesses.push(`Thin at ${gapLabels}`);
+  }
+
+  // Attack vs defence balance
+  const atkPositions = ["CF", "WF", "AM", "WM"];
+  const defPositions = ["GK", "CD", "WD", "DM"];
+  const atkAvg = players.filter((p) => atkPositions.includes(p.position ?? "")).map((p) => p.overall ?? 0);
+  const defAvg = players.filter((p) => defPositions.includes(p.position ?? "")).map((p) => p.overall ?? 0);
+  const avgAtk = atkAvg.length > 0 ? atkAvg.reduce((a, b) => a + b, 0) / atkAvg.length : 0;
+  const avgDef = defAvg.length > 0 ? defAvg.reduce((a, b) => a + b, 0) / defAvg.length : 0;
+  if (avgAtk > avgDef + 5 && atkAvg.length >= 3) strengths.push("Attack-heavy squad — front line outpaces the defence");
+  if (avgDef > avgAtk + 5 && defAvg.length >= 3) strengths.push("Defensively solid — backline is the strongest unit");
+  if (avgAtk > 0 && avgDef > 0 && avgAtk < avgDef - 5 && atkAvg.length >= 3) weaknesses.push("Attacking quality lags behind defensive strength");
+  if (avgDef > 0 && avgAtk > 0 && avgDef < avgAtk - 5 && defAvg.length >= 3) weaknesses.push("Defensive vulnerability — backline below the squad average");
+
+  // Archetype diversity
+  const uniqueArchetypes = Object.keys(archetypeCounts).length;
+  if (uniqueArchetypes >= 8) strengths.push("Tactical versatility — diverse range of player profiles");
+  else if (uniqueArchetypes <= 3 && players.length >= 10) weaknesses.push("One-dimensional squad — limited tactical flexibility");
+
+  // Top player quality
+  if (topRating != null && topRating >= 88) strengths.push(`Headline talent — best player rated ${topRating}`);
+  if (avgRating != null && avgRating >= 80) strengths.push("High overall standard across the squad");
+  if (avgRating != null && avgRating < 72 && players.length >= 10) weaknesses.push("Below-average squad quality overall");
 
   const maxAgeCount = Math.max(...Object.values(ageCounts), 1);
 
@@ -222,6 +279,38 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Strengths & Weaknesses */}
+          {(strengths.length > 0 || weaknesses.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {strengths.length > 0 && (
+                <div className="glass rounded-xl p-3 sm:p-4">
+                  <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-2">Strengths</h2>
+                  <ul className="space-y-1.5">
+                    {strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[11px] text-[var(--text-secondary)]">
+                        <span className="text-[var(--color-accent-tactical)] shrink-0 mt-px">+</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {weaknesses.length > 0 && (
+                <div className="glass rounded-xl p-3 sm:p-4">
+                  <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-sentiment-negative)] mb-2">Weaknesses</h2>
+                  <ul className="space-y-1.5">
+                    {weaknesses.map((w, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[11px] text-[var(--text-secondary)]">
+                        <span className="text-[var(--color-sentiment-negative)] shrink-0 mt-px">&minus;</span>
+                        <span>{w}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 

@@ -279,7 +279,7 @@ def main():
                    pe.date_of_birth, c.clubname, c.league_name,
                    n.name as nation_name,
                    ps.scouting_notes,
-                   pn.ei_score, pn.sn_score, pn.tf_score, pn.jp_score,
+                   pn.ei, pn.sn, pn.tf, pn.jp,
                    pn.competitiveness, pn.coachability
             FROM people pe
             JOIN clubs c ON c.id = pe.club_id
@@ -303,7 +303,7 @@ def main():
                    pe.date_of_birth, c.clubname, c.league_name,
                    n.name as nation_name,
                    ps.scouting_notes,
-                   pn.ei_score, pn.sn_score, pn.tf_score, pn.jp_score,
+                   pn.ei, pn.sn, pn.tf, pn.jp,
                    pn.competitiveness, pn.coachability
             FROM people pe
             JOIN clubs c ON c.id = pe.club_id
@@ -414,16 +414,17 @@ def main():
                 entry["competitiveness"] = p.get("competitiveness")
                 entry["coachability"] = p.get("coachability")
                 # Derive personality code from MBTI scores
-                ei = p.get("ei_score")
-                sn = p.get("sn_score")
-                tf = p.get("tf_score")
-                jp = p.get("jp_score")
+                ei = p.get("ei")
+                sn = p.get("sn")
+                tf = p.get("tf")
+                jp = p.get("jp")
                 if all(v is not None for v in [ei, sn, tf, jp]):
-                    code = ""
-                    code += "A" if ei >= 6 else ("I" if ei <= 4 else "X" if ei == 5 else "I")
-                    code += "N" if sn >= 6 else "X" if sn == 5 else "S"
-                    code += "L" if tf >= 6 else "S" if tf <= 4 else "X" if tf == 5 else "S"
-                    code += "C" if jp >= 6 else "P" if jp <= 4 else "P"
+                    code = (
+                        ("A" if ei >= 50 else "I") +
+                        ("X" if sn >= 50 else "N") +
+                        ("S" if tf >= 50 else "L") +
+                        ("C" if jp >= 50 else "P")
+                    )
                     entry["personality_code"] = code
 
             player_data.append(entry)

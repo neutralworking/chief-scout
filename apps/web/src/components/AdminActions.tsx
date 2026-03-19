@@ -49,6 +49,10 @@ export function AdminActions() {
   const [valForce, setValForce] = useState(false);
   const [valLimit, setValLimit] = useState("");
 
+  // LLM Profiles state
+  const [profilesChecking, setProfilesChecking] = useState(false);
+  const [profilesCount, setProfilesCount] = useState<number | null>(null);
+
   // SQL Runner state
   const [sql, setSql] = useState("");
   const [sqlRunning, setSqlRunning] = useState(false);
@@ -390,6 +394,40 @@ export function AdminActions() {
               className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-emerald-500 transition-colors cursor-pointer">
               {newsRefreshing ? "Refreshing..." : "Refresh News"}
             </button>
+            <div className="w-px h-6 bg-[var(--border-subtle)]" />
+            <button
+              onClick={async () => {
+                setProfilesChecking(true);
+                try {
+                  const res = await fetch("/api/admin/sql", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sql: `SELECT COUNT(*) as missing FROM people pe JOIN player_profiles pp ON pp.person_id = pe.id JOIN player_personality pn ON pn.person_id = pe.id JOIN player_market pm ON pm.person_id = pe.id LEFT JOIN player_status ps ON ps.person_id = pe.id WHERE pe.active = true AND pe.name IS NOT NULL AND pe.date_of_birth IS NOT NULL AND pp.position IS NOT NULL AND pp.archetype IS NOT NULL AND pp.blueprint IS NOT NULL AND pp.level IS NOT NULL AND pp.overall IS NOT NULL AND pm.market_value_tier IS NOT NULL AND (ps.scouting_notes IS NULL OR LENGTH(ps.scouting_notes) <= 20)` }),
+                  });
+                  const data = await res.json();
+                  const count = data.data?.[0]?.missing ?? 0;
+                  setProfilesCount(Number(count));
+                } catch { setProfilesCount(null); }
+                setProfilesChecking(false);
+              }}
+              disabled={profilesChecking}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-amber-500 transition-colors cursor-pointer"
+            >
+              {profilesChecking ? "Checking..." : "LLM Profiles"}
+            </button>
+            {profilesCount !== null && (
+              <span className="text-xs text-[var(--text-secondary)]">
+                <span className="font-mono font-bold text-[var(--color-accent-physical)]">{profilesCount.toLocaleString()}</span> missing bios
+                {profilesCount > 0 && (
+                  <button
+                    onClick={() => { navigator.clipboard.writeText("python 72_gemini_profiles.py --prod-ready"); setPipelineResult({ type: "success", text: "Copied: python 72_gemini_profiles.py --prod-ready" }); }}
+                    className="ml-2 text-[9px] text-[var(--text-muted)] hover:text-[var(--color-accent-tactical)] transition-colors underline cursor-pointer"
+                  >
+                    copy cmd
+                  </button>
+                )}
+              </span>
+            )}
           </div>
 
           {/* Compute Pipeline */}

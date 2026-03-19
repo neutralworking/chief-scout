@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { MiniRadar } from "./MiniRadar";
+import { EditableCell } from "./EditableCell";
 
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
@@ -67,12 +68,29 @@ export interface InsightData {
   player: InsightPlayer;
 }
 
-export function InsightCard({ insight }: { insight: InsightData }) {
+interface InsightCardProps {
+  insight: InsightData;
+  isAdmin?: boolean;
+  isReviewed?: boolean;
+  onAccept?: (personId: number) => void;
+  onSkip?: (personId: number) => void;
+}
+
+export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: InsightCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [localLevel, setLocalLevel] = useState(insight.player.level);
+  const [localRoleScore, setLocalRoleScore] = useState(insight.player.best_role_score);
+  const [accepting, setAccepting] = useState(false);
   const { player, evidence } = insight;
   const age = player.dob ? computeAge(player.dob) : evidence.age;
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const flags = evidence.flags ?? [];
+
+  // Suggested values
+  const suggestedLevel = (!player.level || player.level === 0)
+    ? Math.round(55 + (evidence.avg_percentile ?? 0) * 0.25)
+    : player.level;
+  const suggestedRoleScore = suggestedLevel - 1;
 
   // Parse fingerprint for MiniRadar
   const fp = player.fingerprint;
@@ -80,17 +98,46 @@ export function InsightCard({ insight }: { insight: InsightData }) {
     ? [fp.DEF ?? 0, fp.CRE ?? 0, fp.ATK ?? 0, fp.PWR ?? 0, fp.PAC ?? 0, fp.DRV ?? 0]
     : null;
 
+  async function handleAcceptSuggestions() {
+    setAccepting(true);
+    try {
+      const [res1, res2] = await Promise.all([
+        fetch("/api/admin/player-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ person_id: player.person_id, table: "player_profiles", updates: { level: suggestedLevel } }),
+        }),
+        fetch("/api/admin/player-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ person_id: player.person_id, table: "player_profiles", updates: { best_role_score: suggestedRoleScore } }),
+        }),
+      ]);
+      if (res1.ok && res2.ok) {
+        setLocalLevel(suggestedLevel);
+        setLocalRoleScore(suggestedRoleScore);
+        onAccept?.(player.person_id);
+      }
+    } finally {
+      setAccepting(false);
+    }
+  }
+
   return (
     <div
       className="glass rounded-xl overflow-hidden transition-all"
-      onClick={() => setExpanded(!expanded)}
     >
       {/* Collapsed header */}
-      <div className="px-3 py-2.5 cursor-pointer">
+      <div className="px-3 py-2.5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
+            {isReviewed && (
+              <span className="text-[var(--color-accent-tactical)] text-xs shrink-0" title="Reviewed">
+                &#10003;
+              </span>
+            )}
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
-              {player.position ?? "–"}
+              {player.position ?? "\u2013"}
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-1">
@@ -117,7 +164,7 @@ export function InsightCard({ insight }: { insight: InsightData }) {
         </div>
         <div className="flex items-center gap-1.5 mt-1 pl-7">
           <span className="text-[10px] text-[var(--text-muted)] truncate">
-            {player.club || "–"} · {player.league_name || ""}
+            {player.club || "\u2013"} · {player.league_name || ""}
           </span>
         </div>
       </div>
@@ -135,10 +182,10 @@ export function InsightCard({ insight }: { insight: InsightData }) {
           {/* Stat boxes + radar */}
           <div className="flex items-center gap-2">
             <div className="flex gap-1.5 flex-1">
-              <StatBox label="G/90" value={evidence.goals_p90?.toFixed(2) ?? "–"} />
-              <StatBox label="A/90" value={evidence.assists_p90?.toFixed(2) ?? "–"} />
-              <StatBox label="Rating" value={evidence.rating?.toFixed(1) ?? "–"} />
-              <StatBox label="Apps" value={String(evidence.appearances ?? "–")} />
+              <StatBox label="G/90" value={evidence.goals_p90?.toFixed(2) ?? "\u2013"} />
+              <StatBox label="A/90" value={evidence.assists_p90?.toFixed(2) ?? "\u2013"} />
+              <StatBox label="Rating" value={evidence.rating?.toFixed(1) ?? "\u2013"} />
+              <StatBox label="Apps" value={String(evidence.appearances ?? "\u2013")} />
             </div>
             {radarValues && (
               <div className="shrink-0">
@@ -159,14 +206,97 @@ export function InsightCard({ insight }: { insight: InsightData }) {
             </div>
           )}
 
-          {/* View Profile link */}
-          <Link
-            href={`/players/${player.person_id}`}
-            className="text-xs text-[var(--color-accent-tactical)] hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            View Profile →
-          </Link>
+          {/* Admin assessment zone */}
+          {isAdmin && expanded && (
+            <div className="border-t border-[var(--border-subtle)]/30 pt-2 mt-2">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">
+                Scout Assessment
+              </div>
+
+              <div className="space-y-1.5">
+                {/* Level row */}
+                <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-[10px] text-[var(--text-secondary)] w-20">Level</span>
+                  <div className="flex items-center gap-2">
+                    <EditableCell
+                      value={localLevel}
+                      personId={player.person_id}
+                      field="level"
+                      table="player_profiles"
+                      rowIndex={0}
+                      min={1}
+                      max={99}
+                      onSaved={(v) => setLocalLevel(v)}
+                    />
+                    {(!player.level || player.level === 0) && (
+                      <span className="text-[9px] text-[var(--text-muted)] font-mono">
+                        suggest: {suggestedLevel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Role Score row */}
+                <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-[10px] text-[var(--text-secondary)] w-20">Role Score</span>
+                  <div className="flex items-center gap-2">
+                    <EditableCell
+                      value={localRoleScore}
+                      personId={player.person_id}
+                      field="best_role_score"
+                      table="player_profiles"
+                      rowIndex={1}
+                      min={1}
+                      max={99}
+                      onSaved={(v) => setLocalRoleScore(v)}
+                    />
+                    {(!player.level || player.level === 0) && (
+                      <span className="text-[9px] text-[var(--text-muted)] font-mono">
+                        suggest: {suggestedRoleScore}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                {(!player.level || player.level === 0) && (
+                  <button
+                    onClick={handleAcceptSuggestions}
+                    disabled={accepting}
+                    className="text-[10px] font-bold px-2 py-1 rounded bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30 hover:bg-[var(--color-accent-tactical)]/30 transition-colors disabled:opacity-50"
+                  >
+                    {accepting ? "Saving..." : "Accept Suggestions"}
+                  </button>
+                )}
+                <button
+                  onClick={() => onSkip?.(player.person_id)}
+                  className="text-[10px] font-bold px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+                >
+                  Skip
+                </button>
+                <Link
+                  href={`/players/${player.person_id}`}
+                  className="text-[10px] font-bold px-2 py-1 rounded text-[var(--color-accent-tactical)] hover:underline ml-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Profile &rarr;
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* View Profile link (non-admin) */}
+          {!isAdmin && (
+            <Link
+              href={`/players/${player.person_id}`}
+              className="text-xs text-[var(--color-accent-tactical)] hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View Profile &rarr;
+            </Link>
+          )}
         </div>
       )}
     </div>

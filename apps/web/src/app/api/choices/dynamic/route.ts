@@ -1149,6 +1149,196 @@ const forwardLine: TemplateGenerator = async (sb) => {
   );
 };
 
+// 26. Stat quiz — "24 goals, 3 assists this season. Who is it?"
+const statQuiz: TemplateGenerator = async (sb) => {
+  // Get players with notable season stats
+  const { data: stats } = await sb
+    .from("api_football_player_stats")
+    .select("person_id, goals, assists, appearances, minutes, season, league_name")
+    .not("person_id", "is", null)
+    .gte("appearances", 10)
+    .gte("minutes", 500)
+    .order("goals", { ascending: false })
+    .limit(200);
+
+  if (!stats || stats.length < 10) return null;
+
+  // Filter to players with interesting stat lines (goals+assists >= 8 or appearances >= 25)
+  type StatRow = { person_id: number; goals: number; assists: number; appearances: number; minutes: number; season: string; league_name: string };
+  const interesting = (stats as StatRow[]).filter(
+    (s) => (s.goals + s.assists) >= 8 || s.appearances >= 25
+  );
+  if (interesting.length < 6) return null;
+
+  // Pick the answer player
+  const answer = randItem(interesting.slice(0, 40));
+
+  // Get the answer player's info
+  const { data: answerPlayer } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .eq("person_id", answer.person_id)
+    .single();
+
+  if (!answerPlayer) return null;
+  const ap = answerPlayer as PlayerRow;
+
+  // Get 3 decoy players from the same position with similar level
+  const { data: decoys } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .eq("position", ap.position)
+    .neq("person_id", ap.person_id)
+    .not("level", "is", null)
+    .gte("level", Math.max((ap.level ?? 70) - 8, 70))
+    .lte("level", (ap.level ?? 90) + 5)
+    .order("level", { ascending: false })
+    .limit(15);
+
+  if (!decoys || decoys.length < 3) return null;
+  const decoyPlayers = pick(decoys as PlayerRow[], 3);
+
+  // Build the stat clue
+  const parts: string[] = [];
+  if (answer.goals > 0) parts.push(`${answer.goals}G`);
+  if (answer.assists > 0) parts.push(`${answer.assists}A`);
+  parts.push(`in ${answer.appearances} apps`);
+  const statLine = parts.join(", ");
+  const league = answer.league_name?.replace(/\s*\d{4}.*/, "") ?? "this season";
+
+  const allPlayers = shuffle([ap, ...decoyPlayers]);
+
+  return makeQuestion(
+    "stat_quiz",
+    `${statLine} in ${league}. Who is it?`,
+    `${answer.season} season stats. Can you identify the player?`,
+    allPlayers.map((p, i) =>
+      makeOption(p, i, { stats_vs_eye_test: 15, flair_vs_function: 0 })
+    ),
+    CATEGORIES.scouting,
+    ["stat-quiz", "trivia"]
+  );
+};
+
+// 27. Stat quiz — defensive specialist version
+const defenseStatQuiz: TemplateGenerator = async (sb) => {
+  const { data: stats } = await sb
+    .from("api_football_player_stats")
+    .select("person_id, tackles_total, interceptions, blocks, appearances, minutes, season, league_name")
+    .not("person_id", "is", null)
+    .gte("appearances", 10)
+    .gte("minutes", 500)
+    .gte("tackles_total", 20)
+    .order("tackles_total", { ascending: false })
+    .limit(100);
+
+  if (!stats || stats.length < 6) return null;
+
+  type DefStatRow = { person_id: number; tackles_total: number; interceptions: number; blocks: number; appearances: number; season: string; league_name: string };
+  const answer = randItem((stats as DefStatRow[]).slice(0, 30));
+
+  const { data: answerPlayer } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .eq("person_id", answer.person_id)
+    .single();
+
+  if (!answerPlayer) return null;
+  const ap = answerPlayer as PlayerRow;
+
+  const { data: decoys } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .in("position", ["CD", "WD", "DM"])
+    .neq("person_id", ap.person_id)
+    .not("level", "is", null)
+    .gte("level", Math.max((ap.level ?? 70) - 8, 70))
+    .order("level", { ascending: false })
+    .limit(15);
+
+  if (!decoys || decoys.length < 3) return null;
+  const decoyPlayers = pick(decoys as PlayerRow[], 3);
+
+  const parts: string[] = [];
+  if (answer.tackles_total > 0) parts.push(`${answer.tackles_total} tackles`);
+  if (answer.interceptions > 0) parts.push(`${answer.interceptions} interceptions`);
+  if (answer.blocks > 0) parts.push(`${answer.blocks} blocks`);
+  const statLine = parts.slice(0, 2).join(", ");
+  const league = answer.league_name?.replace(/\s*\d{4}.*/, "") ?? "this season";
+
+  const allPlayers = shuffle([ap, ...decoyPlayers]);
+
+  return makeQuestion(
+    "stat_quiz_defense",
+    `${statLine} in ${league}. Who is it?`,
+    `${answer.season} defensive stats. Name the enforcer.`,
+    allPlayers.map((p, i) =>
+      makeOption(p, i, { stats_vs_eye_test: 15, attack_vs_defense: -10 })
+    ),
+    CATEGORIES.scouting,
+    ["stat-quiz", "defense"]
+  );
+};
+
+// 28. Stat quiz — creative playmaker version
+const creativeStatQuiz: TemplateGenerator = async (sb) => {
+  const { data: stats } = await sb
+    .from("api_football_player_stats")
+    .select("person_id, assists, passes_key, passes_accuracy, appearances, season, league_name")
+    .not("person_id", "is", null)
+    .gte("appearances", 10)
+    .gte("passes_key", 10)
+    .order("passes_key", { ascending: false })
+    .limit(100);
+
+  if (!stats || stats.length < 6) return null;
+
+  type CreativeRow = { person_id: number; assists: number; passes_key: number; passes_accuracy: number; appearances: number; season: string; league_name: string };
+  const answer = randItem((stats as CreativeRow[]).slice(0, 30));
+
+  const { data: answerPlayer } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .eq("person_id", answer.person_id)
+    .single();
+
+  if (!answerPlayer) return null;
+  const ap = answerPlayer as PlayerRow;
+
+  const { data: decoys } = await sb
+    .from("player_intelligence_card")
+    .select(COLS)
+    .in("position", ["CM", "AM", "WM", "WF"])
+    .neq("person_id", ap.person_id)
+    .not("level", "is", null)
+    .gte("level", Math.max((ap.level ?? 70) - 8, 70))
+    .order("level", { ascending: false })
+    .limit(15);
+
+  if (!decoys || decoys.length < 3) return null;
+  const decoyPlayers = pick(decoys as PlayerRow[], 3);
+
+  const parts: string[] = [];
+  if (answer.assists > 0) parts.push(`${answer.assists} assists`);
+  if (answer.passes_key > 0) parts.push(`${answer.passes_key} key passes`);
+  if (answer.passes_accuracy > 0) parts.push(`${Math.round(answer.passes_accuracy)}% pass accuracy`);
+  const statLine = parts.slice(0, 2).join(", ");
+  const league = answer.league_name?.replace(/\s*\d{4}.*/, "") ?? "this season";
+
+  const allPlayers = shuffle([ap, ...decoyPlayers]);
+
+  return makeQuestion(
+    "stat_quiz_creative",
+    `${statLine} in ${league}. Who is it?`,
+    `${answer.season} creative stats. Spot the playmaker.`,
+    allPlayers.map((p, i) =>
+      makeOption(p, i, { stats_vs_eye_test: 15, flair_vs_function: 10 })
+    ),
+    CATEGORIES.scouting,
+    ["stat-quiz", "creative"]
+  );
+};
+
 // ── Template Registry ────────────────────────────────────────────────────────
 
 const TEMPLATES: { gen: TemplateGenerator; weight: number }[] = [
@@ -1177,6 +1367,9 @@ const TEMPLATES: { gen: TemplateGenerator; weight: number }[] = [
   { gen: positionDepth, weight: 5 },
   { gen: pickYourKeeper, weight: 4 },
   { gen: forwardLine, weight: 5 },
+  { gen: statQuiz, weight: 14 },
+  { gen: defenseStatQuiz, weight: 8 },
+  { gen: creativeStatQuiz, weight: 8 },
 ];
 
 function pickWeightedTemplate(): TemplateGenerator {

@@ -378,7 +378,7 @@ function OptionGrid({
               onClick={() => onVote(opt.id)}
               disabled={hasVoted}
               className={`
-                relative overflow-hidden rounded-xl border-l-4 border transition-all duration-200 text-left flex flex-col justify-center px-3 py-2 min-h-0
+                relative overflow-hidden rounded-xl border-l-4 border transition-all duration-200 text-left flex flex-col justify-center px-2.5 py-1.5 min-h-0
                 ${POS_BORDER[pos] ?? "border-l-[var(--border-subtle)]"}
                 ${
                   hasVoted
@@ -418,7 +418,7 @@ function OptionGrid({
                       {pos}
                     </span>
                   )}
-                  <span className="font-semibold text-sm truncate">
+                  <span className="font-semibold text-[13px] truncate">
                     {opt.label}
                   </span>
                   {isChosen && (

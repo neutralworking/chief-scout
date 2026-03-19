@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, nation_code, club, club_id, league_name, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
 
 // Fingerprints are precomputed by pipeline/51_fingerprints.py
 // and stored in player_profiles.fingerprint (percentile ranks within position group).
@@ -47,6 +47,8 @@ export async function GET(req: NextRequest) {
     query = query.in("personality_type", types);
   }
   if (tier) query = query.eq("profile_tier", parseInt(tier, 10));
+  const league = searchParams.get("league");
+  if (league) query = query.eq("league_name", league);
   if (full === "1") {
     query = query.not("archetype", "is", null).not("personality_type", "is", null).not("overall", "is", null);
   }

@@ -6,8 +6,10 @@ export interface PlayerCard {
   preferred_foot: string | null;
   active: boolean;
   nation: string | null;
+  nation_code: string | null;
   club: string | null;
   club_id: number | null;
+  league_name: string | null;
   position: string | null;
   level: number | null;
   archetype: string | null;

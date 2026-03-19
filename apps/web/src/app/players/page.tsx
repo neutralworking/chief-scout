@@ -13,9 +13,14 @@ const DEFAULT_PAGE_SIZE = 100;
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_STATUSES = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
 
-const POSITION_SHORT: Record<string, string> = {
-  GK: "GK", WD: "WD", CD: "CD", DM: "DM", CM: "CM", WM: "WM", AM: "AM", WF: "WF", CF: "CF",
-};
+const LEAGUES = [
+  "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
+  "Eredivisie", "Primeira Liga", "Championship", "Süper Lig", "Jupiler Pro League",
+  "Premiership", "Austrian Bundesliga", "Super League", "Superliga",
+  "Super League 1", "HNL", "Super Liga", "Liga I", "Czech Liga",
+  "Ekstraklasa", "Allsvenskan", "Eliteserien", "First League",
+  "MLS", "Liga MX", "Saudi Pro League",
+];
 
 function fmtValue(eur: number | null | undefined): string {
   if (eur == null || eur <= 0) return "–";
@@ -41,45 +46,27 @@ function ratingColor(level: number | null): string {
 interface PlayerRow extends PlayerCardType {
   overall: number | null;
   peak: number | null;
+  nation_code: string | null;
+  league_name: string | null;
 }
 
-// Nation → flag emoji (2-letter ISO → regional indicator symbols)
-const NATION_FLAGS: Record<string, string> = {};
-function nationFlag(nation: string | null | undefined): string {
-  if (!nation) return "";
-  if (NATION_FLAGS[nation]) return NATION_FLAGS[nation];
-  // Common nation name → ISO 2-letter mapping
-  const ISO: Record<string, string> = {
-    "Argentina": "AR", "Australia": "AU", "Austria": "AT", "Belgium": "BE", "Brazil": "BR",
-    "Cameroon": "CM", "Canada": "CA", "Chile": "CL", "Colombia": "CO", "Croatia": "HR",
-    "Czech Republic": "CZ", "Czechia": "CZ", "Denmark": "DK", "Ecuador": "EC", "Egypt": "EG",
-    "England": "GB-ENG", "France": "FR", "Germany": "DE", "Ghana": "GH", "Greece": "GR",
-    "Hungary": "HU", "Iceland": "IS", "Iran": "IR", "Ireland": "IE", "Israel": "IL",
-    "Italy": "IT", "Ivory Coast": "CI", "Jamaica": "JM", "Japan": "JP", "Mali": "ML",
-    "Mexico": "MX", "Morocco": "MA", "Netherlands": "NL", "Nigeria": "NG", "North Macedonia": "MK",
-    "Norway": "NO", "Paraguay": "PY", "Peru": "PE", "Poland": "PL", "Portugal": "PT",
-    "Republic of Ireland": "IE", "Romania": "RO", "Russia": "RU", "Scotland": "GB-SCT",
-    "Senegal": "SN", "Serbia": "RS", "Slovakia": "SK", "Slovenia": "SI", "South Korea": "KR",
-    "Spain": "ES", "Sweden": "SE", "Switzerland": "CH", "Turkey": "TR", "Ukraine": "UA",
-    "United States": "US", "Uruguay": "UY", "Venezuela": "VE", "Wales": "GB-WLS",
-    "Algeria": "DZ", "Tunisia": "TN", "DR Congo": "CD", "Guinea": "GN", "Gabon": "GA",
-    "Burkina Faso": "BF", "Togo": "TG", "Benin": "BJ", "Niger": "NE", "Chad": "TD",
-    "Congo": "CG", "Costa Rica": "CR", "Honduras": "HN", "Panama": "PA", "Georgia": "GE",
-    "Armenia": "AM", "Albania": "AL", "Bosnia and Herzegovina": "BA", "Montenegro": "ME",
-    "Kosovo": "XK", "Finland": "FI", "New Zealand": "NZ", "China": "CN", "India": "IN",
-  };
-  const code = ISO[nation];
-  if (!code) { NATION_FLAGS[nation] = nation.slice(0, 3); return NATION_FLAGS[nation]; }
-  // England/Scotland/Wales use subdivision tag sequences (🏴 + tag chars + cancel tag)
+// Nation flag from ISO 2-letter country code
+function nationFlag(nationCode: string | null | undefined, nationName: string | null | undefined): string {
+  if (!nationCode && !nationName) return "";
+  const code = nationCode?.toUpperCase();
+  if (!code || code.length < 2) return nationName?.slice(0, 3) ?? "";
+  // UK subdivisions use tag sequences
   const GB_FLAGS: Record<string, string> = {
     "GB-ENG": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F",
     "GB-SCT": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F",
     "GB-WLS": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73\uDB40\uDC7F",
   };
-  if (GB_FLAGS[code]) { NATION_FLAGS[nation] = GB_FLAGS[code]; return NATION_FLAGS[nation]; }
-  const flag = String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
-  NATION_FLAGS[nation] = flag;
-  return flag;
+  if (GB_FLAGS[code]) return GB_FLAGS[code];
+  // Standard ISO flag: regional indicator symbols
+  if (code.length === 2) {
+    return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  }
+  return nationName?.slice(0, 3) ?? "";
 }
 
 // ── Debounced search input ───────────────────────────────────────────────────
@@ -100,7 +87,7 @@ function SearchInput({ value, onChange, onSearch }: { value: string; onChange: (
       value={value}
       onChange={handleChange}
       placeholder="Search players..."
-      className="flex-1 px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
+      className="flex-1 px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
     />
   );
 }
@@ -128,6 +115,7 @@ function PlayersContent() {
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "level_raw";
   const tier = searchParams.get("tier") ?? "";
+  const league = searchParams.get("league") ?? "";
 
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
@@ -155,14 +143,15 @@ function PlayersContent() {
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (tier) params.set("tier", tier);
+    if (league) params.set("league", league);
     params.set("limit", String(pageSize));
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, pursuit, q, sort, tier, pageSize]);
+  }, [position, pursuit, q, sort, tier, league, pageSize]);
 
   // Reset page when filters or page size change
-  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, pageSize]);
+  useEffect(() => { setPage(0); }, [position, pursuit, q, sort, tier, league, pageSize]);
 
   // Sync page to URL (for back-button retention)
   useEffect(() => {
@@ -184,7 +173,6 @@ function PlayersContent() {
         if (!res.ok) { setError(`Failed: ${res.statusText}`); setLoading(false); return; }
         const data = await res.json();
         if (!cancelled) {
-          // In autoScroll mode on page > 0, append instead of replace
           if (autoScroll && page > 0) {
             setPlayers((prev) => [...prev, ...(data.players ?? [])]);
           } else {
@@ -199,7 +187,7 @@ function PlayersContent() {
     return () => { cancelled = true; };
   }, [buildUrl, page, autoScroll, pageSize]);
 
-  // Infinite scroll: IntersectionObserver on sentinel
+  // Infinite scroll
   useEffect(() => {
     if (!autoScroll || !sentinelRef.current) return;
     const observer = new IntersectionObserver(
@@ -215,33 +203,25 @@ function PlayersContent() {
     return () => observer.disconnect();
   }, [autoScroll, hasMore, loading, loadingMore]);
 
-  // Reset players when toggling autoScroll off
   function toggleAutoScroll() {
-    if (autoScroll) {
-      setAutoScroll(false);
-      setPage(0);
-    } else {
-      setAutoScroll(true);
-      setPage(0);
-    }
+    setAutoScroll(!autoScroll);
+    setPage(0);
   }
 
   useEffect(() => { setSearchInput(q); }, [q]);
 
-  // Update a player's field in local state after inline edit
   function updateLocal(personId: number, field: string, value: number) {
     setPlayers((prev) =>
       prev.map((p) => (p.person_id === personId ? { ...p, [field]: value } : p))
     );
   }
 
-  const hasFilters = !!(position || pursuit || q || tier);
+  const hasFilters = !!(position || pursuit || q || tier || league);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
-      {/* Header + Filters — fixed */}
+      {/* Header + Filters */}
       <div className="shrink-0">
-        {/* Title + admin */}
         <div className="flex items-center gap-2 mb-1.5">
           <h1 className="text-lg font-bold tracking-tight">Players</h1>
           {!isAdmin ? (
@@ -272,7 +252,7 @@ function PlayersContent() {
               autoFocus
             />
           )}
-          {/* Pagination — right side */}
+          {/* Pagination */}
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <button
               onClick={toggleAutoScroll}
@@ -311,7 +291,7 @@ function PlayersContent() {
 
         {/* Compact controls */}
         <div className="glass rounded-lg p-1.5 mb-2 overflow-hidden">
-          {/* Row 1: Position pills — scrollable on mobile */}
+          {/* Row 1: Position pills + dropdowns */}
           <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-0.5 shrink-0">
               <button onClick={() => updateParam("position", "")}
@@ -343,6 +323,11 @@ function PlayersContent() {
                 <option value="rating">Rating</option>
                 <option value="name">Name</option>
               </select>
+              <select value={league} onChange={(e) => updateParam("league", e.target.value)}
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] max-w-[120px]">
+                <option value="">League</option>
+                {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
+              </select>
               <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
                 className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
                 <option value="">Status</option>
@@ -371,28 +356,26 @@ function PlayersContent() {
         </div>
       </div>
 
-      {/* Table — fills remaining viewport */}
+      {/* Table */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && players.length > 0 && (
           <div className="glass rounded-xl overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead className="sticky top-0 bg-[var(--bg-surface)] z-10">
-                  <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+                  <tr className="text-xs text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                     <th className="text-center py-1.5 px-2 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
                     <th className="text-center py-1.5 px-2 font-medium w-10">Age</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Score</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Lvl</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16">CS Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-16 hidden lg:table-cell">TM Val</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">App</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">G</th>
                     <th className="text-right py-1.5 px-3 font-medium w-10 hidden lg:table-cell">A</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-12 hidden lg:table-cell">xG</th>
                     <th className="text-right py-1.5 px-3 font-medium w-12 hidden lg:table-cell">Rtg</th>
                   </tr>
                 </thead>
@@ -410,19 +393,21 @@ function PlayersContent() {
                         <td className="py-1.5 px-3">
                           <div className="flex items-center gap-1.5">
                             <Link href={`/players/${player.person_id}`}
-                              className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-xs">
+                              className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-sm">
                               {player.name}
                             </Link>
                             {player.nation && (
-                              <span className="text-[11px]" title={player.nation}>{nationFlag(player.nation)}</span>
+                              <span className="text-sm" title={player.nation}>
+                                {nationFlag(player.nation_code, player.nation)}
+                              </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-[var(--text-muted)]">{player.club || ""}</span>
+                          <span className="text-xs text-[var(--text-muted)]">{player.club || ""}</span>
                         </td>
-                        <td className="py-1.5 px-2 text-center font-mono text-xs text-[var(--text-secondary)]">
+                        <td className="py-1.5 px-2 text-center font-mono text-sm text-[var(--text-secondary)]">
                           {player.dob ? computeAge(player.dob) : "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
+                        <td className="py-1.5 px-3 text-sm text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-right">
                           {isAdmin ? (
                             <EditableCell
@@ -436,7 +421,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-xs font-bold ${ratingColor(player.best_role_score)}`}>
+                            <span className={`font-mono text-sm font-bold ${ratingColor(player.best_role_score)}`}>
                               {player.best_role_score ?? "–"}
                             </span>
                           )}
@@ -454,7 +439,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-xs ${ratingColor(player.level)}`}>
+                            <span className={`font-mono text-sm ${ratingColor(player.level)}`}>
                               {player.level ?? "–"}
                             </span>
                           )}
@@ -462,40 +447,34 @@ function PlayersContent() {
                         <td className="py-1.5 px-3 text-right">
                           {isAdmin ? (
                             <EditableCell
-                              value={player.peak}
+                              value={player.director_valuation_meur ? Math.round(player.director_valuation_meur) : null}
                               personId={player.person_id}
-                              field="peak"
-                              table="player_profiles"
+                              field="director_valuation_meur"
+                              table="player_market"
                               rowIndex={idx}
-                              min={1}
-                              max={99}
-                              onSaved={(v) => updateLocal(player.person_id, "peak", v)}
+                              min={0}
+                              max={300}
+                              onSaved={(v) => updateLocal(player.person_id, "director_valuation_meur", v)}
                             />
                           ) : (
-                            <span className="font-mono text-xs text-[var(--text-muted)]">
-                              {player.peak ?? "–"}
+                            <span className="font-mono text-sm text-[var(--color-accent-tactical)]">
+                              {fmtMeur(player.director_valuation_meur)}
                             </span>
                           )}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--color-accent-tactical)]">
-                          {fmtMeur(player.director_valuation_meur)}
-                        </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-secondary)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-mono text-sm text-[var(--text-secondary)] hidden lg:table-cell">
                           {fmtValue(player.market_value_eur)}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.apps ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.goals ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.assists ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
-                          {player.xg ?? "–"}
-                        </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-[10px] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-mono text-xs hidden lg:table-cell">
                           {player.rating != null ? (
                             <span className="text-amber-400">{player.rating.toFixed(2)}</span>
                           ) : "–"}
@@ -522,14 +501,14 @@ function PlayersContent() {
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
                           <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                             {player.name}
-                            {player.dob && <span className="text-[11px] text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
-                            {player.nation && <span className="text-[11px] ml-1" title={player.nation}>{nationFlag(player.nation)}</span>}
+                            {player.dob && <span className="text-xs text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
+                            {player.nation && <span className="text-xs ml-1" title={player.nation}>{nationFlag(player.nation_code, player.nation)}</span>}
                           </p>
-                          <p className="text-[10px] text-[var(--text-muted)] truncate">
+                          <p className="text-xs text-[var(--text-muted)] truncate">
                             {player.club || ""}
                           </p>
                           {(player.goals != null || player.assists != null) && (
-                            <p className="text-[10px] font-mono text-[var(--text-muted)]">
+                            <p className="text-xs font-mono text-[var(--text-muted)]">
                               {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
                               {player.goals != null && player.assists != null && " "}
                               {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
@@ -540,7 +519,7 @@ function PlayersContent() {
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-2">
                         {fmtMeur(player.director_valuation_meur) !== "–" && (
-                          <span className="text-[10px] font-mono text-[var(--color-accent-tactical)]">
+                          <span className="text-xs font-mono text-[var(--color-accent-tactical)]">
                             {fmtMeur(player.director_valuation_meur)}
                           </span>
                         )}
@@ -548,7 +527,7 @@ function PlayersContent() {
                     </div>
                     {/* Data row: Role + scores */}
                     <div className="flex items-center justify-between mt-1 pl-7">
-                      <span className="text-[10px] text-[var(--text-secondary)] truncate max-w-[120px]">
+                      <span className="text-xs text-[var(--text-secondary)] truncate max-w-[120px]">
                         {player.best_role || "–"}
                       </span>
                       <div className="flex items-center gap-1">
@@ -566,7 +545,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-xs font-bold ${ratingColor(player.best_role_score)}`}>
+                            <span className={`font-mono text-sm font-bold ${ratingColor(player.best_role_score)}`}>
                               {player.best_role_score ?? "–"}
                             </span>
                           )}
@@ -585,7 +564,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-xs ${ratingColor(player.level)}`}>
+                            <span className={`font-mono text-sm ${ratingColor(player.level)}`}>
                               {player.level ?? "–"}
                             </span>
                           )}
@@ -597,33 +576,28 @@ function PlayersContent() {
               })}
             </div>
 
-            {/* Infinite scroll sentinel + loading indicator */}
+            {/* Infinite scroll sentinel */}
             {autoScroll && hasMore && (
               <div ref={sentinelRef} className="py-3 text-center">
-                {loadingMore && <p className="text-[10px] text-[var(--text-muted)]">Loading more...</p>}
+                {loadingMore && <p className="text-xs text-[var(--text-muted)]">Loading more...</p>}
               </div>
             )}
             {autoScroll && !hasMore && players.length > 0 && (
-              <p className="text-[10px] text-[var(--text-muted)] py-2 text-center">All players loaded</p>
+              <p className="text-xs text-[var(--text-muted)] py-2 text-center">All players loaded</p>
             )}
           </div>
         )}
 
-        {/* Loading state */}
         {loading && !loadingMore && (
           <div className="glass rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading players...</p>
           </div>
         )}
-
-        {/* Error */}
         {error && (
           <div className="glass rounded-xl p-4">
             <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
           </div>
         )}
-
-        {/* Empty */}
         {!loading && !error && players.length === 0 && (
           <div className="glass rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">

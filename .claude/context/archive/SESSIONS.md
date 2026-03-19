@@ -94,6 +94,59 @@
 **Carry-Forward**: Radar fingerprints working, need role-specific axes + comparison page
 
 ## Session 8 — 2026-03-17
-**Goal**: Build persistent context system
-**Outcome**: (in progress)
-**Carry-Forward**: —
+**Goal**: Dashboard overhaul + Scout Pad v2
+**Outcome**:
+- Dashboard overhaul — condensed featured, fixed sentiment dots, added fixtures/contract watch/rising stars/market movers/key moments intelligence widgets
+- Sidebar: "Formations" → "Tactics"
+- Scout Pad v2 — bulk level/role editor table with infinite scroll, inline editing
+- Scout Pad API route (`/api/scout-pad`) — paginated with sorting/filtering
+**Carry-Forward**: Scout Pad functional, needs polish
+
+## Session 9 — 2026-03-18
+**Goal**: Rating formula overhaul + players page redesign
+**Outcome**:
+- Rating formula overhaul — coverage-scaled blend, peak removed, stale compounds cleaned
+- ~38 level corrections applied (Ballon d'Or / Guardian calibration)
+- Players page: inline editable index with +/- steppers, admin login, nation flags, xG
+- "Needs Review" sort — surfaces biggest |level - overall| divergence
+- Display swap: level→overall across all pages
+- Pipeline 52 (calibrate_from_edits) — source bias detection, kNN level prediction
+- Seeded 38 corrections into network_edits as training data
+**Carry-Forward**: Rating system stabilised
+
+## Session 10 — 2026-03-18
+**Goal**: API-Football integration + data density push
+**Outcome**:
+- API-Football pipeline: migration 034, scripts 65 (ingest) + 66 (grades) + 67 (match+import) + 68 (position inference) + 69 (Wikidata quick enrich)
+- 4,906 AF player-season rows, 36,799 grades, 4,666 matched
+- Club assignment overhaul: script 29 rewritten with AF→TM→WD priority
+- 1,507 new players imported, 201 top players Wikidata-enriched
+- Contract tags cleaned (211 stale tags removed)
+- Pipeline infrastructure: orchestrator, incremental processing, shared DB, parallel execution, post-pipeline validation
+- Radar fix: position-specific 4-axis replacing generic 6-axis
+- Pipeline script renumbering: 37 files, clean ranges 01-79
+**Carry-Forward**: AF data flowing, secondary leagues configured but not yet fetched
+
+## Session 11 — 2026-03-19
+**Goal**: Kickoff Clash card game + role scoring improvements
+**Outcome**:
+- Kickoff Clash mechanics design, migration 036, app scaffold, card generation pipeline, scoring engine, game UI
+- Role scoring improvements: source quality discounting, position-aware affinity tiebreaker
+- Git merge: resolved conflicts from 124 upstream commits
+**Carry-Forward**: KC needs migration applied + card generation run, game playable but needs DB wiring
+
+## Session 12 — 2026-03-19 (current)
+**Goal**: League expansion + coefficient system + news cron
+**Outcome**:
+- Expanded API-Football from 10 to 43 leagues (Europe tier 2-3, Americas, Asia, youth/academy)
+- 10,982+ AF player-season rows across 22 completed leagues (Americas/Asia/youth still ingesting)
+- Built UEFA/FIFA coefficient system: migration 037, script 70, 54 country + 70 club + 80 nation coefficients
+- League strength grade scaling in script 66 — percentiles multiplied by strength factor (PL=1.15, Bulgarian=0.74, Youth=0.45)
+- Updated valuation LEAGUE_STRENGTH from 13 to 34 leagues with coefficient-derived values
+- News cron moved from Vercel (1/day, over Hobby limit) to GitHub Actions (6x/day)
+- Vercel crons reduced to 1 (pipeline only) — within Hobby plan limit
+- Fixed SessionStart hook format (matcher + hooks array)
+- Cleaned up settings.local.json (164 one-off permissions → 43 wildcard patterns)
+- AF ingest: chunked inserts + DB reconnect to survive pooler timeouts
+- Created `scout` bash command for launching Claude Code
+**Carry-Forward**: AF ingest for Americas/Asia/youth leagues finishing, then re-run grades+ratings+fingerprints with new coefficient scaling

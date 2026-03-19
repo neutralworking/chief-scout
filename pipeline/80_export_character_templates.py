@@ -132,15 +132,15 @@ def main():
             reverse=True,
         )[:10]
 
-        # Determine rarity from overall/peak
-        peak = p.get("peak") or p.get("overall") or 50
-        if peak >= 85:
+        # Determine rarity from overall (current ability, not peak)
+        ovr = p.get("overall") or 50
+        if ovr >= 83:
             rarity = "legendary"
-        elif peak >= 75:
+        elif ovr >= 76:
             rarity = "epic"
-        elif peak >= 65:
+        elif ovr >= 68:
             rarity = "rare"
-        elif peak >= 55:
+        elif ovr >= 58:
             rarity = "uncommon"
         else:
             rarity = "common"

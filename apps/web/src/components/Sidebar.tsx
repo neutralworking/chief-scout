@@ -50,12 +50,8 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
   {
     heading: "Admin",
     items: [
-      { label: "Tactics", href: "/formations", stagingOnly: true },
-      { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },
-      { label: "Editor", href: "/editor", stagingOnly: true },
-      { label: "Review", href: "/review", stagingOnly: true },
-      { label: "Network", href: "/network", stagingOnly: true },
       { label: "Admin", href: "/admin", stagingOnly: true },
+      { label: "Tactics", href: "/formations", stagingOnly: true },
     ],
   },
 ];

@@ -21,12 +21,8 @@ const ALL_NAV_ITEMS = [
   { label: "Gaffer", href: "/choices" },
   { label: "Kickoff Clash", href: "/kickoff-clash", stagingOnly: true },
   // Admin (staging only)
-  { label: "Tactics", href: "/formations", stagingOnly: true },
-  { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },
-  { label: "Editor", href: "/editor", stagingOnly: true },
-  { label: "Review", href: "/review", stagingOnly: true },
-  { label: "Network", href: "/network", stagingOnly: true },
   { label: "Admin", href: "/admin", stagingOnly: true },
+  { label: "Tactics", href: "/formations", stagingOnly: true },
 ];
 
 const NAV_ITEMS = isProduction()

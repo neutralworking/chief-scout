@@ -2,9 +2,9 @@
 > Auto-updated at session start/end. Last updated: 2026-03-19
 
 ## Current Sprint
-1. **Data Density** — 25 leagues ingested (12,372 AF rows), coefficient-scaled grades. Next: finish remaining ~18 leagues, re-run grades+ratings+fingerprints — IN PROGRESS
-2. **News Automation** — GitHub Actions cron (6x/day) deployed, CRON_SECRET set. Vercel crons reduced to 1 (within Hobby limit) — DONE
-3. **Players Page** — Flags fixed, league filter added, CS value editable, peak/xG removed, text bigger — DONE
+1. **Data Density** — 25/43 AF leagues ingested (12,372 rows), coefficient-scaled grades. Next: finish remaining ~18 leagues, re-run grades+ratings+fingerprints — IN PROGRESS
+2. **Four-Pillar QA** — rebuilt with real data, physical pillar 5-component formula. 7 issues found, 5 fix tasks created — QA PASS NEEDED
+3. **Scale to 200+ Tier 1** — currently ~50 on prod (276 total but most skeleton). LLM profiling button in admin. Needs automated batch generation — NOT STARTED
 
 ## Resume Tasks (next session)
 Run these in order to finish the AF league expansion:
@@ -20,11 +20,27 @@ python3 60_fingerprints.py --force                 # recompute fingerprints
 ## Active Decisions
 - XP system v2: move to real XP scale (Ballon d'Or=1000) vs keep interim system
 - Women's players: decide long-term approach (separate pipeline? same tables?)
+- Four-pillar: precompute scores for player list, or keep as on-demand API?
 
 ## Blockers
 - FBRef CSV data only has basic columns (goals/assists) — advanced stats need manual paste
-- Script 04 (`refine_players.py`) crashes on news sentiment `story_types` field (string not dict) — may already be fixed
+- Script 04 (`refine_players.py`) crashes on news sentiment `story_types` field (string not dict)
 - Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator
+
+## What Shipped Recently (sessions 12-13)
+- CS Value recalibrated against 10 DoF anchors
+- Four-pillar assessment rebuilt with real data (not level-anchored)
+- Physical pillar: 5-component data-driven formula
+- UEFA/FIFA coefficient system (pipeline 70, migration 037)
+- API-Football expanded to 43 leagues (25 ingested so far)
+- News cron moved to GitHub Actions (6x/day)
+- Dual skill sets + MODEL_LABELS taxonomy
+- LLM profiling with context-enriched bio mode
+- Kickoff Clash: KC flagging, pipeline 80 export, KCCard component, Love2D prototype, itch.io
+- /compare tool live (radar overlay, four-pillar, roles, personality, market)
+- /players overhaul (flags, league filter, CS value editing)
+- Radar: contrast stretch, proxy attributes, scale bug fix, quality filter
+- Sidebar regrouped, Legends mobile, Inventor→Inverted Winger
 
 ## Key Metrics
 | Table | Count | Last Updated |
@@ -36,15 +52,12 @@ python3 60_fingerprints.py --force                 # recompute fingerprints
 | clubs with uefa_coefficient | 68 | 2026-03-19 |
 | nations with fifa_rank | 80 | 2026-03-19 |
 | attribute_grades | 414k+ | 2026-03-18 |
+| Tier 1 on prod | 276 | 2026-03-16 |
 
-## New This Session (#12)
-- `70_coefficients_ingest.py` — UEFA country/club + FIFA rankings → league_coefficients table + clubs + nations
+## Infrastructure Notes
+- `70_coefficients_ingest.py` — UEFA country/club + FIFA rankings → league_coefficients
 - `037_coefficients.sql` — league_coefficients table, uefa columns on clubs, fifa columns on nations
-- `player_intelligence_card` view updated with `nation_code` + `league_name`
+- `player_intelligence_card` view has: `nation_code`, `league_name`, `peak`, `club_id`, `best_role_score`
 - News cron: `.github/workflows/news-cron.yml` (6x/day via GitHub Actions)
-- `scout` bash command added to `~/.bashrc`
-- Settings hook format fixed (matcher + hooks array)
-- Settings.local.json cleaned (164 → 43 permissions)
-
-## Session #12 Notes
-> Expanded AF from 10 to 25 leagues (remaining 18 still fetching when session ended). Built UEFA/FIFA coefficient system for league-strength grade scaling. Moved news cron to GitHub Actions. Overhauled /players page (flags, league filter, CS value edit, text size, removed peak+xG columns). Fixed SessionStart hook format. Created `scout` CLI launcher.
+- `scout` bash command in `~/.bashrc`
+- All migrations applied through 037 on staging

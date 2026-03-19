@@ -1,266 +1,81 @@
-import { supabaseServer } from "@/lib/supabase-server";
-import { AdminActions } from "@/components/AdminActions";
+"use client";
 
-async function getAdminData() {
-  if (!supabaseServer) return null;
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { DashboardTab } from "@/components/admin/DashboardTab";
+import { ScoutPadTab } from "@/components/admin/ScoutPadTab";
+import { EditorTab } from "@/components/admin/EditorTab";
+import { PersonalityTab } from "@/components/admin/PersonalityTab";
+import { KCPreviewTab } from "@/components/admin/KCPreviewTab";
 
-  const [
-    totalPeopleResult,
-    tier1Result,
-    fullProfilesResult,
-    trackedResult,
-    profilesResult,
-    personalityResult,
-    marketResult,
-    statusResult,
-    attributesResult,
-    wikidataResult,
-    newsStoriesResult,
-    newsTagsResult,
-    usMatchResult,
-    usStatsResult,
-    clubsTotalResult,
-    clubsWithNationResult,
-    clubsWithLeagueResult,
-    clubsWithWikidataResult,
-    clubsWithStadiumResult,
-    valuationsResult,
-    freeAgentsResult,
-    latestValuationResult,
-  ] = await Promise.all([
-    supabaseServer.from("people").select("id", { count: "exact", head: true }),
-    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).eq("profile_tier", 1),
-    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }).not("archetype", "is", null).eq("profile_tier", 1),
-    supabaseServer.from("player_intelligence_card").select("person_id", { count: "exact", head: true })
-      .in("pursuit_status", ["Priority", "Interested", "Watch", "Scout Further", "Monitor"]),
-    supabaseServer.from("player_profiles").select("person_id", { count: "exact", head: true }),
-    supabaseServer.from("player_personality").select("person_id", { count: "exact", head: true }),
-    supabaseServer.from("player_market").select("person_id", { count: "exact", head: true }),
-    supabaseServer.from("player_status").select("person_id", { count: "exact", head: true }),
-    supabaseServer.from("attribute_grades").select("player_id", { count: "exact", head: true }),
-    supabaseServer.from("people").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
-    supabaseServer.from("news_stories").select("id", { count: "exact", head: true }),
-    supabaseServer.from("news_player_tags").select("id", { count: "exact", head: true }),
-    supabaseServer.from("understat_matches").select("id", { count: "exact", head: true }),
-    supabaseServer.from("understat_player_match_stats").select("id", { count: "exact", head: true }),
-    supabaseServer.from("clubs").select("id", { count: "exact", head: true }),
-    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("nation_id", "is", null),
-    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("league_name", "is", null),
-    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("wikidata_id", "is", null),
-    supabaseServer.from("clubs").select("id", { count: "exact", head: true }).not("stadium", "is", null),
-    supabaseServer.from("player_valuations").select("id", { count: "exact", head: true }),
-    supabaseServer.from("people").select("id", { count: "exact", head: true }).not("contract_expiry_date", "is", null),
-    supabaseServer.from("player_valuations").select("evaluated_at").order("evaluated_at", { ascending: false }).limit(1),
-  ]);
+const TABS = [
+  { id: "dashboard", label: "Dashboard" },
+  { id: "scout-pad", label: "Scout Pad" },
+  { id: "editor", label: "Editor" },
+  { id: "personality", label: "Personality" },
+  { id: "kc-preview", label: "KC Cards" },
+] as const;
 
-  const totalPlayers = totalPeopleResult.count ?? 0;
+type TabId = typeof TABS[number]["id"];
 
-  const latestValuationAt = latestValuationResult.data?.[0]?.evaluated_at ?? null;
+function AdminTabs() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = searchParams.get("tab") as TabId | null;
+  const [activeTab, setActiveTab] = useState<TabId>(
+    TABS.some(t => t.id === tabParam) ? tabParam! : "dashboard"
+  );
 
-  return {
-    stats: {
-      totalPlayers,
-      tier1Profiles: tier1Result.count ?? 0,
-      fullProfiles: fullProfilesResult.count ?? 0,
-      tracked: trackedResult.count ?? 0,
-      freeAgents: freeAgentsResult.count ?? 0,
-    },
-    coverage: {
-      total: totalPlayers,
-      profiles: profilesResult.count ?? 0,
-      personality: personalityResult.count ?? 0,
-      market: marketResult.count ?? 0,
-      status: statusResult.count ?? 0,
-      attributes: attributesResult.count ?? 0,
-      wikidata: wikidataResult.count ?? 0,
-      newsStories: newsStoriesResult.count ?? 0,
-      newsTags: newsTagsResult.count ?? 0,
-    },
-    external: {
-      understat: { matches: usMatchResult.count ?? 0, playerStats: usStatsResult.count ?? 0 },
-    },
-    valuations: valuationsResult.count ?? 0,
-    latestValuationAt,
-    clubs: {
-      total: clubsTotalResult.count ?? 0,
-      withNation: clubsWithNationResult.count ?? 0,
-      withLeague: clubsWithLeagueResult.count ?? 0,
-      withWikidata: clubsWithWikidataResult.count ?? 0,
-      withStadium: clubsWithStadiumResult.count ?? 0,
-    },
-  };
-}
+  // Sync URL when tab changes
+  useEffect(() => {
+    const current = searchParams.get("tab");
+    if (current !== activeTab) {
+      const url = activeTab === "dashboard" ? "/admin" : `/admin?tab=${activeTab}`;
+      router.replace(url, { scroll: false });
+    }
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-function fmt(n: number): string {
-  return n === 0 ? "\u2013" : n.toLocaleString();
-}
-
-function CoverageBar({ value, total }: { value: number; total: number }) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-      <div className="h-full rounded-full transition-all"
-        style={{
-          width: `${pct}%`,
-          backgroundColor: pct >= 80 ? "var(--color-accent-tactical)" : pct >= 40 ? "var(--color-accent-physical)" : "var(--color-sentiment-negative)",
-        }} />
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-lg font-bold tracking-tight">Admin</h1>
+      </div>
+
+      {/* Tab bar — horizontally scrollable on mobile */}
+      <div className="flex gap-1 overflow-x-auto pb-3 mb-3 -mx-1 px-1 scrollbar-hide">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeTab === tab.id
+                ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
+                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)] hover:border-[var(--border-subtle)]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === "dashboard" && <DashboardTab />}
+      {activeTab === "scout-pad" && <ScoutPadTab />}
+      {activeTab === "editor" && <EditorTab />}
+      {activeTab === "personality" && <PersonalityTab />}
+      {activeTab === "kc-preview" && <KCPreviewTab />}
     </div>
   );
 }
 
-export default async function AdminPage() {
-  const data = await getAdminData();
-
-  if (!data) {
-    return (
-      <div>
-        <h1 className="text-lg font-bold tracking-tight mb-1">Admin</h1>
-        <p className="text-[11px] text-[var(--text-secondary)]">Supabase not configured.</p>
-      </div>
-    );
-  }
-
-  const { stats, coverage, external, clubs, valuations, latestValuationAt } = data;
-
+export default function AdminPage() {
   return (
-    <div>
-      <h1 className="text-lg font-bold tracking-tight mb-0.5">Admin</h1>
-      <p className="text-[11px] text-[var(--text-secondary)] mb-4">Pipeline, data health & operations</p>
-
-      {/* Admin Actions — login-gated tools */}
-      <div className="mb-6">
-        <AdminActions />
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <div className="w-5 h-5 border-2 border-[var(--text-muted)] border-t-[var(--color-accent-tactical)] rounded-full animate-spin" />
       </div>
-
-      {/* Quick Stats */}
-      <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Stats</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {[
-            { label: "Total Players", value: stats.totalPlayers },
-            { label: "Tier 1 Profiles", value: stats.tier1Profiles, tooltip: "Scout-assessed with archetype (tier 1)" },
-            { label: "Full Profiles", value: stats.fullProfiles },
-            { label: "Tracked", value: stats.tracked },
-            { label: "Free Agents", value: stats.freeAgents, tooltip: "Players with contract_expiry_date set" },
-            { label: "News Stories", value: coverage.newsStories },
-            { label: "News Tags", value: coverage.newsTags },
-            { label: "Valuations", value: valuations },
-          ].map(({ label, value, tooltip }) => (
-            <div key={label}>
-              <p className="text-[10px] text-[var(--text-secondary)] mb-0.5" title={tooltip}>{label}</p>
-              <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{value.toLocaleString()}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Data Coverage */}
-      <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Data Coverage</h2>
-        <div className="space-y-2.5">
-          {[
-            { label: "Profiles", value: coverage.profiles },
-            { label: "Personality", value: coverage.personality },
-            { label: "Market Data", value: coverage.market },
-            { label: "Status", value: coverage.status },
-            { label: "Wikidata", value: coverage.wikidata },
-          ].map(({ label, value }) => {
-            const pct = coverage.total > 0 ? Math.round((value / coverage.total) * 100) : 0;
-            return (
-              <div key={label}>
-                <div className="flex justify-between text-[11px] mb-0.5">
-                  <span className="text-[var(--text-secondary)]">{label}</span>
-                  <span className="font-mono text-[var(--text-primary)]">{value.toLocaleString()} / {coverage.total.toLocaleString()} ({pct}%)</span>
-                </div>
-                <CoverageBar value={value} total={coverage.total} />
-              </div>
-            );
-          })}
-        </div>
-        <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5">Attribute Grades (rows)</p>
-            <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.attributes.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-[var(--text-secondary)] mb-0.5">News Stories</p>
-            <p className="text-sm font-mono font-bold text-[var(--text-primary)]">{coverage.newsStories.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Pipeline Status */}
-      <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Pipeline Status</h2>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-[var(--text-secondary)]">Valuations last computed</span>
-            <span className="text-xs font-mono text-[var(--text-primary)]">
-              {latestValuationAt
-                ? new Date(latestValuationAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                : "Never"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Actions</h2>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            disabled
-            title="Coming soon — will trigger Wikidata P413 position mapping"
-            className="px-4 py-2 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm font-semibold opacity-50 cursor-not-allowed"
-          >
-            Run Position Backfill
-          </button>
-          <span className="text-[9px] text-[var(--text-muted)]">Coming soon</span>
-        </div>
-      </div>
-
-      {/* External Data + Clubs — side by side on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* External Data */}
-        <div className="glass rounded-xl p-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">External Data</h2>
-          <div className="space-y-2">
-            {[
-              { label: "Understat Matches", value: external.understat.matches },
-              { label: "Understat Player Stats", value: external.understat.playerStats },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-[11px] text-[var(--text-secondary)]">{label}</span>
-                <span className="text-sm font-mono font-bold text-[var(--text-primary)]">{fmt(value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Club Coverage */}
-        <div className="glass rounded-xl p-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Club Coverage</h2>
-          <div className="space-y-2">
-            {[
-              { label: "Nation Linked", value: clubs.withNation, total: clubs.total },
-              { label: "League Assigned", value: clubs.withLeague, total: clubs.total },
-              { label: "Wikidata", value: clubs.withWikidata, total: clubs.total },
-              { label: "Stadium", value: clubs.withStadium, total: clubs.total },
-            ].map(({ label, value, total }) => {
-              const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-              return (
-                <div key={label}>
-                  <div className="flex justify-between text-[11px] mb-0.5">
-                    <span className="text-[var(--text-secondary)]">{label}</span>
-                    <span className="font-mono text-[var(--text-primary)]">{pct}%</span>
-                  </div>
-                  <CoverageBar value={value} total={total} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
+    }>
+      <AdminTabs />
+    </Suspense>
   );
 }

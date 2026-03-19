@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { POSITION_COLORS } from "@/lib/types";
+// InsightCard handles its own position colors
 import { InsightCard, type InsightData } from "@/components/InsightCard";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
@@ -98,7 +98,7 @@ export default function GemsPage() {
       {/* Header */}
       <div className="shrink-0 mb-2">
         <div className="flex items-center gap-2 mb-1.5">
-          <h1 className="text-lg font-bold tracking-tight">Gems</h1>
+          <h1 className="text-lg font-bold tracking-tight">Network</h1>
           {!isAdmin ? (
             <button
               onClick={() => setShowLogin(!showLogin)}
@@ -203,7 +203,7 @@ export default function GemsPage() {
 
         {/* Insight cards */}
         {!loading && insights.length > 0 && (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             {insights.map((insight) => (
               <InsightCard
                 key={`${insight.person_id}-${insight.insight_type}`}

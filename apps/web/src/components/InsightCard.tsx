@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { computeAge, POSITION_COLORS } from "@/lib/types";
+import { computeAge } from "@/lib/types";
 import { MiniRadar } from "./MiniRadar";
 import { EditableCell } from "./EditableCell";
 
@@ -21,11 +21,48 @@ function nationFlag(code: string | null | undefined): string {
   return "";
 }
 
-function gemBadgeColor(score: number): string {
-  if (score >= 80) return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-  if (score >= 60) return "bg-green-500/20 text-green-400 border-green-500/30";
-  return "bg-teal-500/20 text-teal-400 border-teal-500/30";
+// ── Gem tier theming (KC-card inspired) ─────────────────────────────────────
+
+const GEM_TIER = {
+  gold: {
+    border: "border-amber-500/50",
+    glow: "shadow-[0_0_16px_rgba(251,191,36,0.25)]",
+    bg: "bg-gradient-to-b from-amber-950/60 via-zinc-950/80 to-zinc-950/90",
+    accent: "#fbbf24",
+    barColor: "bg-amber-400",
+    badge: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+  },
+  green: {
+    border: "border-emerald-500/40",
+    glow: "shadow-[0_0_12px_rgba(16,185,129,0.2)]",
+    bg: "bg-gradient-to-b from-emerald-950/50 via-zinc-950/80 to-zinc-950/90",
+    accent: "#10b981",
+    barColor: "bg-emerald-400",
+    badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+  },
+  teal: {
+    border: "border-teal-500/30",
+    glow: "shadow-[0_0_8px_rgba(20,184,166,0.15)]",
+    bg: "bg-gradient-to-b from-teal-950/40 via-zinc-950/80 to-zinc-950/90",
+    accent: "#14b8a6",
+    barColor: "bg-teal-400",
+    badge: "bg-teal-500/20 text-teal-400 border-teal-500/40",
+  },
+};
+
+function getGemTier(score: number) {
+  if (score >= 80) return GEM_TIER.gold;
+  if (score >= 60) return GEM_TIER.green;
+  return GEM_TIER.teal;
 }
+
+const POS_TYPE: Record<string, { color: string }> = {
+  GK: { color: "bg-yellow-600" }, CD: { color: "bg-sky-700" }, WD: { color: "bg-emerald-600" },
+  DM: { color: "bg-teal-600" }, CM: { color: "bg-indigo-600" }, WM: { color: "bg-violet-600" },
+  AM: { color: "bg-orange-600" }, WF: { color: "bg-rose-600" }, CF: { color: "bg-red-600" },
+};
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface InsightPlayer {
   person_id: number;
@@ -83,8 +120,9 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
   const [accepting, setAccepting] = useState(false);
   const { player, evidence } = insight;
   const age = player.dob ? computeAge(player.dob) : evidence.age;
-  const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const flags = evidence.flags ?? [];
+  const tier = getGemTier(insight.gem_score);
+  const pos = POS_TYPE[player.position ?? ""] ?? { color: "bg-zinc-600" };
 
   // Suggested values
   const suggestedLevel = (!player.level || player.level === 0)
@@ -92,11 +130,18 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
     : player.level;
   const suggestedRoleScore = suggestedLevel - 1;
 
-  // Parse fingerprint for MiniRadar
+  // Fingerprint for MiniRadar
   const fp = player.fingerprint;
   const radarValues = fp
     ? [fp.DEF ?? 0, fp.CRE ?? 0, fp.ATK ?? 0, fp.PWR ?? 0, fp.PAC ?? 0, fp.DRV ?? 0]
     : null;
+
+  // Stat bars data
+  const stats = [
+    { label: "G/90", value: evidence.goals_p90, max: 1.0 },
+    { label: "A/90", value: evidence.assists_p90, max: 0.8 },
+    { label: "Rating", value: evidence.rating ?? 0, max: 10, displayVal: evidence.rating?.toFixed(1) },
+  ];
 
   async function handleAcceptSuggestions() {
     setAccepting(true);
@@ -124,193 +169,176 @@ export function InsightCard({ insight, isAdmin, isReviewed, onAccept, onSkip }: 
   }
 
   return (
-    <div
-      className="glass rounded-xl overflow-hidden transition-all"
-    >
-      {/* Collapsed header */}
-      <div className="px-3 py-2.5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            {isReviewed && (
-              <span className="text-[var(--color-accent-tactical)] text-xs shrink-0" title="Reviewed">
-                &#10003;
-              </span>
-            )}
-            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
-              {player.position ?? "\u2013"}
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                  {player.name}
-                </span>
-                {age != null && (
-                  <span className="text-xs font-mono text-[var(--text-muted)]">{age}</span>
-                )}
-                <span className="text-sm">{nationFlag(player.nation_code)}</span>
-              </div>
-              {insight.headline && (
-                <p className="text-xs italic text-[var(--color-accent-personality)] truncate leading-tight mt-0.5">
-                  {insight.headline}
-                </p>
-              )}
-            </div>
-          </div>
-          <span
-            className={`text-xs font-bold font-mono px-2 py-0.5 rounded border shrink-0 ${gemBadgeColor(insight.gem_score)}`}
-          >
-            {Math.round(insight.gem_score)}
-          </span>
+    <div className={`
+      relative overflow-hidden rounded-2xl border ${tier.border} ${tier.glow}
+      ${tier.bg} transition-all duration-200
+      ${isReviewed ? "opacity-60" : ""}
+    `}>
+      {/* ── Top bar: Power number + Name + Position ─────────────── */}
+      <div className="flex items-center gap-2.5 px-3 pt-3 pb-1 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        {/* Gem score — KC power number style */}
+        <div
+          className={`w-10 h-10 rounded-xl font-black text-lg flex items-center justify-center shrink-0 bg-black/60 border ${tier.border}`}
+          style={{ color: tier.accent }}
+        >
+          {Math.round(insight.gem_score)}
         </div>
-        <div className="flex items-center gap-1.5 mt-1 pl-7">
-          <span className="text-[10px] text-[var(--text-muted)] truncate">
+
+        {/* Name + headline + club */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-white truncate">{player.name}</span>
+            {age != null && <span className="text-[10px] font-mono text-zinc-500">{age}</span>}
+            <span className="text-sm">{nationFlag(player.nation_code)}</span>
+            {isReviewed && <span className="text-[10px] text-emerald-400">&#10003;</span>}
+          </div>
+          {insight.headline && (
+            <p className="text-[11px] italic text-zinc-400 truncate leading-tight">
+              &ldquo;{insight.headline}&rdquo;
+            </p>
+          )}
+          <div className="text-[10px] text-zinc-500 truncate">
             {player.club || "\u2013"} · {player.league_name || ""}
-          </span>
+          </div>
+        </div>
+
+        {/* Position pill */}
+        <div className={`${pos.color} rounded-full px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider shrink-0`}>
+          {player.position ?? "?"}
         </div>
       </div>
 
-      {/* Expanded detail */}
+      {/* ── Context pills (always visible) ─────────────────────── */}
+      {flags.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-3 pb-2">
+          {flags.includes("homegrown_abroad") && <Pill color="green">HG</Pill>}
+          {flags.includes("young_upstep") && <Pill color="blue">U23</Pill>}
+          {flags.includes("contract_opportunity") && <Pill color="red">Expiring</Pill>}
+          {flags.includes("loan_performer") && <Pill color="amber">On Loan</Pill>}
+          {flags.includes("rising_trajectory") && <Pill color="purple">Rising</Pill>}
+          {flags.includes("grade_mismatch") && <Pill color="cyan">Undervalued</Pill>}
+        </div>
+      )}
+
+      {/* ── Expanded detail ────────────────────────────────────── */}
       {expanded && (
-        <div className="px-3 pb-3 border-t border-[var(--border-subtle)]/30 pt-2 space-y-2.5">
-          {/* Prose */}
+        <div className="border-t border-white/5">
+          {/* Prose — prominent, KC bio style */}
           {insight.prose && (
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              {insight.prose}
-            </p>
+            <div className="mx-3 mt-2.5 rounded-lg bg-black/30 border border-white/5 px-3 py-2">
+              <p className="text-xs text-zinc-300 leading-relaxed italic">
+                &ldquo;{insight.prose}&rdquo;
+              </p>
+            </div>
           )}
 
-          {/* Stat boxes + radar */}
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5 flex-1">
-              <StatBox label="G/90" value={evidence.goals_p90?.toFixed(2) ?? "\u2013"} />
-              <StatBox label="A/90" value={evidence.assists_p90?.toFixed(2) ?? "\u2013"} />
-              <StatBox label="Rating" value={evidence.rating?.toFixed(1) ?? "\u2013"} />
-              <StatBox label="Apps" value={String(evidence.appearances ?? "\u2013")} />
+          {/* Stat bars + radar row */}
+          <div className="flex items-center gap-3 px-3 mt-2.5">
+            {/* Stat bars (KC-style) */}
+            <div className="flex-1 space-y-1.5">
+              {stats.map((s) => {
+                const pct = Math.min((s.value / s.max) * 100, 100);
+                return (
+                  <div key={s.label} className="flex items-center gap-2">
+                    <span className="text-[9px] text-zinc-500 uppercase tracking-wider w-10 shrink-0">{s.label}</span>
+                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className={`h-full ${tier.barColor} rounded-full`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold w-8 text-right shrink-0" style={{ color: tier.accent }}>
+                      {s.displayVal ?? s.value.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })}
+              {/* Apps count */}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-zinc-500 uppercase tracking-wider w-10 shrink-0">Apps</span>
+                <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className={`h-full ${tier.barColor} rounded-full`} style={{ width: `${Math.min((evidence.appearances / 40) * 100, 100)}%` }} />
+                </div>
+                <span className="text-[10px] font-mono font-bold w-8 text-right shrink-0" style={{ color: tier.accent }}>
+                  {evidence.appearances}
+                </span>
+              </div>
             </div>
+
+            {/* Radar */}
             {radarValues && (
               <div className="shrink-0">
-                <MiniRadar values={radarValues} size={80} showLabels labels={["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"]} />
+                <MiniRadar values={radarValues} size={80} showLabels labels={["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"]} color={tier.accent} />
               </div>
             )}
           </div>
 
-          {/* Context pills */}
-          {flags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {flags.includes("homegrown_abroad") && <Pill color="green">HG</Pill>}
-              {flags.includes("young_upstep") && <Pill color="blue">U23</Pill>}
-              {flags.includes("contract_opportunity") && <Pill color="red">Free Agent</Pill>}
-              {flags.includes("loan_performer") && <Pill color="amber">On Loan</Pill>}
-              {flags.includes("rising_trajectory") && <Pill color="purple">Rising</Pill>}
-              {flags.includes("grade_mismatch") && <Pill color="cyan">Undervalued</Pill>}
-            </div>
-          )}
-
-          {/* Admin assessment zone */}
-          {isAdmin && expanded && (
-            <div className="border-t border-[var(--border-subtle)]/30 pt-2 mt-2">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">
+          {/* ── Admin assessment zone ─────────────────────────── */}
+          {isAdmin && (
+            <div className="mx-3 mt-2.5 mb-1 rounded-lg bg-black/20 border border-white/5 px-3 py-2">
+              <div className="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-600 mb-1.5">
                 Scout Assessment
               </div>
-
-              <div className="space-y-1.5">
-                {/* Level row */}
-                <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
-                  <span className="text-[10px] text-[var(--text-secondary)] w-20">Level</span>
+              <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-400">Level</span>
                   <div className="flex items-center gap-2">
-                    <EditableCell
-                      value={localLevel}
-                      personId={player.person_id}
-                      field="level"
-                      table="player_profiles"
-                      rowIndex={0}
-                      min={1}
-                      max={99}
-                      onSaved={(v) => setLocalLevel(v)}
-                    />
+                    <EditableCell value={localLevel} personId={player.person_id} field="level" table="player_profiles" rowIndex={0} min={1} max={99} onSaved={(v) => setLocalLevel(v)} />
                     {(!player.level || player.level === 0) && (
-                      <span className="text-[9px] text-[var(--text-muted)] font-mono">
-                        suggest: {suggestedLevel}
-                      </span>
+                      <span className="text-[9px] text-zinc-600 font-mono">suggest: {suggestedLevel}</span>
                     )}
                   </div>
                 </div>
-
-                {/* Role Score row */}
-                <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
-                  <span className="text-[10px] text-[var(--text-secondary)] w-20">Role Score</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-zinc-400">Role Score</span>
                   <div className="flex items-center gap-2">
-                    <EditableCell
-                      value={localRoleScore}
-                      personId={player.person_id}
-                      field="best_role_score"
-                      table="player_profiles"
-                      rowIndex={1}
-                      min={1}
-                      max={99}
-                      onSaved={(v) => setLocalRoleScore(v)}
-                    />
+                    <EditableCell value={localRoleScore} personId={player.person_id} field="best_role_score" table="player_profiles" rowIndex={1} min={1} max={99} onSaved={(v) => setLocalRoleScore(v)} />
                     {(!player.level || player.level === 0) && (
-                      <span className="text-[9px] text-[var(--text-muted)] font-mono">
-                        suggest: {suggestedRoleScore}
-                      </span>
+                      <span className="text-[9px] text-zinc-600 font-mono">suggest: {suggestedRoleScore}</span>
                     )}
                   </div>
                 </div>
               </div>
-
-              {/* Action buttons */}
               <div className="flex items-center gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
                 {(!player.level || player.level === 0) && (
-                  <button
-                    onClick={handleAcceptSuggestions}
-                    disabled={accepting}
-                    className="text-[10px] font-bold px-2 py-1 rounded bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30 hover:bg-[var(--color-accent-tactical)]/30 transition-colors disabled:opacity-50"
-                  >
-                    {accepting ? "Saving..." : "Accept Suggestions"}
+                  <button onClick={handleAcceptSuggestions} disabled={accepting}
+                    className="text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-colors disabled:opacity-50"
+                    style={{ borderColor: tier.accent + "40", color: tier.accent, backgroundColor: tier.accent + "15" }}>
+                    {accepting ? "Saving..." : "Accept"}
                   </button>
                 )}
-                <button
-                  onClick={() => onSkip?.(player.person_id)}
-                  className="text-[10px] font-bold px-2 py-1 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                >
+                <button onClick={() => onSkip?.(player.person_id)}
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/5 text-zinc-500 hover:text-zinc-300 transition-colors">
                   Skip
                 </button>
-                <Link
-                  href={`/players/${player.person_id}`}
-                  className="text-[10px] font-bold px-2 py-1 rounded text-[var(--color-accent-tactical)] hover:underline ml-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <Link href={`/players/${player.person_id}`}
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg hover:underline ml-auto"
+                  style={{ color: tier.accent }}
+                  onClick={(e) => e.stopPropagation()}>
                   Profile &rarr;
                 </Link>
               </div>
             </div>
           )}
 
-          {/* View Profile link (non-admin) */}
+          {/* Non-admin profile link */}
           {!isAdmin && (
-            <Link
-              href={`/players/${player.person_id}`}
-              className="text-xs text-[var(--color-accent-tactical)] hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              View Profile &rarr;
-            </Link>
+            <div className="px-3 pb-2.5 mt-1">
+              <Link href={`/players/${player.person_id}`}
+                className="text-[10px] font-bold hover:underline"
+                style={{ color: tier.accent }}
+                onClick={(e) => e.stopPropagation()}>
+                View Profile &rarr;
+              </Link>
+            </div>
           )}
+
+          {/* Admin bottom padding */}
+          {isAdmin && <div className="h-1.5" />}
         </div>
       )}
     </div>
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="text-center px-2 py-1 rounded bg-[var(--bg-elevated)] flex-1">
-      <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">{label}</span>
-      <span className="text-xs font-mono font-bold text-[var(--text-primary)]">{value}</span>
-    </div>
-  );
-}
+// ── Pill ──────────────────────────────────────────────────────────────────────
 
 const PILL_COLORS: Record<string, string> = {
   green: "bg-green-500/15 text-green-400 border-green-500/30",
@@ -323,7 +351,7 @@ const PILL_COLORS: Record<string, string> = {
 
 function Pill({ color, children }: { color: string; children: React.ReactNode }) {
   return (
-    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${PILL_COLORS[color] ?? PILL_COLORS.green}`}>
+    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full border ${PILL_COLORS[color] ?? PILL_COLORS.green}`}>
       {children}
     </span>
   );

@@ -35,6 +35,8 @@ SOURCE_PRIORITY = {
     "statsbomb": 4,
     "fbref": 3,
     "api_football": 3,
+    "kaggle_pl": 2,
+    "kaggle_euro": 2,
     "understat": 2,
     "computed": 1,
     "eafc_inferred": 0,

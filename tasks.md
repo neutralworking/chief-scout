@@ -24,12 +24,12 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 
 - [x] ~~Build API-Football ingest~~ — Pro sub ($30/mo), scripts 65+66, migration 034, 14 attributes, 1,301 players graded (2026-03-18)
 - [x] ~~Build Fotmob ingest~~ — SKIPPED: unofficial API, same risk as FBRef scraper death
-- [ ] **Update script 22** — generalize grade computation to accept multi-source season stats (not just FBRef)
+- [x] ~~Update script 22~~ — unified multi-source grade engine (cross-source percentiles). Replaces scripts 22/30/31/66. 6 adapters (FBRef, API-Football, Understat, StatsBomb, Kaggle Euro, Kaggle PL). 59,924 grades for 6,044 players (2026-03-19)
 - [x] ~~Update `player_id_links`~~ — `source='api_football'` matching built into 65_api_football_ingest.py (2026-03-18)
 - [x] ~~Update `SOURCE_PRIORITY`~~ — `api_football` added to models.py, models.ts, valuation_core/config.py (2026-03-18)
 - [ ] **Extend API-Football to secondary leagues** — Eredivisie, Liga Portugal, Championship, Super Lig, Jupiler Pro (configured, not yet fetched)
 - [x] ~~Improve API-Football matching~~ — Script 67 (match+import): 4,666 matched (was 600), 1,507 new players imported, 5-strategy matching (2026-03-18)
-- [ ] **Add API-Football to Vercel env** — `API_FOOTBALL_KEY` needed for automated pipeline runs
+- [x] ~~Add API-Football to Vercel env~~ — `API_FOOTBALL_KEY` set in Vercel (2026-03-19)
 
 ### Data Freshness (Strategic Priority #2)
 - [ ] **News cron** — automated refresh every 2-4h (#53). Sprint item #1. Last automation gap.
@@ -114,12 +114,43 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~29_fix_club_assignments.py rewrite~~ — multi-source priority (AF→TM→WD), youth/reserve detection, 50+ AF short names (2026-03-18)
 - [x] ~~60_fingerprints.py fix~~ — position-specific 4-axis replacing generic 6-axis (2026-03-18)
 
+## Kickoff Clash (Card Game)
+- [x] ~~Core mechanics design~~ — docs/design/kickoff-clash-mechanics.md (2026-03-19)
+- [x] ~~Game designer skill~~ — `.claude/commands/game-designer.md` (2026-03-19)
+- [x] ~~DB migration~~ — `pipeline/sql/036_kickoff_clash.sql`, 7 tables (2026-03-19, NOT applied)
+- [x] ~~App scaffold~~ — `apps/kickoff-clash/`, Next.js 16.1.6, port 3001 (2026-03-19)
+- [x] ~~Card generation pipeline~~ — `pipeline/80_export_card_templates.py` (2026-03-19)
+- [x] ~~Scoring engine~~ — scoring.ts (790 lines), chemistry.ts (346), economy.ts (241) (2026-03-19)
+- [x] ~~Game UI~~ — page.tsx (957 lines), run.ts (445 lines), all phases playable (2026-03-19)
+- [ ] **Apply migration 036** to Supabase
+- [ ] **Run card generation** — `python 80_export_card_templates.py` (populate kc_cards from CS data)
+- [ ] **Wire DB cards** into game (replace hardcoded SAMPLE_CARDS)
+- [ ] **UI/UX polish** — fix layout issues, card visuals, scoring animation, pitch layout
+- [ ] **Shop card pick flow** — 1-of-3 selection modal
+- [ ] **Manager cards** — implement modifier system (The Dugout)
+- [ ] **Chemistry Book** — meta-progression synergy collection
+- [ ] **Sound/haptics** — satisfying whistle blow, synergy trigger sounds
+- [ ] **PWA** — manifest + service worker for add-to-homescreen
+
 ## Low Priority
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Valuation model integration with four-pillar scores (Phase 5)
 - [ ] Clean up more duplicate players (accent variants)
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats). Improvable with alias expansion or LLM matching
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution (plan G4)
+
+## Completed (2026-03-19, session 11)
+- [x] Git merge: stashed local changes, committed, pulled 124 commits, resolved conflicts in pipeline/11 + pipeline/27 (took upstream)
+- [x] Kickoff Clash mechanics design — CEO strategy, design-manager architecture, game-designer mechanics (economy, scoring, chemistry, roles)
+- [x] Core mechanics doc: `docs/design/kickoff-clash-mechanics.md`
+- [x] `/game-designer` skill created
+- [x] Migration 036: 7 KC tables (kc_cards, kc_runs, kc_run_cards, kc_matches, kc_modifiers, kc_run_modifiers, kc_chemistry_book)
+- [x] App scaffold: `apps/kickoff-clash/` — Next.js 16.1.6, dark theme, port 3001
+- [x] Card generation pipeline: `pipeline/80_export_card_templates.py` — 38 comedic surnames, 5 bio themes, dry-run tested
+- [x] Scoring engine: scoring.ts (31 role abilities, 5 playing styles), chemistry.ts (4-tier synergies, 20 role combos), economy.ts (stadiums, attendance, shop)
+- [x] Run state: run.ts (38 sample cards, 5 opponents, full lifecycle)
+- [x] Game UI: page.tsx (setup → arrange → score → shop → win/loss), builds clean
+- [x] Marked API-Football Vercel env task done
 
 ## Completed (2026-03-18, session 10)
 - [x] Radar fix: position-specific 4-axis replacing generic 6-axis (CD shows DES/COV/CMD/PAS, not DEF/CRE/ATK/PWR/PAC/DRV)

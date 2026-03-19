@@ -7,6 +7,10 @@ players who don't have scout-assessed profiles.
 Groups players by club, sends squad batches to Gemini with context,
 gets back levels (1-99) and 1-2 sentence scouting bios.
 
+--bio-only mode (auto-enabled with --prod-ready) sends rich structured
+context (grades, archetype, personality) and asks for bio-only output,
+producing higher-quality scouting prose at lower token cost.
+
 Usage:
     python 33_gemini_profiles.py --dry-run              # preview without writing
     python 33_gemini_profiles.py --league "Premier League"  # single league
@@ -14,6 +18,8 @@ Usage:
     python 33_gemini_profiles.py --limit 5              # max clubs to process
     python 33_gemini_profiles.py --force                # overwrite existing profiles
     python 33_gemini_profiles.py --skip-seed            # skip seed players (keep manual levels)
+    python 33_gemini_profiles.py --prod-ready           # prod-ready players, bio-only
+    python 33_gemini_profiles.py --bio-only             # write scouting_notes only, never touch level
 """
 from __future__ import annotations
 
@@ -31,12 +37,30 @@ parser.add_argument("--limit", type=int, default=None, help="Max clubs to proces
 parser.add_argument("--force", action="store_true", help="Overwrite existing scout-assessed profiles")
 parser.add_argument("--skip-seed", action="store_true", help="Skip manually seeded players")
 parser.add_argument("--prod-ready", action="store_true", help="Only process players one step from prod-ready (have all data except notes)")
+parser.add_argument("--bio-only", action="store_true", help="Write scouting_notes only, never touch level")
 args = parser.parse_args()
+
+# --prod-ready implies --bio-only (these players already have levels)
+if args.prod_ready:
+    args.bio_only = True
 
 DRY_RUN = args.dry_run
 FORCE = args.force
+BIO_ONLY = args.bio_only
 
 TOP5 = ("Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1")
+
+# ── Personality type mapping ──────────────────────────────────────────────
+PERSONALITY_TYPES = {
+    "ANLC": "The General", "ANSC": "The Machine", "ANLP": "The Conductor",
+    "ANSP": "The Professor", "INLC": "The Captain", "INSC": "The Mamba",
+    "INSP": "The Maestro", "INLP": "The Guardian", "AXLC": "The Catalyst",
+    "AXSC": "The Enforcer", "AXSP": "The Technician", "AXLP": "The Orchestrator",
+    "IXSC": "The Maverick", "IXSP": "The Spark", "IXLC": "The Livewire",
+    "IXLP": "The Playmaker",
+}
+
+# ── Prompts ───────────────────────────────────────────────────────────────
 
 GEMINI_PROMPT = """You are a top-level football scout writing for a discerning audience. Think James Richardson's tone — warm but incisive, deeply knowledgeable, never bland. Your scouting notes should read like a football obsessive talking to another football obsessive.
 
@@ -83,24 +107,110 @@ Respond as a JSON array, one object per player, same order as input:
 JSON only, no markdown fences, no commentary.
 """
 
+BIO_PROMPT = """You are a top-level football scout writing for a discerning audience. Think James Richardson — warm but incisive, never bland.
+
+Club: {club_name} ({league})
+
+For each player below, write a 2-3 sentence scouting bio based on the data provided.
+
+RULES:
+- Use the attribute grades to identify specific strengths and weaknesses
+- Reference the archetype and playing style naturally
+- Name at least one weakness per player
+- Use proper football language (half-spaces, progressive carries, inverted runs)
+- Be OPINIONATED — say what they can't do, not just what they can
+- Do NOT assign or suggest levels — these are already set
+- Proper punctuation throughout. Every sentence ends with a full stop.
+
+Players:
+{player_list}
+
+Respond as JSON array:
+[{{"name": "Player Name", "bio": "Scouting report here."}}, ...]
+JSON only, no markdown fences.
+"""
+
 BATCH_SIZE = 25  # Players per LLM call
 INTER_CLUB_DELAY = 4  # Seconds between clubs (Groq free tier: 30 RPM)
 
 
-def call_llm_squad(router, club_name: str, league: str, players: list[dict]) -> list[dict] | None:
+def fetch_player_grades(cur, player_ids: list[int]) -> dict[int, list[tuple]]:
+    """Fetch grades per player. Returns {pid: [(attr, score), ...]} sorted desc."""
+    if not player_ids:
+        return {}
+
+    cur.execute("""
+        SELECT ag.player_id, ag.attribute,
+               COALESCE(ag.scout_grade, ag.stat_score) as score
+        FROM attribute_grades ag
+        WHERE ag.player_id = ANY(%s)
+          AND COALESCE(ag.scout_grade, ag.stat_score) IS NOT NULL
+        ORDER BY ag.player_id, COALESCE(ag.scout_grade, ag.stat_score) DESC
+    """, (player_ids,))
+
+    grades: dict[int, list[tuple]] = defaultdict(list)
+    seen: dict[int, set] = defaultdict(set)
+    for row in cur.fetchall():
+        pid = row["player_id"]
+        attr = row["attribute"]
+        # Keep best score per attribute per player
+        if attr not in seen[pid]:
+            seen[pid].add(attr)
+            grades[pid].append((attr, round(row["score"])))
+
+    return dict(grades)
+
+
+def call_llm_squad(router, club_name: str, league: str, players: list[dict],
+                   bio_only: bool = False, grades_map: dict | None = None) -> list[dict] | None:
     """Call LLM router to profile a squad batch. Returns list of dicts or None."""
     player_lines = []
     for p in players:
-        parts = [f"- {p['name']}"]
-        if p.get("position"):
-            parts.append(f"({p['position']})")
-        if p.get("age"):
-            parts.append(f"age {p['age']}")
-        if p.get("nation"):
-            parts.append(f"from {p['nation']}")
-        player_lines.append(" ".join(parts))
+        if bio_only and grades_map is not None:
+            # Enriched format with grades + personality + archetype
+            line = f"- {p['name']} ({p.get('position', '?')}) age {p.get('age', '?')} from {p.get('nation', '?')}"
+            line += f" | Club: {club_name}"
+            line += f"\n  L{p.get('current_level', '?')} OVR{p.get('overall', '?')}"
+            if p.get("archetype"):
+                line += f" | Archetype: {p['archetype']}"
+            if p.get("blueprint"):
+                line += f" | Blueprint: {p['blueprint']}"
+            if p.get("best_role"):
+                line += f" | Best role: {p['best_role']}"
+            # Personality
+            if p.get("personality_code"):
+                ptype = PERSONALITY_TYPES.get(p["personality_code"], p["personality_code"])
+                line += f"\n  Personality: {ptype} ({p['personality_code']})"
+                if p.get("competitiveness") is not None:
+                    line += f" | Comp: {p['competitiveness']}/10"
+                if p.get("coachability") is not None:
+                    line += f" | Coach: {p['coachability']}/10"
+            # Grades
+            pid = p["id"]
+            player_grades = grades_map.get(pid, [])
+            if player_grades:
+                top = player_grades[:5]
+                bottom = [g for g in player_grades if g[1] <= 4][:3]
+                if not bottom:
+                    bottom = player_grades[-3:] if len(player_grades) >= 3 else player_grades[-len(player_grades):]
+                strengths = ", ".join(f"{a}={s}" for a, s in top)
+                line += f"\n  Strengths: {strengths}"
+                weaknesses = ", ".join(f"{a}={s}" for a, s in bottom)
+                line += f"\n  Weaknesses: {weaknesses}"
+            player_lines.append(line)
+        else:
+            # Legacy format
+            parts = [f"- {p['name']}"]
+            if p.get("position"):
+                parts.append(f"({p['position']})")
+            if p.get("age"):
+                parts.append(f"age {p['age']}")
+            if p.get("nation"):
+                parts.append(f"from {p['nation']}")
+            player_lines.append(" ".join(parts))
 
-    prompt = GEMINI_PROMPT.format(
+    prompt_template = BIO_PROMPT if bio_only else GEMINI_PROMPT
+    prompt = prompt_template.format(
         club_name=club_name,
         league=league,
         player_list="\n".join(player_lines),
@@ -118,8 +228,8 @@ def call_llm_squad(router, club_name: str, league: str, players: list[dict]) -> 
         for v in parsed.values():
             if isinstance(v, list):
                 return v
-        # Single player returned as a flat dict with name/level/bio
-        if "name" in parsed and "level" in parsed:
+        # Single player returned as a flat dict with name/bio (or name/level/bio)
+        if "name" in parsed and ("bio" in parsed or "level" in parsed):
             return [parsed]
     return None
 
@@ -130,7 +240,8 @@ def main():
     from datetime import date
     from lib.llm_router import LLMRouter
 
-    print("33 — LLM Player Profiling (via router)")
+    mode_label = "bio-only" if BIO_ONLY else "level+bio"
+    print(f"33 — LLM Player Profiling (via router) [{mode_label}]")
 
     router = LLMRouter(verbose=True)
     if not router.available_providers():
@@ -161,11 +272,15 @@ def main():
 
     if prod_ready_mode:
         # Only fetch players that have ALL prod data except scouting_notes
+        # Extended to include personality + best_role for enriched prompts
         query = """
             SELECT pe.id, pe.name, pp.position, pp.level, pp.archetype,
+                   pp.blueprint, pp.best_role, pp.overall,
                    pe.date_of_birth, c.clubname, c.league_name,
                    n.name as nation_name,
-                   ps.scouting_notes
+                   ps.scouting_notes,
+                   pn.ei_score, pn.sn_score, pn.tf_score, pn.jp_score,
+                   pn.competitiveness, pn.coachability
             FROM people pe
             JOIN clubs c ON c.id = pe.club_id
             JOIN player_profiles pp ON pp.person_id = pe.id
@@ -184,14 +299,18 @@ def main():
     else:
         query = """
             SELECT pe.id, pe.name, pp.position, pp.level, pp.archetype,
+                   pp.blueprint, pp.best_role, pp.overall,
                    pe.date_of_birth, c.clubname, c.league_name,
                    n.name as nation_name,
-                   ps.scouting_notes
+                   ps.scouting_notes,
+                   pn.ei_score, pn.sn_score, pn.tf_score, pn.jp_score,
+                   pn.competitiveness, pn.coachability
             FROM people pe
             JOIN clubs c ON c.id = pe.club_id
             LEFT JOIN player_profiles pp ON pp.person_id = pe.id
             LEFT JOIN player_status ps ON ps.person_id = pe.id
             LEFT JOIN nations n ON n.id = pe.nation_id
+            LEFT JOIN player_personality pn ON pn.person_id = pe.id
             WHERE pe.active = true
         """
         params: list = []
@@ -244,6 +363,14 @@ def main():
         conn.close()
         return
 
+    # ── Batch-fetch grades for all players (bio-only mode) ────────────
+    grades_map: dict[int, list[tuple]] = {}
+    if BIO_ONLY:
+        all_pids = [p["id"] for ps in clubs_to_process.values() for p in ps]
+        grades_map = fetch_player_grades(cur, all_pids)
+        graded = sum(1 for pid in all_pids if pid in grades_map)
+        print(f"  Grades loaded for {graded:,}/{len(all_pids):,} players")
+
     # ── Process clubs ────────────────────────────────────────────────────
     today = date.today()
     total_updated = 0
@@ -253,7 +380,7 @@ def main():
         print(f"\n  [{club_idx+1}/{len(clubs_to_process)}] {club_name} ({league}) — {len(players)} players")
         router.reset_disabled()  # re-enable providers that hit rate limits on previous club
 
-        # Prepare player data for Gemini
+        # Prepare player data
         player_data = []
         for p in players:
             age = None
@@ -268,14 +395,38 @@ def main():
                         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
                 except (ValueError, TypeError):
                     pass
-            player_data.append({
+
+            entry = {
                 "id": p["id"],
                 "name": p["name"],
                 "position": p["position"],
                 "age": age,
                 "nation": p["nation_name"],
                 "current_level": p["level"],
-            })
+            }
+
+            # Add enriched fields for bio-only mode
+            if BIO_ONLY:
+                entry["archetype"] = p.get("archetype")
+                entry["blueprint"] = p.get("blueprint")
+                entry["best_role"] = p.get("best_role")
+                entry["overall"] = p.get("overall")
+                entry["competitiveness"] = p.get("competitiveness")
+                entry["coachability"] = p.get("coachability")
+                # Derive personality code from MBTI scores
+                ei = p.get("ei_score")
+                sn = p.get("sn_score")
+                tf = p.get("tf_score")
+                jp = p.get("jp_score")
+                if all(v is not None for v in [ei, sn, tf, jp]):
+                    code = ""
+                    code += "A" if ei >= 6 else ("I" if ei <= 4 else "X" if ei == 5 else "I")
+                    code += "N" if sn >= 6 else "X" if sn == 5 else "S"
+                    code += "L" if tf >= 6 else "S" if tf <= 4 else "X" if tf == 5 else "S"
+                    code += "C" if jp >= 6 else "P" if jp <= 4 else "P"
+                    entry["personality_code"] = code
+
+            player_data.append(entry)
 
         # Process in batches if large squad
         all_results = []
@@ -284,12 +435,14 @@ def main():
             if i > 0:
                 time.sleep(1)  # Small delay between batches
 
-            results = call_llm_squad(router, club_name, league, batch)
+            results = call_llm_squad(router, club_name, league, batch,
+                                     bio_only=BIO_ONLY, grades_map=grades_map)
             if not results:
                 print(f"    WARN: No results for batch {i//BATCH_SIZE + 1} — waiting 30s before retry")
                 time.sleep(30)
                 router.reset_disabled()
-                results = call_llm_squad(router, club_name, league, batch)
+                results = call_llm_squad(router, club_name, league, batch,
+                                         bio_only=BIO_ONLY, grades_map=grades_map)
             if not results:
                 print(f"    ERROR: Still no results for batch {i//BATCH_SIZE + 1}, skipping")
                 total_errors += len(batch)
@@ -324,37 +477,59 @@ def main():
                 continue
 
             pid = player_info["id"]
-            new_level = result.get("level")
             bio = result.get("bio", "")
 
-            if not isinstance(new_level, (int, float)) or new_level < 1 or new_level > 99:
-                print(f"    SKIP {player_info['name']}: bad level {new_level}")
-                continue
+            if BIO_ONLY:
+                # Bio-only mode: skip level validation/upsert entirely
+                if not bio or len(bio) < 10:
+                    print(f"    SKIP {player_info['name']}: empty/short bio")
+                    continue
 
-            new_level = int(new_level)
+                if DRY_RUN:
+                    print(f"    {player_info['name']:30} {bio[:80]}...")
+                    total_updated += 1
+                    continue
 
-            if DRY_RUN:
-                old = player_info["current_level"] or "?"
-                print(f"    {player_info['name']:30} L={old}→{new_level}  {bio[:60]}...")
-                total_updated += 1
-                continue
-
-            # Upsert player_profiles (level)
-            cur.execute("""
-                INSERT INTO player_profiles (person_id, level)
-                VALUES (%s, %s)
-                ON CONFLICT (person_id) DO UPDATE SET level = %s, updated_at = NOW()
-            """, (pid, new_level, new_level))
-
-            # Upsert player_status (scouting_notes)
-            if bio:
+                # Upsert player_status (scouting_notes only)
                 cur.execute("""
                     INSERT INTO player_status (person_id, scouting_notes)
                     VALUES (%s, %s)
                     ON CONFLICT (person_id) DO UPDATE SET scouting_notes = %s
                 """, (pid, bio, bio))
+                total_updated += 1
 
-            total_updated += 1
+            else:
+                # Legacy mode: level + bio
+                new_level = result.get("level")
+
+                if not isinstance(new_level, (int, float)) or new_level < 1 or new_level > 99:
+                    print(f"    SKIP {player_info['name']}: bad level {new_level}")
+                    continue
+
+                new_level = int(new_level)
+
+                if DRY_RUN:
+                    old = player_info["current_level"] or "?"
+                    print(f"    {player_info['name']:30} L={old}→{new_level}  {bio[:60]}...")
+                    total_updated += 1
+                    continue
+
+                # Upsert player_profiles (level)
+                cur.execute("""
+                    INSERT INTO player_profiles (person_id, level)
+                    VALUES (%s, %s)
+                    ON CONFLICT (person_id) DO UPDATE SET level = %s, updated_at = NOW()
+                """, (pid, new_level, new_level))
+
+                # Upsert player_status (scouting_notes)
+                if bio:
+                    cur.execute("""
+                        INSERT INTO player_status (person_id, scouting_notes)
+                        VALUES (%s, %s)
+                        ON CONFLICT (person_id) DO UPDATE SET scouting_notes = %s
+                    """, (pid, bio, bio))
+
+                total_updated += 1
 
         if not DRY_RUN and all_results:
             conn.commit()

@@ -62,18 +62,14 @@ STEPS: list[Step] = [
     Step("api_football_ingest", ["65_api_football_ingest.py"], "Fetch API-Football stats (top 5 leagues)",
          optional=True, supports_force=False),  # Requires API key + rate-limited; --force re-fetches from API
 
-    # ── Grade computation ──
-    Step("understat_grades", ["30_understat_grades.py"], "Understat → attribute grades",
-         flags=["--force"]),
-    Step("statsbomb_grades", ["31_statsbomb_grades.py"], "StatsBomb → attribute grades",
-         optional=True, supports_force=False),  # Can timeout on large event datasets
-    Step("api_football_grades", ["66_api_football_grades.py"], "API-Football → attribute grades",
-         depends_on=["api_football_ingest"], optional=True, supports_force=False),
+    # ── Grade computation (unified cross-source engine) ──
+    Step("unified_grades", ["22_unified_grades.py"], "Multi-source → attribute grades (cross-source percentiles)",
+         depends_on=["api_football_ingest"], supports_force=True),
 
     # ── Ratings & profiling ──
     Step("ratings", ["27_player_ratings.py"], "Composite ratings + best_role + compound scores",
          flags=["--force"],
-         depends_on=["understat_grades", "statsbomb_grades", "api_football_grades"],
+         depends_on=["unified_grades"],
          supports_incremental=True),
     Step("scouting_tags", ["32_scouting_tags.py"], "Auto-assign scouting tags",
          depends_on=["ratings"]),

@@ -1,40 +1,37 @@
 """
-44_career_xp.py — Career Experience (XP) milestones → player_xp table + xp_modifier.
+44_career_xp.py — Career XP v2: "The Footballer's Odyssey"
 
-Detects career milestones (trophies, international caps, loyalty, instability)
-from existing data and writes additive XP modifiers that adjust effective_score
-in the valuation engine.
+BG3-inspired career event system with 159 milestone types across 10 categories,
+rarity tiers, and an exponential XP level curve (1-12).
+
+Detects career milestones from 15+ data sources and writes:
+  - player_xp rows (individual milestones with category/rarity/season)
+  - player_profiles.xp_modifier (derived from XP level)
+  - player_profiles.xp_level (1-12, BG3-style)
 
 Usage:
-    python 44_career_xp.py                  # all players with career data
+    python 44_career_xp.py                  # all players with data
     python 44_career_xp.py --player ID      # single player
     python 44_career_xp.py --limit 50       # first 50 players
     python 44_career_xp.py --dry-run        # preview without writing
     python 44_career_xp.py --force          # overwrite existing rows
 
-Requires migration: 031_career_xp.sql
+Requires migrations: 031_career_xp.sql, 037_career_xp_v2.sql
 """
 import argparse
-import json
 import sys
-from decimal import Decimal
-from datetime import datetime, timezone, date
+from collections import defaultdict
 
 from supabase import create_client
-
 from config import POSTGRES_DSN, SUPABASE_URL, SUPABASE_SERVICE_KEY
 
 # ── Argument parsing ───────────────────────────────────────────────────────────
 
-parser = argparse.ArgumentParser(description="Compute career XP milestones")
-parser.add_argument("--player", type=str, default=None,
-                    help="Single person_id to process")
-parser.add_argument("--limit", type=int, default=None,
-                    help="Max players to process")
-parser.add_argument("--dry-run", action="store_true",
-                    help="Print summaries without writing to database")
-parser.add_argument("--force", action="store_true",
-                    help="Overwrite existing rows")
+parser = argparse.ArgumentParser(description="Career XP v2 — The Footballer's Odyssey")
+parser.add_argument("--player", type=str, default=None, help="Single person_id")
+parser.add_argument("--limit", type=int, default=None, help="Max players")
+parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
+parser.add_argument("--force", action="store_true", help="Overwrite existing rows")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
@@ -51,506 +48,242 @@ except ImportError:
     sys.exit(1)
 
 if not POSTGRES_DSN:
-    print("ERROR: Set POSTGRES_DSN in .env")
-    sys.exit(1)
+    print("ERROR: Set POSTGRES_DSN in .env"); sys.exit(1)
 if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY in .env")
-    sys.exit(1)
+    print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY in .env"); sys.exit(1)
 
 conn = psycopg2.connect(POSTGRES_DSN)
 conn.autocommit = True
 sb_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-# ── Award classification (tiered) ─────────────────────────────────────────────
+# ── Import detectors ──────────────────────────────────────────────────────────
 
-# Career-defining team trophies (+5)
-ELITE_TROPHIES = {
-    "UEFA Champions League", "FIFA World Cup",
-}
+# Add parent directory to path for package imports
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
 
-# Major team trophies (+3)
-MAJOR_TROPHIES = {
-    "Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1",
-    "UEFA Europa League", "UEFA European Championship", "Copa América",
-    "Africa Cup of Nations", "Copa Libertadores",
-}
-
-# Minor team trophies (+1)
-MINOR_TROPHIES = {
-    "FA Cup", "EFL Cup", "League Cup", "Copa del Rey", "Coppa Italia",
-    "DFB-Pokal", "Coupe de France", "Trophée des Champions",
-    "DFL-Supercup", "Supercoppa Italiana", "Supercopa de España",
-    "FA Community Shield", "UEFA Europa Conference League",
-    "UEFA Super Cup", "FIFA Club World Cup", "Intercontinental Cup",
-    "AFC Asian Cup", "CONCACAF Gold Cup", "UEFA Nations League",
-    "Eredivisie", "Primeira Liga", "Süper Lig", "Scottish Premiership",
-    "MLS Cup", "Copa Sudamericana", "CAF Champions League",
-    "English Football League Championship",
-}
-
-ALL_TROPHIES = ELITE_TROPHIES | MAJOR_TROPHIES | MINOR_TROPHIES
-
-# Career-defining individual honours (+5)
-ELITE_INDIVIDUAL = {
-    "Ballon d'Or", "FIFA World Player of the Year", "The Best FIFA Men's Player",
-    "FIFA World Cup Golden Ball",
-}
-
-# Major individual honours (+3)
-MAJOR_INDIVIDUAL = {
-    "European Golden Shoe", "Premier League Golden Boot",
-    "Pichichi Trophy", "Capocannoniere",
-    "UEFA Men's Player of the Year Award", "UEFA Best Player in Europe Award",
-    "FIFA World Cup Golden Boot",
-    "African Footballer of the Year",
-}
-
-# Notable individual honours (+1)
-NOTABLE_INDIVIDUAL = {
-    "PFA Players' Player of the Year", "PFA Young Player of the Year",
-    "FWA Footballer of the Year",
-    "Kopa Trophy", "Golden Boy",
-    "FIFA Puskás Award",
-}
-
-ALL_INDIVIDUAL = ELITE_INDIVIDUAL | MAJOR_INDIVIDUAL | NOTABLE_INDIVIDUAL
-
-# Top-5 leagues for promotion_climber / late_bloomer detection
-TOP5_LEAGUES = {
-    "Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1",
-}
-
-# ── Milestone detection ───────────────────────────────────────────────────────
-
-TODAY = date.today()
+from pipeline.xp_detectors import ALL_DETECTORS, compute_xp_level, compute_negative_modifier, compute_legacy_score
 
 
-class _DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Decimal):
-            return float(o)
-        return super().default(o)
+# ── Data loading ──────────────────────────────────────────────────────────────
 
+def load_all_data(cur, player_ids):
+    """Batch-load all data sources into per-player dicts."""
+    if not player_ids:
+        return {}
 
-def _dumps(obj):
-    return json.dumps(obj, cls=_DecimalEncoder)
+    placeholders = ",".join(["%s"] * len(player_ids))
+    data = {pid: {"person_id": pid} for pid in player_ids}
 
+    # 1. Career history
+    cur.execute(f"""
+        SELECT person_id, club_name, club_id, start_date, end_date, is_loan, sort_order
+        FROM player_career_history
+        WHERE person_id IN ({placeholders})
+        ORDER BY person_id, sort_order, start_date
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]].setdefault("career_entries", []).append(d)
 
-def _infer_team_type(club_name: str) -> str:
-    """Infer team type from club name (no team_type column in career_history)."""
-    if not club_name:
-        return "senior_club"
-    lower = club_name.lower()
-    if "national" in lower:
-        return "national_team"
-    # Youth/reserve patterns like "Club U21", "Club B", "Club II"
-    if lower.endswith((" u21", " u20", " u19", " u18", " u17", " u16", " b", " ii", " reserves")):
-        return "youth"
-    return "senior_club"
+    # 2. People (awards, total_goals, dob, nation_id, active)
+    cur.execute(f"""
+        SELECT id, awards, total_goals, date_of_birth, nation_id, active
+        FROM people WHERE id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        pid = d["id"]
+        data[pid]["awards"] = d.get("awards")
+        data[pid]["total_goals"] = d.get("total_goals")
+        data[pid]["dob"] = d.get("date_of_birth")
+        data[pid]["nation_id"] = d.get("nation_id")
+        data[pid]["active"] = d.get("active", True)
 
+    # 3. Career metrics
+    cur.execute(f"""
+        SELECT person_id, trajectory, career_years, clubs_count, loan_count,
+               avg_tenure_yrs, max_tenure_yrs, leagues_count
+        FROM career_metrics WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]]["career_metric"] = d
 
-def detect_milestones(pid, career_entries, career_metric, person_data,
-                      nationalities_count, club_leagues):
-    """Detect all applicable milestones for a player. Returns list of milestone dicts."""
-    milestones = []
-    dob = person_data.get("date_of_birth")
+    # 4. Nationality counts
+    cur.execute(f"""
+        SELECT person_id, COUNT(*) as cnt
+        FROM player_nationalities WHERE person_id IN ({placeholders})
+        GROUP BY person_id
+    """, player_ids)
+    for row in cur.fetchall():
+        data[row[0]]["nationalities_count"] = row[1]
 
-    # Infer team types
-    for e in career_entries:
-        if "team_type" not in e or e["team_type"] is None:
-            e["team_type"] = _infer_team_type(e.get("club_name", ""))
+    # 5. Club data (leagues, capacities, countries)
+    cur.execute("SELECT id, league_name, stadium_capacity, nation_id FROM clubs WHERE league_name IS NOT NULL OR stadium_capacity IS NOT NULL")
+    club_leagues = {}
+    club_capacities = {}
+    club_countries = {}
+    club_nations = {}
+    for row in cur.fetchall():
+        cid, league, cap, nid = row
+        if league:
+            club_leagues[cid] = league
+        if cap:
+            club_capacities[cid] = cap
+        if nid:
+            club_countries[cid] = nid
+            club_nations[cid] = nid
+    for pid in player_ids:
+        data[pid]["club_leagues"] = club_leagues
+        data[pid]["club_capacities"] = club_capacities
+        data[pid]["club_countries"] = club_countries
+        data[pid]["club_nations"] = club_nations
 
-    senior_entries = [
-        e for e in career_entries
-        if e.get("team_type") == "senior_club" and e.get("start_date")
-    ]
-    youth_entries = [
-        e for e in career_entries
-        if e.get("team_type") == "youth" and e.get("club_name")
-    ]
-    national_entries = [e for e in career_entries if e.get("team_type") == "national_team"]
+    # 6. API-Football stats (per-season) — aggregate by person_id + season
+    cur.execute(f"""
+        SELECT person_id, season,
+               SUM(appearances) as appearances, SUM(minutes) as minutes,
+               SUM(goals) as goals, SUM(assists) as assists,
+               SUM(shots_total) as shots_total,
+               AVG(passes_accuracy) as passes_accuracy,
+               SUM(passes_key) as key_passes,
+               SUM(tackles_total) as tackles_total,
+               SUM(interceptions) as interceptions, SUM(blocks) as blocks,
+               SUM(dribbles_success) as dribbles_success,
+               SUM(dribbles_attempted) as dribbles_attempts,
+               SUM(duels_won) as duels_won, SUM(duels_total) as duels_total,
+               AVG(rating) as rating,
+               SUM(penalties_scored) as penalty_scored,
+               SUM(penalties_missed) as penalty_missed,
+               SUM(fouls_drawn) as fouls_drawn,
+               SUM(cards_yellow) as yellow_cards,
+               SUM(cards_red) as red_cards
+        FROM api_football_player_stats
+        WHERE person_id IN ({placeholders})
+        GROUP BY person_id, season
+        ORDER BY person_id, season
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        pid = d.pop("person_id")
+        # Convert numeric types
+        for k in d:
+            if d[k] is not None:
+                try:
+                    d[k] = float(d[k])
+                except (ValueError, TypeError):
+                    pass
+        data[pid].setdefault("af_seasons", []).append(d)
 
-    def _club_root(name):
-        """Extract club root for matching youth → senior (e.g. 'FC Barcelona B' → 'fc barcelona')."""
-        if not name:
-            return ""
-        lower = name.lower().strip()
-        for suffix in (" b", " ii", " u21", " u20", " u19", " u18", " u17", " u16", " reserves"):
-            if lower.endswith(suffix):
-                lower = lower[:-len(suffix)].strip()
-        return lower
+    # 7. FBRef stats (per-season) — join via player_id_links
+    cur.execute(f"""
+        SELECT pil.person_id, fs.season, fs.goals, fs.assists,
+               fs.progressive_passes, fs.progressive_carries,
+               fs.tackles, fs.key_passes, fs.minutes
+        FROM fbref_player_season_stats fs
+        JOIN player_id_links pil ON pil.external_id = fs.fbref_id
+             AND pil.source = 'fbref'
+        WHERE pil.person_id IN ({placeholders})
+        ORDER BY pil.person_id, fs.season
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        pid = d.pop("person_id")
+        data[pid].setdefault("fbref_seasons", []).append(d)
 
-    def _club_league(entry):
-        """Get league for a career entry via club_id lookup."""
-        cid = entry.get("club_id")
-        if cid and cid in club_leagues:
-            return club_leagues[cid]
-        return None
+    # 8. Understat stats (per-season, aggregated via match join)
+    cur.execute(f"""
+        SELECT pil.person_id, um.season,
+               SUM(ups.goals) as goals, SUM(ups.xg) as xg,
+               SUM(ups.assists) as assists, SUM(ups.xa) as xa,
+               SUM(ups.xgchain) as xg_chain, SUM(ups.xgbuildup) as xg_buildup
+        FROM understat_player_match_stats ups
+        JOIN understat_matches um ON um.id = ups.match_id
+        JOIN player_id_links pil ON pil.external_id = ups.player_id::text
+             AND pil.source = 'understat'
+        WHERE pil.person_id IN ({placeholders})
+        GROUP BY pil.person_id, um.season
+        ORDER BY pil.person_id, um.season
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        pid = d.pop("person_id")
+        # Convert Decimals to float
+        for k in ("goals", "xg", "assists", "xa", "xg_chain", "xg_buildup"):
+            if d.get(k) is not None:
+                d[k] = float(d[k])
+        data[pid].setdefault("understat_seasons", []).append(d)
 
-    def _is_top5(league):
-        return league in TOP5_LEAGUES if league else False
+    # 9. Personality
+    cur.execute(f"""
+        SELECT person_id, ei, sn, tf, jp, competitiveness, coachability
+        FROM player_personality WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]]["personality"] = d
 
-    # ── Senior debut (+1) ────────────────────────────────────────────────
-    if senior_entries:
-        earliest = min(senior_entries, key=lambda e: e["start_date"])
-        milestones.append({
-            "milestone_key": "senior_debut",
-            "milestone_label": "Senior Debut",
-            "xp_value": 1,
-            "milestone_date": earliest["start_date"],
-            "source": "career_history",
-            "details": _dumps({"club": earliest.get("club_name")}),
-        })
+    # 10. Trait scores
+    cur.execute(f"""
+        SELECT player_id as person_id, trait, category, severity
+        FROM player_trait_scores WHERE player_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]].setdefault("traits", []).append(d)
 
-        # ── Early starter (+2) — senior debut before age 18 ──────────────
-        if dob and earliest["start_date"]:
-            debut_age = (earliest["start_date"] - dob).days / 365.25
-            if debut_age < 18:
-                milestones.append({
-                    "milestone_key": "early_starter",
-                    "milestone_label": "Early Starter",
-                    "xp_value": 2,
-                    "milestone_date": earliest["start_date"],
-                    "source": "career_history",
-                    "details": _dumps({"debut_age": round(debut_age, 1), "club": earliest.get("club_name")}),
-                })
+    # 11. Injury summary
+    cur.execute(f"""
+        SELECT person_id, total_injuries, total_days_missed as total_days,
+               worst_injury_days as major_days
+        FROM player_injury_summary WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        # Compute major_count: injuries > 90 days
+        d["major_count"] = 1 if (d.get("major_days") or 0) >= 90 else 0
+        data[d["person_id"]]["injury_summary"] = d
 
-    # ── Youth academy graduate (+2) — youth at club then senior at same ──
-    if youth_entries and senior_entries:
-        youth_roots = {_club_root(e["club_name"]) for e in youth_entries}
-        for e in senior_entries:
-            if _club_root(e.get("club_name")) in youth_roots and not e.get("is_loan"):
-                milestones.append({
-                    "milestone_key": "youth_academy_grad",
-                    "milestone_label": "Academy Graduate",
-                    "xp_value": 2,
-                    "milestone_date": e.get("start_date"),
-                    "source": "career_history",
-                    "details": _dumps({"club": e.get("club_name")}),
-                })
-                break
+    # 11b. Individual injuries from kaggle_injuries
+    cur.execute(f"""
+        SELECT person_id, injury_type, days_missed as days_out, season
+        FROM kaggle_injuries WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]].setdefault("injuries", []).append(d)
 
-    # ── International career (+2) ────────────────────────────────────────
-    if national_entries:
-        teams = list({e["club_name"] for e in national_entries if e.get("club_name")})
-        milestones.append({
-            "milestone_key": "international_career",
-            "milestone_label": "International Career",
-            "xp_value": 2,
-            "milestone_date": min(
-                (e["start_date"] for e in national_entries if e.get("start_date")),
-                default=None,
-            ),
-            "source": "career_history",
-            "details": _dumps({"teams": teams}),
-        })
+    # 12. Key moments
+    cur.execute(f"""
+        SELECT person_id, title, moment_type, moment_date, sentiment
+        FROM key_moments WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]].setdefault("key_moments", []).append(d)
 
-    # ── Tiered trophies ──────────────────────────────────────────────────
-    awards = person_data.get("awards")
-    if awards:
-        if isinstance(awards, str):
-            try:
-                awards = json.loads(awards)
-            except (json.JSONDecodeError, TypeError):
-                awards = []
-        if isinstance(awards, list):
-            elite_trophies = []
-            major_trophies = []
-            minor_trophies = []
-            elite_indiv = []
-            major_indiv = []
-            notable_indiv = []
+    # 13. News sentiment
+    cur.execute(f"""
+        SELECT person_id, buzz_score, sentiment_score, trend_7d
+        FROM news_sentiment_agg WHERE person_id IN ({placeholders})
+    """, player_ids)
+    cols = [d[0] for d in cur.description]
+    for row in cur.fetchall():
+        d = dict(zip(cols, row))
+        data[d["person_id"]]["news_sentiment"] = d
 
-            for award in awards:
-                label = award if isinstance(award, str) else (award.get("label") or award.get("name") or "")
-                if label in ELITE_TROPHIES:
-                    elite_trophies.append(label)
-                elif label in MAJOR_TROPHIES:
-                    major_trophies.append(label)
-                elif label in MINOR_TROPHIES:
-                    minor_trophies.append(label)
-                elif label in ELITE_INDIVIDUAL:
-                    elite_indiv.append(label)
-                elif label in MAJOR_INDIVIDUAL:
-                    major_indiv.append(label)
-                elif label in NOTABLE_INDIVIDUAL:
-                    notable_indiv.append(label)
-
-            # Elite trophies — Champions League / World Cup (+5)
-            if elite_trophies:
-                milestones.append({
-                    "milestone_key": "elite_trophy",
-                    "milestone_label": "Elite Trophy Winner",
-                    "xp_value": 5,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"trophies": elite_trophies[:10]}),
-                })
-            # Major trophies — top-5 leagues, Europa League, international (+3)
-            if major_trophies:
-                milestones.append({
-                    "milestone_key": "major_trophy",
-                    "milestone_label": "Major Trophy Winner",
-                    "xp_value": 3,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"trophies": major_trophies[:10]}),
-                })
-            # Minor trophies — domestic cups, super cups, secondary (+1)
-            if minor_trophies:
-                milestones.append({
-                    "milestone_key": "cup_winner",
-                    "milestone_label": "Cup Winner",
-                    "xp_value": 1,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"trophies": minor_trophies[:10]}),
-                })
-
-            # Elite individual — Ballon d'Or tier (+5)
-            if elite_indiv:
-                milestones.append({
-                    "milestone_key": "ballon_dor",
-                    "milestone_label": "Ballon d'Or Winner",
-                    "xp_value": 5,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"honours": elite_indiv[:5]}),
-                })
-            # Major individual — Golden Shoe, UEFA POTY tier (+3)
-            if major_indiv:
-                milestones.append({
-                    "milestone_key": "elite_individual",
-                    "milestone_label": "Elite Individual Award",
-                    "xp_value": 3,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"honours": major_indiv[:5]}),
-                })
-            # Notable individual — PFA, Golden Boy tier (+1)
-            if notable_indiv:
-                milestones.append({
-                    "milestone_key": "notable_individual",
-                    "milestone_label": "Notable Individual Award",
-                    "xp_value": 1,
-                    "milestone_date": None,
-                    "source": "awards",
-                    "details": _dumps({"honours": notable_indiv[:5]}),
-                })
-
-    # ── Long service (+2) — any single non-loan spell >= 7 years ─────────
-    for e in senior_entries:
-        if e.get("is_loan"):
-            continue
-        start = e.get("start_date")
-        end = e.get("end_date") or TODAY
-        if start:
-            years = (end - start).days / 365.25
-            if years >= 7:
-                milestones.append({
-                    "milestone_key": "long_service",
-                    "milestone_label": "Long Service",
-                    "xp_value": 2,
-                    "milestone_date": None,
-                    "source": "career_history",
-                    "details": _dumps({"club": e.get("club_name"), "years": round(years, 1)}),
-                })
-                break
-
-    # ── Consecutive seasons (+1) — 5+ years at one club, not one-club ────
-    has_one_club = False
-    for e in senior_entries:
-        if e.get("is_loan"):
-            continue
-        start = e.get("start_date")
-        end = e.get("end_date") or TODAY
-        if start:
-            years = (end - start).days / 365.25
-            if years >= 5:
-                # Only award if not already a one-club player (avoid double-counting)
-                trajectory = career_metric.get("trajectory") if career_metric else None
-                if trajectory == "one-club":
-                    has_one_club = True
-                elif not has_one_club:
-                    milestones.append({
-                        "milestone_key": "consecutive_seasons",
-                        "milestone_label": "Consecutive Seasons",
-                        "xp_value": 1,
-                        "milestone_date": None,
-                        "source": "career_history",
-                        "details": _dumps({"club": e.get("club_name"), "years": round(years, 1)}),
-                    })
-                break
-
-    # ── Promotion climber (+3) — lower league to top-5 within 5 years ────
-    if senior_entries and club_leagues:
-        non_top5_entries = [e for e in senior_entries if not _is_top5(_club_league(e))]
-        top5_entries = [e for e in senior_entries if _is_top5(_club_league(e))]
-        if non_top5_entries and top5_entries:
-            first_lower = min(non_top5_entries, key=lambda e: e["start_date"])
-            first_top5 = min(top5_entries, key=lambda e: e["start_date"])
-            if first_lower["start_date"] < first_top5["start_date"]:
-                gap_years = (first_top5["start_date"] - first_lower["start_date"]).days / 365.25
-                if gap_years <= 5:
-                    milestones.append({
-                        "milestone_key": "promotion_climber",
-                        "milestone_label": "Promotion Climber",
-                        "xp_value": 3,
-                        "milestone_date": first_top5["start_date"],
-                        "source": "career_history",
-                        "details": _dumps({
-                            "from_club": first_lower.get("club_name"),
-                            "to_club": first_top5.get("club_name"),
-                            "years": round(gap_years, 1),
-                        }),
-                    })
-
-    # ── Late bloomer (+1) — first top-5 league move after age 25 ─────────
-    if dob and senior_entries and club_leagues:
-        top5_entries = [e for e in senior_entries if _is_top5(_club_league(e))]
-        if top5_entries:
-            first_top5 = min(top5_entries, key=lambda e: e["start_date"])
-            age_at_top5 = (first_top5["start_date"] - dob).days / 365.25
-            if age_at_top5 >= 25:
-                milestones.append({
-                    "milestone_key": "late_bloomer",
-                    "milestone_label": "Late Bloomer",
-                    "xp_value": 1,
-                    "milestone_date": first_top5["start_date"],
-                    "source": "career_history",
-                    "details": _dumps({"age": round(age_at_top5, 1), "club": first_top5.get("club_name")}),
-                })
-
-    # ── Loan success (+1) — loan then permanent move to equal/higher league
-    loan_entries = [e for e in senior_entries if e.get("is_loan")]
-    if loan_entries and club_leagues:
-        for loan in loan_entries:
-            loan_end = loan.get("end_date")
-            if not loan_end:
-                continue
-            # Find next permanent move after this loan
-            next_perm = [
-                e for e in senior_entries
-                if not e.get("is_loan") and e.get("start_date")
-                and e["start_date"] >= loan_end
-                and (e["start_date"] - loan_end).days <= 180  # within 6 months
-            ]
-            if next_perm:
-                next_move = min(next_perm, key=lambda e: e["start_date"])
-                loan_league = _club_league(loan)
-                next_league = _club_league(next_move)
-                if loan_league and next_league and _is_top5(next_league):
-                    milestones.append({
-                        "milestone_key": "loan_success",
-                        "milestone_label": "Loan Success",
-                        "xp_value": 1,
-                        "milestone_date": next_move["start_date"],
-                        "source": "career_history",
-                        "details": _dumps({
-                            "loan_club": loan.get("club_name"),
-                            "signed_by": next_move.get("club_name"),
-                        }),
-                    })
-                    break  # only count once
-
-    # ── Career-metrics-based milestones ───────────────────────────────────
-    if career_metric:
-        trajectory = career_metric.get("trajectory")
-        career_years = career_metric.get("career_years") or 0
-        clubs_count = career_metric.get("clubs_count") or 0
-        loan_count = career_metric.get("loan_count") or 0
-        avg_tenure = career_metric.get("avg_tenure_yrs") or 0
-
-        # One-club loyalty (+1)
-        if trajectory == "one-club" and career_years >= 5:
-            milestones.append({
-                "milestone_key": "one_club_loyalty",
-                "milestone_label": "One-Club Loyalty",
-                "xp_value": 1,
-                "milestone_date": None,
-                "source": "career_metrics",
-                "details": _dumps({"career_years": career_years}),
-            })
-
-        # Multi-league (+1) — 3+ distinct leagues
-        leagues_count = career_metric.get("leagues_count") or 0
-        if leagues_count >= 3:
-            milestones.append({
-                "milestone_key": "multi_league",
-                "milestone_label": "Multi-League Experience",
-                "xp_value": 1,
-                "milestone_date": None,
-                "source": "career_metrics",
-                "details": _dumps({"leagues_count": leagues_count}),
-            })
-
-        # Unstable loans (-1)
-        if loan_count >= 3:
-            milestones.append({
-                "milestone_key": "unstable_loans",
-                "milestone_label": "Unstable Loan History",
-                "xp_value": -1,
-                "milestone_date": None,
-                "source": "career_metrics",
-                "details": _dumps({"loan_count": loan_count}),
-            })
-
-        # Excessive moves (-2)
-        if clubs_count >= 6 and career_years <= 8:
-            milestones.append({
-                "milestone_key": "excessive_moves",
-                "milestone_label": "Excessive Moves",
-                "xp_value": -2,
-                "milestone_date": None,
-                "source": "career_metrics",
-                "details": _dumps({"clubs_count": clubs_count, "career_years": career_years}),
-            })
-
-        # Journeyman (-1)
-        if trajectory == "journeyman" and avg_tenure < 1.5:
-            milestones.append({
-                "milestone_key": "journeyman",
-                "milestone_label": "Journeyman",
-                "xp_value": -1,
-                "milestone_date": None,
-                "source": "career_metrics",
-                "details": _dumps({"avg_tenure_yrs": avg_tenure}),
-            })
-
-    # ── Goal scoring milestones ──────────────────────────────────────────
-    total_goals = person_data.get("total_goals")
-    if total_goals is not None:
-        if total_goals >= 100:
-            milestones.append({
-                "milestone_key": "prolific_scorer",
-                "milestone_label": "Prolific Scorer",
-                "xp_value": 2,
-                "milestone_date": None,
-                "source": "people",
-                "details": _dumps({"total_goals": total_goals}),
-            })
-        elif total_goals >= 30:
-            milestones.append({
-                "milestone_key": "goal_scorer",
-                "milestone_label": "Goal Scorer",
-                "xp_value": 1,
-                "milestone_date": None,
-                "source": "people",
-                "details": _dumps({"total_goals": total_goals}),
-            })
-
-    # ── Dual nationality (+1) ────────────────────────────────────────────
-    if nationalities_count >= 2:
-        milestones.append({
-            "milestone_key": "dual_nationality",
-            "milestone_label": "Dual Nationality",
-            "xp_value": 1,
-            "milestone_date": None,
-            "source": "nationalities",
-            "details": _dumps({"count": nationalities_count}),
-        })
-
-    return milestones
+    return data
 
 
 # ── Upsert helpers ─────────────────────────────────────────────────────────────
@@ -571,16 +304,17 @@ def chunked_upsert_xp(rows):
     return total
 
 
-def update_xp_modifiers(modifier_rows):
-    """Update xp_modifier on player_profiles via batch psycopg2 (avoids Supabase timeout)."""
+def update_xp_profiles(modifier_rows):
+    """Update xp_modifier + xp_level on player_profiles via psycopg2."""
     if not modifier_rows:
         return 0
     if DRY_RUN:
-        print(f"  [dry-run] would update {len(modifier_rows)} xp_modifier values")
+        print(f"  [dry-run] would update {len(modifier_rows)} xp_modifier/xp_level values")
         return len(modifier_rows)
     cur = conn.cursor()
     psycopg2.extras.execute_batch(cur, """
-        UPDATE player_profiles SET xp_modifier = %(xp_modifier)s
+        UPDATE player_profiles
+        SET xp_modifier = %(xp_modifier)s, xp_level = %(xp_level)s, legacy_score = %(legacy_score)s
         WHERE person_id = %(person_id)s
     """, modifier_rows, page_size=500)
     conn.commit() if not conn.autocommit else None
@@ -590,61 +324,30 @@ def update_xp_modifiers(modifier_rows):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print("Career XP Builder")
+    print("Career XP v2 — The Footballer's Odyssey")
     print(f"  Dry run: {DRY_RUN}")
     print(f"  Force:   {FORCE}")
+    print(f"  Detectors: {len(ALL_DETECTORS)}")
 
     cur = conn.cursor()
 
-    # ── Fetch career history ───────────────────────────────────────────────
-    where_clauses = []
-    params = []
-
-    if args.player:
-        where_clauses.append("ch.person_id = %s")
-        params.append(int(args.player))
-
-    if not FORCE:
-        where_clauses.append("""
-            ch.person_id NOT IN (SELECT DISTINCT person_id FROM player_xp)
-        """)
-
-    where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
-
-    cur.execute(f"""
-        SELECT
-            ch.person_id, ch.club_name, ch.club_id, ch.start_date, ch.end_date,
-            ch.is_loan, ch.sort_order
-        FROM player_career_history ch
-        {where_sql}
-        ORDER BY ch.person_id, ch.sort_order, ch.start_date
-    """, params)
-    career_rows = cur.fetchall()
-    career_cols = [d[0] for d in cur.description]
-
-    # Group career by player
-    career_by_player = {}
-    for row in career_rows:
-        d = dict(zip(career_cols, row))
-        career_by_player.setdefault(d["person_id"], []).append(d)
-
     # ── Determine player set ──────────────────────────────────────────────
-    # Also include players without career history (for goals/awards/nationality)
     if args.player:
         player_ids = [int(args.player)]
     else:
-        # All players with career history or with awards/goals
         cur.execute("""
             SELECT DISTINCT id FROM (
                 SELECT person_id AS id FROM player_career_history
-                UNION
-                SELECT id FROM people WHERE awards IS NOT NULL OR total_goals IS NOT NULL
+                UNION SELECT id FROM people WHERE awards IS NOT NULL OR total_goals IS NOT NULL
+                UNION SELECT person_id AS id FROM player_personality
+                UNION SELECT pil.person_id AS id FROM player_id_links pil
+                      WHERE pil.source IN ('api_football', 'fbref', 'understat')
             ) sub
         """)
         player_ids = [r[0] for r in cur.fetchall()]
 
     if not FORCE and not args.player:
-        cur.execute("SELECT DISTINCT person_id FROM player_xp")
+        cur.execute("SELECT DISTINCT person_id FROM player_xp WHERE category IS NOT NULL")
         existing = {r[0] for r in cur.fetchall()}
         player_ids = [pid for pid in player_ids if pid not in existing]
 
@@ -653,65 +356,48 @@ def main():
 
     if not player_ids:
         print("  No players to process.")
-        cur.close()
-        conn.close()
+        cur.close(); conn.close()
         return
 
     print(f"  Players to process: {len(player_ids)}")
 
-    # ── Batch-load supporting data ─────────────────────────────────────────
+    # ── Batch-load data ───────────────────────────────────────────────────
+    print("  Loading data...")
+    all_data = load_all_data(cur, player_ids)
+    print(f"  Data loaded for {len(all_data)} players")
 
-    # People data (awards, total_goals, date_of_birth)
-    placeholders = ",".join(["%s"] * len(player_ids))
-    cur.execute(f"""
-        SELECT id, awards, total_goals, date_of_birth
-        FROM people
-        WHERE id IN ({placeholders})
-    """, player_ids)
-    people_cols = [d[0] for d in cur.description]
-    people_data = {r[0]: dict(zip(people_cols, r)) for r in cur.fetchall()}
-
-    # Career metrics
-    cur.execute(f"""
-        SELECT person_id, trajectory, career_years, clubs_count, loan_count,
-               avg_tenure_yrs, leagues_count
-        FROM career_metrics
-        WHERE person_id IN ({placeholders})
-    """, player_ids)
-    metrics_cols = [d[0] for d in cur.description]
-    metrics_data = {r[0]: dict(zip(metrics_cols, r)) for r in cur.fetchall()}
-
-    # Nationality counts
-    cur.execute(f"""
-        SELECT person_id, COUNT(*) as cnt
-        FROM player_nationalities
-        WHERE person_id IN ({placeholders})
-        GROUP BY person_id
-    """, player_ids)
-    nationality_counts = {r[0]: r[1] for r in cur.fetchall()}
-
-    # Club leagues (for promotion_climber / late_bloomer detection)
-    cur.execute("SELECT id, league_name FROM clubs WHERE league_name IS NOT NULL")
-    club_leagues = {r[0]: r[1] for r in cur.fetchall()}
-    print(f"  Club league mappings: {len(club_leagues)}")
-
-    # ── Process each player ────────────────────────────────────────────────
-
+    # ── Process each player ───────────────────────────────────────────────
     all_xp_rows = []
     modifier_rows = []
     stats = {"processed": 0, "milestones": 0, "positive": 0, "negative": 0}
-    xp_distribution = {}
+    level_distribution = defaultdict(int)
+    category_counts = defaultdict(int)
+    rarity_counts = defaultdict(int)
 
     for pid in player_ids:
-        career_entries = career_by_player.get(pid, [])
-        career_metric = metrics_data.get(pid)
-        person = people_data.get(pid, {})
-        nat_count = nationality_counts.get(pid, 0)
+        pd = all_data.get(pid, {"person_id": pid})
+        milestones = []
 
-        milestones = detect_milestones(pid, career_entries, career_metric, person, nat_count, club_leagues)
+        # Run all detectors
+        for detector in ALL_DETECTORS:
+            try:
+                ms = detector(pd)
+                milestones.extend(ms)
+            except Exception as e:
+                print(f"  WARN: detector {detector.__module__} failed for {pid}: {e}")
 
         if not milestones:
             continue
+
+        # Deduplicate by milestone_key
+        seen_keys = set()
+        unique_milestones = []
+        for m in milestones:
+            key = m["milestone_key"]
+            if key not in seen_keys:
+                seen_keys.add(key)
+                unique_milestones.append(m)
+        milestones = unique_milestones
 
         # Build XP rows
         for m in milestones:
@@ -721,57 +407,89 @@ def main():
                 "milestone_label": m["milestone_label"],
                 "xp_value": m["xp_value"],
                 "source": m["source"],
-                "details": m["details"],
+                "details": m.get("details"),
+                "category": m.get("category"),
+                "rarity": m.get("rarity", "common"),
             }
             if m.get("milestone_date"):
                 row["milestone_date"] = str(m["milestone_date"])
+            if m.get("season"):
+                row["season"] = m["season"]
             all_xp_rows.append(row)
+            category_counts[m.get("category", "unknown")] += 1
+            rarity_counts[m.get("rarity", "common")] += 1
 
-        # Compute clamped total
-        total_xp = sum(m["xp_value"] for m in milestones)
-        clamped_xp = max(-5, min(12, total_xp))
+        # Compute XP level + legacy score
+        positive_xp = sum(m["xp_value"] for m in milestones if m["xp_value"] > 0)
+        negative_xp = abs(sum(m["xp_value"] for m in milestones if m["xp_value"] < 0))
+        xp_level, level_modifier, title = compute_xp_level(positive_xp)
+        neg_modifier = compute_negative_modifier(negative_xp)
+        final_modifier = max(-5, min(8, level_modifier + neg_modifier))
+        legacy = compute_legacy_score(milestones)
 
         modifier_rows.append({
             "person_id": pid,
-            "xp_modifier": clamped_xp,
+            "xp_modifier": final_modifier,
+            "xp_level": xp_level,
+            "legacy_score": legacy,
         })
 
         stats["processed"] += 1
         stats["milestones"] += len(milestones)
         stats["positive"] += sum(1 for m in milestones if m["xp_value"] > 0)
         stats["negative"] += sum(1 for m in milestones if m["xp_value"] < 0)
-        xp_distribution[clamped_xp] = xp_distribution.get(clamped_xp, 0) + 1
+        level_distribution[xp_level] += 1
 
-    # ── Sample output ──────────────────────────────────────────────────────
-
-    if all_xp_rows:
-        sample_pid = all_xp_rows[0]["person_id"]
-        sample_milestones = [r for r in all_xp_rows if r["person_id"] == sample_pid]
-        print(f"\n  Sample (person_id={sample_pid}):")
-        for m in sample_milestones:
-            sign = "+" if m["xp_value"] > 0 else ""
-            print(f"    {sign}{m['xp_value']:+d}  {m['milestone_label']:30s}  [{m['source']}]")
+    # ── Sample output ─────────────────────────────────────────────────────
+    if all_xp_rows and modifier_rows:
+        # Pick a player with many milestones
+        pid_counts = defaultdict(int)
+        for r in all_xp_rows:
+            pid_counts[r["person_id"]] += 1
+        sample_pid = max(pid_counts, key=pid_counts.get)
+        sample_ms = [r for r in all_xp_rows if r["person_id"] == sample_pid]
         sample_mod = next((r for r in modifier_rows if r["person_id"] == sample_pid), None)
+
+        print(f"\n  Sample (person_id={sample_pid}, {len(sample_ms)} milestones):")
+        for m in sorted(sample_ms, key=lambda x: -x["xp_value"]):
+            rarity_tag = f"[{m.get('rarity', '?')}]"
+            cat_tag = f"({m.get('category', '?')})"
+            print(f"    {m['xp_value']:+d}  {rarity_tag:12s} {m['milestone_label']:40s}  {cat_tag}")
         if sample_mod:
-            print(f"    → xp_modifier = {sample_mod['xp_modifier']}")
+            _, _, title = compute_xp_level(
+                sum(m["xp_value"] for m in sample_ms if m["xp_value"] > 0)
+            )
+            print(f"    → Level {sample_mod['xp_level']} ({title}), modifier: {sample_mod['xp_modifier']:+d}, legacy: {sample_mod['legacy_score']}/99")
 
-    # ── XP distribution ───────────────────────────────────────────────────
+    # ── Category breakdown ────────────────────────────────────────────────
+    print(f"\n  Category breakdown:")
+    for cat in sorted(category_counts, key=category_counts.get, reverse=True):
+        print(f"    {cat:15s}  {category_counts[cat]:6d}")
 
-    print(f"\n  XP modifier distribution:")
-    for xp in sorted(xp_distribution.keys()):
-        bar = "#" * min(xp_distribution[xp], 50)
-        print(f"    {xp:+3d}  {xp_distribution[xp]:5d}  {bar}")
+    print(f"\n  Rarity breakdown:")
+    for r in ["common", "uncommon", "rare", "epic", "legendary", "cursed"]:
+        if r in rarity_counts:
+            print(f"    {r:12s}  {rarity_counts[r]:6d}")
 
-    # ── Write ──────────────────────────────────────────────────────────────
+    # ── Level distribution ────────────────────────────────────────────────
+    from pipeline.xp_detectors import XP_LEVELS
+    level_titles = {lv: name for lv, _, _, name in XP_LEVELS}
 
+    print(f"\n  XP Level distribution:")
+    for lv in sorted(level_distribution.keys()):
+        title = level_titles.get(lv, "?")
+        bar = "#" * min(level_distribution[lv], 50)
+        print(f"    Lv{lv:2d} ({title:14s})  {level_distribution[lv]:5d}  {bar}")
+
+    # ── Write ─────────────────────────────────────────────────────────────
     n_xp = chunked_upsert_xp(all_xp_rows)
-    n_mod = update_xp_modifiers(modifier_rows)
+    n_mod = update_xp_profiles(modifier_rows)
 
     print(f"\n── Summary ───────────────────────────────────────────────────────")
     print(f"  Players processed:  {stats['processed']}")
     print(f"  Milestones found:   {stats['milestones']} (+{stats['positive']} / -{stats['negative']})")
     print(f"  XP rows upserted:   {n_xp}")
-    print(f"  Modifiers updated:  {n_mod}")
+    print(f"  Profiles updated:   {n_mod}")
     if DRY_RUN:
         print("  (dry-run — no data was written)")
 

@@ -98,6 +98,8 @@ class PlayerProfile:
     best_role: Optional[str] = None             # best tactical role name
     profile_tier: Optional[int] = None          # 1=scout-assessed, 2=data-derived, 3=skeleton
     xp_modifier: Optional[int] = None           # -5 to +8, career experience modifier
+    xp_level: Optional[int] = None              # 1-12, BG3-style XP level
+    legacy_score: Optional[int] = None           # 0-99, combined career legacy
 
     # Performance metrics (per-90, from FBref/StatsBomb)
     performance: dict[str, float] = field(default_factory=dict)

@@ -68,7 +68,7 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
     # ── Profile data ──────────────────────────────────────────────────────────
 
     cur.execute("""
-        SELECT position, level, archetype, profile_tier, best_role, best_role_score, xp_modifier
+        SELECT position, level, archetype, profile_tier, best_role, best_role_score, xp_modifier, xp_level, legacy_score
         FROM player_profiles
         WHERE person_id = %s
     """, (person_id,))
@@ -213,6 +213,8 @@ def load_player_profile(person_id: int, conn) -> Optional[PlayerProfile]:
         best_role=profile_data.get("best_role"),
         profile_tier=profile_data.get("profile_tier"),
         xp_modifier=profile_data.get("xp_modifier"),
+        xp_level=profile_data.get("xp_level"),
+        legacy_score=profile_data.get("legacy_score"),
     )
 
 

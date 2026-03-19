@@ -142,7 +142,7 @@ function makeQuestion(
 }
 
 const COLS =
-  "person_id, name, dob, position, level, overall, archetype, model_id, personality_type, club, nation, preferred_foot, image_url, best_role, best_role_score, profile_tier, market_value_tier";
+  "person_id, name, dob, position, level, overall, archetype, model_id, personality_type, club, nation, preferred_foot, image_url, best_role, best_role_score, profile_tier, market_value_tier, legacy_score";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -198,6 +198,10 @@ const LVL_STAR = 85;      // ~1,400 — mainstream top players, recognisable nam
 const LVL_STRONG = 82;    // ~2,500 — solid first-team quality
 const LVL_PROSPECT = 78;  // for youth questions — hot prospects
 
+// Legacy score minimum — ensures players are "known enough" for quiz questions
+// Acts as a reputation/notoriety filter. Players below this are too obscure.
+const LEGACY_MIN = 100;   // Filters out ~17k unknowns, keeps ~10k recognisable players
+
 // ── Template Generators ──────────────────────────────────────────────────────
 
 // 1. Best young player (U-19/20/21/23)
@@ -211,6 +215,7 @@ const bestYoungPlayer: TemplateGenerator = async (sb) => {
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_PROSPECT)
     .not("position", "is", null)
     .order("level", { ascending: false })
@@ -240,6 +245,7 @@ const bestAtPosition: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", pos)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(10);
@@ -272,6 +278,7 @@ const roleChallenge: TemplateGenerator = async (sb) => {
     .in("position", positions)
     .not("archetype", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STRONG)
     .order("level", { ascending: false })
     .limit(20);
@@ -319,6 +326,7 @@ const ballonDor: TemplateGenerator = async (sb) => {
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(10);
@@ -352,6 +360,7 @@ const archetypePick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STRONG)
     .order("level", { ascending: false })
     .limit(20);
@@ -391,6 +400,7 @@ const positionDuel: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(12);
@@ -429,6 +439,7 @@ const dreamXiSlot: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", pos)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(10);
@@ -463,6 +474,7 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .gte("dob", youngCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STRONG)
       .order("level", { ascending: false })
       .limit(6),
@@ -472,6 +484,7 @@ const youthVsExperience: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .lte("dob", oldCutoff.toISOString().slice(0, 10))
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STAR)
       .order("level", { ascending: false })
       .limit(6),
@@ -517,6 +530,7 @@ const footPreference: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .eq("preferred_foot", "Left")
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STRONG)
       .order("level", { ascending: false })
       .limit(4),
@@ -526,6 +540,7 @@ const footPreference: TemplateGenerator = async (sb) => {
       .eq("position", pos)
       .eq("preferred_foot", "Right")
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STRONG)
       .order("level", { ascending: false })
       .limit(4),
@@ -569,6 +584,7 @@ const scarcityPick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("archetype", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STRONG)
     .order("level", { ascending: false })
     .limit(10);
@@ -601,6 +617,7 @@ const headToHead: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", pos)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(8);
@@ -631,6 +648,7 @@ const buildDirection: TemplateGenerator = async (sb) => {
       .select(COLS)
       .in("position", ATK_POSITIONS)
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STAR)
       .order("level", { ascending: false })
       .limit(6),
@@ -639,6 +657,7 @@ const buildDirection: TemplateGenerator = async (sb) => {
       .select(COLS)
       .in("position", DEF_POSITIONS)
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STAR)
       .order("level", { ascending: false })
       .limit(6),
@@ -679,6 +698,7 @@ const midfieldEngine: TemplateGenerator = async (sb) => {
     .in("position", MID_POSITIONS)
     .not("archetype", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(15);
@@ -718,6 +738,7 @@ const captainPick: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .not("personality_type", "is", null)
     .order("level", { ascending: false })
@@ -754,6 +775,7 @@ const youngAtPosition: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_PROSPECT)
     .order("level", { ascending: false })
     .limit(10);
@@ -784,6 +806,7 @@ const clubShowcase: TemplateGenerator = async (sb) => {
     .select("club")
     .not("club", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(100);
@@ -809,6 +832,7 @@ const clubShowcase: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("club", club)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(8);
@@ -842,6 +866,7 @@ const crossPosition: TemplateGenerator = async (sb) => {
       .select(COLS)
       .eq("position", posA)
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STAR)
       .order("level", { ascending: false })
       .limit(4),
@@ -850,6 +875,7 @@ const crossPosition: TemplateGenerator = async (sb) => {
       .select(COLS)
       .eq("position", posB)
       .not("level", "is", null)
+      .gte("legacy_score", LEGACY_MIN)
       .gte("level", LVL_STAR)
       .order("level", { ascending: false })
       .limit(4),
@@ -886,6 +912,7 @@ const veteranPick: TemplateGenerator = async (sb) => {
     .select(COLS)
     .lte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(10);
@@ -924,6 +951,7 @@ const partnershipPick: TemplateGenerator = async (sb) => {
     .select(COLS)
     .in("position", [scenario.posA, scenario.posB])
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(12);
@@ -956,6 +984,7 @@ const breakoutPlayer: TemplateGenerator = async (sb) => {
     .select(COLS)
     .gte("dob", cutoff.toISOString().slice(0, 10))
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_PROSPECT)
     .lte("level", LVL_STRONG)
     .not("archetype", "is", null)
@@ -987,6 +1016,7 @@ const freeAgentPick: TemplateGenerator = async (sb) => {
     .from("player_intelligence_card")
     .select(COLS)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STRONG)
     .order("level", { ascending: false })
     .limit(20);
@@ -1020,6 +1050,7 @@ const nationalTeamPick: TemplateGenerator = async (sb) => {
     .eq("position", pos)
     .not("nation", "is", null)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(15);
@@ -1097,6 +1128,7 @@ const pickYourKeeper: TemplateGenerator = async (sb) => {
     .select(COLS)
     .eq("position", "GK")
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(8);
@@ -1127,6 +1159,7 @@ const forwardLine: TemplateGenerator = async (sb) => {
     .select(COLS)
     .in("position", ["CF", "WF"])
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", LVL_STAR)
     .order("level", { ascending: false })
     .limit(10);
@@ -1190,6 +1223,7 @@ const statQuiz: TemplateGenerator = async (sb) => {
     .eq("position", ap.position)
     .neq("person_id", ap.person_id)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", Math.max((ap.level ?? 70) - 8, 70))
     .lte("level", (ap.level ?? 90) + 5)
     .order("level", { ascending: false })
@@ -1252,6 +1286,7 @@ const defenseStatQuiz: TemplateGenerator = async (sb) => {
     .in("position", ["CD", "WD", "DM"])
     .neq("person_id", ap.person_id)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", Math.max((ap.level ?? 70) - 8, 70))
     .order("level", { ascending: false })
     .limit(15);
@@ -1311,6 +1346,7 @@ const creativeStatQuiz: TemplateGenerator = async (sb) => {
     .in("position", ["CM", "AM", "WM", "WF"])
     .neq("person_id", ap.person_id)
     .not("level", "is", null)
+    .gte("legacy_score", LEGACY_MIN)
     .gte("level", Math.max((ap.level ?? 70) - 8, 70))
     .order("level", { ascending: false })
     .limit(15);

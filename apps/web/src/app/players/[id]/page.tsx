@@ -63,6 +63,8 @@ interface IntelligenceCard {
   jp: number | null;
   competitiveness: number | null;
   coachability: number | null;
+  xp_level: number | null;
+  legacy_score: number | null;
 }
 
 interface FBRefStat {
@@ -182,7 +184,7 @@ export default async function PlayerDetailPage({
       .maybeSingle(),
     supabaseServer
       .from("player_xp")
-      .select("milestone_key, milestone_label, xp_value, milestone_date, source, details")
+      .select("milestone_key, milestone_label, xp_value, milestone_date, source, details, category, rarity, season")
       .eq("person_id", playerId)
       .order("xp_value", { ascending: false }),
     supabaseServer
@@ -374,6 +376,17 @@ export default async function PlayerDetailPage({
                 <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">TM</span>
                 <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
                   {formatVal(player.market_value_eur)}
+                </span>
+              </div>
+            )}
+
+            {player.legacy_score != null && player.legacy_score > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Legacy</span>
+                <span className="text-[11px] font-mono font-bold" style={{
+                  color: player.legacy_score >= 5000 ? "#f59e0b" : player.legacy_score >= 2500 ? "#a855f7" : player.legacy_score >= 1000 ? "#3b82f6" : "var(--text-secondary)"
+                }}>
+                  {player.legacy_score.toLocaleString()}
                 </span>
               </div>
             )}

@@ -35,6 +35,9 @@ export interface PlayerCard {
   rating: number | null;
   // Radar fingerprint: position/role-specific 4-5 axis percentile ranks (see role-radar.ts)
   fingerprint?: number[] | null;
+  // Career XP v2
+  xp_level?: number | null;
+  legacy_score?: number | null;
 }
 
 export interface PlayerValuation {

@@ -154,6 +154,10 @@ export async function GET(
       .filter((v): v is number => v !== undefined);
     if (vals.length > 0) {
       modelScores[model] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    } else if (playerLevel) {
+      // No attribute data for this model (e.g. Commander — mental attrs not in any source).
+      // Use level anchor as a neutral fallback so the radar axis isn't empty.
+      modelScores[model] = Math.round(playerLevel * 0.75);
     }
   }
 

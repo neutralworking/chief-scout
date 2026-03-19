@@ -43,7 +43,12 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
 
 ### Four-Pillar Assessment (Post-Rebuild)
-- [ ] **Broad QA pass** — spot-check 20-30 players across `/api/players/{id}/assessment` to validate score distributions at scale, flag outliers
+- [x] ~~Broad QA pass~~ — 25 players sampled across 5 tiers + 50 random. 7 issues found (2 HIGH, 3 MED, 2 LOW). No crashes or out-of-range scores. (2026-03-19)
+- [ ] **FIX (HIGH): Best role ignores position** — personality match (+60) outweighs position (+30), CFs assigned as full-backs. Add stronger position mismatch penalty in `formation-intelligence.ts`
+- [ ] **FIX (HIGH): Confidence always "high"** — checks `pillar > 0` but defaults produce ~50 with no data. Rework to check actual data presence (grades count, personality, level)
+- [ ] **FIX (MED): Apply dataWeight to technical score** — already computed in route handler but never modulates the score. Wire it in to dampen EAFC-only inflation
+- [ ] **FIX (MED): Availability source merge** — FBRef overrides better AF data (route.ts line 206). Use max(FBRef, AF) minutes instead of FBRef-first
+- [ ] **FIX (MED): Durability overly punitive** — active players with Injury Prone tag get crushed (Guendouzi 23). Weight recent minutes more heavily
 - [ ] **Editor pillar tabs** — reorganize editor into Technical/Tactical/Mental/Physical sections, surface new physical breakdown (athleticism/durability/dominance sub-scores)
 - [ ] **Precompute pillar scores** — batch-compute and store in DB for player list spark bars + sorting (currently on-demand per player)
 - [ ] **Valuation integration** — feed four-pillar scores into valuation engine as inputs (Phase 5 item, depends on precompute)

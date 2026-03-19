@@ -53,11 +53,30 @@ export interface MentalBreakdown {
 
 export interface PhysicalBreakdown {
   score: number;
+  athleticism: number;
   availability: number;
+  durability: number;
   ageCurve: number;
-  trajectory: number;
+  dominance: number;
   age: number | null;
-  trajectoryLabel: string | null;
+}
+
+export interface PhysicalInput {
+  position: string | null;
+  age: number | null;
+  availabilityScore: number | null;
+  /** Sprinter model score (0-100) from attrBest */
+  sprinterScore: number | null;
+  /** Powerhouse model score (0-100) from attrBest */
+  powerhouseScore: number | null;
+  /** player_status.fitness_tag */
+  fitnessTag: string | null;
+  /** player_trait_scores durability severity (1-10) */
+  durabilitySeverity: number | null;
+  /** AF duels_won / duels_total ratio */
+  duelWinRate: number | null;
+  /** people.height_cm */
+  heightCm: number | null;
 }
 
 export interface CommercialModifier {
@@ -295,33 +314,92 @@ export function ageCurveScore(position: string | null, age: number | null): numb
   return Math.max(20, 100 - yearsAbove * 10);
 }
 
-const TRAJECTORY_SCORES: Record<string, number> = {
-  rising: 90, peak: 80, stable: 65, newcomer: 70,
-  "one-club": 75, journeyman: 50, declining: 35, unknown: 50,
+// ── Fitness tag → durability score ────────────────────────────────────────
+
+const FITNESS_TAG_SCORES: Record<string, number> = {
+  "iron man": 95, "iron_man": 95, "fully fit": 75,
+  normal: 60, "moderate risk": 35, "moderate_risk": 35,
+  "injury prone": 15, "injury_prone": 15,
 };
 
-export function computePhysical(
-  position: string | null,
-  age: number | null,
-  trajectory: string | null,
-  availabilityScore: number | null,
-): PhysicalBreakdown {
-  const ageCurve = ageCurveScore(position, age);
-  const trajectoryScore = TRAJECTORY_SCORES[(trajectory ?? "unknown").toLowerCase()] ?? 50;
-  const availability = availabilityScore ?? 50; // default when unknown
+// ── Ideal height ranges by position (cm) ─────────────────────────────────
 
-  // Weighted: Availability 40% + Age Curve 35% + Trajectory 25%
+const IDEAL_HEIGHT: Record<string, [number, number]> = {
+  GK: [188, 196], CD: [183, 193], CF: [178, 190], DM: [177, 188],
+  CM: [173, 185], AM: [170, 183], WD: [172, 182], WM: [170, 182],
+  WF: [170, 183],
+};
+
+function heightFitScore(position: string | null, heightCm: number | null): number {
+  if (heightCm == null) return 50;
+  const pos = position ?? "CM";
+  const [lo, hi] = IDEAL_HEIGHT[pos] ?? [173, 185];
+  if (heightCm >= lo && heightCm <= hi) return 80;
+  const dist = heightCm < lo ? lo - heightCm : heightCm - hi;
+  return Math.max(20, 80 - dist * 4);
+}
+
+export function computePhysical(input: PhysicalInput): PhysicalBreakdown {
+  const {
+    position, age, availabilityScore,
+    sprinterScore, powerhouseScore,
+    fitnessTag, durabilitySeverity,
+    duelWinRate, heightCm,
+  } = input;
+
+  // 1. Athleticism (30%): Sprinter + Powerhouse model averages
+  let athleticism = 50;
+  const athParts: number[] = [];
+  if (sprinterScore != null) athParts.push(sprinterScore);
+  if (powerhouseScore != null) athParts.push(powerhouseScore);
+  if (athParts.length > 0) {
+    athleticism = Math.round(athParts.reduce((a, b) => a + b, 0) / athParts.length);
+  }
+
+  // 2. Availability (25%): minutes-based (existing)
+  const availability = availabilityScore ?? 50;
+
+  // 3. Durability (20%): fitness tag + durability trait
+  let durability = 50;
+  const tagScore = FITNESS_TAG_SCORES[(fitnessTag ?? "").toLowerCase()] ?? null;
+  const traitScore = durabilitySeverity != null ? durabilitySeverity * 10 : null;
+  if (tagScore != null && traitScore != null) {
+    durability = Math.round(tagScore * 0.5 + traitScore * 0.5);
+  } else if (tagScore != null) {
+    durability = tagScore;
+  } else if (traitScore != null) {
+    durability = traitScore;
+  }
+
+  // 4. Age Curve (15%): position-specific peak window
+  const ageCurve = ageCurveScore(position, age);
+
+  // 5. Physical Dominance (10%): duel win rate + height fit
+  let dominance = 50;
+  const domParts: number[] = [];
+  if (duelWinRate != null) domParts.push(Math.min(100, duelWinRate * 100));
+  const hFit = heightFitScore(position, heightCm);
+  if (heightCm != null) domParts.push(hFit);
+  if (domParts.length > 0) {
+    dominance = Math.round(domParts.reduce((a, b) => a + b, 0) / domParts.length);
+  }
+
   const score = Math.round(
-    availability * 0.4 + ageCurve * 0.35 + trajectoryScore * 0.25
+    athleticism * 0.30 +
+    availability * 0.25 +
+    durability * 0.20 +
+    ageCurve * 0.15 +
+    dominance * 0.10
   );
 
   return {
     score: Math.max(0, Math.min(100, score)),
+    athleticism,
     availability,
+    durability,
     ageCurve,
-    trajectory: trajectoryScore,
+    dominance,
     age,
-    trajectoryLabel: trajectory,
   };
 }
 

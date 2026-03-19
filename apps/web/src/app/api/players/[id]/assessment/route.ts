@@ -23,7 +23,7 @@ export async function GET(
   const pid = parseInt(id, 10);
 
   // Fetch everything in parallel
-  const [gradesRes, profileRes, personalityRes, statusRes, metricsRes, sentimentRes, fbrefLinkRes, traitsRes, afStatsRes] = await Promise.all([
+  const [gradesRes, profileRes, personalityRes, statusRes, metricsRes, sentimentRes, fbrefLinkRes, traitsRes, afStatsRes, heightRes] = await Promise.all([
     supabase
       .from("attribute_grades")
       .select("attribute, scout_grade, stat_score, source")
@@ -59,18 +59,24 @@ export async function GET(
       .eq("person_id", pid)
       .eq("source", "fbref")
       .limit(1),
-    // Trait scores for tactical pillar
+    // Trait scores for tactical + physical pillars
     supabase
       .from("player_trait_scores")
-      .select("trait, severity")
+      .select("trait, category, severity")
       .eq("player_id", pid),
-    // API-Football minutes for physical pillar fallback
+    // API-Football: minutes + duels for physical pillar
     supabase
       .from("api_football_player_stats")
-      .select("minutes, appearances")
+      .select("minutes, appearances, duels_total, duels_won")
       .eq("person_id", pid)
       .order("season", { ascending: false })
       .limit(3),
+    // Height for physical dominance
+    supabase
+      .from("people")
+      .select("height_cm")
+      .eq("id", pid)
+      .single(),
   ]);
 
   if (gradesRes.error) return NextResponse.json({ error: gradesRes.error.message }, { status: 500 });
@@ -150,8 +156,9 @@ export async function GET(
   }
 
   // ── Prepare trait + API-Football data ────────────────────────────────────
-  const traits = (traitsRes.data ?? []) as Array<{ trait: string; severity: number }>;
-  const afStats = (afStatsRes.data ?? []) as Array<{ minutes: number | null; appearances: number | null }>;
+  const allTraits = (traitsRes.data ?? []) as Array<{ trait: string; category: string; severity: number }>;
+  const traits = allTraits as Array<{ trait: string; severity: number }>;
+  const afStats = (afStatsRes.data ?? []) as Array<{ minutes: number | null; appearances: number | null; duels_total: number | null; duels_won: number | null }>;
 
   // ── Compute all pillars ──────────────────────────────────────────────────
   const technical = computeTechnical(
@@ -191,19 +198,38 @@ export async function GET(
     mbtiScores,
   );
 
-  // Physical: use API-Football as fallback when FBRef unavailable
+  // Physical: gather all data sources
   const afSeasons = afStats.map(s => ({
     minutes: s.minutes,
     matches_played: s.appearances,
   }));
   const minuteSeasons = fbrefSeasons.length > 0 ? fbrefSeasons : afSeasons;
   const availabilityScore = computeAvailability(minuteSeasons);
-  const physical = computePhysical(
-    playerPosition,
+
+  // Sprinter + Powerhouse model scores (already in modelScores from technical)
+  const sprinterScore = modelScores["Sprinter"] ?? null;
+  const powerhouseScore = modelScores["Powerhouse"] ?? null;
+
+  // Durability trait from player_trait_scores
+  const durabilityTrait = allTraits.find(t => t.trait === "durability" && t.category === "physical");
+
+  // AF duel win rate (aggregate across recent seasons)
+  let duelWinRate: number | null = null;
+  const totalDuels = afStats.reduce((s, r) => s + (r.duels_total ?? 0), 0);
+  const wonDuels = afStats.reduce((s, r) => s + (r.duels_won ?? 0), 0);
+  if (totalDuels > 0) duelWinRate = wonDuels / totalDuels;
+
+  const physical = computePhysical({
+    position: playerPosition,
     age,
-    metrics?.trajectory ?? null,
     availabilityScore,
-  );
+    sprinterScore,
+    powerhouseScore,
+    fitnessTag: status?.fitness_tag ?? null,
+    durabilitySeverity: durabilityTrait?.severity ?? null,
+    duelWinRate,
+    heightCm: heightRes.data?.height_cm ?? null,
+  });
 
   const pillars = computeOverall({
     technical: technical.score,

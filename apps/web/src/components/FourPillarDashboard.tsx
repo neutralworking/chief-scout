@@ -121,7 +121,7 @@ export function FourPillarDashboard({ playerId, compact = false }: FourPillarDas
                 {key === "technical" && (technical.sources.length > 0 ? technical.sources.join(", ") : "no data")}
                 {key === "tactical" && (tactical.bestRole ?? "no role fit")}
                 {key === "mental" && (mental.personalityType ? PERSONALITY_NAMES[mental.personalityType] ?? mental.personalityType : "unknown")}
-                {key === "physical" && (physical.trajectoryLabel ?? "unknown trajectory")}
+                {key === "physical" && (physical.age != null ? `age ${physical.age}` : "unknown age")}
               </p>
             </button>
           );
@@ -265,12 +265,13 @@ function PhysicalDetail({ breakdown }: { breakdown: FullAssessment["physical"] }
       <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">
         Physical & Availability
       </p>
-      <SubScore label="Availability (40%)" value={breakdown.availability} />
-      <SubScore label="Age Curve (35%)" value={breakdown.ageCurve} />
-      <SubScore label="Trajectory (25%)" value={breakdown.trajectory} />
+      <SubScore label="Athleticism (30%)" value={breakdown.athleticism} />
+      <SubScore label="Availability (25%)" value={breakdown.availability} />
+      <SubScore label="Durability (20%)" value={breakdown.durability} />
+      <SubScore label="Age Curve (15%)" value={breakdown.ageCurve} />
+      <SubScore label="Dominance (10%)" value={breakdown.dominance} />
       <div className="flex items-center gap-3 mt-1 text-[9px] text-[var(--text-muted)]">
         {breakdown.age != null && <span>Age: {breakdown.age}</span>}
-        {breakdown.trajectoryLabel && <span>Phase: {breakdown.trajectoryLabel}</span>}
       </div>
     </div>
   );

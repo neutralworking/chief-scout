@@ -80,6 +80,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Wide Forward":       { models: ["Striker", "Dribbler", "Sprinter", "Passer"],         labels: [] },
   "Inverted Winger":    { models: ["Creator", "Dribbler", "Passer", "Sprinter"],         labels: [] },
   "Inventor":           { models: ["Creator", "Dribbler", "Passer", "Engine"],           labels: [] },
+  "Creative Winger":    { models: ["Creator", "Dribbler", "Passer", "Engine"],           labels: [] },
 
   // ── CF ─────────────────────────────────────────────────────
   "Target Man":         { models: ["Striker", "Target", "Powerhouse", "Commander"],      labels: [] },

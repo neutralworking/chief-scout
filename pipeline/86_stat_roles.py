@@ -190,7 +190,7 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("key_passes_p90", "high"),
             ("assists_p90", "medium"),
         ],
-        "Inventor": [
+        "Creative Winger": [
             ("key_passes_p90", "very_high"),
             ("dribbles_p90", "high"),
             ("assists_p90", "high"),

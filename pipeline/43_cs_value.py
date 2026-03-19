@@ -70,93 +70,115 @@ sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 # Level → base value curve (millions EUR)
-# Exponential: elite players are worth exponentially more
-# Calibrated against known values:
-#   93 → ~200m, 91 → ~150m, 88 → ~80m, 85 → ~40m, 80 → ~10m, 75 → ~3m
+# "What would the fee be if they moved tomorrow?"
+# Calibrated 2026-03-19 against 10 DoF-anchored values.
+# L92=146, L91=126, L90=106, L89=91, L88=76, L85=40, L80=15, L75=5
 def level_to_base_value(level: int) -> float:
     """Convert scouting level (1-99) to base value in millions EUR."""
     if level < 65:
         return 0.1
     if level < 70:
-        return 0.5 + (level - 65) * 0.3  # 0.5 - 2.0m
+        return 0.5 + (level - 65) * 0.3
     if level < 75:
-        return 2.0 + (level - 70) * 0.6  # 2.0 - 5.0m
+        return 2.0 + (level - 70) * 0.6
     if level < 80:
-        return 5.0 + (level - 75) * 2.0  # 5.0 - 15.0m
+        return 5.0 + (level - 75) * 2.0    # 5 - 15m
     if level < 85:
-        return 15.0 + (level - 80) * 6.0  # 15.0 - 45.0m
+        return 15.0 + (level - 80) * 5.0   # 15 - 40m
+    if level < 88:
+        return 40.0 + (level - 85) * 12.0  # 40, 52, 64
     if level < 90:
-        return 45.0 + (level - 85) * 15.0  # 45.0 - 120.0m
-    # 90+: elite tier, steep curve
-    return 120.0 + (level - 90) * 25.0  # 120, 145, 170, 195, 220...
+        return 76.0 + (level - 88) * 15.0  # 76, 91
+    if level < 92:
+        return 106.0 + (level - 90) * 20.0  # 106, 126
+    return 146.0 + (level - 92) * 25.0      # 146, 171, 196
 
 
-# Age modifier: multiplier on base value
-# Peak years are 25-29. Youth gets premium, 30+ gets discount.
-def age_modifier(age: int | None) -> float:
-    """Return multiplier based on player age."""
+def age_modifier(age: int | None, level: int = 80) -> float:
+    """Return multiplier based on age AND level.
+
+    Youth premium scales with level: an 18yo at L92 (Yamal) is generational
+    and commands a massive premium. An 18yo at L70 is just a prospect.
+
+    Elite players (88+) retain value longer — still world-class output.
+    """
     if age is None:
         return 1.0
+
+    is_elite = level >= 88
+
+    # ── Youth (under 24): premium scales with level ──
     if age <= 17:
-        return 0.6   # raw potential, unproven
+        return 0.45 + (max(0, level - 80) * 0.05)
     if age == 18:
-        return 0.85
+        return 0.65 + (max(0, level - 80) * 0.08)  # L92: 1.61
     if age == 19:
-        return 1.05
+        return 0.80 + (max(0, level - 80) * 0.05)
     if age == 20:
-        return 1.15
+        return 0.92 + (max(0, level - 82) * 0.03)
     if age == 21:
-        return 1.20
+        return 1.02 + (max(0, level - 84) * 0.02)
     if age == 22:
-        return 1.15
+        return 1.03 + (max(0, level - 86) * 0.015)
     if age == 23:
-        return 1.10
+        return 1.02
+
+    # ── Peak window (24-29) ──
     if age <= 26:
-        return 1.0   # peak window
+        return 1.0
     if age == 27:
-        return 0.95
+        return 0.96
     if age == 28:
-        return 0.85
+        return 0.90
     if age == 29:
-        return 0.75
-    if age == 30:
-        return 0.60
-    if age == 31:
-        return 0.45
-    if age == 32:
-        return 0.35
-    if age == 33:
-        return 0.25
-    if age == 34:
-        return 0.18
-    if age == 35:
-        return 0.12
-    return 0.08  # 36+
+        return 0.80
+
+    # ── Decline (30+): gentler for elite players ──
+    if is_elite:
+        decay = {30: 0.68, 31: 0.58, 32: 0.50, 33: 0.40, 34: 0.30, 35: 0.22}
+        return decay.get(age, 0.15)
+    decay = {30: 0.50, 31: 0.38, 32: 0.28, 33: 0.20, 34: 0.14, 35: 0.08}
+    return decay.get(age, 0.05)
 
 
-# Positional scarcity: positions with fewer elite players get a premium
+# Positional scarcity
 POSITION_SCARCITY = {
-    "DM": 1.20,   # very thin at elite level
-    "WM": 1.15,   # rare position
-    "AM": 1.10,   # relatively thin
-    "WD": 1.05,   # always in demand
+    "DM": 1.08,
+    "WM": 1.05,
+    "AM": 1.03,
+    "WD": 1.02,
     "CF": 1.00,
     "WF": 1.00,
-    "CD": 0.98,   # deepest pool
-    "CM": 0.97,   # largest pool
-    "GK": 0.85,   # lower transfer fees historically
+    "CD": 1.00,
+    "CM": 0.97,
+    "GK": 0.78,
 }
 
-
-# Trajectory modifier from career_metrics
+# Trajectory modifier
 TRAJECTORY_MODIFIER = {
-    "rising": 1.15,
+    "rising": 1.10,
     "peak": 1.0,
-    "declining": 0.80,
-    "newcomer": 1.10,
-    "journeyman": 0.90,
-    "one-club": 1.05,
+    "declining": 0.82,
+    "newcomer": 1.05,
+    "journeyman": 0.92,
+    "one-club": 1.02,
 }
+
+
+def buyer_pool_modifier(level: int, age: int | None, position: str | None) -> float:
+    """Buyer pool discount — fewer clubs = lower fee."""
+    if age is None:
+        age = 27
+    pool = 1.0
+    if level >= 92:
+        pool = 0.90
+    elif level >= 90:
+        pool = 0.94
+    if age >= 31:
+        pool *= 0.90
+    if position == "GK" and level >= 85:
+        pool *= 0.93
+    return pool
 
 
 def compute_cs_value(
@@ -166,33 +188,25 @@ def compute_cs_value(
     trajectory: str | None,
     tm_value_eur: int | None,
 ) -> int:
-    """Compute CS Value in millions EUR (integer)."""
-    # 1. Base from level
+    """Compute CS Value in millions EUR.
+
+    "What would the fee be if they moved tomorrow?"
+    """
     base = level_to_base_value(level)
+    base *= age_modifier(age, level)
 
-    # 2. Age modifier
-    base *= age_modifier(age)
-
-    # 3. Positional scarcity
     if position and position in POSITION_SCARCITY:
         base *= POSITION_SCARCITY[position]
-
-    # 4. Trajectory
     if trajectory and trajectory in TRAJECTORY_MODIFIER:
         base *= TRAJECTORY_MODIFIER[trajectory]
 
-    # 5. TM anchor blend: if we have TM data, blend 60% our model / 40% TM
-    #    This keeps us grounded but allows divergence where we see it
+    base *= buyer_pool_modifier(level, age, position)
+
+    # TM anchor blend (20% TM, 80% our model)
     if tm_value_eur and tm_value_eur > 0:
         tm_m = tm_value_eur / 1_000_000
-        # Weight our model more for players where we have strong opinions (high level)
-        if level >= 85:
-            blended = base * 0.65 + tm_m * 0.35
-        else:
-            blended = base * 0.55 + tm_m * 0.45
-        base = blended
+        base = base * 0.80 + tm_m * 0.20
 
-    # Floor at 0, round to integer millions
     return max(1, round(base))
 
 

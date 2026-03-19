@@ -113,7 +113,6 @@ export function KCCard({
   const r = RARITY[card.suggested_rarity] || RARITY.common;
   const pos = POS_TYPE[card.position] || { color: "bg-zinc-600", label: card.position };
   const topAttrs = card.top_attributes?.slice(0, 6) || [];
-  const maxAttrScore = Math.max(...topAttrs.map((a) => a.score), 1);
   const power = card.overall ? Math.round(card.overall) : "?";
 
   // Radar config
@@ -260,7 +259,7 @@ export function KCCard({
           <p
             className={`
               text-zinc-300 leading-snug italic
-              ${isSm ? "text-[10px] line-clamp-3" : isLg ? "text-sm line-clamp-5" : "text-xs line-clamp-4"}
+              ${isSm ? "text-[10px]" : isLg ? "text-sm" : "text-xs"}
             `}
           >
             &ldquo;{card.scouting_notes}&rdquo;
@@ -283,7 +282,7 @@ export function KCCard({
             <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
               <div
                 className={`h-full ${r.barColor} rounded-full transition-all`}
-                style={{ width: `${Math.min((attr.score / maxAttrScore) * 100, 100)}%` }}
+                style={{ width: `${Math.min(attr.score, 99)}%` }}
               />
             </div>
             <span

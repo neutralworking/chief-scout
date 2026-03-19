@@ -38,18 +38,44 @@ export async function GET(req: Request) {
     .select("player_id, attribute, scout_grade, stat_score, source")
     .in("player_id", personIds);
 
-  // Group and pick top 6 per player
+  // Source priority for dedup (higher = preferred)
+  const SOURCE_RANK: Record<string, number> = {
+    scout_assessment: 6, statsbomb: 5, fbref: 4, api_football: 3,
+    understat: 2, eafc_inferred: 1, computed: 0,
+  };
+
+  // Normalize raw score (0-20 scale) to 0-99
+  function normalize(score: number, source: string): number {
+    // scout_assessment and stat sources are all 0-20
+    // computed/four-pillar are 0-10
+    if (source === "computed") return Math.round(score * 9.9);
+    return Math.round((score / 20) * 99);
+  }
+
+  // Group by player, deduplicate attrs (keep best source), normalize to 0-99
   const attrMap: Record<number, { attribute: string; score: number; source: string }[]> = {};
   for (const a of attrs || []) {
-    const score = a.scout_grade || a.stat_score || 0;
-    if (score <= 0) continue;
+    const raw = a.scout_grade || a.stat_score || 0;
+    if (raw <= 0) continue;
     const pid = a.player_id;
     if (!attrMap[pid]) attrMap[pid] = [];
-    attrMap[pid].push({ attribute: a.attribute, score, source: a.source });
+
+    // Deduplicate: keep highest-priority source per attribute
+    const existing = attrMap[pid].find(x => x.attribute === a.attribute);
+    const rank = SOURCE_RANK[a.source] ?? 0;
+    if (existing) {
+      const existingRank = SOURCE_RANK[existing.source] ?? 0;
+      if (rank > existingRank) {
+        existing.score = normalize(raw, a.source);
+        existing.source = a.source;
+      }
+    } else {
+      attrMap[pid].push({ attribute: a.attribute, score: normalize(raw, a.source), source: a.source });
+    }
   }
   for (const pid in attrMap) {
     attrMap[pid].sort((a, b) => b.score - a.score);
-    attrMap[pid] = attrMap[pid].slice(0, 10);
+    attrMap[pid] = attrMap[pid].slice(0, 6);
   }
 
   // Build card data

@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Dark game-like theme */
+  --color-bg-base: #0a0a0f;
+  --color-bg-surface: #12121a;
+  --color-bg-elevated: #1a1a2e;
+  --color-bg-card: #16213e;
+  --color-border-subtle: #2a2a4a;
+  --color-border-glow: #6fc3df;
+
+  /* Accent colors */
+  --color-accent-primary: #e74c3c;
+  --color-accent-secondary: #6fc3df;
+  --color-accent-gold: #f1c40f;
+  --color-accent-green: #2ecc71;
+
+  /* Text */
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #8888aa;
+  --color-text-muted: #555570;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Fix 5: Phase Visual Differentiation */
+
+.phase-setup {
+  background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 30%, #0a0a0f 60%, #111122 100%);
+  background-size: 400% 400%;
+  animation: setupGradient 12s ease infinite;
+}
+
+@keyframes setupGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.phase-match {
+  background: linear-gradient(180deg, rgba(20,60,30,0.25) 0%, transparent 30%, var(--bg-base) 100%);
+}
+
+.phase-match .commentary-feed {
+  background: rgba(10,10,15,0.8);
+  border-left: 3px solid var(--color-accent-green);
+}
+
+.phase-shop {
+  background: linear-gradient(180deg, rgba(80,60,20,0.15) 0%, transparent 25%, var(--bg-base) 100%);
+}
+
+.phase-postmatch {
+  background: radial-gradient(ellipse at center top, rgba(255,255,255,0.06) 0%, transparent 50%, var(--bg-base) 100%);
+}
+
+/* Fix 4: Goal commentary styling */
+.commentary-goal-yours {
+  color: var(--color-accent-green) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.commentary-goal-opponent {
+  color: var(--color-accent-primary) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+/* Fix 3: Card fan animation */
+@keyframes pulseButton {
+  0%, 100% { box-shadow: 0 0 10px rgba(231,76,60,0.3); }
+  50% { box-shadow: 0 0 25px rgba(231,76,60,0.6), 0 0 50px rgba(231,76,60,0.2); }
+}
+
+.advance-btn-pulse {
+  animation: pulseButton 1.5s ease-in-out infinite;
+}
+
+/* Sub card styling */
+.sub-card {
+  background: linear-gradient(135deg, rgba(46,204,113,0.15) 0%, rgba(46,204,113,0.05) 100%) !important;
+  border-color: #2ecc71 !important;
+}

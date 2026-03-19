@@ -19,6 +19,7 @@ const ALL_NAV_ITEMS = [
   { label: "News", href: "/news" },
   // Games
   { label: "Gaffer", href: "/choices" },
+  { label: "Kickoff Clash", href: "/kickoff-clash", stagingOnly: true },
   // Admin (staging only)
   { label: "Tactics", href: "/formations", stagingOnly: true },
   { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },

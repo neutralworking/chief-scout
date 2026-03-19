@@ -11,6 +11,7 @@
  */
 
 import { ROLE_INTELLIGENCE, scorePlayerForRole } from "@/lib/formation-intelligence";
+import { computeTraitProfileScore } from "@/lib/assessment/trait-role-impact";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,10 +128,9 @@ export function computeTechnical(
 
   let positionScore = totalWeight > 0 ? weightedSum / totalWeight : 0;
 
-  // Level anchor
-  const levelAnchor = level != null ? Math.min(level, 100) : null;
-  if (levelAnchor !== null && positionScore > 0) {
-    positionScore = positionScore * dataWeight + levelAnchor * (1 - dataWeight);
+  // When no model data at all, fall back to level as the score
+  if (totalWeight === 0 && level != null) {
+    positionScore = Math.min(level, 100);
   }
 
   const score = Math.round(Math.max(0, Math.min(100, positionScore)));
@@ -140,6 +140,14 @@ export function computeTechnical(
 
 // ── Pillar 2: TACTICAL ───────────────────────────────────────────────────────
 
+/** Convert keyAttribute display names to DB attribute column names */
+function normalizeKeyAttr(name: string): string {
+  return name.toLowerCase().replace(/[\s-]+/g, "_");
+}
+
+/** Fixed ceiling for scorePlayerForRole: level(100) + archetype(120) + personality(60) + position(30) */
+const MAX_REALISTIC_ROLE_SCORE = 280;
+
 export function computeTactical(
   player: {
     level: number | null;
@@ -148,6 +156,7 @@ export function computeTactical(
     position: string | null;
   },
   traitScore?: number,
+  attrBest?: Map<string, { normalized: number }>,
 ): TacticalBreakdown {
   // Score player against all 26 tactical roles
   const roleResults: { name: string; score: number }[] = [];
@@ -158,16 +167,34 @@ export function computeTactical(
   roleResults.sort((a, b) => b.score - a.score);
 
   const bestRole = roleResults[0] ?? null;
-  const maxPossible = (player.level ?? 0) + 120 + 60 + 30; // level + archetype + personality + position
-  const normalizedBestScore = maxPossible > 0
-    ? Math.round((bestRole?.score ?? 0) / maxPossible * 100)
-    : 0;
 
-  // Role fit: how well the best role fits (normalized to 0-100)
-  const roleFit = Math.max(0, Math.min(100, normalizedBestScore));
+  // Normalize with fixed ceiling instead of player-dependent max
+  const normalizedBestScore = Math.round(
+    (bestRole?.score ?? 0) / MAX_REALISTIC_ROLE_SCORE * 100,
+  );
 
-  // Flexibility: count viable roles (score > 60% of max)
-  const viableThreshold = maxPossible * 0.4;
+  // Role fit base: archetype/personality fit normalized to 0-100
+  let roleFit = Math.max(0, Math.min(100, normalizedBestScore));
+
+  // Blend with keyAttribute data when available
+  if (attrBest && bestRole) {
+    const intel = ROLE_INTELLIGENCE[bestRole.name];
+    if (intel?.keyAttributes) {
+      const attrScores: number[] = [];
+      for (const ka of intel.keyAttributes) {
+        const dbName = normalizeKeyAttr(ka);
+        const val = attrBest.get(dbName);
+        if (val) attrScores.push(val.normalized);
+      }
+      if (attrScores.length > 0) {
+        const attrRoleFit = attrScores.reduce((a, b) => a + b, 0) / attrScores.length;
+        roleFit = Math.round(attrRoleFit * 0.5 + roleFit * 0.5);
+      }
+    }
+  }
+
+  // Flexibility: count viable roles (score > 40% of fixed ceiling)
+  const viableThreshold = MAX_REALISTIC_ROLE_SCORE * 0.4;
   const viableRoles = roleResults.filter(r => r.score > viableThreshold);
   const viableRoleCount = viableRoles.length;
   let flexibility: number;
@@ -177,7 +204,7 @@ export function computeTactical(
   else if (viableRoleCount >= 2) flexibility = 35;
   else flexibility = 20;
 
-  // Trait profile (placeholder until trait table exists)
+  // Trait profile score from trait-role-impact
   const traitProfile = traitScore ?? 50;
 
   // Weighted: Role Fit 40% + Flexibility 30% + Traits 30%
@@ -202,6 +229,7 @@ export function computeMental(
   coachability: number | null,
   mentalTag: string | null,
   bestRoleName: string | null,
+  mbtiScores?: { tf: number; jp: number } | null,
 ): MentalBreakdown {
   // Personality-Role Alignment (50%)
   let personalityRoleAlignment = 50; // default
@@ -218,16 +246,19 @@ export function computeMental(
     personalityRoleAlignment = 50; // unknown
   }
 
-  // Mental Strength (30%): (competitiveness + coachability) / 2, scaled to 0-100
+  // Mental Strength (30%): comp/coach are 0-10 in DB → multiply by 10 for 0-100
   let mentalStrength = 50;
   if (competitiveness != null && coachability != null) {
-    // Both are 0-100 already in the DB
-    mentalStrength = Math.round((competitiveness + coachability) / 2);
+    mentalStrength = Math.round((competitiveness * 10 + coachability * 10) / 2);
   } else if (competitiveness != null) {
-    mentalStrength = competitiveness;
+    mentalStrength = competitiveness * 10;
   } else if (coachability != null) {
-    mentalStrength = coachability;
+    mentalStrength = coachability * 10;
+  } else if (mbtiScores && mbtiScores.tf != null && mbtiScores.jp != null) {
+    // Fallback: use MBTI TF+JP dimensions as proxy (0-100 scale already)
+    mentalStrength = Math.round((mbtiScores.tf + mbtiScores.jp) / 2);
   }
+  mentalStrength = Math.max(0, Math.min(100, mentalStrength));
 
   // Mental Stability (20%): from mental_tag
   const tagKey = (mentalTag ?? "unknown").toLowerCase();
@@ -362,11 +393,11 @@ export function computeOverall(pillars: Omit<PillarScores, "overall" | "confiden
 
 export function computeAvailability(
   seasons: Array<{ minutes: number | null; matches_played: number | null }>,
+  maxSeasonMinutes: number = 3420,
 ): number {
   if (seasons.length === 0) return 50;
 
-  // Max possible minutes ≈ 38 matches × 90 min = 3420 (league season)
-  const MAX_SEASON_MINUTES = 3420;
+  const MAX_SEASON_MINUTES = maxSeasonMinutes;
   const recentSeasons = seasons.slice(0, 3); // last 3 seasons
 
   const scores = recentSeasons.map(s => {

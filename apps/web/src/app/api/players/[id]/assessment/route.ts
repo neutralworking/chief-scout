@@ -12,6 +12,7 @@ import {
 } from "@/lib/assessment/four-pillars";
 import { computeAge } from "@/lib/types";
 import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+import { computeTraitProfileScore } from "@/lib/assessment/trait-role-impact";
 
 export async function GET(
   _req: Request,
@@ -22,7 +23,7 @@ export async function GET(
   const pid = parseInt(id, 10);
 
   // Fetch everything in parallel
-  const [gradesRes, profileRes, personalityRes, statusRes, metricsRes, sentimentRes, fbrefLinkRes] = await Promise.all([
+  const [gradesRes, profileRes, personalityRes, statusRes, metricsRes, sentimentRes, fbrefLinkRes, traitsRes, afStatsRes] = await Promise.all([
     supabase
       .from("attribute_grades")
       .select("attribute, scout_grade, stat_score, source")
@@ -58,6 +59,18 @@ export async function GET(
       .eq("person_id", pid)
       .eq("source", "fbref")
       .limit(1),
+    // Trait scores for tactical pillar
+    supabase
+      .from("player_trait_scores")
+      .select("trait, severity")
+      .eq("player_id", pid),
+    // API-Football minutes for physical pillar fallback
+    supabase
+      .from("api_football_player_stats")
+      .select("minutes, appearances")
+      .eq("person_id", pid)
+      .order("season", { ascending: false })
+      .limit(3),
   ]);
 
   if (gradesRes.error) return NextResponse.json({ error: gradesRes.error.message }, { status: 500 });
@@ -136,17 +149,38 @@ export async function GET(
     fbrefSeasons = (statsData ?? []) as Array<{ minutes: number | null; matches_played: number | null }>;
   }
 
+  // ── Prepare trait + API-Football data ────────────────────────────────────
+  const traits = (traitsRes.data ?? []) as Array<{ trait: string; severity: number }>;
+  const afStats = (afStatsRes.data ?? []) as Array<{ minutes: number | null; appearances: number | null }>;
+
   // ── Compute all pillars ──────────────────────────────────────────────────
   const technical = computeTechnical(
     modelScores, playerPosition, playerLevel, dataWeight, Array.from(sourcesSeen),
   );
+
+  // Tactical: first pass to get bestRole, then compute trait score, then full pass
+  const tacticalFirstPass = computeTactical({
+    level: playerLevel,
+    archetype,
+    personality_type: personalityType,
+    position: playerPosition,
+  }, undefined, attrBest);
+
+  const traitScore = traits.length > 0 && tacticalFirstPass.bestRole
+    ? computeTraitProfileScore(traits, tacticalFirstPass.bestRole)
+    : undefined;
 
   const tactical = computeTactical({
     level: playerLevel,
     archetype,
     personality_type: personalityType,
     position: playerPosition,
-  });
+  }, traitScore, attrBest);
+
+  // Mental: pass MBTI scores as fallback for comp/coach
+  const mbtiScores = (profile?.tf != null && profile?.jp != null)
+    ? { tf: profile.tf as number, jp: profile.jp as number }
+    : null;
 
   const mental = computeMental(
     personalityType,
@@ -154,9 +188,16 @@ export async function GET(
     personality?.coachability ?? profile?.coachability ?? null,
     status?.mental_tag ?? null,
     tactical.bestRole,
+    mbtiScores,
   );
 
-  const availabilityScore = computeAvailability(fbrefSeasons);
+  // Physical: use API-Football as fallback when FBRef unavailable
+  const afSeasons = afStats.map(s => ({
+    minutes: s.minutes,
+    matches_played: s.appearances,
+  }));
+  const minuteSeasons = fbrefSeasons.length > 0 ? fbrefSeasons : afSeasons;
+  const availabilityScore = computeAvailability(minuteSeasons);
   const physical = computePhysical(
     playerPosition,
     age,

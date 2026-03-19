@@ -212,6 +212,21 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
     scores = {}
     pos = position or ""
 
+    # Position-based affinity: small tiebreaker so contextually dominant
+    # skill sets edge out ties (e.g. Striker beats Sprinter for a CF).
+    # +0.3 is enough to break ties without overriding genuinely higher scores.
+    _POS_AFFINITY: dict[str, list[str]] = {
+        "CF": ["Striker", "Target"],
+        "WF": ["Dribbler", "Striker", "Creator"],
+        "AM": ["Creator", "Dribbler"],
+        "CM": ["Controller", "Engine", "Passer"],
+        "WM": ["Engine", "Dribbler", "Passer"],
+        "DM": ["Cover", "Destroyer", "Controller"],
+        "CD": ["Cover", "Destroyer", "Commander"],
+        "WD": ["Engine", "Cover", "Sprinter"],
+    }
+    affinity_set = set(_POS_AFFINITY.get(pos, []))
+
     for model, core_attrs in MODEL_ATTRIBUTES.items():
         vals = [attr_scores.get(a) for a in core_attrs]
         vals = [v for v in vals if v is not None]
@@ -227,6 +242,10 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
             raw *= 0.3
         elif model != "GK" and pos == "GK":
             raw *= 0.3
+
+        # Position affinity tiebreaker
+        if model in affinity_set:
+            raw += 0.3
 
         scores[model] = round(raw, 1)
 

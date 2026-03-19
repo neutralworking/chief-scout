@@ -180,7 +180,7 @@ BLUEPRINT_MAP = {
     ("WF", "Dribbler-Commander"): "Explosive Winger",
     ("WF", "Dribbler-Engine"): "Work-Rate Winger",
     ("WF", "Creator"): "Inverted Winger",
-    ("WF", "Creator-Dribbler"): "No.10",
+    ("WF", "Creator-Dribbler"): "Wizard",
     ("WF", "Creator-Engine"): "Inverted Winger",
     ("WF", "Creator-Striker"): "Inside Forward",
     ("WF", "Creator-Passer"): "Wide Playmaker",
@@ -260,8 +260,99 @@ POS_DEFAULTS = {
 }
 
 
-def infer_blueprint(position: str, archetype: str | None) -> str | None:
-    """Infer blueprint from position + archetype."""
+# ── Personality theme → blueprint modifier ───────────────────────────────────
+# SACROSANCT personality themes: General, Catalyst, Maestro, Captain, Professor
+# These can shift a base blueprint to a more specific variant.
+
+PERSONALITY_NAMES = {
+    "ANLC": "General",    "ANSC": "Machine",     "INSC": "Mamba",
+    "AXLC": "Catalyst",   "IXSC": "Maverick",    "IXLC": "Livewire",
+    "INSP": "Maestro",    "ANLP": "Conductor",    "IXSP": "Genius",
+    "INLC": "Captain",    "INLP": "Guardian",     "AXSC": "Enforcer",
+    "ANSP": "Professor",  "AXSP": "Technician",   "IXLP": "Playmaker",
+    "AXLP": "Orchestrator",
+}
+
+PERSONALITY_THEMES = {
+    "General": "General",   "Machine": "General",   "Mamba": "General",
+    "Catalyst": "Catalyst", "Maverick": "Catalyst",  "Livewire": "Catalyst",
+    "Enforcer": "Catalyst",
+    "Maestro": "Maestro",   "Conductor": "Maestro",  "Genius": "Maestro",
+    "Captain": "Captain",   "Guardian": "Captain",
+    "Professor": "Professor", "Technician": "Professor",
+    "Playmaker": "Professor", "Orchestrator": "Professor",
+}
+
+# Personality theme can upgrade certain base blueprints to more specific variants.
+# Key: (base_blueprint, personality_theme) → upgraded blueprint
+# Only applied when the combination is meaningful — most base blueprints stay unchanged.
+PERSONALITY_UPGRADES = {
+    # ── Strikers ──
+    ("Complete Striker", "General"):  "Complete Striker",      # already top
+    ("Complete Striker", "Catalyst"): "Colossus",              # explosive complete
+    ("Complete Striker", "Maestro"):  "Complete Striker",
+    ("Poacher", "Catalyst"):         "Goal Machine",
+    ("Poacher", "General"):          "Clinical Finisher",
+    ("Runner", "Catalyst"):          "Goal Machine",
+    ("Pressing Forward", "Captain"): "Warrior",
+
+    # ── Wingers / Wide forwards ──
+    ("Wizard", "Maestro"):           "Virtuoso",
+    ("Wizard", "Catalyst"):          "Showman",
+    ("Direct Winger", "Catalyst"):   "Explosive Winger",
+    ("Direct Winger", "General"):    "Precision Winger",
+    ("Inverted Winger", "Maestro"):  "Architect",
+    ("Inverted Winger", "Professor"): "Technician",
+    ("Work-Rate Winger", "Captain"): "Tireless Technician",
+
+    # ── Attacking midfield ──
+    ("Playmaker", "Maestro"):        "Virtuoso",
+    ("Playmaker", "Professor"):      "Architect",
+    ("Playmaker", "Catalyst"):       "Maverick",
+    ("Floating Playmaker", "Maestro"): "Virtuoso",
+    ("Shadow Striker", "Catalyst"):  "Goal Threat",
+    ("No.10", "Maestro"):            "Virtuoso",
+
+    # ── Central midfield ──
+    ("Metronome", "Professor"):      "Architect",
+    ("Metronome", "Maestro"):        "Maestro",
+    ("Box-to-Box", "Captain"):       "Driver",
+    ("Box-to-Box", "Catalyst"):      "Dynamo",
+    ("Box-to-Box", "General"):       "General",
+    ("Conductor", "Maestro"):        "Maestro",
+    ("Ball Winner", "Captain"):      "Warrior",
+    ("Ball Winner", "Catalyst"):     "Destroyer",
+
+    # ── Defensive midfield ──
+    ("Anchor", "Captain"):           "Warrior",
+    ("Anchor", "General"):           "Shield",
+    ("Deep-Lying Playmaker", "Maestro"):  "Regista",
+    ("Deep-Lying Playmaker", "Professor"): "Regista",
+    ("Regista", "Maestro"):          "Regista",
+
+    # ── Defenders ──
+    ("Modern CB", "Captain"):        "Colossus",
+    ("Modern CB", "General"):        "Reading Defender",
+    ("Traditional CB", "Captain"):   "Warrior",
+    ("Aggressive CB", "Catalyst"):   "Destroyer",
+    ("Ball-Playing CB", "Professor"): "Progressor CB",
+    ("Ball-Playing CB", "Maestro"):  "Progressor CB",
+    ("Two-Way Full-Back", "Captain"): "Warrior",
+    ("Overlapping Full-Back", "Catalyst"): "Flanker",
+
+    # ── Goalkeepers ──
+    ("Shot-Stopper", "Captain"):     "Commander",
+    ("Shot-Stopper", "General"):     "Commander",
+    ("Modern Keeper", "Professor"):  "Complete Keeper",
+}
+
+
+def infer_blueprint(
+    position: str,
+    archetype: str | None,
+    personality_type: str | None = None,
+) -> str | None:
+    """Infer blueprint from position + archetype, optionally refined by personality."""
     if not position or not archetype:
         return None
 
@@ -269,19 +360,35 @@ def infer_blueprint(position: str, archetype: str | None) -> str | None:
     if not group:
         return None
 
-    # Try exact match first
+    # Step 1: Base blueprint from archetype + position
+    base = None
     key = (group, archetype)
     if key in BLUEPRINT_MAP:
-        return BLUEPRINT_MAP[key]
+        base = BLUEPRINT_MAP[key]
 
-    # Try with just primary archetype (before the hyphen)
-    primary = archetype.split("-")[0] if "-" in archetype else archetype
-    key = (group, primary)
-    if key in BLUEPRINT_MAP:
-        return BLUEPRINT_MAP[key]
+    if not base:
+        primary = archetype.split("-")[0] if "-" in archetype else archetype
+        key = (group, primary)
+        if key in BLUEPRINT_MAP:
+            base = BLUEPRINT_MAP[key]
 
-    # Fallback to position default
-    return POS_DEFAULTS.get(group)
+    if not base:
+        base = POS_DEFAULTS.get(group)
+
+    if not base:
+        return None
+
+    # Step 2: Personality upgrade (model + personality → blueprint)
+    if personality_type:
+        pname = PERSONALITY_NAMES.get(personality_type)
+        if pname:
+            theme = PERSONALITY_THEMES.get(pname)
+            if theme:
+                upgraded = PERSONALITY_UPGRADES.get((base, theme))
+                if upgraded:
+                    return upgraded
+
+    return base
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -294,7 +401,7 @@ conn = psycopg2.connect(POSTGRES_DSN)
 conn.autocommit = True
 cur = conn.cursor()
 
-print("39 — Infer Blueprints from Archetype + Position")
+print("37 — Infer Blueprints from Model + Personality + Position")
 
 # Load players needing blueprints
 where_clause = "WHERE pp.archetype IS NOT NULL AND pp.position IS NOT NULL"
@@ -304,9 +411,19 @@ if args.player:
     where_clause += f" AND pp.person_id = {args.player}"
 
 cur.execute(f"""
-    SELECT pp.person_id, p.name, pp.position, pp.archetype, pp.blueprint
+    SELECT pp.person_id, p.name, pp.position, pp.archetype, pp.blueprint,
+           CASE WHEN pper.ei IS NOT NULL AND pper.sn IS NOT NULL
+                     AND pper.tf IS NOT NULL AND pper.jp IS NOT NULL THEN
+             CONCAT(
+               CASE WHEN pper.ei >= 50 THEN 'A' ELSE 'I' END,
+               CASE WHEN pper.sn >= 50 THEN 'X' ELSE 'N' END,
+               CASE WHEN pper.tf >= 50 THEN 'S' ELSE 'L' END,
+               CASE WHEN pper.jp >= 50 THEN 'C' ELSE 'P' END
+             )
+           END AS personality_type
     FROM player_profiles pp
     JOIN people p ON p.id = pp.person_id
+    LEFT JOIN player_personality pper ON pper.person_id = pp.person_id
     {where_clause}
     ORDER BY p.name
 """)
@@ -321,20 +438,27 @@ if not players:
 
 updated = 0
 skipped = 0
+personality_enhanced = 0
 updates = []
 
-for pid, name, position, archetype, existing_bp in players:
-    blueprint = infer_blueprint(position, archetype)
+for pid, name, position, archetype, existing_bp, personality_type in players:
+    blueprint = infer_blueprint(position, archetype, personality_type)
     if not blueprint:
         skipped += 1
         continue
+
+    # Track if personality actually changed the blueprint
+    base_bp = infer_blueprint(position, archetype, None)
+    if blueprint != base_bp:
+        personality_enhanced += 1
 
     updates.append((blueprint, pid))
     updated += 1
 
     if args.player or DRY_RUN and updated <= 30:
         marker = f" (was: {existing_bp})" if existing_bp else ""
-        print(f"  {name:35s} {position:4s} {archetype:30s} → {blueprint}{marker}")
+        pers = f" [{personality_type}]" if personality_type else ""
+        print(f"  {name:35s} {position:4s} {archetype:30s}{pers:8s} → {blueprint}{marker}")
 
 if not DRY_RUN and updates:
     for bp, pid in updates:
@@ -344,6 +468,7 @@ if not DRY_RUN and updates:
         )
 
 print(f"\n  Assigned: {updated}")
+print(f"  Personality-enhanced: {personality_enhanced}")
 print(f"  Skipped (no match): {skipped}")
 
 if DRY_RUN:

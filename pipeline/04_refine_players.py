@@ -236,8 +236,14 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
 def best_model(scores: dict[str, float], threshold: float = 15.0) -> str | None:
     """
     Return compound archetype (Primary-Secondary) from top two model scores.
-    If only one model is above threshold, return just that model.
-    Compound format: "Controller-Passer", "GK-Controller", etc.
+
+    The secondary skill set is included when:
+      1. It scores above threshold, AND
+      2. It reaches at least 70% of the primary score, AND
+      3. It comes from a different compound category (diversity).
+
+    This ensures most players get a two-skill-set "model" label that captures
+    their dual strengths — e.g. "Creator-Dribbler", "Engine-Cover".
     """
     if not scores:
         return None
@@ -246,17 +252,21 @@ def best_model(scores: dict[str, float], threshold: float = 15.0) -> str | None:
         return None
 
     primary = ranked[0][0]
-    # Compound archetype: include secondary if it's within 5 points of primary
-    # and from a different compound category (Mental/Physical/Tactical/Technical).
-    # This captures genuine dual-profile players, not noise.
+    primary_score = ranked[0][1]
+
+    # Look for a strong secondary from a different category
     if len(ranked) > 1:
-        secondary_name, secondary_score = ranked[1]
-        gap = ranked[0][1] - secondary_score
         primary_cat = MODEL_COMPOUNDS.get(primary)
-        secondary_cat = MODEL_COMPOUNDS.get(secondary_name)
-        # Compound if very close scores AND different categories (diverse profile)
-        if gap <= 3 and secondary_score >= threshold and primary_cat != secondary_cat:
-            return f"{primary}-{secondary_name}"
+        for secondary_name, secondary_score in ranked[1:]:
+            secondary_cat = MODEL_COMPOUNDS.get(secondary_name)
+            # Must be above threshold, reach 70% of primary, different category
+            if (secondary_score >= threshold
+                    and secondary_score >= primary_score * 0.70
+                    and primary_cat != secondary_cat):
+                return f"{primary}-{secondary_name}"
+            # Stop searching once scores drop below threshold
+            if secondary_score < threshold:
+                break
     return primary
 
 

@@ -31,6 +31,13 @@ FBRef manual ingest (script 11) now works via CSV import (`pipeline/fbref_paste_
 - [x] ~~Improve API-Football matching~~ — Script 67 (match+import): 4,666 matched (was 600), 1,507 new players imported, 5-strategy matching (2026-03-18)
 - [x] ~~Add API-Football to Vercel env~~ — `API_FOOTBALL_KEY` set in Vercel (2026-03-19)
 
+### Session 13 Resume (run first)
+- [ ] **Finish AF league ingest** — `python3 65_api_football_ingest.py --all-leagues` (25/43 done, ~18 remaining: Brazil, Colombia, MLS, Saudi, K League, China, A-League + 11 youth)
+- [ ] **Match new AF players** — `python3 67_af_match_and_import.py`
+- [ ] **Re-run grades with coefficient scaling** — `python3 66_api_football_grades.py` (league strength factors now applied)
+- [ ] **Recompute ratings** — `python3 27_player_ratings.py --force`
+- [ ] **Recompute fingerprints** — `python3 60_fingerprints.py --force`
+
 ### Data Freshness (Strategic Priority #2)
 - [x] ~~News cron~~ — GitHub Actions workflow, 6x/day (every 4h), Vercel crons reduced to 1 for Hobby plan (2026-03-19)
 - [ ] **Materialized view auto-refresh** — trigger after pipeline scripts

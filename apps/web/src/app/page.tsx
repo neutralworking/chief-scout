@@ -52,10 +52,11 @@ interface MarketMover {
   market_premium: number;
 }
 
-// Deterministic daily rotation
+// Deterministic rotation — changes every 8 hours (3x daily)
 function dailySeed(): number {
   const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const slot = Math.floor(d.getHours() / 8); // 0, 1, or 2
+  return d.getFullYear() * 100000 + (d.getMonth() + 1) * 1000 + d.getDate() * 10 + slot;
 }
 
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
@@ -73,11 +74,11 @@ async function getDashboardData() {
     prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select(FEATURED_COLS + ", pursuit_status")
-      .in("pursuit_status", ["Priority", "Interested"])
+      .in("pursuit_status", ["Priority", "Interested", "Scout Further", "Watch"])
       .not("archetype", "is", null)
       .not("scouting_notes", "is", null))
       .order("level", { ascending: false })
-      .limit(20),
+      .limit(50),
     // 1: Sentiment data for swing-based selection
     supabaseServer
       .from("news_player_tags")
@@ -144,7 +145,12 @@ async function getDashboardData() {
   const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
   const priorityPicks = dofCandidates.filter((p) => p.pursuit_status === "Priority");
   const interestedPicks = dofCandidates.filter((p) => p.pursuit_status === "Interested");
-  const dofPool = priorityPicks.length > 0 ? priorityPicks : interestedPicks;
+  const scoutPicks = dofCandidates.filter((p) => p.pursuit_status === "Scout Further");
+  const watchPicks = dofCandidates.filter((p) => p.pursuit_status === "Watch");
+  // Use widest pool available — prefer Priority but fall through to broader pools
+  const dofPool = priorityPicks.length >= 3 ? priorityPicks
+    : [...priorityPicks, ...interestedPicks].length >= 3 ? [...priorityPicks, ...interestedPicks]
+    : dofCandidates;
   if (dofPool.length > 0) {
     featured = dofPool[dailySeed() % dofPool.length];
     featuredReason = "dof_pick";
@@ -210,7 +216,7 @@ async function getDashboardData() {
       .eq("profile_tier", 1)
       .not("archetype", "is", null)
       .not("scouting_notes", "is", null)
-      .limit(20);
+      .limit(50);
     const candidates = (fallbacks ?? []) as FeaturedProfile[];
     if (candidates.length > 0) {
       featured = candidates[dailySeed() % candidates.length];

@@ -126,7 +126,7 @@ TACTICAL_ROLES = {
     "WD": [
         ("Engine", "Dribbler",  "Lateral"),        # Portuguese/Spanish: the attacking fullback. Cafu, TAA
         ("Controller", "Passer","Invertido"),       # Spanish: inverted FB. Lahm 2013 → Cancelo → Rico Lewis
-        ("Engine", "Sprinter",  "Carrilero"),       # Spanish: "lane runner" — Facchetti, Zanetti, Hakimi
+        ("Engine", "Sprinter",  "Fluidificante"),    # Italian: "the one who makes it fluid" — Facchetti, Zanetti, Hakimi
     ],
     "DM": [
         ("Cover", "Destroyer",  "Sentinelle"),     # French: the sentinel. Makélélé → Casemiro. Guards the gate
@@ -143,6 +143,7 @@ TACTICAL_ROLES = {
         ("Creator", "Passer",   "Fantasista"),      # Italian: the wide creator. Silva, Bernardo, Foden
         ("Sprinter", "Passer",  "Winger"),          # Garrincha, Figo, Saka. The oldest attacking role
         ("Dribbler", "Striker", "Raumdeuter"),      # German: "space interpreter" — Müller coined it himself
+        ("Engine", "Sprinter",  "Tornante"),        # Italian: "the returner" — wide midfielder who covers full flank. Maggio, Moses, Kostic
     ],
     "AM": [
         ("Creator", "Dribbler", "Trequartista"),    # Baggio → Zidane → Messi: the free-roaming 10
@@ -198,27 +199,44 @@ def _safe(val):
 
 
 def compute_model_scores(grades):
-    """Compute model scores (0-100) from best-source attribute grades (0-20 scale)."""
+    """Compute model scores (0-100) from best-source attribute grades (0-20 scale).
+
+    Returns (model_scores, best_source) where best_source is the highest-priority
+    source that contributed to the scores (used for source quality discounting).
+    """
     # Build best-grade-per-attribute map (prefer highest-priority source)
-    best = {}  # attr -> (score, priority)
+    best = {}  # attr -> (score, priority, source)
     for g in grades:
         attr = g["attribute"].lower().replace(" ", "_")
         score = g["scout_grade"] if g["scout_grade"] is not None else g.get("stat_score")
         if score is None or score <= 0:
             continue
-        priority = SOURCE_PRIORITY.get(g.get("source", ""), 0)
+        source = g.get("source", "eafc_inferred")
+        priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
         if existing is None or priority > existing[1]:
-            best[attr] = (score, priority)
+            best[attr] = (score, priority, source)
 
-    # Compute each model score
+    # Track best source across all attributes
+    sources_used = set(b[2] for b in best.values())
+
+    # Compute each model score (require at least 2 of 4 attributes to avoid inflation)
     model_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
         values = [best[a][0] for a in attrs if a in best]
-        if values:
+        if len(values) >= 2:
             avg = sum(values) / len(values)
             # Convert from 0-20 to 0-100
             model_scores[model] = round(min(avg * 5, 100))
+
+    # Source quality discount: if ALL data is eafc_inferred, scale down model scores.
+    # eafc data is undifferentiated game stats, not real scouting intelligence.
+    if sources_used == {"eafc_inferred"}:
+        for model in model_scores:
+            model_scores[model] = round(model_scores[model] * 0.7)
+    elif sources_used <= {"eafc_inferred", "understat"}:
+        for model in model_scores:
+            model_scores[model] = round(model_scores[model] * 0.85)
 
     return model_scores
 
@@ -270,26 +288,66 @@ def compute_overall(compound_scores, position, level=None, peak=None):
     return round(min(max(overall, 1), 99))
 
 
-def compute_best_role(model_scores, position):
+def compute_best_role(model_scores, position, level=None, active=True):
     """Compute the best tactical role and its score for a player.
 
     Returns (role_name, role_score) where role_score is 0-100.
+
+    The raw attribute-based role score is blended with level to anchor
+    role scores to player quality. Without this, a level-42 retired
+    player can outrank Mbappé purely on attribute shape.
     """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
         return None, 0
 
     best_role = None
-    best_score = -1
+    best_raw = -1
     for primary, secondary, name in roles:
-        p_score = model_scores.get(primary, 0)
-        s_score = model_scores.get(secondary, 0)
+        # Require BOTH primary and secondary models to have scores.
+        # If either is missing, this role can't be meaningfully assessed.
+        if primary not in model_scores or secondary not in model_scores:
+            continue
+        p_score = model_scores[primary]
+        s_score = model_scores[secondary]
         score = p_score * 0.6 + s_score * 0.4
-        if score > best_score:
-            best_score = score
+        if score > best_raw:
+            best_raw = score
             best_role = name
 
-    return best_role, round(best_score)
+    if best_role is None:
+        # Fallback: allow roles where at least primary exists
+        for primary, secondary, name in roles:
+            p_score = model_scores.get(primary, 0)
+            s_score = model_scores.get(secondary, 0)
+            if p_score == 0 and s_score == 0:
+                continue
+            score = p_score * 0.6 + s_score * 0.4
+            if score > best_raw:
+                best_raw = score
+                best_role = name
+
+    if best_role is None or best_raw <= 0:
+        return None, 0
+
+    # Level as quality anchor with cap.
+    # The raw attribute score determines role shape, but level constrains
+    # the range: role_score lives within ±8 of level, and can't exceed it.
+    # This prevents:
+    #   - Lower-tier players leapfrogging elite ones (cap)
+    #   - Elite players with sparse data falling off a cliff (floor)
+    if level is not None:
+        floor = max(level - 8, 1)
+        role_score = max(floor, min(best_raw, level))
+    else:
+        # No level = unassessed player, penalize
+        role_score = best_raw * 0.5
+
+    # Retired player discount — active scouting tool, not a hall of fame
+    if not active:
+        role_score *= 0.7
+
+    return best_role, round(min(max(role_score, 1), 99))
 
 
 def has_differentiated_data(model_scores):
@@ -349,9 +407,11 @@ def main():
 
     print("  Loading player profiles...")
     cur.execute("""
-        SELECT person_id, position, level, peak, overall
-        FROM player_profiles
-        WHERE position IS NOT NULL
+        SELECT pp.person_id, pp.position, pp.level, pp.peak, pp.overall,
+               COALESCE(p.active, true) as active
+        FROM player_profiles pp
+        JOIN people p ON p.id = pp.person_id
+        WHERE pp.position IS NOT NULL
     """)
     profiles = {}
     for row in cur.fetchall():
@@ -360,6 +420,7 @@ def main():
             "level": row[2],
             "peak": row[3],
             "old_overall": row[4],
+            "active": row[5],
         }
     print(f"  Profiles with position: {len(profiles)}")
 
@@ -370,11 +431,13 @@ def main():
         player_ids = player_ids[:args.limit]
 
     results = []
+    skipped_pids = []  # players whose old scores should be cleared
     stats = {
         "computed": 0,
         "skipped_flat": 0,
         "skipped_no_position": 0,
         "updated_overall": 0,
+        "cleared_stale": 0,
     }
     compound_distribution = {"Technical": [], "Tactical": [], "Physical": [], "Mental": []}
     overall_distribution = []
@@ -391,6 +454,7 @@ def main():
 
         if not has_differentiated_data(model_scores):
             stats["skipped_flat"] += 1
+            skipped_pids.append(pid)
             continue
 
         compound_scores = compute_compound_scores(model_scores)
@@ -398,6 +462,7 @@ def main():
         position = profile["position"]
         level = profile.get("level")
         peak = profile.get("peak")
+        active = profile.get("active", True)
 
         overall = compute_overall(compound_scores, position, level, peak)
 
@@ -410,7 +475,9 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        best_role, best_role_score = compute_best_role(model_scores, position)
+        best_role, best_role_score = compute_best_role(
+            model_scores, position, level=level, active=active
+        )
 
         results.append({
             "person_id": pid,
@@ -445,9 +512,9 @@ def main():
     # ── Step 5: Show samples ─────────────────────────────────────────────────
 
     if results:
-        # Show top 5 by overall
-        top = sorted(results, key=lambda r: -r["overall"])[:5]
-        print(f"\n  Top 5 rated players:")
+        # Show top 10 by best_role_score (the metric we're fixing)
+        top = sorted(results, key=lambda r: -r["best_role_score"])[:10]
+        print(f"\n  Top 10 by role score:")
         for r in top:
             name_q = cur.execute("SELECT name FROM people WHERE id = %s", (r["person_id"],))
             name_row = cur.fetchone()
@@ -510,6 +577,17 @@ def main():
                     chunk, on_conflict="player_id,attribute,source"
                 ).execute()
             print(f"  Wrote compound scores: {len(compound_rows)} rows")
+
+        # Clear stale role scores from skipped players (flat/undifferentiated data)
+        if FORCE and skipped_pids:
+            for i in range(0, len(skipped_pids), CHUNK_SIZE):
+                chunk = skipped_pids[i:i + CHUNK_SIZE]
+                for pid in chunk:
+                    sb_client.table("player_profiles").update({
+                        "best_role_score": None,
+                    }).eq("person_id", pid).execute()
+                stats["cleared_stale"] += len(chunk)
+            print(f"  Cleared stale role scores: {stats['cleared_stale']}")
 
     elif DRY_RUN:
         print(f"\n  [dry-run] would update {len(results)} player_profiles.overall values")

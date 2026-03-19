@@ -105,9 +105,25 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     archetypes: ["Engine", "Dribbler", "Sprinter"],
     personalities: ["ANSC", "INSC", "AXSC"],
     minLevel: 12,
-    positions: ["WD", "WM"],
+    positions: ["WM"],
     keyAttributes: ["Stamina", "Pace", "Crossing", "Tackling"],
-    reference: "The Hakimi role — full width in both phases, tireless up and down the flank",
+    reference: "The Moses/Maggio role — wide midfielder covering full flank in 3-5-2 systems",
+  },
+  "Fluidificante": {
+    archetypes: ["Engine", "Sprinter", "Dribbler"],
+    personalities: ["ANSC", "INSC", "AXSC"],
+    minLevel: 12,
+    positions: ["WD"],
+    keyAttributes: ["Pace", "Stamina", "Acceleration", "Crossing"],
+    reference: "The Facchetti role — fullback who surges forward, turns defence into attack",
+  },
+  "Tornante": {
+    archetypes: ["Engine", "Sprinter", "Dribbler"],
+    personalities: ["ANSC", "AXSC", "INSC"],
+    minLevel: 11,
+    positions: ["WM"],
+    keyAttributes: ["Stamina", "Pace", "Crossing", "Tackling"],
+    reference: "The Kostic role — wide midfielder who covers full flank, tracks back and surges forward",
   },
 
   // ── DM ──────────────────────────────────────────────────────────────────

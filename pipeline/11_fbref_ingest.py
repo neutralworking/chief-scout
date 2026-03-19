@@ -219,6 +219,98 @@ def _extract_fbref_id(href: str) -> str | None:
     return m.group(1) if m else None
 
 
+def parse_csv_table(filepath: Path, comp_id: int, season: str) -> list[dict]:
+    """Parse a FBRef CSV export into the same row format as parse_stats_table.
+
+    FBRef CSVs use short column names (Gls, Ast, Min, etc.) which we map
+    to the internal data-stat names the extractors expect.
+    """
+    import csv
+
+    # Map FBRef CSV headers → internal stat names (same as HTML data-stat attrs)
+    CSV_COL_MAP = {
+        "Player": "player",
+        "Nation": "nationality",
+        "Pos": "position",
+        "Squad": "team",
+        "Age": "age",
+        "MP": "games",
+        "Starts": "games_starts",
+        "Min": "minutes",
+        "90s": "minutes_90s",
+        "Gls": "goals",
+        "Ast": "assists",
+        "G+A": "goals_assists",
+        "G-PK": "goals_pens",
+        "PK": "pens_made",
+        "PKatt": "pens_att",
+        "CrdY": "cards_yellow",
+        "CrdR": "cards_red",
+        "xG": "xg",
+        "npxG": "npxg",
+        "xAG": "xg_assist",
+        "npxG+xAG": "npxg_xag",
+        "PrgC": "progressive_carries",
+        "PrgP": "progressive_passes",
+        "PrgR": "progressive_passes_received",
+        # Shooting
+        "Sh": "shots",
+        "SoT": "shots_on_target",
+        # Passing
+        "Cmp": "passes_completed",
+        "Att": "passes",
+        "Cmp%": "passes_pct",
+        "KP": "assisted_shots",
+        # Defense
+        "Tkl": "tackles",
+        "TklW": "tackles_won",
+        "Int": "interceptions",
+        "Blocks": "blocks",
+        "Clr": "clearances",
+        # Possession
+        "Touches": "touches",
+        "Carries": "carries",
+        "Succ": "dribbles_completed",
+        "Att.1": "dribbles",
+        # GK
+        "Saves": "gk_saves",
+        "Save%": "gk_save_pct",
+        "CS": "gk_clean_sheets",
+        "GA": "gk_goals_against",
+        "PSxG": "gk_psxg",
+    }
+
+    rows = []
+    text = filepath.read_text(encoding="utf-8", errors="replace")
+    reader = csv.DictReader(text.strip().splitlines())
+
+    for csv_row in reader:
+        # Skip blank/separator rows
+        player_name = csv_row.get("Player", "").strip()
+        if not player_name:
+            continue
+
+        row = {}
+        for csv_col, stat_name in CSV_COL_MAP.items():
+            if csv_col in csv_row:
+                row[stat_name] = csv_row[csv_col].strip()
+
+        # Generate deterministic fbref_id for CSV imports (no URL available)
+        team_slug = re.sub(r"[^a-z0-9]+", "-", (row.get("team") or "unknown").lower()).strip("-")
+        name_slug = re.sub(r"[^a-z0-9]+", "-", player_name.lower()).strip("-")
+        row["_fbref_id"] = f"csv_{comp_id}_{season}_{team_slug}_{name_slug}"
+        row["_fbref_url"] = ""
+        row["player"] = player_name
+
+        # Clean comma-separated minutes (e.g. "1,908" → "1908")
+        if row.get("minutes"):
+            row["minutes"] = row["minutes"].replace(",", "")
+
+        rows.append(row)
+
+    return rows
+
+
 def parse_stats_table(soup: BeautifulSoup, stat_type: str) -> list[dict]:
     """
     Parse the main stats table from a FBRef page.
@@ -533,9 +625,10 @@ for (comp_id, season), stat_files in file_groups.items():
             if soup is None:
                 continue
             rows = parse_stats_table(soup, stat_type)
+        elif filepath.suffix == ".csv":
+            rows = parse_csv_table(filepath, comp_id, season)
         else:
-            # CSV processing — not yet implemented, skip
-            print(f"    SKIP — CSV support coming soon")
+            print(f"    SKIP — unsupported format {filepath.suffix}")
             continue
 
         print(f"    parsed {len(rows)} player rows")

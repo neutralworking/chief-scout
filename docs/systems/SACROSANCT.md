@@ -211,7 +211,7 @@ Role names use the term the football world actually uses. If the word came from 
 | CD | Zagueiro | Brazilian | The commanding CB — physical dominance + vocal leadership | Destroyer | Commander | Lúcio → Thiago Silva → Van Dijk |
 | WD | Lateral | Portuguese | The attacking fullback — wide + high, delivers | Engine | Dribbler | Cafu → Dani Alves → TAA |
 | WD | Invertido | Spanish | Inverted FB — tucks inside in possession, becomes midfielder | Controller | Passer | Lahm (2013) → Cancelo → Rico Lewis |
-| WD | Carrilero | Spanish | "Lane runner" — full-width both phases, tireless shuttle | Engine | Sprinter | Facchetti → Zanetti → Hakimi |
+| WD | Fluidificante | Italian | "The one who makes it fluid" — fullback who surges forward, turns defence into attack | Engine | Sprinter | Facchetti → Zanetti → Hakimi |
 | DM | Sentinelle | French | The sentinel — shields back four, guards the gate | Cover | Destroyer | Makélélé → Busquets → Casemiro |
 | DM | Regista | Italian | Deep playmaker, dictates tempo from in front of defence | Controller | Passer | Gerson (1970) → Pirlo → Jorginho |
 | DM | Volante | Brazilian | "Steering wheel" — aggressive pressing, disrupts, recycles | Destroyer | Engine | Gattuso → Kanté → Caicedo |
@@ -222,6 +222,7 @@ Role names use the term the football world actually uses. If the word came from 
 | WM | Fantasista | Italian | The wide creator — drifts inside, creates from half-spaces | Creator | Passer | Silva → Bernardo → Foden |
 | WM | Winger | English | Touchline-hugging, direct, crosses — the oldest attacking role | Sprinter | Passer | Garrincha → Figo → Saka |
 | WM | Raumdeuter | German | "Space interpreter" — arrives in dangerous positions | Dribbler | Striker | Thomas Müller (self-coined) |
+| WM | Tornante | Italian | "The returner" — wide midfielder who covers full flank in both phases | Engine | Sprinter | Maggio → Moses → Kostic |
 | AM | Trequartista | Italian | The free-roaming 10, unpredictable genius | Creator | Dribbler | Baggio → Zidane → Messi |
 | AM | Enganche | Argentine | "The hook" — stands still, sees everything, the pivot | Controller | Creator | Maradona → Riquelme → Dybala |
 | AM | Seconda Punta | Italian | "Second striker" — late runs, between the lines | Dribbler | Striker | Del Piero → Müller → Havertz |

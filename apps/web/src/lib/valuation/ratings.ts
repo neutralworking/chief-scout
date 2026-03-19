@@ -49,10 +49,10 @@ const POSITION_COMPOUND_WEIGHTS: Record<string, Record<string, number>> = {
 const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   GK: [["GK", "Cover", "Shot Stopper"], ["GK", "Passer", "Sweeper Keeper"]],
   CD: [["Destroyer", "Cover", "Stopper"], ["Cover", "Passer", "Ball-Playing CB"], ["Destroyer", "Commander", "Enforcer"], ["Cover", "Dribbler", "Ball-Carrier"]],
-  WD: [["Engine", "Dribbler", "Overlapping FB"], ["Cover", "Passer", "Inverted FB"], ["Engine", "Sprinter", "Wing-Back"]],
+  WD: [["Engine", "Dribbler", "Overlapping FB"], ["Cover", "Passer", "Inverted FB"], ["Engine", "Sprinter", "Fluidificante"]],
   DM: [["Cover", "Destroyer", "Anchor"], ["Controller", "Passer", "Regista"], ["Destroyer", "Engine", "Ball Winner"]],
   CM: [["Controller", "Passer", "Deep Playmaker"], ["Engine", "Cover", "Box-to-Box"], ["Passer", "Creator", "Mezzala"]],
-  WM: [["Dribbler", "Passer", "Wide Playmaker"], ["Engine", "Sprinter", "Traditional Winger"], ["Creator", "Dribbler", "Inside Forward"]],
+  WM: [["Dribbler", "Passer", "Wide Playmaker"], ["Engine", "Sprinter", "Traditional Winger"], ["Creator", "Dribbler", "Inside Forward"], ["Engine", "Sprinter", "Tornante"]],
   AM: [["Creator", "Dribbler", "Trequartista"], ["Controller", "Creator", "Advanced Playmaker"], ["Dribbler", "Striker", "Shadow Striker"]],
   WF: [["Dribbler", "Sprinter", "Inside Forward"], ["Striker", "Dribbler", "Wide Forward"], ["Sprinter", "Creator", "Inverted Winger"]],
   CF: [["Striker", "Target", "Target Man"], ["Target", "Powerhouse", "Complete Forward"], ["Striker", "Sprinter", "Poacher"], ["Dribbler", "Striker", "False 9"], ["Creator", "Striker", "Deep-Lying Forward"]],
@@ -74,25 +74,39 @@ interface GradeRow {
 }
 
 function computeModelScores(grades: GradeRow[]): Record<string, number> {
-  const best: Record<string, { score: number; priority: number }> = {};
+  const best: Record<string, { score: number; priority: number; source: string }> = {};
   for (const g of grades) {
     const attr = g.attribute.toLowerCase().replace(/ /g, "_");
     const score = g.scout_grade ?? g.stat_score;
     if (score == null || score <= 0) continue;
-    const priority = SOURCE_PRIORITY[g.source ?? ""] ?? 0;
+    const source = g.source ?? "eafc_inferred";
+    const priority = SOURCE_PRIORITY[source] ?? 0;
     if (!best[attr] || priority > best[attr].priority) {
-      best[attr] = { score, priority };
+      best[attr] = { score, priority, source };
     }
   }
+
+  const sourcesUsed = new Set(Object.values(best).map((b) => b.source));
 
   const modelScores: Record<string, number> = {};
   for (const [model, attrs] of Object.entries(MODEL_ATTRIBUTES)) {
     const values = attrs.filter((a) => a in best).map((a) => best[a].score);
-    if (values.length > 0) {
+    if (values.length >= 2) {
       const avg = values.reduce((s, v) => s + v, 0) / values.length;
       modelScores[model] = Math.round(Math.min(avg * 5, 100));
     }
   }
+
+  // Source quality discount: eafc-only data is not real scouting intelligence
+  const isEafcOnly = sourcesUsed.size === 1 && sourcesUsed.has("eafc_inferred");
+  const isLowQuality = [...sourcesUsed].every((s) => s === "eafc_inferred" || s === "understat");
+  const discount = isEafcOnly ? 0.7 : isLowQuality ? 0.85 : 1.0;
+  if (discount < 1.0) {
+    for (const model of Object.keys(modelScores)) {
+      modelScores[model] = Math.round(modelScores[model] * discount);
+    }
+  }
+
   return modelScores;
 }
 
@@ -129,19 +143,49 @@ function computeOverall(
   return Math.round(Math.min(Math.max(overall, 1), 99));
 }
 
-function computeBestRole(modelScores: Record<string, number>, position: string): string | null {
+function computeBestRole(
+  modelScores: Record<string, number>,
+  position: string,
+  level: number | null = null,
+): { role: string | null; score: number } {
   const roles = TACTICAL_ROLES[position];
-  if (!roles) return null;
+  if (!roles) return { role: null, score: 0 };
+
   let bestRole: string | null = null;
-  let bestScore = -1;
+  let bestRaw = -1;
+
+  // First pass: require both primary and secondary models
   for (const [primary, secondary, name] of roles) {
-    const score = (modelScores[primary] ?? 0) * 0.6 + (modelScores[secondary] ?? 0) * 0.4;
-    if (score > bestScore) {
-      bestScore = score;
+    if (!(primary in modelScores) || !(secondary in modelScores)) continue;
+    const score = modelScores[primary] * 0.6 + modelScores[secondary] * 0.4;
+    if (score > bestRaw) {
+      bestRaw = score;
       bestRole = name;
     }
   }
-  return bestRole;
+
+  // Fallback: allow roles where at least primary exists
+  if (bestRole == null) {
+    for (const [primary, secondary, name] of roles) {
+      const pScore = modelScores[primary] ?? 0;
+      const sScore = modelScores[secondary] ?? 0;
+      if (pScore === 0 && sScore === 0) continue;
+      const score = pScore * 0.6 + sScore * 0.4;
+      if (score > bestRaw) {
+        bestRaw = score;
+        bestRole = name;
+      }
+    }
+  }
+
+  if (bestRole == null || bestRaw <= 0) return { role: null, score: 0 };
+
+  // Level as quality anchor with cap — role score within ±8 of level, can't exceed it
+  const roleScore = level != null
+    ? Math.max(Math.max(level - 8, 1), Math.min(bestRaw, level))
+    : bestRaw * 0.5;
+
+  return { role: bestRole, score: Math.round(Math.min(Math.max(roleScore, 1), 99)) };
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -189,7 +233,7 @@ export async function runRatings(
   let playerIds = Object.keys(playerGrades).map(Number);
   if (options.limit) playerIds = playerIds.slice(0, options.limit);
 
-  const updates: { person_id: number; overall: number; best_role?: string }[] = [];
+  const updates: { person_id: number; overall: number; best_role?: string; best_role_score?: number }[] = [];
   const compoundRows: {
     player_id: number; attribute: string;
     stat_score: number; source: string; is_inferred: boolean; updated_at: string;
@@ -209,8 +253,12 @@ export async function runRatings(
     if (overall == null) continue;
 
     result.computed++;
-    const bestRole = computeBestRole(modelScores, profile.position);
-    updates.push({ person_id: pid, overall, ...(bestRole ? { best_role: bestRole } : {}) });
+    const { role: bestRole, score: bestRoleScore } = computeBestRole(modelScores, profile.position, profile.level);
+    updates.push({
+      person_id: pid,
+      overall,
+      ...(bestRole ? { best_role: bestRole, best_role_score: bestRoleScore } : {}),
+    });
 
     for (const [compound, score] of Object.entries(compoundScores)) {
       compoundRows.push({

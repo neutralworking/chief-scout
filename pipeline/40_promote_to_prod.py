@@ -137,6 +137,30 @@ def get_prod_ready_players(staging):
     return sorted(ready_ids)
 
 
+def _fetch_batched(staging, table, id_col, ids, select="*"):
+    """Fetch rows in batches of 400 IDs, paginating each batch to get all rows."""
+    BATCH = 400
+    PAGE = 1000
+    all_rows = []
+    for i in range(0, len(ids), BATCH):
+        batch_ids = ids[i : i + BATCH]
+        offset = 0
+        while True:
+            page = (
+                staging.table(table)
+                .select(select)
+                .in_(id_col, batch_ids)
+                .range(offset, offset + PAGE - 1)
+                .execute()
+                .data
+            )
+            all_rows.extend(page)
+            if len(page) < PAGE:
+                break
+            offset += PAGE
+    return all_rows
+
+
 def fetch_player_data(staging, player_ids: list[int]) -> dict:
     """Fetch complete player data for promotion."""
     if not player_ids:
@@ -145,13 +169,7 @@ def fetch_player_data(staging, player_ids: list[int]) -> dict:
     data = {}
 
     # People (identity)
-    people = (
-        staging.table("people")
-        .select("*")
-        .in_("id", player_ids)
-        .execute()
-        .data
-    )
+    people = _fetch_batched(staging, "people", "id", player_ids)
     data["people"] = people
 
     # Collect referenced nation/club IDs
@@ -160,23 +178,11 @@ def fetch_player_data(staging, player_ids: list[int]) -> dict:
 
     # Nations
     if nation_ids:
-        data["nations"] = (
-            staging.table("nations")
-            .select("*")
-            .in_("id", nation_ids)
-            .execute()
-            .data
-        )
+        data["nations"] = _fetch_batched(staging, "nations", "id", nation_ids)
 
     # Clubs (+ their nation_ids)
     if club_ids:
-        clubs = (
-            staging.table("clubs")
-            .select("*")
-            .in_("id", club_ids)
-            .execute()
-            .data
-        )
+        clubs = _fetch_batched(staging, "clubs", "id", club_ids)
         data["clubs"] = clubs
         # Also grab club nations not already included
         club_nation_ids = [
@@ -185,68 +191,26 @@ def fetch_player_data(staging, player_ids: list[int]) -> dict:
             if c.get("nation_id") and c["nation_id"] not in nation_ids
         ]
         if club_nation_ids:
-            extra_nations = (
-                staging.table("nations")
-                .select("*")
-                .in_("id", club_nation_ids)
-                .execute()
-                .data
-            )
+            extra_nations = _fetch_batched(staging, "nations", "id", club_nation_ids)
             data.setdefault("nations", []).extend(extra_nations)
 
     # Player profiles
-    data["player_profiles"] = (
-        staging.table("player_profiles")
-        .select("*")
-        .in_("person_id", player_ids)
-        .execute()
-        .data
-    )
+    data["player_profiles"] = _fetch_batched(staging, "player_profiles", "person_id", player_ids)
 
     # Player personality
-    data["player_personality"] = (
-        staging.table("player_personality")
-        .select("*")
-        .in_("person_id", player_ids)
-        .execute()
-        .data
-    )
+    data["player_personality"] = _fetch_batched(staging, "player_personality", "person_id", player_ids)
 
     # Player market
-    data["player_market"] = (
-        staging.table("player_market")
-        .select("*")
-        .in_("person_id", player_ids)
-        .execute()
-        .data
-    )
+    data["player_market"] = _fetch_batched(staging, "player_market", "person_id", player_ids)
 
     # Player status
-    data["player_status"] = (
-        staging.table("player_status")
-        .select("*")
-        .in_("person_id", player_ids)
-        .execute()
-        .data
-    )
+    data["player_status"] = _fetch_batched(staging, "player_status", "person_id", player_ids)
 
-    # Attribute grades
-    data["attribute_grades"] = (
-        staging.table("attribute_grades")
-        .select("*")
-        .in_("player_id", player_ids)
-        .execute()
-        .data
-    )
+    # Attribute grades (can be many rows per player)
+    data["attribute_grades"] = _fetch_batched(staging, "attribute_grades", "player_id", player_ids)
 
     # Player tags
-    tags_data = (
-        staging.table("player_tags")
-        .select("*")
-        .in_("player_id", player_ids)
-        .execute()
-        .data
-    )
+    tags_data = _fetch_batched(staging, "player_tags", "player_id", player_ids)
     data["player_tags"] = tags_data
 
     # Tags referenced
@@ -318,23 +282,25 @@ def upsert_to_prod(prod, data: dict, dry_run: bool = False):
             continue
 
         try:
+            CHUNK = 500
             if on_conflict:
-                prod.table(table_name).upsert(
-                    rows, on_conflict=on_conflict
-                ).execute()
+                for j in range(0, len(rows), CHUNK):
+                    prod.table(table_name).upsert(
+                        rows[j : j + CHUNK], on_conflict=on_conflict
+                    ).execute()
             else:
                 # For composite-key tables, delete and re-insert
-                if table_name == "attribute_grades":
-                    player_ids = list({r["player_id"] for r in rows})
-                    prod.table(table_name).delete().in_(
-                        "player_id", player_ids
+                if table_name in ("attribute_grades", "player_tags"):
+                    id_col = "player_id"
+                    pids = list({r[id_col] for r in rows})
+                    for j in range(0, len(pids), CHUNK):
+                        prod.table(table_name).delete().in_(
+                            id_col, pids[j : j + CHUNK]
+                        ).execute()
+                for j in range(0, len(rows), CHUNK):
+                    prod.table(table_name).insert(
+                        rows[j : j + CHUNK]
                     ).execute()
-                elif table_name == "player_tags":
-                    player_ids = list({r["player_id"] for r in rows})
-                    prod.table(table_name).delete().in_(
-                        "player_id", player_ids
-                    ).execute()
-                prod.table(table_name).insert(rows).execute()
             print(" OK")
         except Exception as e:
             print(f" ERROR: {e}")
@@ -374,13 +340,7 @@ def main():
         sys.exit(0)
 
     # Get names for display
-    people = (
-        staging.table("people")
-        .select("id, name")
-        .in_("id", ready_ids)
-        .execute()
-        .data
-    )
+    people = _fetch_batched(staging, "people", "id", ready_ids, select="id, name")
     name_map = {p["id"]: p["name"] for p in people}
 
     # Filter by name if specified

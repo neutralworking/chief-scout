@@ -182,8 +182,13 @@ def percentile_rank(values):
 
 
 def percentile_to_score(pct):
-    """Convert 0-100 percentile rank to 1-10 SACROSANCT scale."""
-    return max(1, min(10, round(pct / 10)))
+    """Convert 0-100 percentile rank to 1-20 SACROSANCT scale.
+
+    FBRef grades must be on the same 1-20 scale as eafc_inferred data,
+    since the model scoring engine averages raw stat_score values across
+    sources and converts to 0-100 via (avg × 5).
+    """
+    return max(1, min(20, round(pct / 5)))
 
 
 def compute_positional_percentiles(player_metrics, player_positions):
@@ -358,13 +363,19 @@ def aggregate_fbref(cur):
             if xg is not None:
                 m["xg_overperformance"] = _per90(goals - float(xg), mins)
 
-            # Creativity: key passes per 90
-            m["creativity"] = _per90(d.get("key_passes"), mins)
+            # Creativity: key passes per 90 (fallback: assists per 90)
+            key_passes = d.get("key_passes")
+            if key_passes is not None:
+                m["creativity"] = _per90(key_passes, mins)
+            elif (d.get("assists") or 0) > 0:
+                m["creativity"] = _per90(d.get("assists"), mins)
 
-            # Vision: xAG per 90
+            # Vision: xAG per 90 (fallback: assists per 90)
             xag = d.get("xag")
             if xag is not None:
                 m["vision"] = _per90(float(xag), mins)
+            elif (d.get("assists") or 0) > 0:
+                m["vision"] = _per90(d.get("assists"), mins)
 
             # Pass accuracy
             pass_pct = d.get("pass_pct")
@@ -401,9 +412,11 @@ def aggregate_fbref(cur):
             # Progressive carrying per 90 (Dribbler: carries)
             m["progressive_carrying"] = _per90(d.get("progressive_carries"), mins)
 
-            # Through balls proxy: xAG per 90 (Passer: through_balls)
+            # Through balls proxy: xAG per 90 (fallback: assists per 90)
             if xag is not None:
                 m["through_balls_proxy"] = _per90(float(xag), mins)
+            elif (d.get("assists") or 0) > 0:
+                m["through_balls_proxy"] = _per90(d.get("assists"), mins)
 
         # --- GK metrics ---
         if pg == "gk" or (pg is None and (d.get("gk_saves") or 0) > 0):

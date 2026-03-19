@@ -186,7 +186,7 @@ export async function GET(
     const vals = attrs
       .map((a) => attrScores.get(a))
       .filter((v): v is number => v !== undefined);
-    if (vals.length > 0) {
+    if (vals.length >= 2) {
       modelScores[model] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
     }
   }

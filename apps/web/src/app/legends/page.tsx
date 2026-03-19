@@ -188,9 +188,8 @@ function LegendsContent() {
           />
           <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
             className="px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs">
-            <option value="peak">Peak Level</option>
-            <option value="overall">Overall</option>
-            <option value="level">Level</option>
+            <option value="peak">Peak</option>
+            <option value="role_score">Role Score</option>
             <option value="name">Name</option>
           </select>
         </div>
@@ -205,15 +204,15 @@ function LegendsContent() {
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-[var(--bg-surface)] z-10">
                   <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                    <th className="text-left py-1.5 px-3 font-medium w-10">Pos</th>
+                    <th className="text-center py-1.5 px-2 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
                     <th className="text-left py-1.5 px-3 font-medium">Last Club</th>
-                    <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Nation</th>
+                    <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell"></th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Archetype</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-14 hidden lg:table-cell">Lvl</th>
+                    <th className="text-right py-1.5 px-3 font-medium w-14">Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,8 +222,8 @@ function LegendsContent() {
 
                     return (
                       <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
-                        <td className="py-1.5 px-3">
-                          <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
+                        <td className="py-1.5 px-2 text-center">
+                          <span className={`text-[10px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
                             {player.position ?? "–"}
                           </span>
                         </td>
@@ -248,11 +247,11 @@ function LegendsContent() {
                             <span className={`font-mono font-bold text-sm ${peakColor(player.peak)}`}>{player.peak ?? "–"}</span>
                           )}
                         </td>
-                        <td className="py-1.5 px-3 text-right hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right">
                           {isAdmin ? (
-                            <EditableCell value={player.level} personId={player.person_id} field="level" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "level", v)} />
+                            <EditableCell value={player.best_role_score} personId={player.person_id} field="best_role_score" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)} />
                           ) : (
-                            <span className="font-mono text-xs text-[var(--text-muted)]">{player.level ?? "–"}</span>
+                            <span className={`font-mono text-xs ${peakColor(player.best_role_score)}`}>{player.best_role_score ?? "–"}</span>
                           )}
                         </td>
                       </tr>

@@ -26,32 +26,29 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(Number(searchParams.get("limit") || 50), 200);
   const offset = Number(searchParams.get("offset") || 0);
 
-  // Query retired players with profile data + peak from player_profiles
+  // Peak is now in the view directly
   let query = supabase
     .from("player_intelligence_card")
-    .select("person_id, name, dob, height_cm, preferred_foot, nation, club, club_id, position, level, overall, archetype, model_id, profile_tier, personality_type, best_role, best_role_score, fingerprint")
+    .select("person_id, name, dob, nation, club, position, level, peak, overall, archetype, personality_type, best_role, best_role_score, fingerprint")
     .eq("active", false);
 
   if (position) query = query.eq("position", position);
   if (q) query = query.ilike("name", `%${q}%`);
 
   switch (sort) {
-    case "level":
-      query = query.order("level", { ascending: false, nullsFirst: false });
-      break;
-    case "overall":
-      query = query.order("overall", { ascending: false, nullsFirst: false });
+    case "role_score":
+      query = query.order("best_role_score", { ascending: false, nullsFirst: false });
       break;
     case "name":
       query = query.order("name", { ascending: true });
       break;
     case "peak":
     default:
-      // Peak not in view — use level as proxy (peak ≈ level for retired players)
-      query = query.order("level", { ascending: false, nullsFirst: false });
+      query = query.order("peak", { ascending: false, nullsFirst: false });
       break;
   }
 
+  query = query.order("person_id", { ascending: true }); // tiebreaker
   query = query.range(offset, offset + limit - 1);
 
   const { data, error } = await query;
@@ -60,35 +57,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const players = data ?? [];
-
-  // Enrich with peak from player_profiles
-  if (players.length > 0) {
-    const ids = players.map((p: { person_id: number }) => p.person_id);
-    const { data: peaks } = await supabase
-      .from("player_profiles")
-      .select("person_id, peak")
-      .in("person_id", ids);
-
-    const peakMap = new Map<number, number | null>();
-    for (const row of peaks ?? []) {
-      peakMap.set(row.person_id, row.peak);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const p of players as any[]) {
-      p.peak = peakMap.get(p.person_id) ?? p.level ?? null;
-    }
-
-    // Re-sort by peak if that's the sort order (since we couldn't sort in the view query)
-    if (sort === "peak") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (players as any[]).sort((a: any, b: any) => (b.peak ?? 0) - (a.peak ?? 0));
-    }
-  }
-
   return NextResponse.json({
-    players,
-    hasMore: players.length === limit,
+    players: data ?? [],
+    hasMore: (data ?? []).length === limit,
   });
 }

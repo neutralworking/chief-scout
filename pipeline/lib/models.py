@@ -46,8 +46,9 @@ SOURCE_PRIORITY = {
 # The label describes WHAT the player is; the blueprint (position-specific)
 # describes HOW they play in a formation.
 #
+# Original labels from Real Players Active.csv (the canonical source).
+# Additional pairs filled in to cover all cross-category combinations.
 # Single models keep their own name as the label.
-# Cross-category pairs get an evocative label.
 
 MODEL_LABELS: dict[str, str] = {
     # ── Single models (identity labels) ──
@@ -65,145 +66,165 @@ MODEL_LABELS: dict[str, str] = {
     "Striker":     "Striker",
     "GK":          "Goalkeeper",
 
-    # ── Mental + Physical ──
-    "Controller-Sprinter":  "Tempo Runner",      # reads the game + has pace to exploit it
-    "Controller-Target":    "Aerial General",     # orchestrates + dominates aerially
-    "Controller-Powerhouse": "Iron Conductor",    # controls tempo with physical authority
-    "Commander-Sprinter":   "Pace Leader",        # vocal leader with explosive speed
-    "Commander-Target":     "Colossus",           # leads by example, dominates aerially
-    "Commander-Powerhouse": "Enforcer",           # commands + overpowers
-    "Creator-Sprinter":     "Magician",           # creative genius with electric pace
-    "Creator-Target":       "Aerial Artist",      # creative flair + aerial threat
-    "Creator-Powerhouse":   "Bulldozer",          # creates through sheer physical force
+    # ── From original CSV (canonical labels) ──────────────────────────────────
 
-    # ── Mental + Tactical ──
-    "Controller-Cover":     "Sentinel",           # reads the game + shields space
-    "Controller-Engine":    "Metronome",          # dictates tempo + never stops
-    "Controller-Destroyer": "Conductor",          # orchestrates + wins it back
-    "Commander-Cover":      "Guardian",           # organises + protects
-    "Commander-Engine":     "Captain",            # leads + drives the team forward
-    "Commander-Destroyer":  "Warrior",            # commands + destroys
-    "Creator-Cover":        "Shadow",             # creates from deep, reads danger
-    "Creator-Engine":       "Dynamo",             # creates + presses relentlessly
-    "Creator-Destroyer":    "Disruptor",          # unpredictable + aggressive
+    # Mental × Technical
+    "Controller-Creator":    "Playmaker",          # orchestrates through invention
+    "Controller-Engine":     "Conductor",          # dictates tempo + never stops
+    "Controller-Passer":     "Regista",            # total passing control from deep
+    "Creator-Dribbler":      "Magician",           # invents + executes with the ball
+    "Creator-Engine":        "Catalyst",           # creates + presses relentlessly
+    "Creator-Passer":        "Maestro",            # sees passes nobody else sees
+    "Creator-Striker":       "Fantasista",         # creates + scores from nothing
 
-    # ── Mental + Technical ──
-    "Controller-Dribbler":  "Architect",          # builds play + carries ball
-    "Controller-Passer":    "Maestro",            # total passing control
-    "Controller-Striker":   "Clinical",           # calm decisions + lethal finishing
-    "Commander-Dribbler":   "Talisman",           # leads + carries the ball
-    "Commander-Passer":     "General",            # organises through distribution
-    "Commander-Striker":    "Figurehead",          # leads the line + finishes
-    "Creator-Dribbler":    "Magician",            # invents + executes with the ball
-    "Creator-Passer":       "Visionary",          # sees passes nobody else sees
-    "Creator-Striker":      "Fantasista",         # creates + scores from nothing
+    # Mental × Tactical
+    "Commander-Engine":      "General",            # leads + drives the team forward
 
-    # ── Physical + Tactical ──
-    "Sprinter-Cover":       "Sweeper",            # pace to cover + reads danger
-    "Sprinter-Engine":      "Roadrunner",         # pace + relentless energy
-    "Sprinter-Destroyer":   "Blitz",              # explosive speed + aggressive tackling
-    "Target-Cover":         "Fortress",           # aerial dominance + defensive reading
-    "Target-Engine":        "Battering Ram",      # aerial threat + tireless running
-    "Target-Destroyer":     "Wrecking Ball",      # aerial + ground destruction
-    "Powerhouse-Cover":     "Rock",               # physical strength + positional sense
-    "Powerhouse-Engine":    "Machine",            # unstoppable physical endurance
-    "Powerhouse-Destroyer": "Terminator",         # physical domination + defensive aggression
+    # Tactical × Mental
+    "Cover-Commander":       "Anchor",             # organises + protects
+    "Cover-Controller":      "Anchor",             # reads the game + shields space
+    "Cover-Engine":          "Anchor",             # covers ground + reads danger
 
-    # ── Physical + Technical ──
-    "Sprinter-Dribbler":    "Jet",                # pace + close control at speed
-    "Sprinter-Passer":      "Flanker",            # pace + delivery
-    "Sprinter-Striker":     "Quicksilver",        # pace + finishing
-    "Target-Dribbler":      "Acrobat",            # aerial + ball skills (rare)
-    "Target-Passer":        "Quarterback",        # aerial presence + distribution
-    "Target-Striker":       "Marksman",           # aerial + shooting
-    "Powerhouse-Dribbler":  "Ox",                 # powerful + skillful
-    "Powerhouse-Passer":    "Quarterback",        # physical authority + distribution
-    "Powerhouse-Striker":   "Cannon",             # power + shooting
+    # Tactical × Technical
+    "Cover-Passer":          "Provider",           # reads play + distributes
+    "Engine-Controller":     "Box-To-Box",         # end-to-end with intelligence
+    "Engine-Commander":      "Driver",             # energy + vocal leadership
+    "Engine-Cover":          "Dynamo",             # tireless covering
+    "Engine-Creator":        "Heartbeat",          # pulse of the team, creates through work
+    "Engine-Dribbler":       "Tornate",            # runs all day + carries the ball
+    "Engine-Passer":         "Metronome",          # tireless + precise distribution
+    "Engine-Striker":        "Livewire",           # energy + goal threat
 
-    # ── Tactical + Technical ──
-    "Cover-Dribbler":       "Libero",             # reads play + carries out from defence
-    "Cover-Passer":         "Quarterback",        # reads play + distributes
-    "Cover-Striker":        "Poacher",            # positional sense + finishing
-    "Engine-Dribbler":      "Workhorse",          # runs all day + carries the ball
-    "Engine-Passer":        "Shuttle",            # links play through tireless running
-    "Engine-Striker":       "Pressing Machine",   # presses + scores
-    "Destroyer-Dribbler":   "Ball Winner",        # wins it + drives forward
-    "Destroyer-Passer":     "Recycler",           # wins it + circulates
-    "Destroyer-Striker":    "Predator",           # aggressive + clinical
+    # Tactical × Physical
+    "Cover-Powerhouse":      "Stalwart",           # immovable + reads the game
+    "Cover-Destroyer":       "Cornerback",         # covers + tackles aggressively
+    "Engine-Powerhouse":     "Bison",              # unstoppable physical endurance
+    "Engine-Sprinter":       "Shuttler",           # pace + relentless energy
+    "Engine-Destroyer":      "Destroyer",          # relentless pressing + tackling
 
-    # ── Reverse pairs (secondary emphasis differs) ──
-    # Physical + Mental
-    "Sprinter-Controller":  "Tempo Runner",
-    "Sprinter-Commander":   "Pace Leader",
-    "Sprinter-Creator":     "Spark",              # pace-first but creative
-    "Target-Controller":    "Aerial General",
-    "Target-Commander":     "Colossus",
-    "Target-Creator":       "Aerial Artist",
+    # Physical × Mental
+    "Target-Powerhouse":     "Colossus",           # aerial + physical dominance
+    "Target-Engine":         "Boxcrasher",         # aerial threat + tireless running
+    "Powerhouse-Sprinter":   "Athlete",            # physical specimen
+
+    # Physical × Tactical
+    "Target-Destroyer":      "Titan",              # aerial + ground destruction
+    "Target-Striker":        "Target",             # aerial + shooting
+    "Sprinter-Cover":        "Flanker",            # pace + defensive reading
+    "Sprinter-Engine":       "Shuttler",           # pace + relentless energy
+    "Sprinter-Powerhouse":   "Juggernaut",         # pace + power combined
+    "Sprinter-Striker":      "Ghost",              # pace + movement into space
+    "Sprinter-Dribbler":     "Flash",              # pace + close control at speed
+
+    # Technical × Mental
+    "Dribbler-Creator":      "Wizard",             # skill-first but inventive
+    "Dribbler-Striker":      "Spark",              # skill + goal threat
+    "Dribbler-Sprinter":     "Winger",             # classic wide dribbler with pace
+    "Passer-Creator":        "Radar",              # distribution + vision
+    "Passer-Cover":          "Provider",           # distribution + defensive reading
+
+    # Technical × Physical
+    "Striker-Creator":       "Assassin",           # clinical + creative finishing
+    "Striker-Engine":        "Poacher",            # movement + finishing
+    "Striker-Powerhouse":    "Rifle",              # power + shooting
+    "Striker-Sprinter":      "Rocket",             # pace + finishing
+    "Striker-Target":        "Hitman",             # aerial + shooting
+
+    # Tactical (Destroyer primary)
+    "Destroyer-Commander":   "Leader",             # aggressive + vocal
+    "Destroyer-Controller":  "Lynchpin",           # tackles + orchestrates
+    "Destroyer-Cover":       "Shield",             # aggressive + positional
+    "Destroyer-Engine":      "Train",              # relentless tackling machine
+    "Destroyer-Passer":      "Libero",             # wins it + distributes
+    "Destroyer-Powerhouse":  "Rock",               # physical + aggressive defence
+    "Destroyer-Sprinter":    "Shadow",             # pace + aggressive recovery
+    "Destroyer-Target":      "Centre Back",        # tackles + aerial dominance
+    "Powerhouse-Destroyer":  "Enforcer",           # physical domination + tackling
+    "Powerhouse-Striker":    "Spearhead",          # power + goal threat
+
+    # ── Additional pairs (not in original CSV) ────────────────────────────────
+
+    # Mental × Physical (gaps)
+    "Controller-Sprinter":   "Tempo Runner",       # reads the game + pace to exploit
+    "Controller-Target":     "Aerial Conductor",   # orchestrates + aerial presence
+    "Controller-Powerhouse": "Iron Conductor",     # controls tempo with authority
+    "Commander-Sprinter":    "Pace Leader",         # vocal leader + explosive speed
+    "Commander-Target":      "Colossus",           # leads by example + aerial
+    "Commander-Powerhouse":  "Enforcer",           # commands + overpowers
+    "Creator-Sprinter":      "Spark",              # creative genius + electric pace
+    "Creator-Target":        "Aerial Artist",      # creative flair + aerial threat
+    "Creator-Powerhouse":    "Bulldozer",          # creates through physical force
+
+    # Mental × Tactical (gaps)
+    "Controller-Cover":      "Sentinel",           # reads the game + shields space
+    "Controller-Destroyer":  "Conductor",          # orchestrates + wins it back
+    "Commander-Cover":       "Guardian",           # organises + protects
+    "Commander-Destroyer":   "Warrior",            # commands + tackles
+    "Creator-Cover":         "Shadow",             # creates from deep, reads danger
+    "Creator-Destroyer":     "Disruptor",          # unpredictable + aggressive
+
+    # Mental × Technical (gaps)
+    "Controller-Dribbler":   "Architect",          # builds play + carries ball
+    "Controller-Striker":    "Clinical",           # calm decisions + lethal finishing
+    "Commander-Dribbler":    "Talisman",           # leads + carries the ball
+    "Commander-Passer":      "General",            # organises through distribution
+    "Commander-Striker":     "Figurehead",         # leads the line + finishes
+
+    # Physical × Mental (gaps)
+    "Sprinter-Controller":   "Tempo Runner",
+    "Sprinter-Commander":    "Pace Leader",
+    "Sprinter-Creator":      "Spark",
+    "Target-Controller":     "Aerial Conductor",
+    "Target-Commander":      "Colossus",
+    "Target-Creator":        "Aerial Artist",
     "Powerhouse-Controller": "Iron Conductor",
-    "Powerhouse-Commander": "Enforcer",
-    "Powerhouse-Creator":   "Bulldozer",
+    "Powerhouse-Commander":  "Enforcer",
+    "Powerhouse-Creator":    "Bulldozer",
 
-    # Tactical + Mental
-    "Cover-Controller":     "Sentinel",
-    "Cover-Commander":      "Guardian",
-    "Cover-Creator":        "Shadow",
-    "Engine-Controller":    "Metronome",
-    "Engine-Commander":     "Captain",
-    "Engine-Creator":       "Dynamo",
-    "Destroyer-Controller": "Conductor",
-    "Destroyer-Commander":  "Warrior",
-    "Destroyer-Creator":    "Disruptor",
+    # Physical × Technical (gaps)
+    "Target-Dribbler":       "Acrobat",            # aerial + ball skills
+    "Target-Passer":         "Quarterback",        # aerial presence + distribution
+    "Powerhouse-Dribbler":   "Ox",                 # powerful + skillful
+    "Powerhouse-Passer":     "Quarterback",        # physical authority + distribution
 
-    # Technical + Mental
-    "Dribbler-Controller":  "Technician",         # skill-first but smart
-    "Dribbler-Commander":   "Talisman",
-    "Dribbler-Creator":     "Virtuoso",           # skill-first but inventive
-    "Passer-Controller":    "Maestro",
-    "Passer-Commander":     "General",
-    "Passer-Creator":       "Visionary",
-    "Striker-Controller":   "Clinical",
-    "Striker-Commander":    "Figurehead",
-    "Striker-Creator":      "Fantasista",
+    # Tactical × Physical (gaps)
+    "Cover-Sprinter":        "Flanker",
+    "Cover-Target":          "Fortress",           # aerial + positional reading
+    "Destroyer-Dribbler":    "Ball Winner",        # wins it + drives forward
+    "Destroyer-Striker":     "Predator",           # aggressive + clinical
+    "Engine-Target":         "Battering Ram",      # tireless + aerial
 
-    # Technical + Tactical
-    "Dribbler-Cover":       "Libero",
-    "Dribbler-Engine":      "Workhorse",
-    "Dribbler-Destroyer":   "Ball Winner",
-    "Passer-Cover":         "Quarterback",
-    "Passer-Engine":        "Shuttle",
-    "Passer-Destroyer":     "Recycler",
-    "Striker-Cover":        "Poacher",
-    "Striker-Engine":       "Pressing Machine",
-    "Striker-Destroyer":    "Predator",
+    # Technical × Mental (gaps)
+    "Dribbler-Controller":   "Technician",         # skill-first but smart
+    "Dribbler-Commander":    "Talisman",
+    "Passer-Controller":     "Regista",
+    "Passer-Commander":      "General",
+    "Striker-Controller":    "Clinical",
+    "Striker-Commander":     "Figurehead",
 
-    # Physical + Technical
-    "Dribbler-Sprinter":    "Jet",
-    "Dribbler-Target":      "Acrobat",
-    "Dribbler-Powerhouse":  "Ox",
-    "Passer-Sprinter":      "Flanker",
-    "Passer-Target":        "Quarterback",
-    "Passer-Powerhouse":    "Quarterback",
-    "Striker-Sprinter":     "Quicksilver",
-    "Striker-Target":       "Marksman",
-    "Striker-Powerhouse":   "Cannon",
+    # Technical × Tactical (gaps)
+    "Dribbler-Cover":        "Libero",
+    "Dribbler-Engine":       "Tornate",
+    "Dribbler-Destroyer":    "Ball Winner",
+    "Passer-Engine":         "Metronome",
+    "Passer-Destroyer":      "Recycler",           # wins it + circulates
+    "Passer-Sprinter":       "Flanker",
+    "Passer-Target":         "Quarterback",
+    "Passer-Powerhouse":     "Quarterback",
+    "Striker-Cover":         "Poacher",
+    "Striker-Destroyer":     "Predator",
 
-    # Tactical + Physical
-    "Cover-Sprinter":       "Sweeper",
-    "Cover-Target":         "Fortress",
-    "Cover-Powerhouse":     "Rock",
-    "Engine-Sprinter":      "Roadrunner",
-    "Engine-Target":        "Battering Ram",
-    "Engine-Powerhouse":    "Machine",
-    "Destroyer-Sprinter":   "Blitz",
-    "Destroyer-Target":     "Wrecking Ball",
-    "Destroyer-Powerhouse": "Terminator",
+    # Technical × Physical (gaps)
+    "Dribbler-Target":       "Acrobat",
+    "Dribbler-Powerhouse":   "Ox",
+    "Striker-Target":        "Hitman",
 
-    # ── GK compounds (rare but possible) ──
-    "GK-Controller":        "Modern Keeper",
-    "GK-Commander":         "Commander",
-    "GK-Cover":             "Traditional Keeper",
-    "GK-Passer":            "Sweeper Keeper",
-    "GK-Sprinter":          "Sweeper Keeper",
+    # ── GK compounds ──
+    "GK-Controller":         "Modern Keeper",
+    "GK-Commander":          "Commander",
+    "GK-Cover":              "Traditional Keeper",
+    "GK-Passer":             "Sweeper Keeper",
+    "GK-Sprinter":           "Sweeper Keeper",
 }
 
 

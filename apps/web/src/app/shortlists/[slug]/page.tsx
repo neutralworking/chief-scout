@@ -146,7 +146,7 @@ export default function ShortlistDetailPage() {
                     {p.name}
                   </span>
                   {p.level != null && (
-                    <span className="text-xs font-mono font-bold text-[var(--accent-tactical)]">{p.level}</span>
+                    <span className="text-xs font-mono font-bold text-[var(--accent-tactical)]">OVR {p.level}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mt-0.5">

@@ -27,22 +27,24 @@ interface FreeAgent {
   contract_expiry_date: string | null;
   contract_tag: string | null;
   fingerprint: number[] | null;
+  goals: number | null;
+  assists: number | null;
+  rating: number | null;
 }
 
 // Hex colors for radar polygon per theme
 const RADAR_COLORS: Record<CardTheme, string> = {
   general: "#a1a1aa",
-  showman: "#e879f9",
+  catalyst: "#e879f9",
   maestro: "#fcd34d",
   captain: "#f87171",
   professor: "#60a5fa",
   default: "#4ade80",
 };
 
-const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
-const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
+// Labels now derived from getRoleRadarConfig() — position-specific 4-axis
 
-function levelColor(level: number | null): string {
+function ratingColor(level: number | null): string {
   if (level == null) return "text-[var(--text-muted)]";
   if (level >= 85) return "text-amber-400";
   if (level >= 78) return "text-green-400";
@@ -63,8 +65,8 @@ function formatValue(eur: number | null): string {
 }
 
 const TABS = [
-  { key: "free", label: "Free Agents" },
   { key: "2026", label: "Expiring 2026" },
+  { key: "free", label: "Free Agents" },
   { key: "2027", label: "Expiring 2027" },
 ] as const;
 
@@ -75,9 +77,9 @@ function FreeAgentsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const tab = searchParams.get("tab") ?? "free";
+  const tab = searchParams.get("tab") ?? "2026";
   const position = searchParams.get("position") ?? "";
-  const sort = searchParams.get("sort") ?? "level";
+  const sort = searchParams.get("sort") ?? "overall";
   const isFreeTab = tab === "free";
 
   const updateParam = useCallback((key: string, value: string) => {
@@ -121,9 +123,12 @@ function FreeAgentsContent() {
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agents & Expiring Contracts</h1>
-        <p className="text-[11px] text-[var(--text-secondary)]">
+        <p className="text-[11px] text-[var(--text-secondary)] mb-1">
           {loading ? "Loading..." : `${players.length} players`}
           {avgScore != null && !loading && ` · avg score ${avgScore}`}
+        </p>
+        <p className="text-[11px] text-[var(--text-muted)]">
+          Summer 2026 window: who&apos;s available on a Bosman? Scouting intelligence for every expiring contract across Europe&apos;s top 5 leagues.
         </p>
       </div>
 
@@ -132,7 +137,7 @@ function FreeAgentsContent() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => updateParam("tab", t.key === "free" ? "" : t.key)}
+            onClick={() => updateParam("tab", t.key === "2026" ? "" : t.key)}
             className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
               tab === t.key
                 ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
@@ -168,7 +173,8 @@ function FreeAgentsContent() {
       <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
           className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
-          <option value="level">Sort: Level</option>
+          <option value="overall">Sort: Rating</option>
+          <option value="rating">Sort: AF Rating</option>
           <option value="age">Sort: Age</option>
           <option value="value">Sort: Value</option>
           <option value="name">Sort: Name</option>
@@ -194,6 +200,9 @@ function FreeAgentsContent() {
                 <th className="text-right py-2 px-4 font-medium w-12">Age</th>
                 <th className="text-center py-2 px-4 font-medium w-20">Radar</th>
                 <th className="text-left py-2 px-4 font-medium hidden xl:table-cell">Archetype</th>
+                <th className="text-right py-2 px-4 font-medium w-10 hidden lg:table-cell">G</th>
+                <th className="text-right py-2 px-4 font-medium w-10 hidden lg:table-cell">A</th>
+                <th className="text-right py-2 px-4 font-medium w-12 hidden lg:table-cell">Rtg</th>
                 <th className="text-right py-2 px-4 font-medium hidden lg:table-cell">Value</th>
                 <th className="text-right py-2 px-4 font-medium w-16 hidden lg:table-cell">
                   <span className="text-[var(--color-accent-physical)]">Phys</span>
@@ -249,6 +258,17 @@ function FreeAgentsContent() {
                       )}
                     </td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
+                    <td className="py-2 px-4 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                      {player.goals ?? "–"}
+                    </td>
+                    <td className="py-2 px-4 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                      {player.assists ?? "–"}
+                    </td>
+                    <td className="py-2 px-4 text-right font-mono text-[10px] hidden lg:table-cell">
+                      {player.rating != null ? (
+                        <span className="text-amber-400">{player.rating.toFixed(2)}★</span>
+                      ) : "–"}
+                    </td>
                     <td className="py-2 px-4 text-right text-xs font-mono text-[var(--text-secondary)] hidden lg:table-cell">
                       {formatValue(player.market_value_eur)}
                     </td>
@@ -278,7 +298,7 @@ function FreeAgentsContent() {
                         </span>
                       )}
                     </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(player.best_role_score)}`}>
+                    <td className={`py-2 px-4 text-right font-mono font-bold ${ratingColor(player.best_role_score)}`}>
                       {player.best_role_score ?? "–"}
                     </td>
                   </tr>
@@ -312,6 +332,14 @@ function FreeAgentsContent() {
                       {player.nation && ` · ${player.nation}`}
                       {age != null && ` · ${age}y`}
                     </p>
+                    {(player.goals != null || player.assists != null) && (
+                      <p className="text-[10px] font-mono text-[var(--text-muted)]">
+                        {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
+                        {player.goals != null && player.assists != null && " "}
+                        {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
+                        {player.rating != null && <span className="text-amber-400"> · {player.rating.toFixed(1)}★</span>}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
@@ -329,8 +357,8 @@ function FreeAgentsContent() {
                       {formatExpiry(player.contract_expiry_date)}
                     </span>
                   )}
-                  <span className={`text-lg font-mono font-bold ${levelColor(player.level)}`}>
-                    {player.level ?? "–"}
+                  <span className={`text-lg font-mono font-bold ${ratingColor(player.best_role_score)}`}>
+                    {player.best_role_score ?? "–"}
                   </span>
                 </div>
               </Link>

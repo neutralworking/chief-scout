@@ -1,30 +1,30 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+
+// Proxy mapping: canonical model attributes → existing DB attributes we have data for.
+// These are not identity mappings — they're "best available proxy" for attributes
+// that no external source provides. The SACROSANCT model definitions stay pure;
+// this is a radar-display concern only.
+const ATTR_PROXIES: Record<string, string> = {
+  // Commander: mental/leadership traits → proxied from composite mental scores
+  communication:    "tactical",      // tactical awareness implies game-reading + organising
+  concentration:    "composure",     // composure IS concentration under pressure
+  drive:            "intensity",     // intensity captures work ethic / drive
+  leadership:       "mental",        // general mental score is the best proxy
+
+  // Controller: game management traits
+  anticipation:     "awareness",     // awareness = reading the play ahead
+  decisions:        "tactical",      // tactical score reflects decision quality
+  tempo:            "composure",     // composure governs tempo control
+
+  // Creator: unpredictability has no proxy but creativity+vision+guile cover 3/4
+
+  // GK: agility + handling have no direct proxies
+  agility:          "reactions",     // reaction speed approximates agility
+  handling:         "footwork",      // footwork is the closest GK proxy
+};
 import { NextResponse } from "next/server";
-
-// 13 SACROSANCT playing models, each averaging 4 core attributes
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller:  ["anticipation", "composure", "decisions", "tempo"],
-  Commander:   ["communication", "concentration", "drive", "leadership"],
-  Creator:     ["creativity", "unpredictability", "vision", "guile"],
-  Target:      ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter:    ["acceleration", "balance", "movement", "pace"],
-  Powerhouse:  ["aggression", "duels", "shielding", "stamina"],
-  Cover:       ["awareness", "discipline", "interceptions", "positioning"],
-  Engine:      ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer:   ["blocking", "clearances", "marking", "tackling"],
-  Dribbler:    ["carries", "first_touch", "skills", "take_ons"],
-  Passer:      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker:     ["close_range", "mid_range", "long_range", "penalties"],
-  GK:          ["agility", "footwork", "handling", "reactions"],
-};
-
-// Attribute aliases (DB inconsistencies)
-const ATTR_ALIASES: Record<string, string> = {
-  takeons: "take_ons",
-  leadership: "leadership",
-  unpredicability: "unpredictability",
-};
 
 // Which models matter for each position (weights 0-1)
 // Reviewed by DOF: Passer added to CD, Powerhouse to DM, Cover raised for CM,
@@ -81,17 +81,6 @@ for (const [roleName, intel] of Object.entries(ROLE_INTELLIGENCE)) {
   }
 }
 
-// Source priority for fallback scoring (higher = preferred)
-// For each attribute, we use the score from the highest-priority source that has data.
-// This prevents eafc_inferred garbage (undifferentiated all-10s) from polluting real data.
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5,
-  statsbomb: 4,
-  fbref: 3,
-  understat: 2,
-  eafc_inferred: 1,
-};
-
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -123,7 +112,28 @@ export async function GET(
   // ── Priority fallback per attribute ──
   // For each attribute, use the score from the highest-priority source.
   // This prevents eafc garbage (all 10s) from diluting real statistical data.
-  // Per-source scale detection: eafc/understat are 0-10, legacy data may be 0-20.
+  // Source-specific scales (not heuristic — based on actual data ranges)
+  const SOURCE_SCALE: Record<string, number> = {
+    scout_assessment: 20, eafc_inferred: 20, statsbomb: 20,
+    api_football: 10, fbref: 10, understat: 10, computed: 10,
+  };
+
+  // Some attributes are quality ratings (how good is this player at X?) while
+  // external sources grade them from rate stats (how often does X happen per 90?).
+  // Rate stats penalise players whose role doesn't involve that action frequently.
+  // e.g. a striker with pass_accuracy=1 isn't bad — they just don't pass much.
+  // For these attributes, only trust quality-rating sources (scout + eafc).
+  const QUALITY_ONLY_ATTRS = new Set([
+    "composure",      // avg_rating ≠ composure
+    "creativity",     // key_passes_p90 penalises non-creators
+    "vision",         // assists_p90 penalises non-assisters
+    "guile",          // fouls_drawn_p90 — barely related
+    "pass_accuracy",  // pass % — position-dependent
+    "take_ons",       // dribble success % — sample size issues
+    "duels",          // duel win % — position-dependent
+  ]);
+  const QUALITY_SOURCES = new Set(["scout_assessment", "eafc_inferred"]);
+
   const attrBest = new Map<string, { normalized: number; priority: number; source: string }>();
   const sourcesSeen = new Set<string>();
 
@@ -134,11 +144,15 @@ export async function GET(
     let attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
     attr = ATTR_ALIASES[attr] ?? attr;
     const source = g.source ?? "eafc_inferred";
-    const priority = SOURCE_PRIORITY[source] ?? 1;
+    let priority = SOURCE_PRIORITY[source] ?? 1;
     sourcesSeen.add(source);
 
-    // Per-source scale: scout grades can be 0-20, stats are 0-10
-    const scale = raw > 10 ? 20.0 : 10.0;
+    // For quality-only attributes, skip non-quality sources entirely
+    if (QUALITY_ONLY_ATTRS.has(attr) && !QUALITY_SOURCES.has(source)) {
+      continue;
+    }
+
+    const scale = SOURCE_SCALE[source] ?? (raw > 10 ? 20.0 : 10.0);
     const normalized = (raw / scale) * 100;
 
     const existing = attrBest.get(attr);
@@ -184,10 +198,28 @@ export async function GET(
   const modelScores: Record<string, number> = {};
   for (const [model, attrs] of Object.entries(MODEL_ATTRIBUTES)) {
     const vals = attrs
-      .map((a) => attrScores.get(a))
+      .map((a) => attrScores.get(a) ?? attrScores.get(ATTR_PROXIES[a] ?? ""))
       .filter((v): v is number => v !== undefined);
     if (vals.length >= 2) {
       modelScores[model] = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    }
+  }
+
+  // ── Contrast stretch for radar display ──
+  // Raw model scores cluster 50-70 making radars blobby. Stretch the player's
+  // own range so their profile shape is visible. This is purely visual —
+  // position/role scores below still use raw values for accuracy.
+  const rawModelScores = { ...modelScores };
+  const modelVals = Object.values(modelScores);
+  if (modelVals.length >= 3) {
+    const min = Math.min(...modelVals);
+    const max = Math.max(...modelVals);
+    const spread = max - min;
+    if (spread > 0 && spread < 60) {
+      // Map [min, max] → [15, 95] so shape is distinctive
+      for (const [model, score] of Object.entries(modelScores)) {
+        modelScores[model] = Math.round(15 + ((score - min) / spread) * 80);
+      }
     }
   }
 
@@ -201,8 +233,8 @@ export async function GET(
     let weightedSum = 0;
     let totalWeight = 0;
     for (const [model, weight] of Object.entries(weights)) {
-      if (modelScores[model] !== undefined) {
-        weightedSum += modelScores[model] * weight;
+      if (rawModelScores[model] !== undefined) {
+        weightedSum += rawModelScores[model] * weight;
         totalWeight += weight;
       }
     }
@@ -240,8 +272,8 @@ export async function GET(
 
   for (const [pos, roles] of Object.entries(TACTICAL_ROLES)) {
     roleScores[pos] = roles.map((r) => {
-      const pScore = modelScores[r.primary] ?? 0;
-      const sScore = modelScores[r.secondary] ?? 0;
+      const pScore = rawModelScores[r.primary] ?? 0;
+      const sScore = rawModelScores[r.secondary] ?? 0;
       let score = pScore * 0.6 + sScore * 0.4;
 
       // Apply level anchor to role scores too

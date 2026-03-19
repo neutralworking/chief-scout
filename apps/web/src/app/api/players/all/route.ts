@@ -1,95 +1,18 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
 import { prodFilter } from "@/lib/env";
+import { fetchSeasonStats } from "@/lib/stats";
+
+// Never cache — admin edits must reflect immediately on refresh
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, club, club_id, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint";
 
-// 13 SACROSANCT playing models → 4 core attributes each (mirrors radar route)
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller:  ["anticipation", "composure", "decisions", "tempo"],
-  Commander:   ["communication", "concentration", "drive", "leadership"],
-  Creator:     ["creativity", "unpredictability", "vision", "guile"],
-  Target:      ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter:    ["acceleration", "balance", "movement", "pace"],
-  Powerhouse:  ["aggression", "duels", "shielding", "stamina"],
-  Cover:       ["awareness", "discipline", "interceptions", "positioning"],
-  Engine:      ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer:   ["blocking", "clearances", "marking", "tackling"],
-  Dribbler:    ["carries", "first_touch", "skills", "take_ons"],
-  Passer:      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker:     ["close_range", "mid_range", "long_range", "penalties"],
-  GK:          ["agility", "footwork", "handling", "reactions"],
-};
-
-const ATTR_ALIASES: Record<string, string> = {
-  takeons: "take_ons",
-  unpredicability: "unpredictability",
-};
-
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5, statsbomb: 4, fbref: 3, understat: 2, eafc_inferred: 1,
-};
-
-function computeFingerprint(
-  grades: Array<{ player_id: number; attribute: string; scout_grade: number | null; stat_score: number | null; source: string | null }>,
-  position: string | null,
-): number[] | null {
-  // Priority fallback per attribute
-  const attrBest = new Map<string, { normalized: number; priority: number }>();
-  for (const g of grades) {
-    const raw = g.scout_grade ?? g.stat_score ?? 0;
-    if (raw <= 0) continue;
-    let attr = g.attribute.toLowerCase().replace(/\s+/g, "_");
-    attr = ATTR_ALIASES[attr] ?? attr;
-    const priority = SOURCE_PRIORITY[g.source ?? "eafc_inferred"] ?? 1;
-    const scale = raw > 10 ? 20.0 : 10.0;
-    const normalized = (raw / scale) * 100;
-    const existing = attrBest.get(attr);
-    if (!existing || priority > existing.priority) {
-      attrBest.set(attr, { normalized, priority });
-    }
-  }
-
-  if (attrBest.size === 0) return null;
-
-  const attrScores = new Map<string, number>();
-  for (const [attr, best] of attrBest) {
-    attrScores.set(attr, Math.round(best.normalized));
-  }
-
-  // Compute model scores
-  const modelScores: Record<string, number | null> = {};
-  for (const [model, attrs] of Object.entries(MODEL_ATTRIBUTES)) {
-    const vals = attrs.map((a) => attrScores.get(a)).filter((v): v is number => v !== undefined);
-    modelScores[model] = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-  }
-
-  function avg(...models: string[]): number {
-    const vals = models.map((m) => modelScores[m]).filter((v): v is number => v !== null);
-    return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
-  }
-
-  if (position === "GK") {
-    // 4-axis: Shot Stop, Command, Sweep, Distribute
-    return [
-      modelScores["GK"] ?? 0,
-      modelScores["Commander"] ?? 0,
-      modelScores["Cover"] ?? 0,
-      modelScores["Passer"] ?? 0,
-    ];
-  }
-
-  // 6-axis outfield: DEF, CRE, ATK, PWR, PAC, DRV
-  return [
-    avg("Cover", "Destroyer"),
-    avg("Creator", "Passer"),
-    avg("Striker", "Dribbler"),
-    avg("Powerhouse", "Target"),
-    modelScores["Sprinter"] ?? 0,
-    avg("Engine", "Commander", "Controller"),
-  ];
-}
+// Fingerprints are precomputed by pipeline/51_fingerprints.py
+// and stored in player_profiles.fingerprint (percentile ranks within position group).
+// The view includes them directly — no computation needed here.
 
 export async function GET(req: NextRequest) {
   const supabase = supabaseServer;
@@ -107,8 +30,14 @@ export async function GET(req: NextRequest) {
   const sort = searchParams.get("sort") ?? "value";
   const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
   const offset = Number(searchParams.get("offset") || 0);
+  const wantStats = searchParams.get("stats") === "1";
 
   let query = prodFilter(supabase.from("player_intelligence_card").select(SELECT));
+
+  // Exclude retired/inactive players and women's teams by default
+  query = query.eq("active", true)
+    .not("club", "ilike", "%women%")
+    .not("club", "ilike", "%wfc%");
 
   // Server-side filters
   if (position) query = query.eq("position", position);
@@ -119,28 +48,93 @@ export async function GET(req: NextRequest) {
   }
   if (tier) query = query.eq("profile_tier", parseInt(tier, 10));
   if (full === "1") {
-    query = query.not("archetype", "is", null).not("personality_type", "is", null).not("level", "is", null);
+    query = query.not("archetype", "is", null).not("personality_type", "is", null).not("overall", "is", null);
   }
-  if (q) query = query.ilike("name", `%${q}%`);
+  if (q) {
+    // Accent-insensitive search: split into words, match each independently.
+    // "fermin lopez" → must match BOTH a "fermin/fermín" variant AND a "lopez/lópez" variant.
+    const ACCENT_EXPAND: Record<string, string> = {
+      a: "á", e: "é", i: "í", o: "ó", u: "ú", n: "ñ", c: "ç", d: "đ",
+    };
+    const DEACCENT: Record<string, string> = {
+      ø: "o", ð: "d", æ: "a", đ: "d",
+      á: "a", à: "a", â: "a", ã: "a", ä: "a", å: "a",
+      é: "e", è: "e", ê: "e", ë: "e",
+      í: "i", ì: "i", î: "i", ï: "i",
+      ó: "o", ò: "o", ô: "o", õ: "o", ö: "o",
+      ú: "u", ù: "u", û: "u", ü: "u",
+      ñ: "n", ç: "c", ý: "y", ÿ: "y", š: "s", ž: "z",
+    };
+    function wordVariants(word: string): string[] {
+      const stripped = [...word].map((ch) => DEACCENT[ch] ?? DEACCENT[ch.toLowerCase()] ?? ch).join("");
+      const variants = new Set<string>([word, stripped]);
+      for (let i = 0; i < stripped.length; i++) {
+        const acc = ACCENT_EXPAND[stripped[i].toLowerCase()];
+        if (acc) variants.add(stripped.slice(0, i) + acc + stripped.slice(i + 1));
+      }
+      return [...variants];
+    }
+
+    const words = q.trim().split(/\s+/).filter((w) => w.length >= 2);
+    if (words.length === 1) {
+      const orFilter = wordVariants(words[0]).map((v) => `name.ilike.%${v}%`).join(",");
+      query = query.or(orFilter);
+    } else {
+      // Multiple words: each word must match (AND between words, OR between variants)
+      for (const word of words) {
+        const orFilter = wordVariants(word).map((v) => `name.ilike.%${v}%`).join(",");
+        query = query.or(orFilter);
+      }
+    }
+  }
+
+  // "Needs Review" sort: fetch wider set, sort by |level - overall| divergence
+  const isReviewSort = sort === "review";
 
   // Sort
-  switch (sort) {
-    case "level":
-      query = query.order("level", { ascending: false, nullsFirst: false });
-      break;
-    case "name":
-      query = query.order("name", { ascending: true });
-      break;
-    case "position":
-      query = query.order("position", { ascending: true, nullsFirst: false });
-      break;
-    case "value":
-    default:
-      query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
-      break;
+  if (!isReviewSort) {
+    switch (sort) {
+      case "level":
+        query = query.order("overall", { ascending: false, nullsFirst: false });
+        break;
+      case "level_raw":
+        query = query.order("level", { ascending: false, nullsFirst: false });
+        break;
+      case "role_score":
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
+      case "name":
+        query = query.order("name", { ascending: true });
+        break;
+      case "position":
+        query = query.order("position", { ascending: true, nullsFirst: false });
+        break;
+      case "cs_value":
+        query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+        break;
+      case "tm_value":
+        query = query.order("market_value_eur", { ascending: false, nullsFirst: false });
+        break;
+      case "value":
+        query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+        break;
+      case "rating":
+        // Rating sort uses client-side re-sort after stats enrichment
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
+      default:
+        query = query.order("best_role_score", { ascending: false, nullsFirst: false });
+        break;
+    }
+    // Tiebreaker: ensure stable ordering across pages (no duplicate players)
+    query = query.order("person_id", { ascending: true });
+    query = query.range(offset, offset + limit - 1);
+  } else {
+    // For review sort: need both level and overall non-null, fetch more rows to sort
+    query = query.not("level", "is", null).not("overall", "is", null);
+    query = query.order("level", { ascending: false, nullsFirst: false });
+    query = query.range(0, 499); // fetch up to 500 to sort by divergence
   }
-
-  query = query.range(offset, offset + limit - 1);
 
   const { data, error } = await query;
 
@@ -148,45 +142,49 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const players = data ?? [];
+  let players = (data ?? []) as Record<string, unknown>[];
 
-  // Batch-fetch fingerprint data for returned player IDs
-  const playerIds = players.map((p: { person_id: number }) => p.person_id);
-
-  let fingerprintMap = new Map<number, number[] | null>();
-
-  if (playerIds.length > 0) {
-    const { data: grades } = await supabase
-      .from("attribute_grades")
-      .select("player_id, attribute, scout_grade, stat_score, source")
-      .in("player_id", playerIds);
-
-    if (grades && grades.length > 0) {
-      // Group grades by player_id
-      const gradesByPlayer = new Map<number, typeof grades>();
-      for (const g of grades) {
-        const pid = g.player_id;
-        if (!gradesByPlayer.has(pid)) gradesByPlayer.set(pid, []);
-        gradesByPlayer.get(pid)!.push(g);
-      }
-
-      for (const p of players) {
-        const pid = (p as { person_id: number; position: string | null }).person_id;
-        const pos = (p as { position: string | null }).position;
-        const playerGrades = gradesByPlayer.get(pid);
-        if (playerGrades) {
-          fingerprintMap.set(pid, computeFingerprint(playerGrades, pos));
-        }
-      }
-    }
+  // Sort by divergence for review mode
+  if (isReviewSort) {
+    players.sort((a, b) => {
+      const divA = Math.abs((a.level as number) - (a.overall as number));
+      const divB = Math.abs((b.level as number) - (b.overall as number));
+      return divB - divA;
+    });
+    players = players.slice(offset, offset + limit);
   }
 
-  // Merge fingerprints into player data
-  const playersWithFingerprints = players.map((p: { person_id: number }) => ({
-    ...p,
-    fingerprint: fingerprintMap.get(p.person_id) ?? null,
-  }));
+  // Enrich with season stats: API-Football → FBRef → Kaggle cascade
+  if (wantStats && players.length > 0) {
+    const ids = players.map((p) => p.person_id as number).filter(Boolean);
+    const statsMap = await fetchSeasonStats(supabase, ids);
 
+    players = players.map((p) => {
+      const s = statsMap.get(p.person_id as number);
+      return {
+        ...p,
+        apps: s?.apps || null,
+        goals: s?.goals || null,
+        assists: s?.assists || null,
+        xg: s?.xg ? Math.round(s.xg * 10) / 10 : null,
+        rating: s?.rating ? Math.round(s.rating * 100) / 100 : null,
+      };
+    });
+  }
+
+  // Client-side rating sort (needs stats enrichment first)
+  if (sort === "rating" && wantStats) {
+    players.sort((a, b) => {
+      const ra = (a.rating as number) ?? 0;
+      const rb = (b.rating as number) ?? 0;
+      return rb - ra;
+    });
+  }
+
+  // Fingerprints now come precomputed from the view (pipeline 51)
   // Return hasMore flag instead of total count (avoids expensive count query on view)
-  return NextResponse.json({ players: playersWithFingerprints, hasMore: players.length === limit });
+  return NextResponse.json(
+    { players, hasMore: players.length === limit },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache" } },
+  );
 }

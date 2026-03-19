@@ -11,13 +11,18 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { user_id, question_id, option_id, time_ms } = body;
+  const {
+    user_id,
+    question_id,
+    option_id,
+    time_ms,
+    is_dynamic,
+    person_id: votedPersonId,
+    dimension_weights: clientWeights,
+  } = body;
 
-  if (!user_id || !question_id || !option_id) {
-    return NextResponse.json(
-      { error: "Missing user_id, question_id, or option_id" },
-      { status: 400 }
-    );
+  if (!user_id) {
+    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
   }
 
   const sb = createClient(supabaseUrl, supabaseKey);
@@ -29,6 +34,58 @@ export async function POST(request: Request) {
 
   if (userError) {
     console.error("User upsert error:", userError);
+  }
+
+  // ── Dynamic question vote ──────────────────────────────────────────────
+  if (is_dynamic) {
+    // Apply dimension weights from the client payload
+    const { data: currentUser } = await sb
+      .from("fc_users")
+      .select("total_votes, flair_vs_function, youth_vs_experience, attack_vs_defense, loyalty_vs_ambition, domestic_vs_global, stats_vs_eye_test, control_vs_chaos")
+      .eq("id", user_id)
+      .single();
+
+    if (currentUser && clientWeights) {
+      const newTotalVotes = (currentUser.total_votes ?? 0) + 1;
+      const userUpdate: Record<string, unknown> = {
+        total_votes: newTotalVotes,
+      };
+
+      const dampening = Math.max(0.3, 1.0 - newTotalVotes * 0.02);
+      const dimensions = [
+        "flair_vs_function", "youth_vs_experience", "attack_vs_defense",
+        "loyalty_vs_ambition", "domestic_vs_global", "stats_vs_eye_test",
+        "control_vs_chaos",
+      ] as const;
+
+      for (const dim of dimensions) {
+        if (clientWeights[dim] !== undefined) {
+          const current = (currentUser[dim] as number | null) ?? 50;
+          const shifted = Math.round(
+            Math.max(0, Math.min(100, current + clientWeights[dim] * dampening))
+          );
+          userUpdate[dim] = shifted;
+        }
+      }
+
+      await sb.from("fc_users").update(userUpdate).eq("id", user_id);
+    }
+
+    // Return success without trying to look up fc_options
+    return NextResponse.json({
+      success: true,
+      results: null, // Client builds results from its own option data
+      voted_person_id: votedPersonId,
+    });
+  }
+
+  // ── Static question vote (existing flow) ───────────────────────────────
+
+  if (!question_id || !option_id) {
+    return NextResponse.json(
+      { error: "Missing question_id or option_id" },
+      { status: 400 }
+    );
   }
 
   // Insert or update vote

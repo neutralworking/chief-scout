@@ -35,22 +35,22 @@ Four dichotomies scored 0-100 on each axis. The threshold is 50. Above = first l
 
 | Code | Name | One-liner | Theme |
 |------|------|-----------|-------|
-| ANLC | **The General** | Structured reader, self-driven, organizes others, thrives in confrontation | General |
-| ANSC | **The Machine** | Reads the game systematically, self-motivated, quiet but relentless | General |
-| INSC | **The Hunter** | Instinctive, self-driven, self-reliant, competitive edge | General |
-| AXLC | **The Showman** | Structured but feeds off atmosphere, demands attention, confrontational | Showman |
-| IXSC | **The Maverick** | Flair player, needs the big stage, self-focused, rises to confrontation | Showman |
-| IXLC | **The Provocateur** | Improviser, occasion-driven, leads vocally, thrives on confrontation | Showman |
-| INSP | **The Maestro** | Creative, self-motivated, quietly brilliant, composed under pressure | Maestro |
-| ANLP | **The Conductor** | Tactical organizer, self-driven, leads through control, ice-cold composure | Maestro |
-| IXSP | **The Genius** | Improviser, occasion-driven, self-contained, ice-cold under pressure | Maestro |
-| INLC | **The Captain** | Instinct-driven, self-motivated, vocal leader, fierce competitor | Captain |
-| INLP | **The Guardian** | Instinctive, self-motivated, vocal organizer, calm presence | Captain |
-| AXSC | **The Enforcer** | Reads patterns, fuelled by occasion, self-focused, aggressive competitor | Captain |
-| ANSP | **The Professor** | Analytical, self-motivated, self-contained, composed under pressure | Professor |
-| AXSP | **The Technician** | Structured, occasion-driven, self-contained, calm under pressure | Professor |
-| IXLP | **The Playmaker** | Creative improviser, occasion-driven, organizes play, composed | Professor |
-| AXLP | **The Orchestrator** | Tactical mind, feeds off the crowd, organizes others, composed decision-maker | Professor |
+| ANLC | **The General** | Reads the game analytically. Self-driven. Organises others. Thrives when it matters most. | General |
+| ANSC | **The Machine** | Systematic reader of the game. Self-motivated. Quiet but relentless. Consistently delivers. | General |
+| INSC | **The Mamba** | Instinctive. Self-driven. Self-reliant. Strikes with precision and competitive edge. | General |
+| AXLC | **The Catalyst** | Analytical mind fuelled by atmosphere. Demands attention. Leads through confrontation. | Catalyst |
+| IXSC | **The Maverick** | Flair player who needs the big stage. Self-focused. Rises to confrontation. | Catalyst |
+| IXLC | **The Livewire** | Improviser fuelled by occasion. Leads vocally. Thrives on confrontation. | Catalyst |
+| INSP | **The Maestro** | Creative and self-motivated. Quietly brilliant. Composed under pressure. | Maestro |
+| ANLP | **The Conductor** | Tactical organiser. Self-driven. Leads through control. Ice-cold composure. | Maestro |
+| IXSP | **The Genius** | Improviser who lives for the occasion. Self-contained. Ice-cold under pressure. | Maestro |
+| INLC | **The Captain** | Instinct-driven. Self-motivated. Vocal leader. Fierce competitor who sets the standard. | Captain |
+| INLP | **The Guardian** | Instinctive. Self-motivated. Vocal organiser. A calm and steady presence. | Captain |
+| AXSC | **The Enforcer** | Reads patterns. Fuelled by the occasion. Self-focused. Aggressive competitor. | Catalyst |
+| ANSP | **The Professor** | Analytical. Self-motivated. Self-contained. Composed under the highest pressure. | Professor |
+| AXSP | **The Technician** | Structured thinker. Occasion-driven. Self-contained. Calm under pressure. | Professor |
+| IXLP | **The Playmaker** | Creative improviser. Occasion-driven. Organises play. Composed decision-maker. | Professor |
+| AXLP | **The Orchestrator** | Tactical mind who feeds off the crowd. Organises others. Composed and decisive. | Professor |
 
 ### Standalone Traits
 
@@ -70,7 +70,7 @@ Personality type drives the visual treatment of player cards in the UI:
 | Theme | Types | Visual motif |
 |-------|-------|-------------|
 | **General** | ANLC, ANSC, INSC | Helvetica business card: clean lines, zinc palette, sharp borders, tracked uppercase |
-| **Showman** | AXLC, IXSC, IXLC | Carnival: fuchsia-amber gradients, rounded-2xl, bold italic gradient text |
+| **Catalyst** | AXLC, IXSC, IXLC | Carnival: fuchsia-amber gradients, rounded-2xl, bold italic gradient text |
 | **Maestro** | INSP, ANLP, IXSP | Silk: muted gold borders, refined italic typography, understated elegance |
 | **Captain** | INLC, INLP, AXSC | Military: bold red left stripe, extrabold uppercase, commanding presence |
 | **Professor** | ANSP, AXSP, IXLP, AXLP | Blueprint: blue monospace accents, technical borders, precise layout |

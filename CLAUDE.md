@@ -47,7 +47,7 @@ Only players with ALL of these populated go to prod:
 - `player_status`: scouting_notes (pursuit_status optional)
 - `attribute_grades`: 20+ grades
 
-Use `python pipeline/40_promote_to_prod.py --dry-run` to preview, then run without `--dry-run` to push.
+Use `python pipeline/45_promote_to_prod.py --dry-run` to preview, then run without `--dry-run` to push.
 
 ### Environment variables
 - Root `.env.local`: pipeline credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY, POSTGRES_DSN, GEMINI_API_KEY, PROD_SUPABASE_URL, PROD_SUPABASE_SERVICE_KEY)
@@ -62,34 +62,93 @@ Use `python pipeline/40_promote_to_prod.py --dry-run` to preview, then run witho
 
 ## Pipeline Scripts
 Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc.):
-- `01–07` → core player data pipeline (parse → push to Supabase)
-- `08_statsbomb_ingest.py` → StatsBomb open data → `sb_competitions/matches/events/lineups`. Flags: `--competition`, `--dry-run`, `--force`
-- `09_understat_ingest.py` → Understat xG → `understat_matches/player_match_stats`. Flags: `--league`, `--season`, `--dry-run`, `--force`
-- `10_player_matching.py` → Links external player IDs to `people.id` via `player_id_links`. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
-- `11_fbref_ingest.py` → FBRef season stats → `fbref_players/fbref_player_season_stats`. Flags: `--comp`, `--season`, `--seasons-back`, `--dry-run`, `--force`
-- `12_news_ingest.py` → RSS + Gemini Flash → `news_stories/news_player_tags`. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`, `--force`
-- `13_stat_metrics.py` → Aggregate StatsBomb events + Understat xG into per-player attribute scores → `attribute_grades`
-- `14_seed_profiles.py` → Seed full player profiles (50 curated players with all 6 tables)
-- `15_wikidata_enrich.py` → Wikidata SPARQL → backfill DOB/height/foot + cross-link IDs. Flags: `--phase 1|2|3`, `--player`, `--force`, `--batch-size`
-- `16_club_ingest.py` → Parse `imports/clubs.csv` → `clubs` + `nations` tables. Flags: `--dry-run`, `--force`, `--parse-only`
-- `17_wikidata_clubs.py` → Wikidata SPARQL → enrich clubs with league, stadium, capacity, founded year, logo. Flags: `--dry-run`, `--force`, `--club`, `--limit`, `--batch-sparql`, `--verbose`. Requires migration `013_club_wikidata_columns.sql`.
-- `18_wikidata_player_clubs.py` → Batch-update player clubs from Wikidata P54. Improved alias matching + reports missing clubs. Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--batch-sparql`, `--verbose`, `--create-missing`.
-- `19_wikidata_deep_enrich.py` → Deep Wikidata enrichment: P27 (citizenship), P54 (career history), P413 (position), P18 (image), P2446 (Transfermarkt ID), P19 (birthplace). Flags: `--dry-run`, `--force`, `--player`, `--league`, `--limit`, `--phase identity|career`, `--batch-size`. Requires migration `014_wikidata_deep_enrich.sql`.
-- `20_seed_choices.py` → Seed Gaffer game questions and options. Flags: `--dry-run`, `--force`. Requires migration `015_football_choices.sql`.
-- `21_seed_alltime_xi.py` → Seed all-time XI data
-- `22_fbref_grades.py` → FBRef season stats → `attribute_grades` (source='fbref'). Converts defensive, passing, dribbling, GK stats into 1-20 grades via positional percentiles. Flags: `--season`, `--position attacker|midfielder|defender|gk|all`, `--min-minutes`, `--dry-run`, `--force`.
-- `23_career_metrics.py` → Career trajectory metrics from `player_career_history` → `career_metrics`. Computes loyalty/mobility scores (1-20), trajectory labels (rising/peak/declining/journeyman/one-club/newcomer), tenure stats. Flags: `--player`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
-- `24_news_sentiment.py` → News sentiment aggregation from `news_player_tags` → `news_sentiment_agg`. Computes sentiment/buzz scores (1-20), story type breakdown, 7d/30d trend windows. Flags: `--player`, `--days`, `--limit`, `--dry-run`, `--force`. Requires migration `016_career_news_tables.sql`.
-- `25_formation_slots.py` → Populate `formation_slots` with role-assigned slots from `tactical_roles`. Flags: `--dry-run`. Requires migration `018_tactical_roles.sql`.
-- `25_transfermarkt_ingest.py` → Fetch Transfermarkt market values → Supabase. Requires migration `015_transfermarkt_market_values.sql`.
-- `26_key_moments.py` → Career milestones + news moments → `key_moments`. Flags: `--player`, `--limit`, `--source career|news|all`, `--dry-run`, `--force`.
-- `26_fix_club_assignments.py` → Fix/repair club_id assignments on people table
-- `27_player_ratings.py` → Composite overall rating from attribute grades → `player_profiles.overall` + compound scores to `attribute_grades` (source='computed'). Flags: `--player`, `--limit`, `--dry-run`, `--force`.
-- `27_understat_grades.py` → Understat xG/xA → `attribute_grades` (source='understat')
-- `28_statsbomb_grades.py` → StatsBomb event data → `attribute_grades` (source='statsbomb')
-- `29_scouting_tags.py` → Auto-assign scouting tags based on player data (attributes, career, news sentiment)
-- `30_squad_roles.py` → DOF-level squad role assessment
-- `40_promote_to_prod.py` → Promote Tier 1 players to production Supabase. Only complete profiles (all 6 tables + 20+ attributes). Flags: `--dry-run`, `--list`, `--player`, `--force`
+
+### 01-07: Core data (parse → push)
+- `01_parse_rsg.py` → Parse RSG.db Obsidian vault → Supabase
+- `02_insert_missing.py` → Insert new players
+- `03_enrich_nation_pos.py` → Fill nation/position gaps
+- `04_refine_players.py` → Archetype scoring + personality inference
+- `05_add_valuation.py` → Valuation dimensions
+- `06_add_dof_columns.py` → DOF decision columns
+- `07_push_to_supabase.py` → Full data push
+
+### 08-12: External ingest
+- `08_statsbomb_ingest.py` → StatsBomb open data. Flags: `--competition`, `--dry-run`, `--force`
+- `09_understat_ingest.py` → Understat xG. Flags: `--league`, `--season`, `--dry-run`, `--force`
+- `10_player_matching.py` → Link external IDs. Flags: `--source understat|statsbomb|fbref|all`, `--dry-run`
+- `11_fbref_ingest.py` → FBRef CSV import. Flags: `--comp`, `--season`, `--dry-run`, `--force`
+- `12_news_ingest.py` → RSS + Gemini Flash → news. Flags: `--source`, `--fetch-only`, `--process-only`, `--limit`, `--dry-run`
+
+### 13-21: Enrichment & seeding
+- `13_stat_metrics.py` → StatsBomb + Understat → attribute_grades
+- `14_seed_profiles.py` → Seed curated player profiles
+- `15_wikidata_enrich.py` → DOB/height/foot from Wikidata. Flags: `--phase 1|2|3`
+- `16_club_ingest.py` → clubs.csv → clubs + nations
+- `17_wikidata_clubs.py` → Club enrichment (stadium, capacity, founded)
+- `18_wikidata_player_clubs.py` → Player club assignments from Wikidata P54
+- `19_wikidata_deep_enrich.py` → Deep enrichment (citizenship, career, image, Transfermarkt ID)
+- `20_seed_choices.py` → Gaffer game questions
+- `21_seed_alltime_xi.py` → All-time XI data
+
+### 22-31: Grade computation
+- `22_fbref_grades.py` → FBRef stats → attribute_grades (source='fbref')
+- `23_career_metrics.py` → Career trajectory (loyalty/mobility scores)
+- `24_news_sentiment.py` → News sentiment aggregation
+- `25_formation_slots.py` → Formation role slots
+- `26_key_moments.py` → Career milestones + news moments
+- `27_player_ratings.py` → Composite overall + best_role + compound scores
+- `28_transfermarkt_ingest.py` → Transfermarkt market values
+- `29_fix_club_assignments.py` → Fix club_id assignments
+- `30_understat_grades.py` → Understat → attribute_grades (source='understat')
+- `31_statsbomb_grades.py` → StatsBomb → attribute_grades (source='statsbomb')
+
+### 32-39: Profiling & inference
+- `32_scouting_tags.py` → Auto-assign scouting tags
+- `33_squad_roles.py` → DOF squad role assessment
+- `34_personality_rules.py` → Rule-based personality corrections
+- `35_personality_llm.py` → LLM personality reassessment
+- `36_infer_personality.py` → Heuristic personality from attributes
+- `37_infer_blueprints.py` → Blueprint from archetype + position
+- `38_infer_levels.py` → Infer levels from compound scores
+- `39_current_level.py` → Age-decay current level
+
+### 40-45: Valuation & production
+- `40_valuation_engine.py` → Transfer valuations
+- `41_dof_valuations.py` → DoF-anchored valuations
+- `42_dof_calibration.py` → DoF calibration corrections
+- `43_cs_value.py` → Chief Scout Value (independent valuation)
+- `44_career_xp.py` → Career XP milestones → xp_modifier
+- `45_promote_to_prod.py` → Promote Tier 1 to production. Flags: `--dry-run`, `--list`, `--player`, `--force`
+
+### 50-56: Kaggle + external bulk
+- `50_kaggle_download.py` → Download Kaggle datasets. Flags: `--dataset 1-5`, `--force`
+- `51_kaggle_euro_leagues.py` → European Top Leagues stats
+- `52_kaggle_transfer_values.py` → Transfer value intelligence
+- `53_kaggle_fifa_historical.py` → FIFA matches 1930-2022
+- `54_kaggle_pl_stats.py` → PL 2024-2025 data
+- `55_kaggle_injuries.py` → Injuries 2020-2025 → fitness tags + durability traits
+- `56_eafc_reimport.py` → EA FC 25 ratings → attribute_grades
+
+### 65-66: API-Football
+- `65_api_football_ingest.py` → Fetch player stats from API-Football Pro. Flags: `--league`, `--season`, `--all-leagues`, `--dry-run`, `--force`, `--match-only`
+- `66_api_football_grades.py` → API-Football stats → attribute_grades (14 attrs, position-group percentiles). Flags: `--season`, `--min-minutes`, `--dry-run`
+
+### 60-62: Output & delivery
+- `60_fingerprints.py` → Role-specific percentile radar fingerprints. Flags: `--pool role|position|global`, `--force`
+- `61_fixture_ingest.py` → Fixtures from football-data.org
+- `62_populate_free_agents.py` → Contract expiry + free agent tags
+
+### 70-79: One-off fixes (archive)
+- `70_wikipedia_style.py` → Style of play tag extraction
+- `71_dof_profiles.py` → DoF deep profiling
+- `72_gemini_profiles.py` → Gemini-powered profiling
+- `73_fix_levels.py` → Level correction heuristics
+- `74_manual_profiles.py` → Manual DoF profile application
+- `75_data_cleanup.py` → Duplicate merging + mapping fixes
+- `76_seed_shortlists.py` → Editorial shortlist seeding
+- `77_verify_clubs.py` → Club verification via Wikidata
+- `78_club_cleanup.py` → Club dedup + enrichment fix
+- `79_data_sanitize.py` → Data sanitation + gap reporting
 
 ## External Data Tables (migration 003 — applied)
 | Table | Source | Purpose |
@@ -98,13 +157,19 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 | `understat_matches` + `understat_player_match_stats` | Understat | xG/xA/npxG per match |
 | `news_stories` + `news_player_tags` | RSS + Gemini Flash | News ingestion + player tagging (migration 003 + 005) |
 | `fbref_players` + `fbref_player_season_stats` | FBRef | Season stats (35+ cols: xG, passing, defense, possession, GK) (migration 004) |
-| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref) |
+| `player_id_links` | Script 10 | Maps people.id ↔ external source IDs (understat, statsbomb, fbref, api_football) |
 | `player_nationalities` | Wikidata P27 | Dual/multiple citizenships per player (migration 014) |
 | `player_career_history` | Wikidata P54 | Full club career with dates, loan flags, jersey numbers (migration 014) |
 | `fc_users/questions/options/votes` | Gaffer | Manager decision game + user footballing identity (migration 015) |
 | `career_metrics` | Script 23 | Per-player career trajectory: loyalty/mobility scores, tenure stats, trajectory label (migration 016) |
 | `news_sentiment_agg` | Script 24 | Per-player news sentiment: buzz/sentiment scores, story types, trend windows (migration 016) |
 | `tactical_roles` | Script 13 | Named roles per position with archetype affinity (Regista, Inside Forward, etc.) (migration 018) |
+| `kaggle_euro_league_stats` | Kaggle (kaanyorgun) | European top leagues player stats 25-26 season (migration 033) |
+| `kaggle_transfer_values` | Kaggle (kanchana1990) | Transfer value intelligence with market values, fees, contracts (migration 033) |
+| `kaggle_fifa_matches` + `kaggle_fifa_rankings` | Kaggle (zkskhurram) | FIFA international match results 1930-2022 + rankings (migration 033) |
+| `kaggle_pl_stats` | Kaggle (furkanark) | Premier League 2024-2025 player + match stats (migration 033) |
+| `kaggle_injuries` | Kaggle (sananmuzaffarov) | European football injuries 2020-2025, feeds fitness tags + durability traits (migration 033) |
+| `api_football_players` + `api_football_player_stats` | API-Football Pro | Per-season stats: goals, assists, shots, passes, tackles, duels, dribbles, cards, ratings (migration 034) |
 
 ## Custom Skills (Slash Commands)
 Available via `/command` in Claude Code sessions. Defined in `.claude/commands/`.
@@ -202,3 +267,38 @@ Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
 - Pursuit status: Pass, Watch, Interested, Scout Further, Monitor, Priority
 - Archetype confidence: high, medium, low
 - Profile tiers: 1 = scout-assessed with archetype, 2 = data-derived, 3 = skeleton
+
+## Roadmap: Sibling Products
+
+Two separate products are planned, each in their own repo, using Chief Scout as a data source:
+
+| Product | Repo | Description | Status |
+|---------|------|-------------|--------|
+| **Kickoff Clash** | `kickoff-clash` | Loot bin (gacha packs) + Balatro-style roguelike card battler with comedic fictional players. Builds from CS archetypes (Tiki-Taka, Gegenpressing, Catenaccio, etc.) | Planned |
+| **Punter's Pad** | `punters-pad` | Virtual sportsbook — betting on real fixtures with virtual currency | Planned |
+
+**Data flow**: Chief Scout → (pipeline export) → Kickoff Clash + Punter's Pad. Game repos never write back to CS.
+
+**Key design doc**: See `/root/.claude/plans/hidden-giggling-yao.md` for full architecture (schemas, APIs, game mechanics, build order).
+
+**Chief Scout touchpoints**:
+- `pipeline/80_export_character_templates.py` — Export player templates for Kickoff Clash character generation
+- Fixture data from pipeline 61 feeds Punter's Pad markets
+- Shared auth (optional) via Supabase
+
+## Persistent Context System
+Three-layer context retention across sessions:
+- **Layer 0** (Identity): `CLAUDE.md`, `docs/systems/SACROSANCT.md` — read-only reference
+- **Layer 1** (Working): `.claude/context/WORKING.md` — active sprint, blockers, recent activity
+- **Layer 2** (Archive): `.claude/context/archive/` — session logs, insights, tools, growth notes
+
+Key commands:
+- `/context start` — begin session (load context, set goal)
+- `/context save` — end session (archive learnings, update working context)
+- `/context status` — review all context layers
+- `/context insight {text}` — log a debugging lesson or pattern
+- `/context tool {text}` — log a useful query or script discovery
+- `/context growth {text}` — log a meta-learning observation
+- `/context metrics` — refresh DB row counts in working context
+
+Session hooks auto-load Layer 1 at startup via `.claude/settings.json`. All role commands include guardrails for task segmentation with exit criteria.

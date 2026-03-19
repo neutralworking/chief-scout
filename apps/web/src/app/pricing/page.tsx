@@ -95,125 +95,52 @@ function PricingContent() {
   const TIER_RANK: Record<Tier, number> = { free: 0, scout: 1, pro: 2 };
 
   return (
-    <div
-      style={{
-        padding: "40px 24px",
-        maxWidth: 960,
-        margin: "0 auto",
-      }}
-    >
-      {/* Success/Cancel banners */}
+    <div className="px-6 py-10 max-w-[960px] mx-auto">
+      {/* Success banner */}
       {success && (
-        <div
-          style={{
-            padding: "12px 18px",
-            marginBottom: 24,
-            borderRadius: 10,
-            background: "var(--green-dim)",
-            border: "1px solid rgba(34,197,94,0.3)",
-            color: "var(--green)",
-            fontSize: "0.85rem",
-            fontWeight: 600,
-          }}
-        >
+        <div className="px-4 py-3 mb-6 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold">
           Payment successful! Your account has been upgraded.
         </div>
       )}
+
+      {/* Canceled banner */}
       {canceled && (
-        <div
-          style={{
-            padding: "12px 18px",
-            marginBottom: 24,
-            borderRadius: 10,
-            background: "var(--amber-dim)",
-            border: "1px solid rgba(245,158,11,0.3)",
-            color: "var(--amber)",
-            fontSize: "0.85rem",
-            fontWeight: 600,
-          }}
-        >
+        <div className="px-4 py-3 mb-6 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm font-semibold">
           Checkout was canceled. No charges were made.
         </div>
       )}
 
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 40 }}>
-        <h1
-          style={{
-            fontSize: "1.6rem",
-            fontWeight: 900,
-            letterSpacing: "0.08em",
-            marginBottom: 8,
-            fontFamily: "var(--font-orbitron), monospace",
-            color: "var(--accent)",
-            textShadow: "0 0 20px rgba(0,240,255,0.4), 0 0 40px rgba(0,240,255,0.15)",
-            textTransform: "uppercase",
-          }}
-        >
-          Select Protocol
+      <div className="text-center mb-10">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+          Pick your level
         </h1>
-        <p style={{ color: "var(--text2)", fontSize: "0.8rem", fontFamily: "var(--font-mono), monospace" }}>
-          &gt; upgrade your scouting clearance level
+        <p className="text-sm text-[var(--text-secondary)] mt-2 max-w-md mx-auto">
+          Free gets you started. Scout gets you serious. Pro gets you everything.
         </p>
 
-        {/* Annual toggle */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 12,
-            marginTop: 20,
-            padding: "4px 6px",
-            borderRadius: 2,
-            background: "var(--surface2)",
-            border: "1px solid var(--border2)",
-          }}
-        >
+        {/* Annual/Monthly toggle */}
+        <div className="inline-flex items-center gap-1 mt-6 p-1 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
           <button
             onClick={() => setAnnual(false)}
-            style={{
-              padding: "6px 16px",
-              borderRadius: 2,
-              border: !annual ? "1px solid var(--accent)" : "1px solid transparent",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              background: !annual ? "var(--accent-dim)" : "transparent",
-              color: !annual ? "var(--accent)" : "var(--text3)",
-              transition: "all 0.15s",
-              fontFamily: "var(--font-mono), monospace",
-            }}
+            className={`px-4 py-2 rounded-md text-xs font-semibold transition-all ${
+              !annual
+                ? "bg-[var(--color-accent-personality)]/15 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
+                : "text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+            }`}
           >
             Monthly
           </button>
           <button
             onClick={() => setAnnual(true)}
-            style={{
-              padding: "6px 16px",
-              borderRadius: 2,
-              border: annual ? "1px solid var(--accent)" : "1px solid transparent",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              background: annual ? "var(--accent-dim)" : "transparent",
-              color: annual ? "var(--accent)" : "var(--text3)",
-              transition: "all 0.15s",
-              fontFamily: "var(--font-mono), monospace",
-            }}
+            className={`px-4 py-2 rounded-md text-xs font-semibold transition-all flex items-center gap-2 ${
+              annual
+                ? "bg-[var(--color-accent-personality)]/15 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
+                : "text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
+            }`}
           >
             Annual
-            <span
-              style={{
-                marginLeft: 6,
-                fontSize: "0.65rem",
-                padding: "1px 6px",
-                borderRadius: 2,
-                background: "var(--green-dim)",
-                color: "var(--green)",
-                fontWeight: 700,
-                textShadow: "0 0 8px rgba(57,255,20,0.4)",
-              }}
-            >
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/15 text-green-400">
               Save 25%
             </span>
           </button>
@@ -221,13 +148,7 @@ function PricingContent() {
       </div>
 
       {/* Tier cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 16,
-        }}
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {TIERS.map((tier) => {
           const isCurrent = userTier === tier.id;
           const isDowngrade = TIER_RANK[userTier] > TIER_RANK[tier.id];
@@ -237,126 +158,70 @@ function PricingContent() {
           return (
             <div
               key={tier.id}
-              style={{
-                padding: 24,
-                borderRadius: 2,
-                background: "var(--surface)",
-                border: tier.popular
-                  ? "1px solid var(--accent)"
-                  : "1px solid var(--border)",
-                display: "flex",
-                flexDirection: "column",
-                position: "relative",
-                boxShadow: tier.popular
-                  ? "0 0 30px rgba(0,240,255,0.15), inset 0 0 30px rgba(0,240,255,0.03)"
-                  : "none",
-              }}
+              className={`glass rounded-xl p-6 flex flex-col relative ${
+                tier.popular
+                  ? "border-2 border-[var(--color-accent-personality)] shadow-[0_0_30px_rgba(var(--color-accent-personality),0.1)]"
+                  : ""
+              }`}
             >
+              {/* Popular badge */}
               {tier.popular && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: -10,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    padding: "3px 12px",
-                    borderRadius: 2,
-                    background: "var(--accent-dim)",
-                    color: "var(--accent)",
-                    fontSize: "0.6rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    fontFamily: "var(--font-orbitron), monospace",
-                    border: "1px solid var(--accent)",
-                    textShadow: "0 0 10px rgba(0,240,255,0.5)",
-                  }}
-                >
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[var(--color-accent-personality)]/15 border border-[var(--color-accent-personality)]/30 text-[var(--color-accent-personality)] text-[10px] font-bold uppercase tracking-wider">
                   Recommended
                 </div>
               )}
 
+              {/* Tier name */}
               <h2
-                style={{
-                  fontSize: "0.9rem",
-                  fontWeight: 800,
-                  marginBottom: 4,
-                  fontFamily: "var(--font-orbitron), monospace",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: tier.popular ? "var(--accent)" : "var(--text)",
-                }}
+                className={`text-xs font-bold uppercase tracking-wider mb-1 ${
+                  tier.popular
+                    ? "text-[var(--color-accent-personality)]"
+                    : "text-[var(--text-muted)]"
+                }`}
               >
                 {tier.name}
               </h2>
-              <p
-                style={{
-                  fontSize: "0.78rem",
-                  color: "var(--text2)",
-                  marginBottom: 16,
-                  lineHeight: 1.4,
-                }}
-              >
+
+              {/* Description */}
+              <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">
                 {tier.description}
               </p>
 
-              <div style={{ marginBottom: 20 }}>
+              {/* Price */}
+              <div className="mb-5">
                 <span
-                  style={{
-                    fontSize: "2rem",
-                    fontWeight: 900,
-                    letterSpacing: "-0.02em",
-                    fontFamily: "var(--font-orbitron), monospace",
-                    color: tier.popular ? "var(--accent)" : "var(--text)",
-                    textShadow: tier.popular ? "0 0 15px rgba(0,240,255,0.3)" : "none",
-                  }}
+                  className={`text-3xl font-bold tracking-tight ${
+                    tier.popular
+                      ? "text-[var(--color-accent-personality)]"
+                      : "text-[var(--text-primary)]"
+                  }`}
                 >
                   {price === 0 ? "Free" : `\u00A3${price}`}
                 </span>
                 {price > 0 && (
-                  <span
-                    style={{
-                      fontSize: "0.82rem",
-                      color: "var(--text3)",
-                      marginLeft: 4,
-                    }}
-                  >
+                  <span className="text-sm text-[var(--text-muted)] ml-1">
                     {period}
                   </span>
                 )}
               </div>
 
-              <ul
-                style={{
-                  listStyle: "none",
-                  padding: 0,
-                  margin: "0 0 24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  flex: 1,
-                }}
-              >
+              {/* Features */}
+              <ul className="space-y-2 mb-6 flex-1">
                 {tier.features.map((feature) => (
                   <li
                     key={feature}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      fontSize: "0.8rem",
-                      color: "var(--text2)",
-                    }}
+                    className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
                   >
                     <svg
                       width="14"
                       height="14"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="var(--accent)"
+                      stroke="var(--color-accent-personality)"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      className="shrink-0"
                     >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -365,6 +230,7 @@ function PricingContent() {
                 ))}
               </ul>
 
+              {/* CTA button */}
               <button
                 onClick={() => {
                   if (!isCurrent && !isDowngrade && tier.id !== "free") {
@@ -372,37 +238,13 @@ function PricingContent() {
                   }
                 }}
                 disabled={isCurrent || isDowngrade || tier.id === "free" || loading !== null}
-                style={{
-                  width: "100%",
-                  height: 42,
-                  borderRadius: 2,
-                  border: isCurrent
-                    ? "1px solid var(--green)"
-                    : "1px solid var(--accent)",
-                  background: isCurrent
-                    ? "var(--green-dim)"
+                className={`w-full py-3 rounded-lg text-sm font-semibold transition-all ${
+                  isCurrent
+                    ? "bg-green-500/15 border border-green-500/30 text-green-400 cursor-default"
                     : tier.id === "free" || isDowngrade
-                    ? "var(--surface2)"
-                    : "var(--accent-dim)",
-                  color: isCurrent
-                    ? "var(--green)"
-                    : tier.id === "free" || isDowngrade
-                    ? "var(--text3)"
-                    : "var(--accent)",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  fontFamily: "var(--font-orbitron), monospace",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase" as const,
-                  boxShadow: !isCurrent && !isDowngrade && tier.id !== "free" ? "0 0 15px rgba(0,240,255,0.15)" : "none",
-                  cursor:
-                    isCurrent || isDowngrade || tier.id === "free"
-                      ? "default"
-                      : "pointer",
-                  opacity:
-                    loading !== null && loading !== tier.id ? 0.5 : 1,
-                  transition: "all 0.15s",
-                }}
+                    ? "bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)] cursor-default"
+                    : "bg-[var(--color-accent-personality)] text-[#06060c] hover:brightness-110 cursor-pointer"
+                } ${loading !== null && loading !== tier.id ? "opacity-50" : ""}`}
               >
                 {loading === tier.id
                   ? "Redirecting..."
@@ -416,17 +258,6 @@ function PricingContent() {
           );
         })}
       </div>
-
-      {/* Responsive override for mobile */}
-      <style>{`
-        @media (max-width: 768px) {
-          div[style*="grid-template-columns: repeat(3"] {
-            grid-template-columns: 1fr !important;
-            max-width: 380px;
-            margin: 0 auto;
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -435,7 +266,7 @@ export default function PricingPage() {
   return (
     <Suspense
       fallback={
-        <div style={{ padding: 40, color: "var(--text3)" }}>Loading...</div>
+        <div className="p-10 text-[var(--text-muted)]">Loading...</div>
       }
     >
       <PricingContent />

@@ -21,13 +21,14 @@ _spec.loader.exec_module(refine)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def make_grades(scores: dict[str, float], use_scout: bool = True) -> list[dict]:
+def make_grades(scores: dict[str, float], use_scout: bool = True, source: str = "scout_assessment") -> list[dict]:
     """Build attribute_grades rows from {attribute: value} dict."""
     return [
         {
             "attribute": attr,
             "scout_grade": val if use_scout else None,
             "stat_score": None if use_scout else val,
+            "source": source if use_scout else "fbref",
         }
         for attr, val in scores.items()
     ]
@@ -35,7 +36,7 @@ def make_grades(scores: dict[str, float], use_scout: bool = True) -> list[dict]:
 
 def score_player(grades: list[dict], position: str = "CM") -> str | None:
     """Run full scoring pipeline and return archetype."""
-    attr_scores, _, has_diff = refine.normalize_grades(grades)
+    attr_scores, _, has_scout, has_diff = refine.normalize_grades(grades)
     if not has_diff:
         return None
     model_scores = refine.score_models(attr_scores, position)
@@ -87,7 +88,7 @@ class TestNormalizeGrades:
 
     def test_scout_grade_0_10_scale(self):
         grades = make_grades({"pace": 8, "acceleration": 6}, use_scout=True)
-        scores, has_scout, has_diff = refine.normalize_grades(grades)
+        scores, _, has_scout, has_diff = refine.normalize_grades(grades)
         assert has_scout is True
         assert has_diff is True
         assert scores["pace"] == 80.0
@@ -96,17 +97,17 @@ class TestNormalizeGrades:
     def test_scout_grade_0_20_scale(self):
         """Legacy data on 0-20 scale auto-detected."""
         grades = make_grades({"pace": 16, "acceleration": 12}, use_scout=True)
-        scores, has_scout, has_diff = refine.normalize_grades(grades)
+        scores, _, has_scout, has_diff = refine.normalize_grades(grades)
         assert has_scout is True
         assert scores["pace"] == 80.0
         assert scores["acceleration"] == 60.0
 
     def test_stat_score_0_20_scale(self):
         grades = [
-            {"attribute": "pace", "scout_grade": None, "stat_score": 14},
-            {"attribute": "acceleration", "scout_grade": None, "stat_score": 8},
+            {"attribute": "pace", "scout_grade": None, "stat_score": 14, "source": "fbref"},
+            {"attribute": "acceleration", "scout_grade": None, "stat_score": 8, "source": "fbref"},
         ]
-        scores, has_scout, has_diff = refine.normalize_grades(grades)
+        scores, _, has_scout, has_diff = refine.normalize_grades(grades)
         assert has_scout is False
         assert has_diff is True
         assert scores["pace"] == 70.0
@@ -115,42 +116,43 @@ class TestNormalizeGrades:
     def test_undifferentiated_data_detected(self):
         """All stat_scores identical = undifferentiated (default values)."""
         grades = [
-            {"attribute": "pace", "scout_grade": None, "stat_score": 10},
-            {"attribute": "acceleration", "scout_grade": None, "stat_score": 10},
-            {"attribute": "stamina", "scout_grade": None, "stat_score": 10},
+            {"attribute": "pace", "scout_grade": None, "stat_score": 10, "source": "fbref"},
+            {"attribute": "acceleration", "scout_grade": None, "stat_score": 10, "source": "fbref"},
+            {"attribute": "stamina", "scout_grade": None, "stat_score": 10, "source": "fbref"},
         ]
-        _, has_scout, has_diff = refine.normalize_grades(grades)
+        _, _, has_scout, has_diff = refine.normalize_grades(grades)
         assert has_scout is False
         assert has_diff is False
 
     def test_mixed_scout_and_stat(self):
-        """Scout grades on 0-20 make stat_scores use 0-20 too."""
+        """Scale detection is per-source: scout /20, fbref /10."""
         grades = [
-            {"attribute": "pace", "scout_grade": 16, "stat_score": None},
-            {"attribute": "stamina", "scout_grade": None, "stat_score": 10},
+            {"attribute": "pace", "scout_grade": 16, "stat_score": None, "source": "scout_assessment"},
+            {"attribute": "stamina", "scout_grade": None, "stat_score": 10, "source": "fbref"},
         ]
-        scores, has_scout, has_diff = refine.normalize_grades(grades)
+        scores, _, has_scout, has_diff = refine.normalize_grades(grades)
         assert has_scout is True
         assert has_diff is True
-        # Both use /20 scale because scout max = 16 > 10
+        # scout_assessment: 16/20 × 100 × 1.0 = 80.0
         assert scores["pace"] == 80.0
-        assert scores["stamina"] == 50.0
+        # fbref: 10/10 × 100 × 1.0 = 100.0 (per-source scale)
+        assert scores["stamina"] == 100.0
 
     def test_alias_takeons(self):
         grades = [{"attribute": "takeons", "scout_grade": 8, "stat_score": None}]
-        scores, _, _ = refine.normalize_grades(grades)
+        scores, _, _, _ = refine.normalize_grades(grades)
         assert "take_ons" in scores
         assert "takeons" not in scores
 
     def test_alias_leadership_casing(self):
         grades = [{"attribute": "Leadership", "scout_grade": 8, "stat_score": None}]
-        scores, _, _ = refine.normalize_grades(grades)
+        scores, _, _, _ = refine.normalize_grades(grades)
         assert "leadership" in scores
         assert "Leadership" not in scores
 
     def test_alias_unpredictability_typo(self):
         grades = [{"attribute": "unpredicability", "scout_grade": 8, "stat_score": None}]
-        scores, _, _ = refine.normalize_grades(grades)
+        scores, _, _, _ = refine.normalize_grades(grades)
         assert "unpredictability" in scores
 
 
@@ -221,7 +223,7 @@ class TestModelScoring:
         grades = make_grades({
             "agility": 8, "footwork": 7, "handling": 9, "reactions": 8,
         })
-        attr_scores, _, _ = refine.normalize_grades(grades)
+        attr_scores, _, _, _ = refine.normalize_grades(grades)
         scores = refine.score_models(attr_scores, "CM")
         assert scores["GK"] < scores.get("Controller", 100) or scores["GK"] < 30
 
@@ -231,7 +233,7 @@ class TestModelScoring:
             "pace": 8, "acceleration": 8, "movement": 8, "balance": 8,
             "agility": 5, "footwork": 5, "handling": 5, "reactions": 5,
         })
-        attr_scores, _, _ = refine.normalize_grades(grades)
+        attr_scores, _, _, _ = refine.normalize_grades(grades)
         scores = refine.score_models(attr_scores, "GK")
         assert scores["Sprinter"] < scores["GK"]
 
@@ -287,13 +289,33 @@ class TestCompoundArchetypes:
     def test_compound_format(self):
         """Compound archetype uses 'Primary-Secondary' format."""
         scores = {"Sprinter": 80.0, "Dribbler": 78.5, "Cover": 30.0}
-        # Mock best_model with known data
         result = refine.best_model(scores, threshold=15.0)
         assert result is not None
         if "-" in result:
             parts = result.split("-")
             assert parts[0] == "Sprinter"  # highest
             assert parts[1] == "Dribbler"  # second
+
+    def test_secondary_included_at_70_percent(self):
+        """Secondary model included when it reaches 70% of primary."""
+        # Dribbler at 56 = 70% of Creator at 80 → compound
+        scores = {"Creator": 80.0, "Dribbler": 56.0, "Cover": 20.0}
+        result = refine.best_model(scores, threshold=15.0)
+        assert result == "Creator-Dribbler"
+
+    def test_secondary_excluded_below_70_percent(self):
+        """Secondary below 70% of primary → single archetype."""
+        # Dribbler at 55 = 68.75% of Creator at 80 → too low
+        scores = {"Creator": 80.0, "Dribbler": 55.0, "Cover": 20.0}
+        result = refine.best_model(scores, threshold=15.0)
+        assert result == "Creator"
+
+    def test_secondary_skips_same_category(self):
+        """Secondary from same category is skipped, third from different chosen."""
+        # Commander is Mental like Controller → skip. Engine is Tactical → pick it.
+        scores = {"Controller": 80.0, "Commander": 75.0, "Engine": 60.0, "Cover": 20.0}
+        result = refine.best_model(scores, threshold=15.0)
+        assert result == "Controller-Engine"
 
 
 # ── Archetype Naming Convention ──────────────────────────────────────────────
@@ -321,10 +343,10 @@ class TestNamingConvention:
         grades = make_grades({"pace": 5, "acceleration": 5}, use_scout=False)
         # All same value = undifferentiated
         grades = [
-            {"attribute": "pace", "scout_grade": None, "stat_score": 10},
-            {"attribute": "acceleration", "scout_grade": None, "stat_score": 10},
+            {"attribute": "pace", "scout_grade": None, "stat_score": 10, "source": "fbref"},
+            {"attribute": "acceleration", "scout_grade": None, "stat_score": 10, "source": "fbref"},
         ]
-        _, _, has_diff = refine.normalize_grades(grades)
+        _, _, _, has_diff = refine.normalize_grades(grades)
         assert has_diff is False  # Would return None archetype
 
 
@@ -379,7 +401,7 @@ class TestArchetypeConfidence:
 
 class TestEdgeCases:
     def test_empty_grades(self):
-        scores, has_scout, has_diff = refine.normalize_grades([])
+        scores, _, has_scout, has_diff = refine.normalize_grades([])
         assert scores == {}
         assert has_scout is False
         assert has_diff is False
@@ -387,14 +409,14 @@ class TestEdgeCases:
     def test_single_attribute_insufficient(self):
         """Need at least 2 of 4 core attributes to score a model."""
         grades = make_grades({"pace": 10})  # Only 1 Sprinter attribute
-        attr_scores, _, _ = refine.normalize_grades(grades)
+        attr_scores, _, _, _ = refine.normalize_grades(grades)
         scores = refine.score_models(attr_scores, "WF")
         assert scores["Sprinter"] == 0.0
 
     def test_two_attributes_sufficient(self):
         """2 of 4 core attributes is enough to score."""
         grades = make_grades({"pace": 10, "acceleration": 10})
-        attr_scores, _, _ = refine.normalize_grades(grades)
+        attr_scores, _, _, _ = refine.normalize_grades(grades)
         scores = refine.score_models(attr_scores, "WF")
         assert scores["Sprinter"] > 0
 

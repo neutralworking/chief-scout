@@ -23,13 +23,23 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
   const offset = Number(searchParams.get("offset") || 0);
   const filter = searchParams.get("filter") ?? "inferred";
+  const includeRetired = searchParams.get("retired") === "true";
+  const sortBy = searchParams.get("sort") ?? "level"; // "level" or "peak"
 
-  // Fetch players with personality data, ordered by level
+  // Fetch players with personality data
   let query = supabase
     .from("player_intelligence_card")
-    .select("person_id, name, level, position, archetype, blueprint, personality_type, ei, sn, tf, jp, competitiveness, coachability, club, nation, dob, scouting_notes, pursuit_status, squad_role")
-    .not("personality_type", "is", null)
-    .order("level", { ascending: false, nullsFirst: false });
+    .select("person_id, name, level, peak, position, archetype, blueprint, personality_type, ei, sn, tf, jp, competitiveness, coachability, club, nation, dob, scouting_notes, pursuit_status, squad_role, active, kc")
+    .not("personality_type", "is", null);
+
+  // Exclude retired (active=false) unless specifically requested
+  if (!includeRetired) {
+    query = query.neq("active", false);
+  }
+
+  // Sort by peak or level
+  const orderCol = sortBy === "peak" ? "peak" : "level";
+  query = query.order(orderCol, { ascending: false, nullsFirst: false });
 
   // Filter by assessment status
   // We need to join with player_personality for is_inferred, but the view
@@ -132,9 +142,9 @@ export async function GET(req: NextRequest) {
   // Apply filter
   let filtered = enriched;
   if (filter === "inferred") {
-    filtered = enriched.filter(p => p.is_inferred);
+    filtered = enriched.filter((p: { is_inferred: boolean }) => p.is_inferred);
   } else if (filter === "reviewed") {
-    filtered = enriched.filter(p => !p.is_inferred);
+    filtered = enriched.filter((p: { is_inferred: boolean }) => !p.is_inferred);
   }
 
   return NextResponse.json({ players: filtered });

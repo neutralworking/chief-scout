@@ -247,14 +247,30 @@ def main():
         conn.close()
         return
 
-    # ── Apply fixes ──────────────────────────────────────────────────────
+    # ── Apply fixes (skip manually-edited levels) ────────────────────────
+    all_pids = [pid for pid, _, _ in fixes] + [pid for pid, _ in nulls]
+    cur.execute("""
+        SELECT DISTINCT person_id FROM network_edits
+        WHERE field = 'level' AND old_value != new_value
+        AND person_id = ANY(%s)
+    """, (all_pids,))
+    manual_pids = {row[0] for row in cur.fetchall()}
+    if manual_pids:
+        print(f"\n  Skipping {len(manual_pids)} manually-edited levels (protected)")
+
+    applied = 0
     for pid, new_level, reason in fixes:
+        if pid in manual_pids:
+            continue
         cur.execute("""
             UPDATE player_profiles SET level = %s, updated_at = NOW()
             WHERE person_id = %s
         """, (new_level, pid))
+        applied += 1
 
     for pid, reason in nulls:
+        if pid in manual_pids:
+            continue
         cur.execute("""
             UPDATE player_profiles SET level = NULL, updated_at = NOW()
             WHERE person_id = %s

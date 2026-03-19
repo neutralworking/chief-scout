@@ -95,8 +95,8 @@ function predictXI(
 ): PredictedSlot[] {
   const blueprint = formation ? FORMATION_BLUEPRINTS[formation] : null;
   if (!blueprint) {
-    // Fallback: pick top 11 by level
-    const sorted = [...squad].sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
+    // Fallback: pick top 11 by overall
+    const sorted = [...squad].sort((a, b) => (b.overall ?? 0) - (a.overall ?? 0));
     return sorted.slice(0, 11).map((p) => ({
       position: p.position ?? "?",
       role: p.position ?? "?",
@@ -174,8 +174,8 @@ function computePositionMatchups(
     const homeTop = homePlayers.sort((a, b) => b.fitScore - a.fitScore)[0] ?? null;
     const awayTop = awayPlayers.sort((a, b) => b.fitScore - a.fitScore)[0] ?? null;
 
-    const homeLevel = homeTop?.player?.level ?? null;
-    const awayLevel = awayTop?.player?.level ?? null;
+    const homeLevel = homeTop?.player?.overall ?? homeTop?.player?.level ?? null;
+    const awayLevel = awayTop?.player?.overall ?? awayTop?.player?.level ?? null;
     const diff = (homeLevel ?? 0) - (awayLevel ?? 0);
     const advantage: "home" | "away" | "even" =
       diff > 2 ? "home" : diff < -2 ? "away" : "even";
@@ -194,9 +194,9 @@ function computePositionMatchups(
 }
 
 function computeSquadProfile(squad: SquadPlayer[]) {
-  const withLevel = squad.filter((p) => p.level != null);
+  const withLevel = squad.filter((p) => p.overall != null || p.level != null);
   const avgLevel = withLevel.length
-    ? withLevel.reduce((sum, p) => sum + (p.level ?? 0), 0) / withLevel.length
+    ? withLevel.reduce((sum, p) => sum + (p.overall ?? p.level ?? 0), 0) / withLevel.length
     : 0;
 
   const withAge = squad
@@ -222,9 +222,9 @@ function computeSquadProfile(squad: SquadPlayer[]) {
     }
   }
 
-  // Key players (top 3 by level)
+  // Key players (top 3 by overall)
   const keyPlayers = [...squad]
-    .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))
+    .sort((a, b) => (b.overall ?? b.level ?? 0) - (a.overall ?? a.level ?? 0))
     .slice(0, 3);
 
   return {

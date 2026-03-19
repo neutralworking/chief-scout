@@ -26,6 +26,7 @@ POSTGRES_DSN = os.environ.get("POSTGRES_DSN", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY", "")
 
 # Common paths
 REPO_ROOT = Path(__file__).resolve().parent.parent

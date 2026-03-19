@@ -5,28 +5,19 @@ import {
   PURSUIT_COLORS,
   POSITION_COLORS,
 } from "@/lib/types";
-import { PersonalityBadge } from "@/components/PersonalityBadge";
-import { getCardTheme, THEME_STYLES, CardTheme } from "@/lib/archetype-themes";
+import { getPersonalityName } from "@/lib/personality";
+import { getRoleRadarConfig } from "@/lib/role-radar";
+import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
 import { MiniRadar } from "@/components/MiniRadar";
 
 // Hex colors for radar polygon per theme (matches theme accent)
 const RADAR_COLORS: Record<CardTheme, string> = {
   general: "#a1a1aa",   // zinc-400
-  showman: "#e879f9",   // fuchsia-400
+  catalyst: "#e879f9",  // fuchsia-400
   maestro: "#fcd34d",   // amber-300
   captain: "#f87171",   // red-400
   professor: "#60a5fa", // blue-400
   default: "#4ade80",   // green-400
-};
-
-const OUTFIELD_LABELS = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"];
-const GK_LABELS = ["STP", "CMD", "SWP", "DST"];
-
-const PERSONALITY_NAMES: Record<string, string> = {
-  ANLC: "General", IXSP: "Genius", ANSC: "Machine", INLC: "Captain",
-  AXLC: "Warrior", INSP: "Maestro", ANLP: "Conductor", IXSC: "Maverick",
-  AXSC: "Enforcer", AXSP: "Technician", AXLP: "Orchestrator", INLP: "Guardian",
-  INSC: "Blade", IXLC: "Livewire", IXLP: "Playmaker", ANSP: "Professor",
 };
 
 export function PlayerCard({ player, showPursuit = false }: { player: PlayerCardType; showPursuit?: boolean }) {
@@ -37,7 +28,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
 
-  const mentalLabel = player.personality_type ? PERSONALITY_NAMES[player.personality_type] ?? player.personality_type : null;
+  const mentalLabel = getPersonalityName(player.personality_type);
 
   return (
     <Link
@@ -45,7 +36,7 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
       className="block group"
     >
       <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name + Level */}
+        {/* Row 1: Position badge + Name + Pursuit */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <span
@@ -58,11 +49,6 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
             </h3>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            {player.best_role_score != null && (
-              <span className="text-lg font-mono font-bold text-[var(--text-primary)] leading-none" title={player.best_role ?? "Role Score"}>
-                {player.best_role_score}
-              </span>
-            )}
             {showPursuit && player.pursuit_status && (
               <span
                 className={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded ${pursuitColor}`}
@@ -77,12 +63,12 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
         <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-3">
           {player.club && (
             player.club_id ? (
-              <span
+              <Link
+                href={`/clubs/${player.club_id}`}
                 className="truncate hover:text-[var(--text-primary)] transition-colors"
-                onClick={(e) => { e.preventDefault(); window.location.href = `/clubs/${player.club_id}`; }}
               >
                 {player.club}
-              </span>
+              </Link>
             ) : (
               <span className="truncate">{player.club}</span>
             )
@@ -101,16 +87,36 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
           )}
         </div>
 
-        {/* Row 3: Personality + Best Role */}
+        {/* Row 3: Role score + role · Personality */}
         {(mentalLabel || player.best_role) && (
-          <div className="flex items-center gap-3 text-[10px] mb-3">
-            {mentalLabel && <span className="text-purple-400 font-medium">{mentalLabel}</span>}
+          <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
             {player.best_role && (
+              <span className="text-[var(--color-accent-tactical)] font-medium">
+                {player.best_role_score != null && (
+                  <span className="font-mono font-bold text-sm mr-1 leading-none align-baseline">{player.best_role_score}</span>
+                )}
+                {player.best_role}
+              </span>
+            )}
+            {mentalLabel && (
               <>
-                {mentalLabel && <span className="text-[var(--text-muted)]">·</span>}
-                <span className="text-[var(--color-accent-tactical)] font-medium">{player.best_role}</span>
+                {player.best_role && <span className="text-[var(--text-muted)]">·</span>}
+                <span className="text-purple-400 font-medium">
+                  {mentalLabel}
+                  <span className="text-[var(--text-muted)] font-mono ml-1 text-[8px]">{player.personality_type}</span>
+                </span>
               </>
             )}
+          </div>
+        )}
+
+        {/* Row 3b: Stats line — goals/assists/rating */}
+        {(player.goals != null || player.assists != null) && (
+          <div className="text-[10px] font-mono mb-2">
+            {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
+            {player.goals != null && player.assists != null && " "}
+            {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
+            {player.rating != null && <span className="text-amber-400"> · {player.rating.toFixed(1)}★</span>}
           </div>
         )}
 
@@ -144,21 +150,29 @@ export function PlayerCard({ player, showPursuit = false }: { player: PlayerCard
               </span>
             )}
           </div>
-          <PersonalityBadge personalityType={player.personality_type} size="mini" />
+          {player.archetype && !player.engine_value_p50 && !player.market_value_eur && (
+            <span className="text-[9px] font-mono text-[var(--text-muted)]">{player.personality_type}</span>
+          )}
         </div>
 
-        {/* Row 5: MiniRadar fingerprint */}
-        {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
-          <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
-            <MiniRadar
-              values={player.fingerprint}
-              size={72}
-              color={RADAR_COLORS[theme]}
-              labels={player.position === "GK" ? GK_LABELS : OUTFIELD_LABELS}
-              showLabels
-            />
-          </div>
-        )}
+        {/* Row 5: MiniRadar fingerprint (role-specific axes) */}
+        {player.fingerprint && player.fingerprint.some((v) => v > 0) && (() => {
+          const radarConfig = getRoleRadarConfig(player.best_role, player.position);
+          const labels = radarConfig.labels.length === player.fingerprint!.length
+            ? radarConfig.labels
+            : radarConfig.labels.slice(0, player.fingerprint!.length);
+          return (
+            <div className="flex justify-center mt-3 pt-3 border-t border-[var(--border-subtle)]/30">
+              <MiniRadar
+                values={player.fingerprint!}
+                size={72}
+                color={RADAR_COLORS[theme]}
+                labels={labels}
+                showLabels
+              />
+            </div>
+          );
+        })()}
       </div>
     </Link>
   );

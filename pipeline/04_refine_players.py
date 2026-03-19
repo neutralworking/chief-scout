@@ -25,6 +25,7 @@ from __future__ import annotations
 import sys
 
 from config import POSTGRES_DSN
+from lib.models import MODEL_ATTRIBUTES, ATTR_ALIASES
 
 DRY_RUN = "--dry-run" in sys.argv
 
@@ -41,28 +42,7 @@ TOP_LEAGUES = TOP_5_LEAGUES | frozenset({
 })
 
 
-# ── SACROSANCT: 13 Playing Models ────────────────────────────────────────────
-
-MODEL_ATTRIBUTES: dict[str, list[str]] = {
-    # Mental
-    "Controller":  ["anticipation", "composure", "decisions", "tempo"],
-    "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
-    # Physical
-    "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
-    "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
-    # Tactical
-    "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
-    "Engine":      ["intensity", "pressing", "stamina", "versatility"],
-    "Destroyer":   ["blocking", "clearances", "marking", "tackling"],
-    # Technical
-    "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
-    "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    # Specialist
-    "GK":          ["agility", "footwork", "handling", "reactions"],
-}
+# MODEL_ATTRIBUTES imported from lib.models
 
 # Compound categories (for determining if secondary model adds diversity)
 MODEL_COMPOUNDS: dict[str, str] = {
@@ -73,12 +53,7 @@ MODEL_COMPOUNDS: dict[str, str] = {
     "GK": "Specialist",
 }
 
-# DB attribute name aliases (typos, casing inconsistencies)
-ATTR_ALIASES: dict[str, str] = {
-    "takeons": "take_ons",
-    "Leadership": "leadership",
-    "unpredicability": "unpredictability",
-}
+# ATTR_ALIASES imported from lib.models
 
 
 # ── Market Value Tier ─────────────────────────────────────────────────────────
@@ -237,6 +212,21 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
     scores = {}
     pos = position or ""
 
+    # Position-based affinity: small tiebreaker so contextually dominant
+    # skill sets edge out ties (e.g. Striker beats Sprinter for a CF).
+    # +0.3 is enough to break ties without overriding genuinely higher scores.
+    _POS_AFFINITY: dict[str, list[str]] = {
+        "CF": ["Striker", "Target"],
+        "WF": ["Dribbler", "Striker", "Creator"],
+        "AM": ["Creator", "Dribbler"],
+        "CM": ["Controller", "Engine", "Passer"],
+        "WM": ["Engine", "Dribbler", "Passer"],
+        "DM": ["Cover", "Destroyer", "Controller"],
+        "CD": ["Cover", "Destroyer", "Commander"],
+        "WD": ["Engine", "Cover", "Sprinter"],
+    }
+    affinity_set = set(_POS_AFFINITY.get(pos, []))
+
     for model, core_attrs in MODEL_ATTRIBUTES.items():
         vals = [attr_scores.get(a) for a in core_attrs]
         vals = [v for v in vals if v is not None]
@@ -253,6 +243,10 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
         elif model != "GK" and pos == "GK":
             raw *= 0.3
 
+        # Position affinity tiebreaker
+        if model in affinity_set:
+            raw += 0.3
+
         scores[model] = round(raw, 1)
 
     return scores
@@ -261,8 +255,14 @@ def score_models(attr_scores: dict[str, float], position: str | None) -> dict[st
 def best_model(scores: dict[str, float], threshold: float = 15.0) -> str | None:
     """
     Return compound archetype (Primary-Secondary) from top two model scores.
-    If only one model is above threshold, return just that model.
-    Compound format: "Controller-Passer", "GK-Controller", etc.
+
+    The secondary skill set is included when:
+      1. It scores above threshold, AND
+      2. It reaches at least 70% of the primary score, AND
+      3. It comes from a different compound category (diversity).
+
+    This ensures most players get a two-skill-set "model" label that captures
+    their dual strengths — e.g. "Creator-Dribbler", "Engine-Cover".
     """
     if not scores:
         return None
@@ -271,17 +271,21 @@ def best_model(scores: dict[str, float], threshold: float = 15.0) -> str | None:
         return None
 
     primary = ranked[0][0]
-    # Compound archetype: include secondary if it's within 5 points of primary
-    # and from a different compound category (Mental/Physical/Tactical/Technical).
-    # This captures genuine dual-profile players, not noise.
+    primary_score = ranked[0][1]
+
+    # Look for a strong secondary from a different category
     if len(ranked) > 1:
-        secondary_name, secondary_score = ranked[1]
-        gap = ranked[0][1] - secondary_score
         primary_cat = MODEL_COMPOUNDS.get(primary)
-        secondary_cat = MODEL_COMPOUNDS.get(secondary_name)
-        # Compound if very close scores AND different categories (diverse profile)
-        if gap <= 3 and secondary_score >= threshold and primary_cat != secondary_cat:
-            return f"{primary}-{secondary_name}"
+        for secondary_name, secondary_score in ranked[1:]:
+            secondary_cat = MODEL_COMPOUNDS.get(secondary_name)
+            # Must be above threshold, reach 70% of primary, different category
+            if (secondary_score >= threshold
+                    and secondary_score >= primary_score * 0.70
+                    and primary_cat != secondary_cat):
+                return f"{primary}-{secondary_name}"
+            # Stop searching once scores drop below threshold
+            if secondary_score < threshold:
+                break
     return primary
 
 
@@ -370,6 +374,12 @@ def compute_biographical_signals(
 
     if news:
         story_types = news.get("story_types") or {}
+        if isinstance(story_types, str):
+            import json
+            try:
+                story_types = json.loads(story_types)
+            except (json.JSONDecodeError, TypeError):
+                story_types = {}
         sentiment = float(news.get("sentiment_score") or 10)   # 1-20
         total_stories = sum(story_types.values()) if story_types else 0
 

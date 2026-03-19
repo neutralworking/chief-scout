@@ -8,24 +8,9 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { MODEL_ATTRIBUTES, SOURCE_PRIORITY } from "@/lib/models";
 
-// ── Constants (mirrors Python + valuation config) ─────────────────────────
-
-const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller: ["anticipation", "composure", "decisions", "tempo"],
-  Commander: ["communication", "concentration", "drive", "leadership"],
-  Creator: ["creativity", "unpredictability", "vision", "guile"],
-  Target: ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter: ["acceleration", "balance", "movement", "pace"],
-  Powerhouse: ["aggression", "duels", "shielding", "stamina"],
-  Cover: ["awareness", "discipline", "interceptions", "positioning"],
-  Engine: ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer: ["blocking", "clearances", "marking", "tackling"],
-  Dribbler: ["carries", "first_touch", "skills", "take_ons"],
-  Passer: ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker: ["close_range", "mid_range", "long_range", "penalties"],
-  GK: ["agility", "footwork", "handling", "reactions"],
-};
+// ── Constants ─────────────────────────────────────────────────────────────
 
 const COMPOUND_MODELS: Record<string, string[]> = {
   Technical: ["Dribbler", "Passer", "Striker", "GK"],
@@ -58,10 +43,6 @@ const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   CF: [["Striker", "Target", "Target Man"], ["Target", "Powerhouse", "Complete Forward"], ["Striker", "Sprinter", "Poacher"], ["Dribbler", "Striker", "False 9"], ["Creator", "Striker", "Deep-Lying Forward"]],
 };
 
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5, fbref: 4, statsbomb: 3,
-  understat: 2, computed: 1, eafc_inferred: 0,
-};
 
 // ── Core logic ──────────────────────────────────────────────────────────────
 
@@ -139,7 +120,8 @@ function computeOverall(
   }
   if (totalWeight <= 0) return null;
   const technicalOverall = weightedSum / totalWeight;
-  const overall = level != null ? technicalOverall * 0.35 + level * 0.65 : technicalOverall;
+  // Blend: coverage-scaled tech weight + level anchor (no peak)
+  const overall = level != null ? technicalOverall * 0.50 + level * 0.50 : technicalOverall;
   return Math.round(Math.min(Math.max(overall, 1), 99));
 }
 

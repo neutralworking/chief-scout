@@ -104,7 +104,7 @@ function age(dob: string | null): string {
   return String(Math.floor(diff / 31557600000));
 }
 
-function levelColor(level: number | null): string {
+function ratingColor(level: number | null): string {
   if (!level) return "var(--text-muted)";
   if (level >= 85) return "#e74c3c";
   if (level >= 78) return "#d4a035";
@@ -440,8 +440,8 @@ export default function NetworkPage() {
                   <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Pos</th>
                   <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Age</th>
                   <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Club</th>
-                  <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--color-accent-tactical)]">Lvl</th>
-                  <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--color-accent-tactical)]">Ovr</th>
+                  <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--color-accent-tactical)]">OVR</th>
+                  <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Lvl</th>
                   <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Archetype</th>
                   <th className="px-2 py-2 text-[9px] font-semibold tracking-wider uppercase text-[var(--text-muted)]">Pursuit</th>
                   {expandedAttrs && Object.entries(ATTR_CATEGORIES).map(([cat, attrs]) =>
@@ -476,7 +476,7 @@ export default function NetworkPage() {
                         >
                           {player.name}
                         </button>
-                        {!profile?.level && (
+                        {!profile?.overall && (
                           <span className="ml-1 text-[8px] text-[var(--color-pursuit-priority)] opacity-70">●</span>
                         )}
                       </td>
@@ -496,21 +496,6 @@ export default function NetworkPage() {
                         {player.clubs?.clubname ?? "–"}
                       </td>
 
-                      {/* Level */}
-                      <td className="px-2 py-2 text-center font-mono font-bold">
-                        <EditableCell
-                          value={profile?.level ?? null}
-                          field="level"
-                          playerId={player.id}
-                          table="player_profiles"
-                          min={1}
-                          max={99}
-                          editMode={editMode}
-                          onSave={handleSave}
-                          color={levelColor(profile?.level ?? null)}
-                        />
-                      </td>
-
                       {/* Overall */}
                       <td className="px-2 py-2 text-center font-mono font-bold">
                         <EditableCell
@@ -522,7 +507,22 @@ export default function NetworkPage() {
                           max={99}
                           editMode={editMode}
                           onSave={handleSave}
-                          color={levelColor(profile?.overall ?? null)}
+                          color={ratingColor(profile?.overall ?? null)}
+                        />
+                      </td>
+
+                      {/* Level */}
+                      <td className="px-2 py-2 text-center font-mono font-bold">
+                        <EditableCell
+                          value={profile?.level ?? null}
+                          field="level"
+                          playerId={player.id}
+                          table="player_profiles"
+                          min={1}
+                          max={99}
+                          editMode={editMode}
+                          onSave={handleSave}
+                          color={ratingColor(profile?.level ?? null)}
                         />
                       </td>
 

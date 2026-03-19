@@ -2,13 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { RadarChart } from "./RadarChart";
+import { MODEL_LABEL } from "@/lib/models";
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 const MODEL_ATTRS: Record<string, string> = {
   Controller: "Anticipation, Composure, Decisions, Tempo",
@@ -78,7 +74,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
 
   const models = radarData.positionModels?.[selectedPos] ??
     Object.keys(radarData.modelScores);
-  const radarLabels = models.map((m) => MODEL_SHORT[m] ?? m);
+  const radarLabels = models.map((m) => MODEL_LABEL[m] ?? m);
   const radarTooltips = models.map((m) => `${m}: ${MODEL_ATTRS[m] ?? ""}`);
   const radarValues = models.map((m) => radarData.modelScores[m] ?? 0);
   const roles = radarData.roleScores?.[selectedPos] ?? [];
@@ -99,11 +95,11 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
 
   const layers = [];
   if (roleOverlay) {
-    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.5)", fillOpacity: 0.06, strokeWidth: 1 });
+    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.7)", fillOpacity: 0.12, strokeWidth: 1 });
   }
-  layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.25, strokeWidth: 2 });
+  layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.30, strokeWidth: 2.5 });
 
-  const radarSize = compact ? 170 : 200;
+  const radarSize = compact ? 190 : 200;
 
   return (
     <div className="glass rounded-xl p-3 sm:p-4">
@@ -112,7 +108,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
         <select
           value={selectedPos}
           onChange={(e) => setSelectedPos(e.target.value)}
-          className="text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-1.5 py-0.5 text-[var(--text-primary)] cursor-pointer"
+          className="text-xs sm:text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-2 py-1 sm:px-1.5 sm:py-0.5 text-[var(--text-primary)] cursor-pointer"
         >
           {POSITIONS.map((p) => (
             <option key={p} value={p}>{p}{p === position ? " *" : ""}</option>
@@ -120,13 +116,15 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
         </select>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
+      {/* Radar + scores: stack on mobile, side-by-side on sm+ */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="w-full sm:flex-1 sm:min-w-0 max-w-[220px] mx-auto sm:mx-0">
           <RadarChart labels={radarLabels} tooltips={radarTooltips} layers={layers} size={radarSize} />
         </div>
 
-        <div className="w-20 shrink-0 space-y-2">
-          <div>
+        {/* Scores row on mobile, column on sm+ */}
+        <div className="flex sm:flex-col sm:w-20 sm:shrink-0 gap-3 sm:gap-0 sm:space-y-2 justify-center w-full">
+          <div className="text-center sm:text-left">
             <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
             <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
               {posScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -134,7 +132,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
             <div className={`text-[9px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
           </div>
           {activeRole && (
-            <div>
+            <div className="text-center sm:text-left">
               <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
               <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
                 {roleScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -142,7 +140,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
               <div className={`text-[9px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
             </div>
           )}
-          <div className="space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
+          <div className="hidden sm:block space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
             <div className="flex items-center gap-1">
               <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(56,189,248,0.9)" }} />
               <span className="text-[7px] text-[var(--text-muted)]">Player</span>
@@ -161,42 +159,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
       </div>
 
       {/* Physical Profile — composite of Sprinter + Powerhouse + Target */}
-      {(() => {
-        const physModels = ["Sprinter", "Powerhouse", "Target"] as const;
-        const physScores = physModels
-          .map((m) => ({ name: m, score: radarData.modelScores[m] }))
-          .filter((s) => s.score != null && s.score > 0);
-        if (physScores.length === 0) return null;
-        const physAvg = Math.round(physScores.reduce((s, p) => s + p.score, 0) / physScores.length);
-        const physGrade = gradeLabel(physAvg);
-        const physLabels: Record<string, string> = { Sprinter: "Pace & Agility", Powerhouse: "Strength & Power", Target: "Aerial & Presence" };
-        return (
-          <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Physical</span>
-              <span className={`text-[10px] font-bold ${physGrade.color}`}>{physAvg}</span>
-              <span className={`text-[9px] ${physGrade.color}`}>{physGrade.label}</span>
-            </div>
-            <div className="space-y-1">
-              {physScores.map(({ name, score }) => (
-                <div key={name} className="flex items-center gap-2">
-                  <span className="text-[9px] text-[var(--text-secondary)] w-28 truncate">{physLabels[name] ?? name}</span>
-                  <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min(score, 100)}%`,
-                        backgroundColor: score >= 70 ? "var(--accent-tactical)" : score >= 50 ? "var(--text-secondary)" : "var(--text-muted)",
-                      }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-mono w-5 text-right text-[var(--text-secondary)]">{score}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
+      <PhysicalProfile modelScores={radarData.modelScores} />
 
       {/* Role pills */}
       {roles.length > 0 && (
@@ -205,7 +168,7 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
             <button
               key={role.name}
               onClick={() => setSelectedRole(role.name)}
-              className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
+              className={`text-[10px] sm:text-[9px] px-2 py-1 sm:px-1.5 sm:py-0.5 rounded font-medium transition-colors ${
                 selectedRole === role.name
                   ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
                   : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
@@ -216,6 +179,59 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const PHYS_LABELS: Record<string, string> = {
+  Sprinter: "Pace & Agility",
+  Powerhouse: "Strength & Power",
+  Target: "Aerial & Presence",
+};
+
+function PhysicalProfile({ modelScores }: { modelScores: Record<string, number> }) {
+  const physModels = ["Sprinter", "Powerhouse", "Target"] as const;
+  const physScores = physModels
+    .map((m) => ({ name: m, score: modelScores[m] }))
+    .filter((s) => s.score != null && s.score > 0);
+
+  if (physScores.length === 0) {
+    return (
+      <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Physical</span>
+        <p className="text-[9px] text-[var(--text-muted)] mt-1">No physical data available</p>
+      </div>
+    );
+  }
+
+  const physAvg = Math.round(physScores.reduce((s, p) => s + p.score, 0) / physScores.length);
+  const physGrade = gradeLabel(physAvg);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Physical</span>
+        <span className={`text-[10px] font-bold ${physGrade.color}`}>{physAvg}</span>
+        <span className={`text-[9px] ${physGrade.color}`}>{physGrade.label}</span>
+      </div>
+      <div className="space-y-1.5">
+        {physScores.map(({ name, score }) => (
+          <div key={name} className="flex items-center gap-2">
+            <span className="text-[9px] text-[var(--text-secondary)] w-20 sm:w-28 truncate">{PHYS_LABELS[name] ?? name}</span>
+            <div className="flex-1 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(score, 100)}%`,
+                  backgroundColor: "var(--color-accent-physical)",
+                  opacity: score >= 70 ? 1 : score >= 50 ? 0.75 : 0.5,
+                }}
+              />
+            </div>
+            <span className="text-[9px] font-mono w-5 text-right text-[var(--text-secondary)]">{score}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

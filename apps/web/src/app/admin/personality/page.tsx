@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
+import { PERSONALITY_TYPES } from "@/lib/personality";
 
 // ── Personality system constants ─────────────────────────────────────────────
 
@@ -13,24 +14,9 @@ const DIMENSION_LABELS = {
   jp: { high: "C", low: "P", name: "Pressure", highLabel: "Competitor", lowLabel: "Composer", hint: "Confrontation and aggression under pressure vs composure and calm decision-making?" },
 } as const;
 
-const PERSONALITY_NAMES: Record<string, { name: string; oneLiner: string }> = {
-  ANLC: { name: "The General", oneLiner: "Structured reader, self-driven, organizes others, thrives in confrontation" },
-  IXSP: { name: "The Genius", oneLiner: "Improviser, occasion-driven, self-contained, ice-cold under pressure" },
-  ANSC: { name: "The Machine", oneLiner: "Reads the game systematically, self-motivated, quiet but relentless" },
-  INLC: { name: "The Captain", oneLiner: "Instinct-driven, self-motivated, vocal leader, fierce competitor" },
-  AXLC: { name: "The Showman", oneLiner: "Structured but feeds off atmosphere, demands attention, confrontational" },
-  INSP: { name: "The Maestro", oneLiner: "Creative, self-motivated, quietly brilliant, composed under pressure" },
-  ANLP: { name: "The Conductor", oneLiner: "Tactical organizer, self-driven, leads through control, ice-cold composure" },
-  IXSC: { name: "The Maverick", oneLiner: "Flair player, needs the big stage, self-focused, rises to confrontation" },
-  AXSC: { name: "The Enforcer", oneLiner: "Reads patterns, fuelled by occasion, self-focused, aggressive competitor" },
-  AXSP: { name: "The Technician", oneLiner: "Structured, occasion-driven, self-contained, calm under pressure" },
-  AXLP: { name: "The Orchestrator", oneLiner: "Tactical mind, feeds off the crowd, organizes others, composed decision-maker" },
-  INLP: { name: "The Guardian", oneLiner: "Instinctive, self-motivated, vocal organizer, calm presence" },
-  INSC: { name: "The Blade", oneLiner: "Instinctive, self-driven, self-reliant, competitive edge" },
-  IXLC: { name: "The Livewire", oneLiner: "Improviser, occasion-driven, leads vocally, thrives on confrontation" },
-  IXLP: { name: "The Playmaker", oneLiner: "Creative improviser, occasion-driven, organizes play, composed" },
-  ANSP: { name: "The Professor", oneLiner: "Analytical, self-motivated, self-contained, composed under pressure" },
-};
+const PERSONALITY_NAMES: Record<string, { name: string; oneLiner: string }> = Object.fromEntries(
+  Object.entries(PERSONALITY_TYPES).map(([code, pt]) => [code, { name: pt.fullName, oneLiner: pt.oneLiner }])
+);
 
 function computeCode(ei: number, sn: number, tf: number, jp: number): string {
   return [
@@ -142,7 +128,7 @@ export default function PersonalityReassessmentPage() {
                   <th className="text-left py-2 px-3 font-medium">Player</th>
                   <th className="text-left py-2 px-3 font-medium hidden md:table-cell">Archetype</th>
                   <th className="text-center py-2 px-3 font-medium w-16">Current</th>
-                  <th className="text-right py-2 px-3 font-medium w-12">Lvl</th>
+                  <th className="text-right py-2 px-3 font-medium w-12">OVR</th>
                   <th className="text-center py-2 px-3 font-medium w-10">St</th>
                 </tr>
               </thead>
@@ -303,7 +289,7 @@ function AssessmentPanel({
               {player.archetype && ` · ${player.archetype}`}
             </p>
           </div>
-          <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level}</span>
+          <span className="text-lg font-mono font-bold text-[var(--text-muted)]">{player.level ?? "–"}</span>
         </div>
       </div>
 

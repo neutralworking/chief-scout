@@ -1,94 +1,101 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
-import { getFeatureFlags } from "@/lib/features";
 import { isProduction } from "@/lib/env";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-const ALL_NAV_ITEMS = [
-  { label: "Dashboard", href: "/", exact: true },
-  { label: "Players", href: "/players" },
-  { label: "Clubs", href: "/clubs" },
-  { label: "Leagues", href: "/leagues" },
-  { label: "Formations", href: "/formations", stagingOnly: true },
-  { label: "Fixtures", href: "/fixtures" },
-  { label: "News Feed", href: "/news" },
-  { label: "Free Agents", href: "/free-agents" },
-  { label: "Gaffer", href: "/choices" },
-  { label: "Network", href: "/network", stagingOnly: true },
-  { label: "Editor", href: "/editor", stagingOnly: true },
-  { label: "Admin", href: "/admin", stagingOnly: true },
+interface NavItem {
+  label: string;
+  href: string;
+  exact?: boolean;
+  stagingOnly?: boolean;
+}
+
+interface NavCategory {
+  heading: string;
+  items: NavItem[];
+}
+
+const ALL_NAV_CATEGORIES: NavCategory[] = [
+  {
+    heading: "Scouting",
+    items: [
+      { label: "Dashboard", href: "/", exact: true },
+      { label: "Players", href: "/players" },
+      { label: "Stats", href: "/stats" },
+      { label: "Free Agents", href: "/free-agents" },
+      { label: "Compare", href: "/compare" },
+      { label: "Legends", href: "/legends" },
+    ],
+  },
+  {
+    heading: "Browse",
+    items: [
+      { label: "Clubs", href: "/clubs" },
+      { label: "Leagues", href: "/leagues" },
+      { label: "Fixtures", href: "/fixtures" },
+      { label: "News", href: "/news" },
+    ],
+  },
+  {
+    heading: "Games",
+    items: [
+      { label: "Gaffer", href: "/choices" },
+    ],
+  },
+  {
+    heading: "Admin",
+    items: [
+      { label: "Tactics", href: "/formations", stagingOnly: true },
+      { label: "Scout Pad", href: "/scout-pad", stagingOnly: true },
+      { label: "Editor", href: "/editor", stagingOnly: true },
+      { label: "Review", href: "/review", stagingOnly: true },
+      { label: "Network", href: "/network", stagingOnly: true },
+      { label: "Admin", href: "/admin", stagingOnly: true },
+    ],
+  },
 ];
 
-const NAV_ITEMS = isProduction()
-  ? ALL_NAV_ITEMS.filter((item) => !("stagingOnly" in item && item.stagingOnly))
-  : ALL_NAV_ITEMS;
-
-const POSITION_SHORTCUTS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"];
+const NAV_CATEGORIES: NavCategory[] = isProduction()
+  ? ALL_NAV_CATEGORIES
+      .map((cat) => ({
+        ...cat,
+        items: cat.items.filter((item) => !item.stagingOnly),
+      }))
+      .filter((cat) => cat.items.length > 0)
+  : ALL_NAV_CATEGORIES;
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
-  const [shortlistsEnabled, setShortlistsEnabled] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [pin, setPin] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Load feature flags from localStorage preferences
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("fc_preferences");
-      if (stored) {
-        const prefs = JSON.parse(stored);
-        const flags = getFeatureFlags(prefs);
-        setShortlistsEnabled(flags.shortlists);
-      }
-    } catch { /* ignore parse errors */ }
+    setIsAdmin(sessionStorage.getItem("network_admin") === "1");
   }, []);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  // Close on escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
+  function handlePin() {
+    if (pin === "0.123456789") {
+      sessionStorage.setItem("network_admin", "1");
+      setIsAdmin(true);
+      setShowPin(false);
+      setPin("");
+    }
+  }
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-        aria-label="Open menu"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M3 5h14M3 10h14M3 15h14" />
-        </svg>
-      </button>
-
-      {/* Overlay (mobile only) */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar (desktop only — mobile uses MobileTopNav) */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 w-64 bg-[var(--bg-surface)] border-r border-[var(--border-subtle)] flex flex-col z-50 transition-transform duration-200 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className="fixed left-0 top-0 bottom-0 w-64 bg-[var(--bg-surface)] border-r border-[var(--border-subtle)] flex-col z-50 hidden lg:flex"
       >
-        {/* Logo + close button */}
-        <div className="p-6 border-b border-[var(--border-subtle)] flex items-center justify-between">
+        {/* Logo */}
+        <div className="p-6 border-b border-[var(--border-subtle)]">
           <Link href="/" className="block">
             <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
               CHIEF SCOUT
@@ -97,114 +104,71 @@ export function Sidebar() {
               Intelligence Platform
             </p>
           </Link>
-          <button
-            onClick={() => setOpen(false)}
-            className="lg:hidden p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            aria-label="Close menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M4 4l10 10M14 4L4 14" />
-            </svg>
-          </button>
         </div>
 
         {/* Main nav */}
-        <nav className="flex-1 py-4 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const exact = "exact" in item && item.exact;
-            const active = exact
-              ? pathname === item.href
-              : pathname === item.href || pathname?.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-6 py-2.5 text-sm transition-colors ${
-                  active
-                    ? "text-[var(--text-primary)] bg-[var(--bg-elevated)] border-r-2 border-[var(--accent-personality)]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-
-          {/* Position shortcuts */}
-          <div className="mt-6 px-6">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-2">
-              By Position
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {POSITION_SHORTCUTS.map((pos) => (
-                <Link
-                  key={pos}
-                  href={`/players?position=${pos}`}
-                  className="text-[11px] px-2 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/80 transition-colors"
-                >
-                  {pos}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Pursuit shortcuts — pro feature, requires shortlists enabled */}
-          {shortlistsEnabled && (
-            <div className="mt-4 px-6">
-              <p className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-2">
-                By Pursuit
-              </p>
-              <div className="flex flex-col gap-0.5">
-                {["Priority", "Interested", "Scout Further", "Watch"].map(
-                  (status) => (
-                    <Link
-                      key={status}
-                      href={`/players?pursuit=${encodeURIComponent(status)}`}
-                      className="text-xs px-2 py-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
-                    >
-                      {status}
-                    </Link>
-                  )
-                )}
+        <nav className="flex-1 py-2 overflow-y-auto">
+          {NAV_CATEGORIES.map((cat) => (
+            <div key={cat.heading}>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-6 pt-4 pb-1">
+                {cat.heading}
               </div>
+              {cat.items.map((item) => {
+                const active = item.exact
+                  ? pathname === item.href
+                  : pathname === item.href || pathname?.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center px-6 py-2.5 text-sm transition-colors ${
+                      active
+                        ? "text-[var(--text-primary)] bg-[var(--bg-elevated)] border-r-2 border-[var(--accent-personality)]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
-          )}
+          ))}
         </nav>
 
-        {/* Auth section */}
+        {/* Theme toggle */}
+        <div className="px-4 py-2 border-t border-[var(--border-subtle)]">
+          <ThemeToggle />
+        </div>
+
+        {/* Admin login */}
         <div className="p-4 border-t border-[var(--border-subtle)]">
-          {authLoading ? (
-            <div className="h-10" />
-          ) : user ? (
-            <Link
-              href="/profile"
-              className="flex items-center gap-3 p-2 -m-2 rounded-lg hover:bg-[var(--bg-elevated)]/50 transition-colors"
-            >
-              {user.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt=""
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-[var(--accent-tactical)] flex items-center justify-center text-white text-xs font-bold">
-                  {(user.user_metadata?.full_name ?? user.email ?? "?")[0].toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "Scout"}
-                </div>
-                <div className="text-[10px] text-[var(--text-muted)] truncate">{user.email}</div>
-              </div>
-            </Link>
+          {isAdmin ? (
+            <div className="flex items-center gap-2 text-[11px] text-[var(--color-accent-tactical)]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Admin active
+            </div>
+          ) : showPin ? (
+            <div className="flex gap-1">
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handlePin(); }}
+                placeholder="PIN"
+                className="flex-1 px-2 py-1.5 text-xs rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+                autoFocus
+              />
+              <button onClick={handlePin} className="px-2.5 py-1.5 text-xs font-medium text-[var(--color-accent-tactical)] hover:bg-[var(--bg-elevated)] rounded transition-colors">Go</button>
+            </div>
           ) : (
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--accent-tactical)] border border-[var(--accent-tactical)]/30 rounded-lg hover:bg-[var(--accent-tactical)]/10 transition-colors"
+            <button
+              onClick={() => setShowPin(true)}
+              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-lg hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
             >
-              Sign in
-            </Link>
+              Admin Login
+            </button>
           )}
         </div>
       </aside>

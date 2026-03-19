@@ -45,7 +45,7 @@ args = parser.parse_args()
 
 DRY_RUN = args.dry_run
 FORCE = args.force
-MODEL_ID = "inferred_v1"
+MODEL_ID = None  # NULL model_id distinguishes inferred from hand-graded levels
 CHUNK_SIZE = 200
 MIN_COMPOUNDS = max(1, min(4, args.min_attributes))
 
@@ -244,10 +244,10 @@ def main():
         # Fill missing with group mean later; for now use 0
         features = [f if f is not None else 0.0 for f in features]
 
-        if profile["level"] is not None and profile["model_id"] != MODEL_ID:
+        if profile["level"] is not None and profile["model_id"] is not None:
             # This is a hand-graded seed player
             seeds_by_group[group].append((features, float(profile["level"]), profile["name"]))
-        elif profile["level"] is None or (FORCE and profile["model_id"] == MODEL_ID):
+        elif profile["level"] is None or (FORCE and profile["model_id"] is None):
             # Target: no level, or force-overwrite of previously inferred
             targets.append({
                 "person_id": pid,
@@ -408,10 +408,26 @@ def main():
             print(f"    ... ({remaining} more)")
 
     # ── Step 7: Write results ─────────────────────────────────────────────────
+    # GUARD: never overwrite manually-edited levels (network_edits table)
 
     if not DRY_RUN and results:
+        # Find player IDs that have been manually edited
+        result_ids = [r["person_id"] for r in results]
+        cur.execute("""
+            SELECT DISTINCT person_id FROM network_edits
+            WHERE field = 'level' AND old_value != new_value
+            AND person_id = ANY(%s)
+        """, (result_ids,))
+        manual_pids = {row[0] for row in cur.fetchall()}
+        if manual_pids:
+            print(f"\n  Skipping {len(manual_pids)} manually-edited levels (protected)")
+
         written = 0
+        skipped = 0
         for r in results:
+            if r["person_id"] in manual_pids:
+                skipped += 1
+                continue
             cur.execute("""
                 UPDATE player_profiles
                 SET level = %s, model_id = %s
@@ -420,7 +436,8 @@ def main():
             written += 1
 
         print(f"\n  Written {written} inferred levels to player_profiles")
-        print(f"  (model_id='{MODEL_ID}' — distinguishable from hand-graded)")
+        print(f"  Skipped {skipped} manually-edited (protected)")
+        print(f"  (model_id={MODEL_ID} — distinguishable from hand-graded)")
 
     elif DRY_RUN:
         print(f"\n  [dry-run] Would write {len(results)} inferred levels")

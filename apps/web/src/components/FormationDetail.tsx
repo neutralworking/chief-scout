@@ -371,7 +371,7 @@ export function FormationDetail({
                                 >
                                   <span className="text-[var(--text-primary)] font-medium">{player.name}</span>
                                   {player.level != null && (
-                                    <span className="text-[10px] font-mono text-[var(--text-muted)]">Lvl {player.level}</span>
+                                    <span className="text-[10px] font-mono text-[var(--text-muted)]">OVR {player.level}</span>
                                   )}
                                   {player.archetype && (
                                     <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>

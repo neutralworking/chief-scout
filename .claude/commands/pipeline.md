@@ -58,3 +58,19 @@ When a data source is blocked (Cloudflare, anti-bot, rate limits, auth walls):
 - **Do NOT** try multiple bypass strategies (cloudscraper, Playwright stealth, curl_cffi, etc.)
 - After **2 failed attempts**, stop and propose alternatives: official APIs, CSV exports, open data sources, or manual upload via admin panel
 - The admin panel already supports CSV import for FBRef data — use that pattern for other blocked sources
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

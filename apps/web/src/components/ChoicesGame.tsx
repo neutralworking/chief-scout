@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface Category {
   id: number;
@@ -17,6 +18,11 @@ interface PlayerIntel {
   level: number | null;
   archetype: string | null;
   personality_code: string | null;
+  club?: string | null;
+  nation?: string | null;
+  age?: number | null;
+  best_role?: string | null;
+  best_role_score?: number | null;
 }
 
 interface Option {
@@ -40,6 +46,8 @@ interface Question {
   tags: string[] | null;
   total_votes: number;
   tier: number | null;
+  is_dynamic?: boolean;
+  template?: string;
   category: Category | null;
   options: Option[];
 }
@@ -53,55 +61,85 @@ interface VoteResult {
   image_url: string | null;
 }
 
-type GameState = "menu" | "playing" | "results" | "profile";
+// ── Position colors for left border ──────────────────────────────────────────
+
+const POS_BORDER: Record<string, string> = {
+  GK: "border-l-amber-500",
+  CD: "border-l-blue-500",
+  WD: "border-l-blue-400",
+  DM: "border-l-green-600",
+  CM: "border-l-green-500",
+  WM: "border-l-green-400",
+  AM: "border-l-purple-500",
+  WF: "border-l-red-500",
+  CF: "border-l-red-600",
+};
+
+const POS_BG: Record<string, string> = {
+  GK: "bg-amber-500/20",
+  CD: "bg-blue-500/20",
+  WD: "bg-blue-400/20",
+  DM: "bg-green-600/20",
+  CM: "bg-green-500/20",
+  WM: "bg-green-400/20",
+  AM: "bg-purple-500/20",
+  WF: "bg-red-500/20",
+  CF: "bg-red-600/20",
+};
+
+// ── Main Component ───────────────────────────────────────────────────────────
 
 export function ChoicesGame({ categories }: { categories: Category[] }) {
   const { fcUserId } = useAuth();
-  const [gameState, setGameState] = useState<GameState>("menu");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [results, setResults] = useState<VoteResult[] | null>(null);
   const [chosenId, setChosenId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
-  const [autoAdvance, setAutoAdvance] = useState(true);
   const timerRef = useRef<number>(0);
-  const nextBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Suppress categories unused warning — kept for future category filter
+  void categories;
 
   useEffect(() => {
     const stored = localStorage.getItem("fc_total_answered");
     if (stored) setTotalAnswered(parseInt(stored, 10));
   }, []);
 
-  const fetchQuestion = useCallback(async (category?: string) => {
-    setLoading(true);
-    setResults(null);
-    setChosenId(null);
-    setAnimatingOut(false);
-
-    try {
-      const params = new URLSearchParams();
-      if (fcUserId) params.set("user_id", fcUserId);
-      if (category) params.set("category", category);
-      params.set("count", "1");
-
-      const res = await fetch(`/api/choices?${params}`);
-      const data = await res.json();
-
-      if (data.questions?.length > 0) {
-        setCurrentQuestion(data.questions[0]);
-        timerRef.current = Date.now();
-      } else {
-        setCurrentQuestion(null);
-      }
-    } catch (err) {
-      console.error("Failed to fetch question:", err);
-    } finally {
-      setLoading(false);
-    }
+  // Auto-fetch first question on mount
+  useEffect(() => {
+    fetchQuestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fcUserId]);
+
+  const fetchQuestion = useCallback(
+    async () => {
+      setLoading(true);
+      setResults(null);
+      setChosenId(null);
+      setAnimatingOut(false);
+
+      try {
+        // Dynamic questions only — powered by real player data
+        const dynRes = await fetch("/api/choices/dynamic");
+        const dynData = await dynRes.json();
+
+        if (dynData.questions?.length > 0) {
+          setCurrentQuestion(dynData.questions[0]);
+          timerRef.current = Date.now();
+        } else {
+          setCurrentQuestion(null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch question:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fcUserId]
+  );
 
   const submitVote = async (optionId: number) => {
     if (!currentQuestion || chosenId !== null) return;
@@ -110,6 +148,11 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
     const timeMs = Date.now() - timerRef.current;
 
     try {
+      // For dynamic questions, send dimension_weights along
+      const chosenOption = currentQuestion.options.find(
+        (o) => o.id === optionId
+      );
+
       const res = await fetch("/api/choices/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,26 +161,36 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           question_id: currentQuestion.id,
           option_id: optionId,
           time_ms: timeMs,
+          is_dynamic: currentQuestion.is_dynamic ?? false,
+          person_id: chosenOption?.person_id ?? null,
+          dimension_weights: chosenOption?.dimension_weights ?? null,
         }),
       });
       const data = await res.json();
+
       if (data.results) {
         setResults(data.results);
-        setStreak((s) => s + 1);
-        const newTotal = totalAnswered + 1;
-        setTotalAnswered(newTotal);
-        localStorage.setItem("fc_total_answered", String(newTotal));
-        if (autoAdvance) {
-          // Tier 2 needs more time to read the intel cards
-          const delay = currentQuestion.tier === 2 ? 3000 : 1500;
-          setTimeout(() => nextQuestion(), delay);
-        } else {
-          // Scroll to next button
-          setTimeout(() => {
-            nextBtnRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 400);
-        }
+      } else if (currentQuestion.is_dynamic) {
+        // For dynamic questions, build results from the options we already have
+        setResults(
+          currentQuestion.options.map((o) => ({
+            id: o.id,
+            label: o.label,
+            subtitle: o.subtitle,
+            vote_count: o.id === optionId ? 1 : 0,
+            person_id: o.person_id,
+            image_url: o.image_url,
+          }))
+        );
       }
+
+      setStreak((s) => s + 1);
+      const newTotal = totalAnswered + 1;
+      setTotalAnswered(newTotal);
+      localStorage.setItem("fc_total_answered", String(newTotal));
+
+      // Auto-advance after delay
+      setTimeout(() => nextQuestion(), 2000);
     } catch (err) {
       console.error("Failed to submit vote:", err);
     }
@@ -146,166 +199,124 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   const nextQuestion = () => {
     setAnimatingOut(true);
     setTimeout(() => {
-      fetchQuestion(selectedCategory ?? undefined);
-    }, 300);
+      fetchQuestion();
+    }, 250);
   };
 
-  const startGame = (categorySlug?: string) => {
-    setSelectedCategory(categorySlug ?? null);
-    setGameState("playing");
-    setStreak(0);
-    fetchQuestion(categorySlug);
-  };
+  // ── Full viewport layout ─────────────────────────────────────────────────
 
-  // ── Menu screen ──────────────────────────────────────────────────────────
-  if (gameState === "menu") {
-    return (
-      <div className="space-y-4">
-        {/* Quick play */}
-        <button
-          onClick={() => startGame()}
-          className="w-full bg-gradient-to-r from-[var(--accent-tactical)] to-[var(--accent-mental)] text-white rounded-xl p-5 text-left hover:opacity-90 transition-opacity"
-        >
-          <div className="text-lg font-bold">Quick Play</div>
-          <div className="text-sm opacity-80 mt-1">Random questions from all categories</div>
-        </button>
-
-        {/* Category grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {categories.map((cat) => (
-            <button
-              key={cat.slug}
-              onClick={() => startGame(cat.slug)}
-              className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 text-left hover:border-[var(--text-muted)] transition-colors"
-            >
-              <div className="text-2xl mb-2">{cat.icon}</div>
-              <div className="text-sm font-semibold">{cat.name}</div>
-              <div className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">
-                {cat.description}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Stats bar */}
-        {totalAnswered > 0 && (
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 text-center">
-            <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider">Your choices</div>
-            <div className="text-2xl font-bold font-mono mt-1">{totalAnswered}</div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Playing screen ────────────────────────────────────────────────────────
   return (
-    <div>
-      {/* Header bar */}
-      <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={() => setGameState("menu")}
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-[var(--bg-base)]">
+      {/* ── Header bar ── */}
+      <div className="flex-none flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)]/30">
+        <a
+          href="/"
           className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
-          &larr; Menu
-        </button>
-        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
-          <button
-            onClick={() => setAutoAdvance(!autoAdvance)}
-            className={`flex items-center gap-1 transition-colors ${autoAdvance ? "text-[var(--accent-tactical)]" : ""}`}
-            title={autoAdvance ? "Auto-advance ON" : "Auto-advance OFF"}
-          >
-            <span className={`w-6 h-3 rounded-full relative transition-colors ${autoAdvance ? "bg-[var(--accent-tactical)]" : "bg-[var(--bg-elevated)]"}`}>
-              <span className={`absolute top-0.5 w-2 h-2 rounded-full bg-white transition-all ${autoAdvance ? "left-3.5" : "left-0.5"}`} />
-            </span>
-            <span className="hidden sm:inline">Auto</span>
-          </button>
+          &larr; Home
+        </a>
+        <div className="text-sm font-bold tracking-tight text-[var(--text-primary)]">
+          Gaffer
+        </div>
+        <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
           {streak > 0 && (
             <span className="font-mono">
-              Streak: <span className="text-[var(--accent-tactical)] font-bold">{streak}</span>
+              <span className="text-[var(--color-accent-tactical)] font-bold">
+                {streak}
+              </span>{" "}
+              streak
             </span>
           )}
-          <span className="font-mono">{totalAnswered} total</span>
+          <span className="font-mono">{totalAnswered}</span>
         </div>
       </div>
 
+      {/* ── Loading state ── */}
       {loading && (
-        <div className="text-center py-20">
-          <div className="inline-block w-8 h-8 border-2 border-[var(--text-muted)] border-t-[var(--accent-tactical)] rounded-full animate-spin" />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[var(--text-muted)] border-t-[var(--color-accent-tactical)] rounded-full animate-spin" />
         </div>
       )}
 
+      {/* ── No questions left ── */}
       {!loading && !currentQuestion && (
-        <div className="text-center py-20">
-          <div className="text-4xl mb-4">🎉</div>
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="text-4xl mb-4">⚽</div>
           <div className="text-lg font-bold mb-2">All caught up!</div>
-          <p className="text-sm text-[var(--text-secondary)] mb-6">
-            You&apos;ve answered all available questions in this category.
+          <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
+            You&apos;ve answered everything. New questions coming soon.
           </p>
           <button
-            onClick={() => setGameState("menu")}
-            className="px-6 py-2 bg-[var(--accent-tactical)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            onClick={() => fetchQuestion()}
+            className="px-6 py-2 bg-[var(--color-accent-tactical)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
           >
-            Back to Menu
+            Try Again
           </button>
         </div>
       )}
 
+      {/* ── Question + Options ── */}
       {!loading && currentQuestion && (
-        <div className={`transition-all duration-300 ${animatingOut ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"}`}>
-          {/* Question */}
-          <div className="text-center mb-6">
+        <div
+          className={`flex-1 flex flex-col min-h-0 transition-all duration-250 ${
+            animatingOut
+              ? "opacity-0 translate-y-4"
+              : "opacity-100 translate-y-0"
+          }`}
+        >
+          {/* Question zone */}
+          <div className="flex-none px-4 pt-4 pb-2 text-center">
             {currentQuestion.category && (
-              <div className="text-xs text-[var(--text-muted)] mb-1">
-                {currentQuestion.category.icon} {currentQuestion.category.name}
+              <div className="text-[11px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">
+                {currentQuestion.category.icon}{" "}
+                {currentQuestion.category.name}
               </div>
             )}
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight leading-tight line-clamp-2">
               {currentQuestion.question_text}
             </h2>
             {currentQuestion.subtitle && (
-              <p className="text-sm text-[var(--text-secondary)] mt-2">{currentQuestion.subtitle}</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-1">
+                {currentQuestion.subtitle}
+              </p>
             )}
           </div>
 
-          {/* Options grid */}
-          <OptionGrid
-            options={currentQuestion.options}
-            results={results}
-            chosenId={chosenId}
-            onVote={submitVote}
-            optionCount={currentQuestion.option_count}
-            isTier2={currentQuestion.tier === 2}
-          />
+          {/* Options zone — fills remaining space */}
+          <div className="flex-1 min-h-0 px-3 py-2">
+            <OptionGrid
+              options={currentQuestion.options}
+              results={results}
+              chosenId={chosenId}
+              onVote={submitVote}
+              isDynamic={currentQuestion.is_dynamic ?? false}
+            />
+          </div>
 
-          {/* Results + next / Pass button */}
-          <div className="mt-6 flex flex-col items-center gap-3 animate-fadeIn">
+          {/* Action bar */}
+          <div className="flex-none px-4 py-3 flex items-center justify-between border-t border-[var(--border-subtle)]/30">
             {results ? (
               <>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--text-muted)]">
-                    {currentQuestion.total_votes + 1} votes
-                  </span>
-                  {!autoAdvance && (
-                    <button
-                      ref={nextBtnRef}
-                      onClick={nextQuestion}
-                      className="px-8 py-3 bg-[var(--accent-tactical)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
-                    >
-                      Next Question →
-                    </button>
-                  )}
-                </div>
-                {/* Contextual cross-sell CTA */}
-                <CrossSellCTA category={currentQuestion.category?.slug} tags={currentQuestion.tags} />
+                <span className="text-xs text-[var(--text-muted)]">
+                  {currentQuestion.total_votes + 1} votes
+                </span>
+                <button
+                  onClick={nextQuestion}
+                  className="px-6 py-2 bg-[var(--color-accent-tactical)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Next &rarr;
+                </button>
               </>
             ) : (
-              <button
-                onClick={nextQuestion}
-                className="px-6 py-2 border border-[var(--border-subtle)] text-[var(--text-muted)] rounded-lg text-xs hover:text-[var(--text-secondary)] transition-colors"
-              >
-                Pass — skip this question
-              </button>
+              <>
+                <div />
+                <button
+                  onClick={nextQuestion}
+                  className="px-4 py-2 border border-[var(--border-subtle)] text-[var(--text-muted)] rounded-lg text-xs hover:text-[var(--text-secondary)] transition-colors"
+                >
+                  Skip
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -314,53 +325,52 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   );
 }
 
-// ── Option Grid Component ──────────────────────────────────────────────────
+// ── Option Grid ──────────────────────────────────────────────────────────────
 
 function OptionGrid({
   options,
   results,
   chosenId,
   onVote,
-  optionCount,
-  isTier2,
+  isDynamic,
 }: {
   options: Option[];
   results: VoteResult[] | null;
   chosenId: number | null;
   onVote: (id: number) => void;
-  optionCount: number;
-  isTier2: boolean;
+  isDynamic: boolean;
 }) {
   const totalVotes = results
     ? results.reduce((sum, r) => sum + (r.vote_count ?? 0), 0)
     : 0;
 
-  // Grid layout based on option count
+  const count = options.length;
   const gridClass =
-    optionCount === 2
-      ? "grid-cols-2 gap-4"
-      : optionCount === 3
-      ? "grid-cols-3 gap-3"
-      : optionCount === 4
-      ? "grid-cols-2 gap-3"
-      : "grid-cols-3 sm:grid-cols-5 gap-2";
+    count === 2
+      ? "grid-cols-1 sm:grid-cols-2 gap-2"
+      : count === 3
+      ? "grid-cols-1 sm:grid-cols-3 gap-2"
+      : "grid-cols-2 gap-2";
 
   return (
-    <div className={`grid ${gridClass}`}>
+    <div className={`grid ${gridClass} h-full auto-rows-fr`}>
       {options
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((opt) => {
           const resultData = results?.find((r) => r.id === opt.id);
-          const pct = resultData && totalVotes > 0
-            ? Math.round((resultData.vote_count / totalVotes) * 100)
-            : 0;
+          const pct =
+            resultData && totalVotes > 0
+              ? Math.round((resultData.vote_count / totalVotes) * 100)
+              : 0;
           const isChosen = chosenId === opt.id;
-          const isWinner = results && resultData
-            ? resultData.vote_count === Math.max(...results.map((r) => r.vote_count ?? 0))
-            : false;
+          const isWinner =
+            results && resultData
+              ? resultData.vote_count ===
+                Math.max(...results.map((r) => r.vote_count ?? 0))
+              : false;
           const hasVoted = chosenId !== null;
           const intel = opt.player_intel;
-          const showIntel = isTier2 && hasVoted && intel;
+          const pos = intel?.position ?? "";
 
           return (
             <button
@@ -368,143 +378,112 @@ function OptionGrid({
               onClick={() => onVote(opt.id)}
               disabled={hasVoted}
               className={`
-                relative overflow-hidden rounded-xl border-2 transition-all duration-300 text-left
-                ${hasVoted ? "cursor-default" : "cursor-pointer hover:scale-[1.02] hover:border-[var(--accent-tactical)] active:scale-[0.98]"}
-                ${isChosen ? "border-[var(--accent-tactical)] ring-2 ring-[var(--accent-tactical)]/30" : "border-[var(--border-subtle)]"}
-                ${isWinner && results ? "border-[var(--accent-tactical)]" : ""}
-                bg-[var(--bg-surface)]
+                relative overflow-hidden rounded-xl border-l-4 border transition-all duration-200 text-left flex flex-col justify-center px-3 py-2 min-h-0
+                ${POS_BORDER[pos] ?? "border-l-[var(--border-subtle)]"}
+                ${
+                  hasVoted
+                    ? "cursor-default"
+                    : "cursor-pointer hover:scale-[1.01] active:scale-[0.98]"
+                }
+                ${
+                  isChosen
+                    ? "border-[var(--color-accent-tactical)] bg-[var(--color-accent-tactical)]/10"
+                    : "border-[var(--border-subtle)]/50 bg-[var(--bg-surface)]"
+                }
+                ${isWinner && results ? "border-[var(--color-accent-tactical)]" : ""}
               `}
             >
-              {/* Player image or initials */}
-              <div className="aspect-[4/3] bg-[var(--bg-elevated)] flex items-center justify-center relative">
-                {opt.image_url ? (
-                  <img
-                    src={opt.image_url}
-                    alt={opt.label}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-2xl sm:text-3xl font-bold text-[var(--text-muted)]">
-                    {opt.label
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </div>
-                )}
-
-                {/* Vote percentage overlay */}
-                {results && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center pb-3 animate-fadeIn">
-                    <div className="text-center">
-                      <div className={`text-2xl sm:text-3xl font-bold font-mono ${isWinner ? "text-[var(--accent-tactical)]" : "text-white"}`}>
-                        {pct}%
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Chosen indicator */}
-                {isChosen && (
-                  <div className="absolute top-2 right-2 w-6 h-6 bg-[var(--accent-tactical)] rounded-full flex items-center justify-center animate-fadeIn">
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Label + info */}
-              <div className="p-3">
-                <div className="font-semibold text-sm truncate">{opt.label}</div>
-                {opt.subtitle && (
-                  <div className="text-xs text-[var(--text-muted)] mt-0.5 truncate">{opt.subtitle}</div>
-                )}
-
-                {/* Tier 2 progressive reveal: player intelligence card */}
-                {showIntel && (
-                  <div className="mt-2 pt-2 border-t border-[var(--border-subtle)] space-y-1 animate-fadeIn">
-                    {intel.level && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Level</span>
-                        <span className="text-xs font-bold font-mono text-[var(--accent-tactical)]">{intel.level}</span>
-                      </div>
-                    )}
-                    {intel.position && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Pos</span>
-                        <span className="text-xs font-mono">{intel.position}</span>
-                      </div>
-                    )}
-                    {intel.archetype && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
-                        <span className="text-xs">{intel.archetype}</span>
-                      </div>
-                    )}
-                    {intel.personality_code && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">MBTI</span>
-                        <span className="text-xs font-mono">{intel.personality_code}</span>
-                      </div>
-                    )}
-                    {opt.person_id && (
-                      <a
-                        href={`/players/${opt.person_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="block text-[10px] text-[var(--accent-tactical)] hover:underline mt-1"
-                      >
-                        See full profile &rarr;
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Vote bar (shown after voting) */}
+              {/* Vote percentage bar background */}
               {results && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--bg-elevated)]">
-                  <div
-                    className={`h-full transition-all duration-700 ease-out ${isWinner ? "bg-[var(--accent-tactical)]" : "bg-[var(--text-muted)]"}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
+                <div
+                  className={`absolute inset-0 transition-all duration-700 ease-out ${
+                    isWinner
+                      ? "bg-[var(--color-accent-tactical)]/15"
+                      : "bg-[var(--text-muted)]/5"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
               )}
+
+              {/* Content */}
+              <div className="relative z-10">
+                {/* Row 1: Position + Name */}
+                <div className="flex items-center gap-2">
+                  {(isDynamic || intel) && pos && (
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        POS_BG[pos] ?? "bg-[var(--bg-elevated)]"
+                      } text-[var(--text-secondary)]`}
+                    >
+                      {pos}
+                    </span>
+                  )}
+                  <span className="font-semibold text-sm truncate">
+                    {opt.label}
+                  </span>
+                  {isChosen && (
+                    <svg
+                      className="w-4 h-4 text-[var(--color-accent-tactical)] flex-none ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                  {results && (
+                    <span
+                      className={`text-sm font-bold font-mono ml-auto ${
+                        isWinner
+                          ? "text-[var(--color-accent-tactical)]"
+                          : "text-[var(--text-muted)]"
+                      }`}
+                    >
+                      {pct}%
+                    </span>
+                  )}
+                </div>
+
+                {/* Row 2: Subtitle (club · nation) */}
+                {opt.subtitle && (
+                  <div className="text-[11px] text-[var(--text-muted)] mt-0.5 truncate">
+                    {opt.subtitle}
+                  </div>
+                )}
+
+                {/* Row 3: Intel (archetype · level) — shown after voting for dynamic */}
+                {hasVoted && intel && (isDynamic || opt.player_intel) && (
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--text-muted)] animate-fadeIn">
+                    {intel.archetype && (
+                      <span className="text-[var(--color-accent-technical)]">
+                        {intel.archetype}
+                      </span>
+                    )}
+                    {intel.level && (
+                      <span>
+                        L
+                        <span className="font-mono font-bold text-[var(--color-accent-tactical)]">
+                          {intel.level}
+                        </span>
+                      </span>
+                    )}
+                    {intel.age && <span>{intel.age}y</span>}
+                    {intel.best_role && (
+                      <span className="text-[var(--color-accent-mental)]">
+                        {intel.best_role}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </button>
           );
         })}
     </div>
   );
-}
-
-// ── Cross-sell CTA ────────────────────────────────────────────────────────────
-
-function CrossSellCTA({ category, tags }: { category?: string | null; tags?: string[] | null }) {
-  const tagSet = new Set(tags ?? []);
-  const isFreeAgent = tagSet.has("free-agent") || category === "transfer";
-  const isScouting = category === "scouting";
-
-  if (isFreeAgent) {
-    return (
-      <Link
-        href="/free-agents"
-        className="text-[11px] text-[var(--accent-personality)] hover:underline transition-colors"
-      >
-        See all free agents available this summer &rarr;
-      </Link>
-    );
-  }
-
-  if (isScouting) {
-    return (
-      <Link
-        href="/players"
-        className="text-[11px] text-[var(--accent-tactical)] hover:underline transition-colors"
-      >
-        Browse full player profiles &rarr;
-      </Link>
-    );
-  }
-
-  return null;
 }

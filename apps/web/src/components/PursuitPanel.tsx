@@ -84,7 +84,7 @@ export function PursuitPanel({ pipeline, positionCounts, stats }: PursuitPanelPr
                             </p>
                           </div>
                           {p.level != null && (
-                            <span className="text-sm font-mono text-[var(--text-secondary)]">{p.level}</span>
+                            <span className="text-sm font-mono text-[var(--text-secondary)]">OVR {p.level}</span>
                           )}
                         </Link>
                       );

@@ -11,6 +11,26 @@ const CONTRACT_TAGS = ["Long-Term", "One Year Left", "Six Months", "Expiring", "
 const SQUAD_ROLES = ["Key Player", "Important Player", "Rotation", "Backup", "Youth", "Surplus"];
 const FEET = ["Right", "Left", "Both"];
 
+const PLAYING_MODELS = [
+  "Controller", "Commander", "Creator", "Target", "Sprinter",
+  "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler",
+  "Passer", "Striker", "GK",
+];
+
+const BLUEPRINT_BY_POSITION: Record<string, string[]> = {
+  GK: ["Shot-Stopper", "Complete Keeper", "Modern Keeper"],
+  CD: ["Modern CB", "Ball-Playing CB", "Traditional CB", "Aggressive CB", "Ball Winner", "Progressor CB", "Hybrid Defender"],
+  WD: ["Defensive Full-Back", "Overlapping Full-Back", "Attacking Full-Back", "Inverted Full-Back", "Two-Way Full-Back", "Flanker", "Playmaking Full-Back", "Ball-Playing Fullback"],
+  DM: ["Anchor", "Deep-Lying Playmaker", "Conductor", "Regista", "Box-to-Box Anchor", "Ball Winner", "Holding Midfielder"],
+  CM: ["Metronome", "Maestro", "Conductor", "Deep-Lying Playmaker", "Box-to-Box", "Box-to-Box Creator", "Driver", "Interior Playmaker", "Playmaker", "Technical Midfielder", "Ball Winner", "Holding Midfielder", "General"],
+  WM: ["Tireless Technician", "Free-Roaming Attacker", "Wide Playmaker", "Work-Rate Winger", "Wide Runner"],
+  AM: ["Playmaker", "Floating Playmaker", "Pressing Playmaker", "No.10", "Shadow Striker"],
+  WF: ["Wizard", "Explosive Winger", "Inverted Winger", "Work-Rate Winger", "Direct Winger", "Inside Forward", "Wide Playmaker", "Flanker", "Defensive Winger", "No.10"],
+  CF: ["Complete Striker", "Poacher", "Colossus", "Target Man", "Goal Machine", "Runner", "Mobile Striker", "False Nine", "Pressing Forward"],
+};
+
+const ALL_BLUEPRINTS = [...new Set(Object.values(BLUEPRINT_BY_POSITION).flat())].sort();
+
 const POSITION_COLORS: Record<string, string> = {
   GK: "bg-amber-700/60", CD: "bg-blue-700/60", WD: "bg-blue-600/60",
   DM: "bg-green-700/60", CM: "bg-green-600/60", WM: "bg-green-500/60",
@@ -36,7 +56,6 @@ interface PlayerData {
   preferred_foot: string | null;
   height_cm: number | null;
   dob: string | null;
-  hg: boolean | null;
   contract_tag: string | null;
   // Completeness fields (from intelligence card)
   personality_type: string | null;
@@ -67,11 +86,23 @@ function getCompleteness(player: PlayerData): CompletenessItem[] {
   return [
     { label: "Position", filled: !!player.position },
     { label: "Archetype", filled: !!player.archetype },
-    { label: "Level", filled: player.level != null },
+    { label: "Blueprint", filled: !!player.blueprint },
     { label: "Scouting Notes", filled: !!player.scouting_notes },
     { label: "Personality", filled: !!player.personality_type },
     { label: "Market Data", filled: !!player.market_value_tier },
   ];
+}
+
+function parseArchetype(archetype: string | null): { primary: string; secondary: string } {
+  if (!archetype) return { primary: "", secondary: "" };
+  const parts = archetype.split("-");
+  return { primary: parts[0] ?? "", secondary: parts[1] ?? "" };
+}
+
+function composeArchetype(primary: string, secondary: string): string {
+  if (!primary) return "";
+  if (!secondary) return primary;
+  return `${primary}-${secondary}`;
 }
 
 export default function PlayerEditorPage() {
@@ -80,6 +111,8 @@ export default function PlayerEditorPage() {
 
   const [player, setPlayer] = useState<PlayerData | null>(null);
   const [profile, setProfile] = useState<Record<string, string | number | boolean | null>>({});
+  const [primaryModel, setPrimaryModel] = useState("");
+  const [secondaryModel, setSecondaryModel] = useState("");
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [playerTags, setPlayerTags] = useState<PlayerTag[]>([]);
   const [tagFilter, setTagFilter] = useState("");
@@ -145,13 +178,18 @@ export default function PlayerEditorPage() {
         preferred_foot: playerData.preferred_foot,
         height_cm: playerData.height_cm,
         dob: playerData.date_of_birth ?? playerData.dob,
-        hg: playerData.hg,
         contract_tag: contractTag,
         personality_type: personalityType,
         market_value_tier: marketValueTier,
       };
 
       setPlayer(merged);
+
+      // Parse archetype into primary/secondary models
+      const { primary, secondary } = parseArchetype(merged.archetype);
+      setPrimaryModel(primary);
+      setSecondaryModel(secondary);
+
       setProfile({
         position: merged.position ?? "",
         secondary_position: merged.secondary_position ?? "",
@@ -167,7 +205,6 @@ export default function PlayerEditorPage() {
         blueprint: merged.blueprint ?? "",
         preferred_foot: merged.preferred_foot ?? "",
         height_cm: merged.height_cm ?? "",
-        hg: merged.hg ?? false,
       });
 
       if (tagsRes.ok) {
@@ -188,6 +225,19 @@ export default function PlayerEditorPage() {
   function setProfileField(field: string, value: string | number | boolean | null) {
     setProfile((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
+  }
+
+  function handlePrimaryModelChange(value: string) {
+    setPrimaryModel(value);
+    // Clear secondary if it matches the new primary
+    const newSecondary = secondaryModel === value ? "" : secondaryModel;
+    setSecondaryModel(newSecondary);
+    setProfileField("archetype", composeArchetype(value, newSecondary));
+  }
+
+  function handleSecondaryModelChange(value: string) {
+    setSecondaryModel(value);
+    setProfileField("archetype", composeArchetype(primaryModel, value));
   }
 
   async function addTag(tagId: number) {
@@ -270,7 +320,6 @@ export default function PlayerEditorPage() {
       const peopleUpdates: Record<string, unknown> = {};
       if (profile.preferred_foot) peopleUpdates.preferred_foot = profile.preferred_foot;
       if (profile.height_cm !== "" && profile.height_cm != null) peopleUpdates.height_cm = Number(profile.height_cm);
-      if (profile.hg !== undefined) peopleUpdates.hg = profile.hg;
 
       if (Object.keys(peopleUpdates).length > 0) {
         promises.push(
@@ -320,6 +369,15 @@ export default function PlayerEditorPage() {
 
   const completenessItems = getCompleteness(player);
   const filledCount = completenessItems.filter((c) => c.filled).length;
+
+  // Blueprint options filtered by current position
+  const currentPosition = String(profile.position ?? "");
+  const blueprintOptions = currentPosition && BLUEPRINT_BY_POSITION[currentPosition]
+    ? BLUEPRINT_BY_POSITION[currentPosition]
+    : ALL_BLUEPRINTS;
+
+  // Secondary model options: exclude selected primary
+  const secondaryModelOptions = PLAYING_MODELS.filter((m) => m !== primaryModel);
 
   // Group tags by category
   const tagsByCategory = allTags.reduce<Record<string, Tag[]>>((acc, t) => {
@@ -405,14 +463,41 @@ export default function PlayerEditorPage() {
         </div>
       </div>
 
-      {/* Scouting */}
+      {/* Scouting Profile (PRIMARY) */}
       <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Scouting</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
-          <FieldSelect label="Pursuit Status" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
-          <FieldSelect label="Contract" value={String(profile.contract_tag ?? "")} options={CONTRACT_TAGS} onChange={(v) => setProfileField("contract_tag", v)} />
-          <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
+        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Scouting Profile</h2>
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <FieldSelect label="Position" value={String(profile.position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("position", v)} />
+          <FieldSelect label="2nd Position" value={String(profile.secondary_position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("secondary_position", v)} />
         </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <FieldSelect label="Primary Model" value={primaryModel} options={PLAYING_MODELS} onChange={handlePrimaryModelChange} />
+          <FieldSelect label="Secondary Model" value={secondaryModel} options={secondaryModelOptions} onChange={handleSecondaryModelChange} placeholder="— None —" />
+        </div>
+
+        <div className="mb-3">
+          <FieldSelect label="Blueprint" value={String(profile.blueprint ?? "")} options={blueprintOptions} onChange={(v) => setProfileField("blueprint", v)} />
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <FieldSelect label="Side" value={String(profile.side ?? "")} options={["Left", "Right", "Central", "Both"]} onChange={(v) => setProfileField("side", v)} />
+          <FieldSelect label="Foot" value={String(profile.preferred_foot ?? "")} options={FEET} onChange={(v) => setProfileField("preferred_foot", v)} />
+          <FieldNumber label="Height (cm)" value={profile.height_cm as number} onChange={(v) => setProfileField("height_cm", v)} min={140} max={220} />
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <FieldNumber label="Level" value={profile.level as number} onChange={(v) => setProfileField("level", v)} min={1} max={99} />
+          <FieldNumber label="Peak" value={profile.peak as number} onChange={(v) => setProfileField("peak", v)} min={1} max={99} />
+          <div className="flex flex-col">
+            <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Overall</label>
+            <div className="px-2 py-2.5 rounded-md bg-[var(--bg-surface-solid)]/50 border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] font-mono">
+              {profile.overall ?? "—"}
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">Scouting Notes</label>
           <textarea
@@ -420,37 +505,10 @@ export default function PlayerEditorPage() {
             onChange={(e) => setProfileField("scouting_notes", e.target.value)}
             placeholder="Write scouting observations, strengths, weaknesses, tactical fit..."
             rows={4}
-            className="w-full px-3 py-2 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors resize-y"
+            className="w-full px-3 py-2.5 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors resize-y"
           />
         </div>
       </div>
-
-      {/* Profile */}
-      <div className="glass rounded-xl p-4 mb-4">
-        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Profile</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <FieldSelect label="Position" value={String(profile.position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("position", v)} />
-          <FieldSelect label="2nd Position" value={String(profile.secondary_position ?? "")} options={POSITIONS} onChange={(v) => setProfileField("secondary_position", v)} />
-          <FieldSelect label="Side" value={String(profile.side ?? "")} options={["Left", "Right", "Central", "Both"]} onChange={(v) => setProfileField("side", v)} />
-          <FieldSelect label="Foot" value={String(profile.preferred_foot ?? "")} options={FEET} onChange={(v) => setProfileField("preferred_foot", v)} />
-          <FieldNumber label="Level" value={profile.level as number} onChange={(v) => setProfileField("level", v)} min={1} max={100} />
-          <FieldNumber label="Peak" value={profile.peak as number} onChange={(v) => setProfileField("peak", v)} min={1} max={100} />
-          <FieldNumber label="Overall" value={profile.overall as number} onChange={(v) => setProfileField("overall", v)} min={1} max={100} />
-          <FieldNumber label="Height (cm)" value={profile.height_cm as number} onChange={(v) => setProfileField("height_cm", v)} min={140} max={220} />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-          <FieldText label="Archetype" value={String(profile.archetype ?? "")} onChange={(v) => setProfileField("archetype", v)} />
-          <FieldText label="Blueprint" value={String(profile.blueprint ?? "")} onChange={(v) => setProfileField("blueprint", v)} />
-        </div>
-
-        <div className="mt-3">
-          <FieldCheckbox label="Homegrown" checked={!!profile.hg} onChange={(v) => setProfileField("hg", v)} />
-        </div>
-      </div>
-
-      {/* DoF Assessment */}
-      <DofAssessmentSection personId={personId} />
 
       {/* Tags */}
       <div className="glass rounded-xl p-4 mb-4">
@@ -482,7 +540,7 @@ export default function PlayerEditorPage() {
             value={tagFilter}
             onChange={(e) => setTagFilter(e.target.value)}
             placeholder="Search tags to add..."
-            className="w-full px-3 py-2 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors"
+            className="w-full px-3 py-2.5 rounded-lg bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-tactical)] transition-colors"
           />
 
           {tagFilter.length > 0 && availableTags.length > 0 && (
@@ -491,7 +549,7 @@ export default function PlayerEditorPage() {
                 <button
                   key={t.id}
                   onClick={() => addTag(t.id)}
-                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-elevated)]/50 transition-colors flex items-center justify-between"
+                  className="w-full text-left px-3 py-2.5 text-xs hover:bg-[var(--bg-elevated)]/50 transition-colors flex items-center justify-between"
                 >
                   <span>{t.tag_name}</span>
                   <span className="text-[9px] text-[var(--text-muted)]">{CATEGORY_LABELS[t.category] ?? t.category}</span>
@@ -517,7 +575,7 @@ export default function PlayerEditorPage() {
                       <button
                         key={t.id}
                         onClick={() => addTag(t.id)}
-                        className="text-[9px] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-tactical)]/50 transition-colors"
+                        className="text-[9px] px-2.5 py-1.5 rounded border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-tactical)]/50 transition-colors"
                       >
                         + {t.tag_name}
                       </button>
@@ -529,6 +587,26 @@ export default function PlayerEditorPage() {
           </div>
         )}
       </div>
+
+      {/* Status (collapsible, closed by default) */}
+      <CollapsibleSection title="Status" defaultOpen={false}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <FieldSelect label="Pursuit Status" value={String(profile.pursuit_status ?? "")} options={PURSUIT_OPTIONS} onChange={(v) => setProfileField("pursuit_status", v)} />
+          <FieldSelect label="Contract" value={String(profile.contract_tag ?? "")} options={CONTRACT_TAGS} onChange={(v) => setProfileField("contract_tag", v)} />
+          <FieldSelect label="Squad Role" value={String(profile.squad_role ?? "")} options={SQUAD_ROLES} onChange={(v) => setProfileField("squad_role", v)} />
+        </div>
+      </CollapsibleSection>
+
+      {/* Overall Override (collapsible, closed by default) */}
+      <CollapsibleSection title="Overall Override" defaultOpen={false}>
+        <p className="text-[10px] text-[var(--text-muted)] mb-3">Auto-computed by pipeline. Only override if you know what you&apos;re doing.</p>
+        <div className="grid grid-cols-1 gap-3">
+          <FieldNumber label="Overall" value={profile.overall as number} onChange={(v) => setProfileField("overall", v)} min={1} max={99} />
+        </div>
+      </CollapsibleSection>
+
+      {/* DoF Assessment */}
+      <DofAssessmentSection personId={personId} />
 
       {/* Sticky save bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-50">
@@ -555,18 +633,41 @@ export default function PlayerEditorPage() {
   );
 }
 
+// ── Helper Components ────────────────────────────────────────────────────────
+
+function CollapsibleSection({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="glass rounded-xl mb-4 overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-4"
+      >
+        <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{title}</h2>
+        <svg
+          className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && <div className="px-4 pb-4">{children}</div>}
+    </div>
+  );
+}
+
 // ── Field Components ────────────────────────────────────────────────────────
 
-function FieldSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
+function FieldSelect({ label, value, options, onChange, placeholder }: { label: string; value: string; options: string[]; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
       <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-2 py-1.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-tactical)]"
+        className="w-full px-2 py-2.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-tactical)]"
       >
-        <option value="">—</option>
+        <option value="">{placeholder ?? "—"}</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
@@ -583,36 +684,8 @@ function FieldNumber({ label, value, onChange, min, max }: { label: string; valu
         onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
         min={min}
         max={max}
-        className="w-full px-2 py-1.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent-tactical)]"
+        className="w-full px-2 py-2.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-[var(--accent-tactical)]"
       />
-    </div>
-  );
-}
-
-function FieldText({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider block mb-1">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-2 py-1.5 rounded-md bg-[var(--bg-surface-solid)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-tactical)]"
-      />
-    </div>
-  );
-}
-
-function FieldCheckbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex items-center gap-2 pt-1">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="accent-[var(--accent-tactical)]"
-      />
-      <label className="text-xs text-[var(--text-secondary)]">{label}</label>
     </div>
   );
 }

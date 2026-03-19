@@ -3,6 +3,8 @@
  * TypeScript port of valuation_core/config.py
  */
 
+export { MODEL_ATTRIBUTES, SOURCE_PRIORITY } from "@/lib/models";
+
 // ── Scout dominance parameter ─────────────────────────────────────────────────
 
 export const LAMBDA_MODES: Record<string, number> = {
@@ -34,24 +36,6 @@ export const BAND_WIDTH_MULTIPLIERS: Record<string, number> = {
 
 export const MONTE_CARLO_SAMPLES = 100;
 export const DISAGREEMENT_THRESHOLD_STDEV = 1.0;
-
-// ── 13 Playing Models ───────────────────────────────────────────────────────
-
-export const MODEL_ATTRIBUTES: Record<string, string[]> = {
-  Controller: ["anticipation", "composure", "decisions", "tempo"],
-  Commander: ["communication", "concentration", "drive", "leadership"],
-  Creator: ["creativity", "unpredictability", "vision", "guile"],
-  Target: ["aerial_duels", "heading", "jumping", "volleys"],
-  Sprinter: ["acceleration", "balance", "movement", "pace"],
-  Powerhouse: ["aggression", "duels", "shielding", "stamina"],
-  Cover: ["awareness", "discipline", "interceptions", "positioning"],
-  Engine: ["intensity", "pressing", "stamina", "versatility"],
-  Destroyer: ["blocking", "clearances", "marking", "tackling"],
-  Dribbler: ["carries", "first_touch", "skills", "take_ons"],
-  Passer: ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-  Striker: ["close_range", "mid_range", "long_range", "penalties"],
-  GK: ["agility", "footwork", "handling", "reactions"],
-};
 
 // ── Positional archetype tiers ────────────────────────────────────────────────
 
@@ -126,13 +110,6 @@ export const VALUE_TAGS: Record<string, number> = {
   "Context Neutral": 0.04,
   "Captain Material": 0.04,
   "Low Maintenance": 0.03,
-};
-
-// ── Source priority ───────────────────────────────────────────────────────
-
-export const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5, fbref: 4, statsbomb: 3,
-  understat: 2, computed: 1, eafc_inferred: 0,
 };
 
 // ── Low-observability attributes ────────────────────────────────────────────

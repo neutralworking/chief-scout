@@ -55,9 +55,48 @@ wikidata-clubs:
 	cd $(PIPELINE) && $(PYTHON) 17_wikidata_clubs.py --batch-sparql
 
 transfermarkt:
-	cd $(PIPELINE) && $(PYTHON) 25_transfermarkt_ingest.py
+	cd $(PIPELINE) && $(PYTHON) 28_transfermarkt_ingest.py
 
-pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt
+# ── Kaggle datasets ──────────────────────────────────────────────────────────
+
+kaggle-download:
+	$(PYTHON) $(PIPELINE)/50_kaggle_download.py
+
+kaggle-euro:
+	cd $(PIPELINE) && $(PYTHON) 51_kaggle_euro_leagues.py
+
+kaggle-transfers:
+	cd $(PIPELINE) && $(PYTHON) 52_kaggle_transfer_values.py
+
+kaggle-fifa:
+	cd $(PIPELINE) && $(PYTHON) 53_kaggle_fifa_historical.py
+
+kaggle-pl:
+	cd $(PIPELINE) && $(PYTHON) 54_kaggle_pl_stats.py
+
+kaggle-injuries:
+	cd $(PIPELINE) && $(PYTHON) 55_kaggle_injuries.py --tags --traits
+
+kaggle-all: kaggle-euro kaggle-transfers kaggle-fifa kaggle-pl kaggle-injuries
+
+pipeline: parse insert enrich refine valuation dof push statsbomb understat match fbref news wikidata metrics clubs wikidata-clubs transfermarkt kaggle-all
+
+# ── Orchestrator ────────────────────────────────────────────────────────────
+
+run-all:
+	$(PYTHON) $(PIPELINE)/run_all.py
+
+run-all-dry:
+	$(PYTHON) $(PIPELINE)/run_all.py --dry-run
+
+run-grades:
+	$(PYTHON) $(PIPELINE)/run_all.py --steps understat_grades,statsbomb_grades,ratings,fingerprints
+
+run-from:
+	$(PYTHON) $(PIPELINE)/run_all.py --from ratings
+
+run-incremental:
+	$(PYTHON) $(PIPELINE)/run_all.py --incremental --skip-optional
 
 dry-run:
 	cd $(PIPELINE) && $(PYTHON) 01_parse_rsg.py --dry-run

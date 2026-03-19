@@ -26,7 +26,7 @@ import argparse
 from collections import Counter
 from datetime import date
 
-from config import POSTGRES_DSN
+from lib.db import require_conn, get_dict_cursor
 
 parser = argparse.ArgumentParser(description="Rule-based personality corrections")
 parser.add_argument("--dry-run", action="store_true")
@@ -53,14 +53,11 @@ def compute_code(ei, sn, tf, jp):
 
 
 def main():
-    import psycopg2
-    import psycopg2.extras
-
     print("34 — Rule-Based Personality Corrections")
 
-    conn = psycopg2.connect(POSTGRES_DSN)
+    conn = require_conn()
     conn.autocommit = False
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur = get_dict_cursor(conn)
 
     # ── Load personality data with context ────────────────────────────────
     query = """

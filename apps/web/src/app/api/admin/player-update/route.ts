@@ -10,7 +10,12 @@ export async function POST(request: Request) {
   }
 
   const sb = createClient(supabaseUrl, supabaseKey);
-  const body = await request.json();
+  // Support both JSON and sendBeacon (text/plain with JSON body)
+  const contentType = request.headers.get("content-type") ?? "";
+  const bodyText = contentType.includes("application/json")
+    ? await request.json()
+    : JSON.parse(await request.text());
+  const body = bodyText;
   const { person_id, table, updates } = body as {
     person_id: number;
     table: "player_status" | "player_profiles" | "player_market" | "people" | "player_personality";
@@ -53,7 +58,6 @@ export async function POST(request: Request) {
       old_value: oldRow ? String((oldRow as unknown as Record<string, unknown>)[field] ?? "") : null,
       new_value: newValue != null ? String(newValue) : null,
       table_name: table,
-      user_id: "admin",
     }));
 
     if (edits.length > 0) {

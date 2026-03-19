@@ -80,3 +80,19 @@ Be direct. Say "this is broken" if it's broken. Say "this is great" if it's grea
 - `/marketing` — for conversion and growth implications
 - `/categorist` — for personality/archetype visual system alignment
 - `/dof` — for football credibility of content and terminology
+
+
+## Guardrails
+Before starting multi-step work, segment the task:
+
+### Per segment:
+1. **Scope**: what files/tables/routes are affected
+2. **Exit criteria**: specific, testable conditions (not "it works" — be precise)
+3. **Scenario tests**: edge cases to verify before moving on
+4. **Mid-segment checkpoint**: post progress update
+
+### Rules:
+- Max 3 segments per session
+- Verify ALL exit criteria before proceeding to next segment
+- If blocked: log to `.claude/context/WORKING.md` blockers section, do not power through
+- End of task: drop insights to `/context save`

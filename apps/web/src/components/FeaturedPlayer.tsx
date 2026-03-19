@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { MODEL_LABEL } from "@/lib/models";
+import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
 import { RadarChart } from "./RadarChart";
+import { ScoutingNotes } from "./ScoutingNotes";
 
 interface FeaturedPlayerData {
   person_id: number;
@@ -19,35 +22,17 @@ interface FeaturedPlayerData {
   personality_type: string | null;
   market_value_tier: string | null;
   dob: string | null;
+  scouting_notes: string | null;
+  // Season stats (optional — passed from dashboard)
+  af_appearances?: number | null;
+  af_goals?: number | null;
+  af_assists?: number | null;
+  af_rating?: number | null;
 }
-
-const PERSONALITY_NAMES: Record<string, { name: string; oneLiner: string }> = {
-  ANLC: { name: "The General", oneLiner: "Structured reader, self-driven, organizes others, thrives in confrontation" },
-  IXSP: { name: "The Genius", oneLiner: "Improviser, occasion-driven, self-contained, ice-cold under pressure" },
-  ANSC: { name: "The Machine", oneLiner: "Reads the game systematically, self-motivated, quiet but relentless" },
-  INLC: { name: "The Captain", oneLiner: "Instinct-driven, self-motivated, vocal leader, fierce competitor" },
-  AXLC: { name: "The Warrior", oneLiner: "Structured but feeds off atmosphere, demands attention, confrontational" },
-  INSP: { name: "The Maestro", oneLiner: "Creative, self-motivated, quietly brilliant, composed under pressure" },
-  ANLP: { name: "The Conductor", oneLiner: "Tactical organizer, self-driven, leads through control, ice-cold composure" },
-  IXSC: { name: "The Maverick", oneLiner: "Flair player, needs the big stage, self-focused, rises to confrontation" },
-  AXSC: { name: "The Enforcer", oneLiner: "Reads patterns, fuelled by occasion, self-focused, aggressive competitor" },
-  AXSP: { name: "The Technician", oneLiner: "Structured, occasion-driven, self-contained, calm under pressure" },
-  AXLP: { name: "The Orchestrator", oneLiner: "Tactical mind, feeds off the crowd, organizes others, composed decision-maker" },
-  INLP: { name: "The Guardian", oneLiner: "Instinctive, self-motivated, vocal organizer, calm presence" },
-  INSC: { name: "The Blade", oneLiner: "Instinctive, self-driven, self-reliant, competitive edge" },
-  IXLC: { name: "The Livewire", oneLiner: "Improviser, occasion-driven, leads vocally, thrives on confrontation" },
-  IXLP: { name: "The Playmaker", oneLiner: "Creative improviser, occasion-driven, organizes play, composed" },
-  ANSP: { name: "The Professor", oneLiner: "Analytical, self-motivated, self-contained, composed under pressure" },
-};
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
 const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
 const GK_MODELS = ["GK", "Cover", "Commander", "Controller", "Passer"];
-const MODEL_SHORT: Record<string, string> = {
-  Controller: "CTR", Commander: "CMD", Creator: "CRE", Target: "TGT",
-  Sprinter: "SPR", Powerhouse: "PWR", Cover: "COV", Engine: "ENG",
-  Destroyer: "DES", Dribbler: "DRB", Passer: "PAS", Striker: "STR", GK: "GK",
-};
 
 interface RadarData {
   modelScores: Record<string, number>;
@@ -81,10 +66,19 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   const player = currentPlayer;
   const theme = getCardTheme(player.personality_type);
   const styles = THEME_STYLES[theme];
-  const personality = player.personality_type ? PERSONALITY_NAMES[player.personality_type] : null;
+  const pt = player.personality_type ? PERSONALITY_TYPES[player.personality_type] : null;
+  const personality = pt ? { name: pt.fullName, oneLiner: pt.oneLiner } : null;
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;
+
+  const prevFeatured = () => {
+    if (!canCycle) return;
+    const prev = (poolIndex - 1 + pool.length) % pool.length;
+    setPoolIndex(prev);
+    setCurrentPlayer(pool[prev]);
+    setRadarData(null);
+  };
 
   const nextFeatured = () => {
     if (!canCycle) return;
@@ -123,7 +117,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   // Radar computations
   const isGK = selectedPos === "GK";
   const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
-  const radarLabels = models.map((m) => MODEL_SHORT[m]);
+  const radarLabels = models.map((m) => MODEL_LABEL[m]);
   const radarValues = radarData ? models.map((m) => radarData.modelScores[m] ?? 0) : [];
   const roles = radarData?.roleScores?.[selectedPos] ?? [];
   const activeRole = roles.find((r) => r.name === selectedRole) ?? roles[0];
@@ -145,10 +139,10 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
   const layers = [];
   if (roleOverlay && showRadar) {
-    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.5)", fillOpacity: 0.06, strokeWidth: 1 });
+    layers.push({ values: roleOverlay, color: "rgba(168,130,255,0.7)", fillOpacity: 0.12, strokeWidth: 1 });
   }
   if (showRadar) {
-    layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.25, strokeWidth: 2 });
+    layers.push({ values: radarValues, color: "rgba(56,189,248,0.9)", fillOpacity: 0.30, strokeWidth: 2.5 });
   }
 
   return (
@@ -164,12 +158,21 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
               </span>
             )}
             {canCycle && (
-              <button
-                onClick={nextFeatured}
-                className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors ml-auto"
-              >
-                Next &rarr;
-              </button>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={prevFeatured}
+                  className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  &larr; Prev
+                </button>
+                <span className="text-[8px] text-[var(--text-muted)] font-mono">{poolIndex + 1}/{pool.length}</span>
+                <button
+                  onClick={nextFeatured}
+                  className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Next &rarr;
+                </button>
+              </div>
             )}
           </div>
           <Link href={`/players/${player.person_id}`} className="group">
@@ -191,26 +194,27 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
               {player.blueprint && <span className="text-[var(--text-muted)]"> · {player.blueprint}</span>}
             </p>
           )}
+          {(player.af_appearances ?? 0) > 0 && (
+            <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
+              <span className="text-[var(--color-accent-tactical)]">{player.af_appearances}</span> apps
+              {(player.af_goals ?? 0) > 0 && <span className="text-green-400"> · {player.af_goals} goals</span>}
+              {(player.af_assists ?? 0) > 0 && <span className="text-blue-400"> · {player.af_assists} assists</span>}
+              {player.af_rating != null && <span className="text-amber-400"> · {player.af_rating.toFixed(1)}★</span>}
+            </p>
+          )}
         </div>
         <div className="shrink-0 text-right">
           {player.personality_type && (
-            <div>
-              <span className={`inline-block font-mono text-xl font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
-                {player.personality_type}
-              </span>
-              {personality && (
-                <p className="text-xs font-medium text-[var(--text-primary)] mt-0.5">{personality.name}</p>
-              )}
-            </div>
+            <span className={`inline-block font-mono text-sm font-extrabold tracking-[0.12em] ${styles.personalityText}`}>
+              {player.personality_type}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Personality one-liner */}
-      {personality && (
-        <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed italic">
-          &ldquo;{personality.oneLiner}&rdquo;
-        </p>
+      {/* Scout assessment */}
+      {player.scouting_notes && (
+        <ScoutingNotes text={player.scouting_notes} clamp={3} className="mb-4" />
       )}
 
       {/* Radar section */}
@@ -221,7 +225,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             <select
               value={selectedPos}
               onChange={(e) => setSelectedPos(e.target.value)}
-              className="text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-1.5 py-0.5 text-[var(--text-primary)] cursor-pointer"
+              className="text-xs sm:text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded px-2 py-1 sm:px-1.5 sm:py-0.5 text-[var(--text-primary)] cursor-pointer"
             >
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>{p}{p === player.position ? " *" : ""}</option>
@@ -229,15 +233,16 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Radar + scores: stack on mobile, side-by-side on sm+ */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-2">
             {/* Radar */}
-            <div className="flex-1 min-w-0">
+            <div className="w-full sm:flex-1 sm:min-w-0 max-w-[220px] mx-auto sm:mx-0">
               <RadarChart labels={radarLabels} layers={layers} size={200} />
             </div>
 
-            {/* Scores */}
-            <div className="w-20 shrink-0 space-y-2">
-              <div>
+            {/* Scores row on mobile, column on sm+ */}
+            <div className="flex sm:flex-col sm:w-20 sm:shrink-0 gap-3 sm:gap-0 sm:space-y-2 justify-center w-full">
+              <div className="text-center sm:text-left">
                 <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
                 <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
                   {posScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -245,7 +250,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 <div className={`text-[9px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
               </div>
               {activeRole && (
-                <div>
+                <div className="text-center sm:text-left">
                   <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
                   <div className="text-xl font-mono font-bold text-[var(--text-primary)]">
                     {roleScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
@@ -253,7 +258,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                   <div className={`text-[9px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
                 </div>
               )}
-              <div className="space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
+              <div className="hidden sm:block space-y-0.5 pt-1 border-t border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-0.5 rounded-full" style={{ background: "rgba(56,189,248,0.9)" }} />
                   <span className="text-[7px] text-[var(--text-muted)]">Player</span>
@@ -273,7 +278,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 <button
                   key={role.name}
                   onClick={() => setSelectedRole(role.name)}
-                  className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
+                  className={`text-[10px] sm:text-[9px] px-2 py-1 sm:px-1.5 sm:py-0.5 rounded font-medium transition-colors ${
                     selectedRole === role.name
                       ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
                       : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"

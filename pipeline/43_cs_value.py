@@ -201,8 +201,8 @@ def compute_cs_value(
 def main():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    # Fetch all players with level data
-    where_clauses = ["pp.level IS NOT NULL"]
+    # Fetch all players with level or overall data (overall as fallback)
+    where_clauses = ["(pp.level IS NOT NULL OR pp.overall IS NOT NULL)"]
     params: list = []
 
     if args.player:
@@ -221,6 +221,7 @@ def main():
             p.name,
             p.date_of_birth,
             pp.level,
+            pp.overall,
             pp.position::text as position,
             pm.market_value_eur,
             pm.transfer_fee_eur,
@@ -230,7 +231,7 @@ def main():
         LEFT JOIN player_market pm ON pm.person_id = p.id
         LEFT JOIN career_metrics cm ON cm.person_id = p.id
         WHERE {where}
-        ORDER BY pp.level DESC NULLS LAST
+        ORDER BY COALESCE(pp.level, pp.overall) DESC NULLS LAST
         {limit_clause}
     """
 
@@ -251,8 +252,12 @@ def main():
             dob = row["date_of_birth"]
             age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
+        effective_level = row["level"] if row["level"] is not None else row.get("overall")
+        if effective_level is None:
+            continue
+
         cs_value = compute_cs_value(
-            level=row["level"],
+            level=effective_level,
             age=age,
             position=row["position"],
             trajectory=row["trajectory"],
@@ -262,7 +267,7 @@ def main():
         updates.append({
             "person_id": row["person_id"],
             "name": row["name"],
-            "level": row["level"],
+            "level": effective_level,
             "age": age,
             "position": row["position"],
             "trajectory": row["trajectory"],

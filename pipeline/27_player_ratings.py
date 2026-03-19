@@ -24,9 +24,9 @@ import math
 import sys
 from datetime import datetime, timezone
 
-from supabase import create_client
-
-from config import POSTGRES_DSN, SUPABASE_URL, SUPABASE_SERVICE_KEY
+from config import POSTGRES_DSN
+from lib.db import require_conn, get_supabase
+from lib.models import MODEL_ATTRIBUTES as _BASE_MODEL_ATTRIBUTES, SOURCE_PRIORITY, ATTR_ALIASES as _BASE_ATTR_ALIASES
 
 # ── Argument parsing ───────────────────────────────────────────────────────────
 
@@ -39,6 +39,8 @@ parser.add_argument("--dry-run", action="store_true",
                     help="Print summaries without writing to database")
 parser.add_argument("--force", action="store_true",
                     help="Overwrite existing ratings")
+parser.add_argument("--incremental", action="store_true",
+                    help="Only process players with data changes since last run")
 args = parser.parse_args()
 
 DRY_RUN = args.dry_run
@@ -47,41 +49,33 @@ CHUNK_SIZE = 200
 
 # ── Connections ────────────────────────────────────────────────────────────────
 
-try:
-    import psycopg2
-    import psycopg2.extras
-except ImportError:
-    print("ERROR: psycopg2 not installed. Run: pip install psycopg2-binary")
-    sys.exit(1)
-
-if not POSTGRES_DSN:
-    print("ERROR: Set POSTGRES_DSN in .env")
-    sys.exit(1)
-if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
-    print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY in .env")
-    sys.exit(1)
-
-conn = psycopg2.connect(POSTGRES_DSN)
-conn.autocommit = True
-sb_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+conn = require_conn(autocommit=True)
+sb_client = get_supabase()
 
 
-# ── Model Definitions (matches radar route.ts) ───────────────────────────────
+# ── Model Definitions ─────────────────────────────────────────────────────────
+# Base MODEL_ATTRIBUTES imported from lib.models.
+# Override GK model for ratings: uses positional/distribution attributes
+# rather than the standard reflex-based GK model used by radar/fingerprints.
+MODEL_ATTRIBUTES = {**_BASE_MODEL_ATTRIBUTES, "GK": ["positioning", "awareness", "pass_range", "throwing"]}
 
-MODEL_ATTRIBUTES = {
-    "Controller":  ["anticipation", "composure", "decisions", "tempo"],
-    "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
-    "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
-    "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
-    "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
-    "Engine":      ["intensity", "pressing", "stamina", "versatility"],
-    "Destroyer":   ["blocking", "clearances", "marking", "tackling"],
-    "Dribbler":    ["carries", "first_touch", "skills", "take_ons"],
-    "Passer":      ["pass_accuracy", "crossing", "pass_range", "through_balls"],
-    "Striker":     ["close_range", "mid_range", "long_range", "penalties"],
-    "GK":          ["agility", "footwork", "handling", "reactions"],
+# Fallback aliases: when the primary attribute is missing, try these instead.
+# Only used if the primary has zero data. Keeps models functional with sparse data.
+# IMPORTANT: aliases must not map to another attribute already in the same model,
+# or the model will double-count. Each alias should be a distinct proxy.
+# Extends the base ATTR_ALIASES from lib.models with ratings-specific proxies.
+ATTRIBUTE_ALIASES = {
+    **_BASE_ATTR_ALIASES,
+    "unpredictability": "take_ons",     # flair proxy (skills is in Dribbler, avoid double-count)
+    "guile":            "through_balls", # cunning ≈ incisive passing
+    "decisions":        "positioning",  # decision-making ≈ reading the game
+    "communication":    "leadership",   # vocal ≈ captain material
+    "concentration":    "discipline",   # focus ≈ discipline (not awareness — already in Cover)
+    "drive":            "intensity",    # motivation ≈ work rate
+    "versatility":      "stamina",      # engine coverage ≈ fitness
+    "blocking":         "tackling",     # defensive action proxy
+    "clearances":       "heading",      # aerial clearances ≈ heading
+    "duels":            "aggression",   # physical contests ≈ aggression
 }
 
 # 4 compound groupings
@@ -126,7 +120,7 @@ TACTICAL_ROLES = {
     "WD": [
         ("Engine", "Dribbler",  "Lateral"),        # Portuguese/Spanish: the attacking fullback. Cafu, TAA
         ("Controller", "Passer","Invertido"),       # Spanish: inverted FB. Lahm 2013 → Cancelo → Rico Lewis
-        ("Engine", "Sprinter",  "Fluidificante"),    # Italian: "the one who makes it fluid" — Facchetti, Zanetti, Hakimi
+        ("Engine", "Sprinter",  "Carrilero"),       # Spanish: "lane runner" — Facchetti, Zanetti, Hakimi
     ],
     "DM": [
         ("Cover", "Destroyer",  "Sentinelle"),     # French: the sentinel. Makélélé → Casemiro. Guards the gate
@@ -143,7 +137,6 @@ TACTICAL_ROLES = {
         ("Creator", "Passer",   "Fantasista"),      # Italian: the wide creator. Silva, Bernardo, Foden
         ("Sprinter", "Passer",  "Winger"),          # Garrincha, Figo, Saka. The oldest attacking role
         ("Dribbler", "Striker", "Raumdeuter"),      # German: "space interpreter" — Müller coined it himself
-        ("Engine", "Sprinter",  "Tornante"),        # Italian: "the returner" — wide midfielder who covers full flank. Maggio, Moses, Kostic
     ],
     "AM": [
         ("Creator", "Dribbler", "Trequartista"),    # Baggio → Zidane → Messi: the free-roaming 10
@@ -153,7 +146,7 @@ TACTICAL_ROLES = {
     "WF": [
         ("Dribbler", "Sprinter","Inside Forward"),   # Robben → Salah → Yamal. Historical English term from W-M era
         ("Sprinter", "Striker", "Extremo"),           # Portuguese: the wide attacker — Henry, Mbappé
-        ("Creator", "Dribbler", "Inventor"),          # the creator who makes something from nothing — Grealish
+        ("Creator", "Dribbler", "Inverted Winger"),    # cuts inside to create — Saka, Grealish
     ],
     "CF": [
         ("Target", "Powerhouse","Prima Punta"),      # Italian: "first striker" — Toni, Giroud. Holds up, aerial
@@ -177,15 +170,7 @@ POSITION_COMPOUND_WEIGHTS = {
     "CF":  {"Technical": 0.3, "Tactical": 0.1, "Physical": 0.3, "Mental": 0.3},
 }
 
-# Source priority (higher = preferred)
-SOURCE_PRIORITY = {
-    "scout_assessment": 5,
-    "fbref": 4,
-    "statsbomb": 3,
-    "understat": 2,
-    "computed": 1,
-    "eafc_inferred": 0,
-}
+# SOURCE_PRIORITY imported from lib.models
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -198,47 +183,96 @@ def _safe(val):
     return val
 
 
-def compute_model_scores(grades):
-    """Compute model scores (0-100) from best-source attribute grades (0-20 scale).
+def compute_model_scores(grades, level=None):
+    """Compute model scores (0-100) from best-source attribute grades.
 
-    Returns (model_scores, best_source) where best_source is the highest-priority
-    source that contributed to the scores (used for source quality discounting).
+    scout_grade uses a 1-20 scale; stat_score uses a 1-10 scale.
+    Both are normalised to 0-20 before averaging.
+
+    Returns (anchored_scores, raw_scores):
+      - anchored_scores: blended with level when data is thin — used for
+        compound/overall calculations where we want to avoid penalising
+        players with incomplete data.
+      - raw_scores: pure data-driven scores — used for role selection where
+        inflated thin-data models would distort role fit.
     """
     # Build best-grade-per-attribute map (prefer highest-priority source)
-    best = {}  # attr -> (score, priority, source)
+    best = {}  # attr -> (normalised_score_0_20, priority)
     for g in grades:
+        source = g.get("source", "")
         attr = g["attribute"].lower().replace(" ", "_")
-        score = g["scout_grade"] if g["scout_grade"] is not None else g.get("stat_score")
-        if score is None or score <= 0:
+        # Normalise to 0-20 scale regardless of source
+        # scout_grade: already 1-20
+        # stat_score scale varies by source:
+        #   - scout_assessment: scout_grade 1-20
+        #   - understat/computed: stat_score 1-10
+        #   - statsbomb: stat_score 1-20
+        #   - eafc_inferred: stat_score 1-20 (re-imported from EA FC 25)
+        if g["scout_grade"] is not None and g["scout_grade"] > 0:
+            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20
+        elif g.get("stat_score") is not None and g["stat_score"] > 0:
+            if source in ("statsbomb", "eafc_inferred"):
+                score_20 = min(g["stat_score"], 20)  # already 1-20
+            elif source == "understat":
+                # Understat clusters high (9-10 for any decent player).
+                # Compress: 10→17, 8→14, 5→9. Prevents understat-only
+                # players from scoring as if they had elite scout grades.
+                score_20 = min(g["stat_score"] * 1.7, 17)
+            else:
+                score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20
+        else:
             continue
-        source = g.get("source", "eafc_inferred")
         priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
         if existing is None or priority > existing[1]:
-            best[attr] = (score, priority, source)
+            best[attr] = (score_20, priority)
 
-    # Track best source across all attributes
-    sources_used = set(b[2] for b in best.values())
+    # Level-derived anchor: what a player of this level "should" score
+    # Conservative: level itself, not inflated. A level 85 player anchors at 85.
+    level_anchor = min(level, 95) if level else None
 
-    # Compute each model score (require at least 2 of 4 attributes to avoid inflation)
-    model_scores = {}
+    # Compute each model score — both raw and anchored variants
+    #
+    # Coverage confidence: with fewer attributes, we're less certain of the
+    # model score. Light penalty for 3/4 (trustworthy), moderate for 2/4,
+    # heavy for 1/4 (single data point).
+    #
+    # Confidence map: 4/4 → 1.0, 3/4 → 0.95, 2/4 → 0.85, 1/4 → 0.70
+    COVERAGE_CONFIDENCE = {4: 1.0, 3: 0.95, 2: 0.85, 1: 0.70}
+
+    anchored_scores = {}
+    raw_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
-        values = [best[a][0] for a in attrs if a in best]
-        if len(values) >= 2:
+        # Try each attribute, falling back to alias if primary is missing
+        # Track which underlying attrs we've used to prevent double-counting
+        values = []
+        used_attrs = set()
+        for a in attrs:
+            if a in best:
+                values.append(best[a][0])
+                used_attrs.add(a)
+            else:
+                alias = ATTRIBUTE_ALIASES.get(a)
+                if alias and alias in best and alias not in used_attrs:
+                    values.append(best[alias][0])
+                    used_attrs.add(alias)
+        if values:
             avg = sum(values) / len(values)
-            # Convert from 0-20 to 0-100
-            model_scores[model] = round(min(avg * 5, 100))
+            full_score = min(avg * 5, 99)
 
-    # Source quality discount: if ALL data is eafc_inferred, scale down model scores.
-    # eafc data is undifferentiated game stats, not real scouting intelligence.
-    if sources_used == {"eafc_inferred"}:
-        for model in model_scores:
-            model_scores[model] = round(model_scores[model] * 0.7)
-    elif sources_used <= {"eafc_inferred", "understat"}:
-        for model in model_scores:
-            model_scores[model] = round(model_scores[model] * 0.85)
+            # Light coverage penalty — trust the data we have
+            confidence = COVERAGE_CONFIDENCE.get(len(values), 0.70)
+            raw_score = full_score * confidence
+            raw_scores[model] = round(raw_score)
 
-    return model_scores
+            # Anchored version: blend with level when data is thin (<3 of 4 attrs)
+            anchored = raw_score
+            if level_anchor and len(values) < 3:
+                data_weight = len(values) / len(attrs)
+                anchored = raw_score * data_weight + level_anchor * (1 - data_weight)
+            anchored_scores[model] = round(anchored)
+
+    return anchored_scores, raw_scores
 
 
 def compute_compound_scores(model_scores):
@@ -251,16 +285,17 @@ def compute_compound_scores(model_scores):
     return compounds
 
 
-def compute_overall(compound_scores, position, level=None, peak=None):
+def compute_overall(compound_scores, position, level=None, peak=None, grade_count=0):
     """
     Compute overall rating as a position-weighted compound average.
 
-    The overall blends:
-    - 70% technical compound score (position-weighted attribute average)
-    - 15% level (editorial assessment, if available)
-    - 15% peak (career ceiling, if available)
+    The technical weight scales with data coverage:
+    - Rich data (40+ grades): 50% technical, 50% level
+    - Thin data (10 grades):  20% technical, 80% level
+    - Zero grades:            skipped (shouldn't reach here)
 
-    If level/peak unavailable, 100% from compound scores.
+    Peak is not used — level is the sole editorial anchor.
+    If level unavailable, 100% from compound scores.
     """
     weights = POSITION_COMPOUND_WEIGHTS.get(position, {
         "Technical": 0.25, "Tactical": 0.25, "Physical": 0.25, "Mental": 0.25,
@@ -278,84 +313,58 @@ def compute_overall(compound_scores, position, level=None, peak=None):
 
     technical_overall = weighted_sum / total_weight
 
-    # Blend with level if available — level is the stronger signal
-    # since compound scores suffer from incomplete attribute data
+    # Scale tech weight by data coverage: more grades → trust data more
+    # 40+ grades → tech_pct=0.50, 20 grades → 0.35, 10 grades → 0.20
+    # Clamp between 0.20 and 0.50
     if level is not None:
-        overall = technical_overall * 0.35 + level * 0.65
+        tech_pct = min(0.50, max(0.20, grade_count / 80))
+        editorial_pct = 1.0 - tech_pct
+        overall = technical_overall * tech_pct + level * editorial_pct
     else:
         overall = technical_overall
 
     return round(min(max(overall, 1), 99))
 
 
-def compute_best_role(model_scores, position, level=None, active=True):
+def compute_best_role(model_scores, position):
     """Compute the best tactical role and its score for a player.
 
     Returns (role_name, role_score) where role_score is 0-100.
-
-    The raw attribute-based role score is blended with level to anchor
-    role scores to player quality. Without this, a level-42 retired
-    player can outrank Mbappé purely on attribute shape.
+    When a required model has no data, we skip that role entirely rather
+    than letting a zero drag the score down.
     """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
         return None, 0
 
     best_role = None
-    best_raw = -1
+    best_score = -1
     for primary, secondary, name in roles:
-        # Require BOTH primary and secondary models to have scores.
-        # If either is missing, this role can't be meaningfully assessed.
-        if primary not in model_scores or secondary not in model_scores:
+        p_score = model_scores.get(primary)
+        s_score = model_scores.get(secondary)
+        # Skip roles where the primary model has no data at all
+        if p_score is None:
             continue
-        p_score = model_scores[primary]
-        s_score = model_scores[secondary]
-        score = p_score * 0.6 + s_score * 0.4
-        if score > best_raw:
-            best_raw = score
+        # If secondary is missing, score based on primary alone
+        if s_score is None:
+            score = p_score * 0.85  # slight penalty for incomplete role fit
+        else:
+            score = p_score * 0.6 + s_score * 0.4
+        if score > best_score:
+            best_score = score
             best_role = name
 
     if best_role is None:
-        # Fallback: allow roles where at least primary exists
-        for primary, secondary, name in roles:
-            p_score = model_scores.get(primary, 0)
-            s_score = model_scores.get(secondary, 0)
-            if p_score == 0 and s_score == 0:
-                continue
-            score = p_score * 0.6 + s_score * 0.4
-            if score > best_raw:
-                best_raw = score
-                best_role = name
-
-    if best_role is None or best_raw <= 0:
         return None, 0
-
-    # Level as quality anchor with cap.
-    # The raw attribute score determines role shape, but level constrains
-    # the range: role_score lives within ±8 of level, and can't exceed it.
-    # This prevents:
-    #   - Lower-tier players leapfrogging elite ones (cap)
-    #   - Elite players with sparse data falling off a cliff (floor)
-    if level is not None:
-        floor = max(level - 8, 1)
-        role_score = max(floor, min(best_raw, level))
-    else:
-        # No level = unassessed player, penalize
-        role_score = best_raw * 0.5
-
-    # Retired player discount — active scouting tool, not a hall of fame
-    if not active:
-        role_score *= 0.7
-
-    return best_role, round(min(max(role_score, 1), 99))
+    return best_role, round(best_score)
 
 
 def has_differentiated_data(model_scores):
     """Check if data has real variation (not all flat eafc defaults)."""
     values = list(model_scores.values())
-    if len(values) < 3:
+    if len(values) < 2:
         return False
-    return len(set(values)) > 2
+    return len(set(values)) > 1
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -367,6 +376,26 @@ def main():
 
     cur = conn.cursor()
 
+    # ── Incremental mode: only process changed players ──────────────────────
+    incremental_ids = None
+    if args.incremental and not args.player:
+        try:
+            from lib.incremental import get_changed_player_ids, mark_step_complete
+            changed = get_changed_player_ids(
+                conn, "ratings",
+                tables=["attribute_grades", "player_profiles", "player_personality"],
+            )
+            if changed is None:
+                print("  Incremental: first run — processing all players")
+            elif not changed:
+                print("  Incremental: no changes since last run — skipping")
+                return
+            else:
+                incremental_ids = changed
+                print(f"  Incremental: {len(changed)} players changed since last run")
+        except ImportError:
+            print("  [warn] lib.incremental not available — running full")
+
     # ── Step 1: Fetch all attribute grades ────────────────────────────────────
 
     where_clauses = []
@@ -375,6 +404,9 @@ def main():
     if args.player:
         where_clauses.append("ag.player_id = %s")
         params.append(int(args.player))
+    elif incremental_ids:
+        where_clauses.append("ag.player_id = ANY(%s)")
+        params.append(list(incremental_ids))
 
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
@@ -407,11 +439,9 @@ def main():
 
     print("  Loading player profiles...")
     cur.execute("""
-        SELECT pp.person_id, pp.position, pp.level, pp.peak, pp.overall,
-               COALESCE(p.active, true) as active
-        FROM player_profiles pp
-        JOIN people p ON p.id = pp.person_id
-        WHERE pp.position IS NOT NULL
+        SELECT person_id, position, level, peak, overall
+        FROM player_profiles
+        WHERE position IS NOT NULL
     """)
     profiles = {}
     for row in cur.fetchall():
@@ -420,7 +450,6 @@ def main():
             "level": row[2],
             "peak": row[3],
             "old_overall": row[4],
-            "active": row[5],
         }
     print(f"  Profiles with position: {len(profiles)}")
 
@@ -431,13 +460,11 @@ def main():
         player_ids = player_ids[:args.limit]
 
     results = []
-    skipped_pids = []  # players whose old scores should be cleared
     stats = {
         "computed": 0,
         "skipped_flat": 0,
         "skipped_no_position": 0,
         "updated_overall": 0,
-        "cleared_stale": 0,
     }
     compound_distribution = {"Technical": [], "Tactical": [], "Physical": [], "Mental": []}
     overall_distribution = []
@@ -450,21 +477,20 @@ def main():
             stats["skipped_no_position"] += 1
             continue
 
-        model_scores = compute_model_scores(grades)
+        anchored_scores, raw_scores = compute_model_scores(grades, level=profile.get("level"))
 
-        if not has_differentiated_data(model_scores):
+        if not has_differentiated_data(anchored_scores):
             stats["skipped_flat"] += 1
-            skipped_pids.append(pid)
             continue
 
-        compound_scores = compute_compound_scores(model_scores)
+        # Anchored scores for compound/overall (tolerant of thin data)
+        compound_scores = compute_compound_scores(anchored_scores)
 
         position = profile["position"]
         level = profile.get("level")
         peak = profile.get("peak")
-        active = profile.get("active", True)
 
-        overall = compute_overall(compound_scores, position, level, peak)
+        overall = compute_overall(compound_scores, position, level, peak, grade_count=len(grades))
 
         if overall is None:
             continue
@@ -475,14 +501,52 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        best_role, best_role_score = compute_best_role(
-            model_scores, position, level=level, active=active
-        )
+        # Blend raw + anchored scores for role computation.
+        # Thin data → lean on anchored (level-boosted) scores.
+        # Rich data → trust raw data-driven scores.
+        grade_count = len(grades)
+        if grade_count >= 50:
+            role_scores = raw_scores
+        else:
+            # Blend factor: how much anchored influence (0.0 = all raw, 0.4 = heavy anchor)
+            anchor_pct = max(0.05, 0.40 - grade_count * 0.007)
+            role_scores = {}
+            for k in set(raw_scores.keys()) | set(anchored_scores.keys()):
+                r = raw_scores.get(k, 0)
+                a = anchored_scores.get(k, 0)
+                role_scores[k] = round(r * (1 - anchor_pct) + a * anchor_pct)
+
+        best_role, best_role_score = compute_best_role(role_scores, position)
+
+        # Level floor: role score can't drop too far below level.
+        # Gap scales with data density — sparse data trusts level more.
+        # Floor capped at 90 so truly elite players (level 92+) must prove
+        # role fit through data — prevents auto-inflation.
+        if level and best_role_score is not None:
+            if grade_count < 10:
+                gap = 1   # Very sparse: almost entirely trust level
+            elif grade_count < 30:
+                gap = 3   # Moderate data
+            elif level >= 80:
+                gap = 2   # Elite with rich data — tight floor
+            else:
+                gap = 10  # Lower level with rich data — let data speak
+            level_floor = min(max(level - gap, 50), 90)
+            best_role_score = max(best_role_score, level_floor)
+
+            # GK data gap: GK-specific attributes (positioning, throwing, etc.)
+            # are poorly captured by non-scout data sources.
+            # Compensate with a level-trust boost for unscouted GKs.
+            if position == "GK":
+                has_scout = any(g.get("source") == "scout_assessment" for g in grades)
+                if not has_scout:
+                    gk_floor = min(level + 3, 92)
+                    best_role_score = max(best_role_score, gk_floor)
 
         results.append({
             "person_id": pid,
             "overall": overall,
-            "model_scores": model_scores,
+            "model_scores": anchored_scores,
             "compound_scores": compound_scores,
             "position": position,
             "level": level,
@@ -512,9 +576,9 @@ def main():
     # ── Step 5: Show samples ─────────────────────────────────────────────────
 
     if results:
-        # Show top 10 by best_role_score (the metric we're fixing)
-        top = sorted(results, key=lambda r: -r["best_role_score"])[:10]
-        print(f"\n  Top 10 by role score:")
+        # Show top 5 by overall
+        top = sorted(results, key=lambda r: -r["overall"])[:5]
+        print(f"\n  Top 5 rated players:")
         for r in top:
             name_q = cur.execute("SELECT name FROM people WHERE id = %s", (r["person_id"],))
             name_row = cur.fetchone()
@@ -556,6 +620,32 @@ def main():
 
         print(f"\n  Updated player_profiles.overall: {stats['updated_overall']}")
 
+        # Clear stale data for players that were skipped (flat/no data)
+        # These keep old inflated scores from previous runs
+        processed_ids = [r["person_id"] for r in results]
+        if processed_ids:
+            cur.execute("""
+                UPDATE player_profiles
+                SET best_role_score = NULL, best_role = NULL,
+                    overall = NULL, technical_score = NULL, physical_score = NULL
+                WHERE person_id NOT IN %s
+                AND (best_role_score IS NOT NULL OR overall IS NOT NULL)
+            """, (tuple(processed_ids),))
+            stale_cleared = cur.rowcount
+            if stale_cleared:
+                print(f"  Cleared stale ratings/roles: {stale_cleared} players")
+
+            # Clear stale compound scores from attribute_grades
+            cur.execute("""
+                DELETE FROM attribute_grades
+                WHERE source = 'computed'
+                AND attribute IN ('technical', 'tactical', 'physical', 'mental')
+                AND player_id NOT IN %s
+            """, (tuple(processed_ids),))
+            stale_compounds = cur.rowcount
+            if stale_compounds:
+                print(f"  Cleared stale compound scores: {stale_compounds} rows")
+
         # Write compound scores as attribute_grades (source='computed')
         # stat_score is 0-20 scale, so convert from 0-100
         compound_rows = []
@@ -578,17 +668,6 @@ def main():
                 ).execute()
             print(f"  Wrote compound scores: {len(compound_rows)} rows")
 
-        # Clear stale role scores from skipped players (flat/undifferentiated data)
-        if FORCE and skipped_pids:
-            for i in range(0, len(skipped_pids), CHUNK_SIZE):
-                chunk = skipped_pids[i:i + CHUNK_SIZE]
-                for pid in chunk:
-                    sb_client.table("player_profiles").update({
-                        "best_role_score": None,
-                    }).eq("person_id", pid).execute()
-                stats["cleared_stale"] += len(chunk)
-            print(f"  Cleared stale role scores: {stats['cleared_stale']}")
-
     elif DRY_RUN:
         print(f"\n  [dry-run] would update {len(results)} player_profiles.overall values")
         print(f"  [dry-run] would write {len(results) * 4} compound score rows")
@@ -602,6 +681,14 @@ def main():
     print(f"  Skipped (no pos):    {stats['skipped_no_position']}")
     if DRY_RUN:
         print("  (dry-run — no data was written)")
+
+    # Mark step complete for incremental tracking
+    if not DRY_RUN and args.incremental:
+        try:
+            from lib.incremental import mark_step_complete
+            mark_step_complete(conn, "ratings", stats["computed"])
+        except Exception:
+            pass
 
     cur.close()
     conn.close()

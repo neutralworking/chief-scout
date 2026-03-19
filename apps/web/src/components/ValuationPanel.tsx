@@ -1,3 +1,5 @@
+"use client";
+
 import type { PlayerValuation } from "@/lib/types";
 
 function formatEur(value: number | null | undefined): string {
@@ -14,7 +16,10 @@ const CONFIDENCE_STYLES: Record<string, { dot: string; label: string }> = {
   low:    { dot: "bg-red-400",   label: "Low" },
 };
 
+import { useState } from "react";
+
 export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
+  const [expanded, setExpanded] = useState(false);
   const conf = CONFIDENCE_STYLES[valuation.overall_confidence ?? "low"] ?? CONFIDENCE_STYLES.low;
   const p50 = valuation.market_value_p50;
   const p10 = valuation.market_value_p10;
@@ -67,6 +72,23 @@ export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
         <span>P75: {formatEur(valuation.market_value_p75)}</span>
         <span>P90</span>
       </div>
+
+      {/* Expand/collapse toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-center gap-1 text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors py-1"
+      >
+        <span>{expanded ? "Hide details" : "Show details"}</span>
+        <svg
+          className={`w-3 h-3 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {/* Collapsible detail sections */}
+      {expanded && <>
 
       {/* Use value + contextual fit */}
       {valuation.use_value_central != null && valuation.contextual_fit_score != null && (
@@ -177,6 +199,8 @@ export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
           <span>{new Date(valuation.evaluated_at).toLocaleDateString()}</span>
         )}
       </div>
+
+      </>}
     </div>
   );
 }

@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { MobileTopNav } from "@/components/MobileTopNav";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
 import { AuthProvider } from "@/components/AuthProvider";
+import { isProduction } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "Chief Scout",
-  description: "Player Intelligence Platform",
+  title: "Chief Scout — Player Intelligence Platform",
+  description:
+    "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players. The scouting platform that thinks like a Director of Football.",
   openGraph: {
-    title: "Chief Scout",
-    description: "Player Intelligence Platform",
+    title: "Chief Scout — Player Intelligence Platform",
+    description:
+      "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players.",
     type: "website",
+    siteName: "Chief Scout",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Chief Scout",
-    description: "Player Intelligence Platform",
+    title: "Chief Scout — Player Intelligence Platform",
+    description:
+      "Role-fit scoring, personality profiling, and transfer intelligence for 19,000+ football players.",
   },
 };
 
@@ -27,6 +34,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {isProduction() && (
+          <Script
+            defer
+            data-domain="chief-scout-prod.vercel.app"
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -42,9 +57,10 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <div className="flex min-h-screen">
+            <MobileTopNav />
             <Sidebar />
             <ServiceWorkerRegistration />
-            <main className="flex-1 min-w-0 p-4 pt-16 lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
+            <main className="flex-1 min-w-0 p-4 pt-[5.5rem] lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
           </div>
         </AuthProvider>
       </body>

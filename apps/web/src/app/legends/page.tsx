@@ -262,33 +262,49 @@ function LegendsContent() {
             </div>
 
             {/* Mobile cards */}
-            <div className="sm:hidden flex-1 overflow-y-auto space-y-0.5 p-1">
-              {players.map((player) => {
+            <div className="sm:hidden flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]/30">
+              {players.map((player, idx) => {
                 const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
                 return (
-                  <Link key={player.person_id} href={`/players/${player.person_id}`}
-                    className="rounded-lg p-2.5 flex items-center justify-between hover:bg-[var(--bg-elevated)]/50 transition-colors block">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
-                        {player.position ?? "–"}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
-                        <p className="text-[10px] text-[var(--text-muted)]">
-                          {player.club || "Unknown"}
-                          {player.nation && <span className="ml-1">{nationFlag(player.nation)}</span>}
-                        </p>
+                  <div key={player.person_id} className="px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded ${posColor} text-white shrink-0`}>
+                          {player.position ?? "–"}
+                        </span>
+                        <Link href={`/players/${player.person_id}`} className="min-w-0">
+                          <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
+                            {player.name}
+                            {player.nation && <span className="text-[11px] ml-1">{nationFlag(player.nation)}</span>}
+                          </p>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">{player.club || "Unknown"}</p>
+                        </Link>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-2">
-                      {player.best_role && (
-                        <span className="text-[10px] text-[var(--text-secondary)]">{player.best_role}</span>
-                      )}
-                      <span className={`text-base font-mono font-bold ${peakColor(player.peak)}`}>
-                        {player.peak ?? "–"}
+                    <div className="flex items-center justify-between mt-1 pl-9">
+                      <span className="text-[10px] text-[var(--text-secondary)] truncate max-w-[120px]">
+                        {player.best_role || "–"}
                       </span>
+                      <div className="flex items-center gap-1">
+                        <div className="text-center px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]">
+                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Peak</span>
+                          {isAdmin ? (
+                            <EditableCell value={player.peak} personId={player.person_id} field="peak" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "peak", v)} />
+                          ) : (
+                            <span className={`font-mono text-xs font-bold ${peakColor(player.peak)}`}>{player.peak ?? "–"}</span>
+                          )}
+                        </div>
+                        <div className="text-center px-1.5 py-0.5">
+                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Score</span>
+                          {isAdmin ? (
+                            <EditableCell value={player.best_role_score} personId={player.person_id} field="best_role_score" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)} />
+                          ) : (
+                            <span className={`font-mono text-xs ${peakColor(player.best_role_score)}`}>{player.best_role_score ?? "–"}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

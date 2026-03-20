@@ -6,6 +6,8 @@ import type { FullAssessment } from "@/lib/assessment/four-pillars";
 interface FourPillarDashboardProps {
   playerId: number;
   compact?: boolean;
+  storedBestRole?: string | null;
+  storedBestRoleScore?: number | null;
 }
 
 const PILLAR_CONFIG = [
@@ -34,7 +36,7 @@ function PillarBar({ value, color, max = 100 }: { value: number; color: string; 
   );
 }
 
-export function FourPillarDashboard({ playerId, compact = false }: FourPillarDashboardProps) {
+export function FourPillarDashboard({ playerId, compact = false, storedBestRole, storedBestRoleScore }: FourPillarDashboardProps) {
   const [data, setData] = useState<FullAssessment | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -119,7 +121,7 @@ export function FourPillarDashboard({ playerId, compact = false }: FourPillarDas
               <PillarBar value={score} color={color} />
               <p className="text-[8px] text-[var(--text-muted)] mt-1">
                 {key === "technical" && (technical.sources.length > 0 ? technical.sources.join(", ") : "no data")}
-                {key === "tactical" && (tactical.bestRole ?? "no role fit")}
+                {key === "tactical" && (storedBestRole ?? tactical.bestRole ?? "no role fit")}
                 {key === "mental" && (mental.personalityType ? PERSONALITY_NAMES[mental.personalityType] ?? mental.personalityType : "unknown")}
                 {key === "physical" && (physical.age != null ? `age ${physical.age}` : "unknown age")}
               </p>
@@ -133,7 +135,7 @@ export function FourPillarDashboard({ playerId, compact = false }: FourPillarDas
         <TechnicalDetail breakdown={technical} />
       )}
       {expanded === "tactical" && (
-        <TacticalDetail breakdown={tactical} />
+        <TacticalDetail breakdown={tactical} storedBestRole={storedBestRole} />
       )}
       {expanded === "mental" && (
         <MentalDetail breakdown={mental} />
@@ -215,7 +217,8 @@ function TechnicalDetail({ breakdown }: { breakdown: FullAssessment["technical"]
   );
 }
 
-function TacticalDetail({ breakdown }: { breakdown: FullAssessment["tactical"] }) {
+function TacticalDetail({ breakdown, storedBestRole }: { breakdown: FullAssessment["tactical"]; storedBestRole?: string | null }) {
+  const displayRole = storedBestRole ?? breakdown.bestRole;
   return (
     <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] space-y-2">
       <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">
@@ -224,9 +227,9 @@ function TacticalDetail({ breakdown }: { breakdown: FullAssessment["tactical"] }
       <SubScore label="Role Fit (40%)" value={breakdown.roleFit} />
       <SubScore label="Flexibility (30%)" value={breakdown.flexibility} maxLabel={`${breakdown.viableRoleCount} roles`} />
       <SubScore label="Trait Profile (30%)" value={breakdown.traitProfile} />
-      {breakdown.bestRole && (
+      {displayRole && (
         <p className="text-[10px] text-[var(--text-secondary)] mt-1">
-          Best role: <span className="font-semibold text-[var(--color-accent-tactical)]">{breakdown.bestRole}</span>
+          Best role: <span className="font-semibold text-[var(--color-accent-tactical)]">{displayRole}</span>
         </p>
       )}
     </div>

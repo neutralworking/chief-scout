@@ -22,6 +22,19 @@ import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import type { PlayerValuation } from "@/lib/types";
 
+function nationFlag(code: string | null | undefined): string {
+  if (!code) return "";
+  const c = code.toUpperCase();
+  const GB: Record<string, string> = {
+    "GB-ENG": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F",
+    "GB-SCT": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F",
+    "GB-WLS": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73\uDB40\uDC7F",
+  };
+  if (GB[c]) return GB[c];
+  if (c.length === 2) return String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+  return "";
+}
+
 interface IntelligenceCard {
   person_id: number;
   name: string;
@@ -33,6 +46,7 @@ interface IntelligenceCard {
   wikidata_id: string | null;
   transfermarkt_id: string | null;
   nation: string | null;
+  nation_code: string | null;
   club: string | null;
   club_id: number | null;
   position: string | null;
@@ -308,7 +322,7 @@ export default async function PlayerDetailPage({
                     : <span>{player.club}</span>
                 )}
                 {player.nation && (
-                  <><span className="text-[var(--text-muted)]">&middot;</span><Link href={`/clubs?country=${encodeURIComponent(player.nation)}`} className="hover:text-[var(--text-primary)] transition-colors">{player.nation}</Link></>
+                  <><span className="text-[var(--text-muted)]">&middot;</span><Link href={`/clubs?country=${encodeURIComponent(player.nation)}`} className="hover:text-[var(--text-primary)] transition-colors">{nationFlag(player.nation_code)} {player.nation}</Link></>
                 )}
                 {age !== null && <><span className="text-[var(--text-muted)]">&middot;</span><span>{age}y</span></>}
                 {player.height_cm && <><span className="text-[var(--text-muted)]">&middot;</span><span>{player.height_cm}cm</span></>}
@@ -444,7 +458,7 @@ export default async function PlayerDetailPage({
         {news.length > 0 && <NewsHeadlines news={news} />}
 
         {/* Assessment — full width */}
-        <FourPillarDashboard playerId={player.person_id} />
+        <FourPillarDashboard playerId={player.person_id} storedBestRole={player.best_role} storedBestRoleScore={player.best_role_score} />
       </div>
 
       {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}

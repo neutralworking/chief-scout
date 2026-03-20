@@ -585,7 +585,7 @@ export function AdminActions() {
                             <a href={`/clubs/${club.club_id}`} className="text-[var(--color-accent-mental)] hover:text-[var(--text-primary)] transition-colors font-medium">
                               {club.name as string}
                             </a>
-                            {club.league && <span className="ml-1 text-[9px] text-[var(--text-muted)]">{club.league as string}</span>}
+                            {club.league ? <span className="ml-1 text-[9px] text-[var(--text-muted)]">{club.league as string}</span> : null}
                           </td>
                           <td className="px-2 py-1 text-right font-mono text-[var(--text-primary)]">{club.squad_size as number}</td>
                           <td className="px-2 py-1 text-right font-mono text-[var(--text-secondary)]">{(club.avg_age as number) ?? "–"}</td>

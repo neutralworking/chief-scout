@@ -1,18 +1,18 @@
 // Model-to-compound category mapping (from spec)
 const MODEL_CATEGORIES: Record<string, { compound: string; color: string }> = {
-  Controller: { compound: "Mental", color: "var(--accent-mental)" },
-  Commander: { compound: "Mental", color: "var(--accent-mental)" },
-  Creator: { compound: "Mental", color: "var(--accent-mental)" },
-  Target: { compound: "Physical", color: "var(--accent-physical)" },
-  Sprinter: { compound: "Physical", color: "var(--accent-physical)" },
-  Powerhouse: { compound: "Physical", color: "var(--accent-physical)" },
-  Cover: { compound: "Tactical", color: "var(--accent-tactical)" },
-  Engine: { compound: "Tactical", color: "var(--accent-tactical)" },
-  Destroyer: { compound: "Tactical", color: "var(--accent-tactical)" },
-  Dribbler: { compound: "Technical", color: "var(--accent-technical)" },
-  Passer: { compound: "Technical", color: "var(--accent-technical)" },
-  Striker: { compound: "Technical", color: "var(--accent-technical)" },
-  Keeper: { compound: "Technical", color: "var(--accent-technical)" },
+  Controller: { compound: "Mental", color: "var(--color-accent-mental)" },
+  Commander: { compound: "Mental", color: "var(--color-accent-mental)" },
+  Creator: { compound: "Mental", color: "var(--color-accent-mental)" },
+  Target: { compound: "Physical", color: "var(--color-accent-physical)" },
+  Sprinter: { compound: "Physical", color: "var(--color-accent-physical)" },
+  Powerhouse: { compound: "Physical", color: "var(--color-accent-physical)" },
+  Cover: { compound: "Tactical", color: "var(--color-accent-tactical)" },
+  Engine: { compound: "Tactical", color: "var(--color-accent-tactical)" },
+  Destroyer: { compound: "Tactical", color: "var(--color-accent-tactical)" },
+  Dribbler: { compound: "Technical", color: "var(--color-accent-technical)" },
+  Passer: { compound: "Technical", color: "var(--color-accent-technical)" },
+  Striker: { compound: "Technical", color: "var(--color-accent-technical)" },
+  Keeper: { compound: "Technical", color: "var(--color-accent-technical)" },
 };
 
 function ConfidenceDots({ confidence }: { confidence: string | null }) {
@@ -61,7 +61,7 @@ export function ArchetypeShape({
   if (size === "compact") {
     return (
       <div className="flex items-center">
-        <span className="text-xs font-medium text-[var(--accent-tactical)]">{archetype}</span>
+        <span className="text-xs font-medium text-[var(--color-accent-tactical)]">{archetype}</span>
         <ConfidenceDots confidence={confidence as string | null} />
       </div>
     );
@@ -76,7 +76,7 @@ export function ArchetypeShape({
   return (
     <div>
       <div className="flex items-center mb-1">
-        <span className="text-xl font-semibold text-[var(--accent-tactical)]">{archetype}</span>
+        <span className="text-xl font-semibold text-[var(--color-accent-tactical)]">{archetype}</span>
         <ConfidenceDots confidence={confidence as string | null} />
       </div>
 

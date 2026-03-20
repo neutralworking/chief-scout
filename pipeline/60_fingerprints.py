@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""51 — Compute role-specific percentile radar fingerprints.
+"""60 — Compute role-specific percentile radar fingerprints.
 
 For each player with a best_role, picks the 4-5 models that define that
 role, computes raw model scores from attribute_grades, then ranks each
 axis as a percentile within the role's player pool (role-pool) or
 position group (position-pool).
 
-Falls back to generic 6-axis (DEF/CRE/ATK/PWR/PAC/DRV) for players
-without a best_role.
+Falls back to generic position-specific 4-axis radar for players
+without a best_role or whose role pool is too small.
 
 Usage:
-    python 51_fingerprints.py [--dry-run] [--player NAME] [--force]
-    python 51_fingerprints.py [--pool role|position|global]
+    python 60_fingerprints.py [--dry-run] [--player NAME] [--force]
+    python 60_fingerprints.py [--pool role|position|global]
 """
 
 import argparse
@@ -23,18 +23,44 @@ import numpy as np
 from lib.db import require_conn
 from lib.models import MODEL_ATTRIBUTES, MODEL_SHORT, ATTR_ALIASES, SOURCE_PRIORITY
 
+# ── Attribute proxies ────────────────────────────────────────────────────────
+# Mirrors apps/web/src/app/api/players/[id]/radar/route.ts ATTR_PROXIES.
+# Maps model attributes with zero/sparse DB coverage to existing attributes.
+ATTR_PROXIES = {
+    # Commander attrs (zero data) → existing mental/tactical proxies
+    "communication":    "tactical",
+    "concentration":    "composure",
+    "drive":            "intensity",
+    "leadership":       "mental",
+    # Controller attrs (sparse) → existing proxies
+    "anticipation":     "awareness",
+    "decisions":        "tactical",
+    "tempo":            "composure",
+    # GK attrs (sparse)
+    "agility":          "reactions",
+    "handling":         "footwork",
+}
+
+# Minimum players in a role pool before we fall back to position pool
+MIN_POOL_SIZE = 30
+
 # Role → relevant models (4-5 axes). Must match apps/web/src/lib/role-radar.ts.
 ROLE_AXES = {
     # GK
     "Shot Stopper":       ["GK", "Cover", "Commander", "Target"],
     "Sweeper Keeper":     ["GK", "Passer", "Controller", "Cover"],
     "Sweeper":            ["GK", "Passer", "Controller", "Cover"],
+    "Torwart":            ["GK", "Commander", "Cover", "Passer"],
+    "Ball-Playing GK":    ["GK", "Passer", "Controller", "Cover"],
     # CD
     "Stopper":            ["Destroyer", "Cover", "Powerhouse", "Target", "Commander"],
     "Ball-Playing CB":    ["Cover", "Passer", "Controller", "Destroyer"],
     "Enforcer":           ["Destroyer", "Commander", "Powerhouse", "Cover"],
     "Ball-Carrier":       ["Cover", "Dribbler", "Passer", "Controller"],
     "Ball-Carrying CB":   ["Cover", "Dribbler", "Passer", "Controller"],
+    "Zagueiro":           ["Destroyer", "Cover", "Commander", "Target"],
+    "Vorstopper":         ["Destroyer", "Cover", "Powerhouse", "Engine"],
+    "Libero":             ["Cover", "Passer", "Controller", "Dribbler"],
     # WD
     "Overlapping FB":     ["Engine", "Dribbler", "Sprinter", "Passer"],
     "Overlapping Full-Back": ["Engine", "Dribbler", "Sprinter", "Passer"],
@@ -42,48 +68,56 @@ ROLE_AXES = {
     "Inverted Full-Back": ["Cover", "Passer", "Controller", "Engine"],
     "Wing-Back":          ["Engine", "Sprinter", "Dribbler", "Cover"],
     "Lateral":            ["Engine", "Sprinter", "Dribbler", "Cover"],
+    "Invertido":          ["Cover", "Passer", "Controller", "Engine"],
     # DM
     "Anchor":             ["Cover", "Destroyer", "Controller", "Commander"],
     "Sentinelle":         ["Cover", "Destroyer", "Controller", "Commander"],
     "Regista":            ["Controller", "Passer", "Creator", "Cover"],
     "Ball Winner":        ["Destroyer", "Engine", "Powerhouse", "Cover"],
     "Ball-Winner":        ["Destroyer", "Engine", "Powerhouse", "Cover"],
+    "Volante":            ["Destroyer", "Engine", "Cover", "Powerhouse"],
     # CM
     "Deep Playmaker":     ["Controller", "Passer", "Creator", "Cover"],
     "Metodista":          ["Controller", "Passer", "Creator", "Cover"],
     "Box-to-Box":         ["Engine", "Cover", "Destroyer", "Powerhouse", "Sprinter"],
     "Tuttocampista":      ["Engine", "Cover", "Destroyer", "Powerhouse", "Sprinter"],
     "Mezzala":            ["Passer", "Creator", "Dribbler", "Engine"],
+    "Carrilero":          ["Engine", "Cover", "Passer", "Destroyer"],
+    "Relayeur":           ["Passer", "Engine", "Controller", "Cover"],
     # WM
     "Wide Playmaker":     ["Dribbler", "Passer", "Creator", "Controller"],
     "Traditional Winger": ["Engine", "Sprinter", "Dribbler", "Passer"],
     "Direct Winger":      ["Sprinter", "Dribbler", "Engine", "Passer"],
     "Wide Provider":      ["Passer", "Engine", "Controller", "Dribbler"],
+    "Winger":             ["Sprinter", "Dribbler", "Engine", "Passer"],
     # AM
     "Trequartista":       ["Creator", "Dribbler", "Controller", "Striker"],
     "Advanced Playmaker": ["Controller", "Creator", "Passer", "Dribbler"],
     "Shadow Striker":     ["Dribbler", "Striker", "Sprinter", "Engine"],
     "Enganche":           ["Creator", "Dribbler", "Controller", "Passer"],
+    "Fantasista":         ["Creator", "Dribbler", "Controller", "Passer"],
     # WF
     "Inside Forward":     ["Dribbler", "Sprinter", "Striker", "Creator"],
     "Extremo":            ["Sprinter", "Dribbler", "Striker", "Creator"],
     "Wide Forward":       ["Striker", "Dribbler", "Sprinter", "Passer"],
     "Inverted Winger":    ["Creator", "Dribbler", "Passer", "Sprinter"],
+    "Invertido":          ["Creator", "Dribbler", "Passer", "Sprinter"],
     # CF
     "Target Man":         ["Striker", "Target", "Powerhouse", "Commander"],
     "Complete Forward":   ["Target", "Powerhouse", "Striker", "Engine"],
     "Poacher":            ["Striker", "Sprinter", "Dribbler", "Target"],
     "False 9":            ["Dribbler", "Striker", "Creator", "Controller"],
+    "Falso Nove":         ["Dribbler", "Striker", "Creator", "Controller"],
     "Deep-Lying Forward": ["Creator", "Striker", "Passer", "Engine"],
     "Pressing Forward":   ["Engine", "Destroyer", "Striker", "Sprinter"],
     "Raumdeuter":         ["Cover", "Striker", "Engine", "Sprinter"],
     "Seconda Punta":      ["Striker", "Dribbler", "Sprinter", "Creator"],
+    "Prima Punta":        ["Striker", "Sprinter", "Target", "Dribbler"],
 }
 
 
-
 def compute_model_scores(grades):
-    """Compute model scores (0-100) from attribute grades."""
+    """Compute model scores (0-100) from attribute grades, with proxy fallback."""
     attr_best = {}
     for attr, sg, ss, src in grades:
         raw = sg if sg else ss if ss else 0
@@ -100,6 +134,11 @@ def compute_model_scores(grades):
 
     attr_scores = {k: round(v[0]) for k, v in attr_best.items()}
 
+    # Apply proxies: if a model attribute is missing, try its proxy
+    for canonical, proxy in ATTR_PROXIES.items():
+        if canonical not in attr_scores and proxy in attr_scores:
+            attr_scores[canonical] = attr_scores[proxy]
+
     model_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
         vals = [attr_scores[a] for a in attrs if a in attr_scores]
@@ -109,11 +148,19 @@ def compute_model_scores(grades):
 
 
 def role_axes(model_scores, role):
-    """Extract model values for a role's specific axes."""
+    """Extract model values for a role's specific axes.
+
+    Missing models get neutral score (50) to keep consistent axis count
+    within a role — required for percentile ranking within the pool.
+    """
     models = ROLE_AXES.get(role)
     if not models:
-        return None
-    return [model_scores.get(m) or 0 for m in models]
+        return None, None
+    has_any = any(model_scores.get(m) is not None for m in models)
+    if not has_any:
+        return None, None
+    values = [model_scores.get(m) if model_scores.get(m) is not None else 50 for m in models]
+    return values, models
 
 
 POSITION_AXES = {
@@ -130,9 +177,13 @@ POSITION_AXES = {
 
 
 def generic_axes(model_scores, position):
-    """Fallback: position-specific 4-axis radar."""
+    """Fallback: position-specific 4-axis radar. Missing models get neutral 50."""
     models = POSITION_AXES.get(position, POSITION_AXES["CM"])
-    return [model_scores.get(m) or 0 for m in models]
+    has_any = any(model_scores.get(m) is not None for m in models)
+    if not has_any:
+        return None, None
+    values = [model_scores.get(m) if model_scores.get(m) is not None else 50 for m in models]
+    return values, models
 
 
 def compute_percentiles(player_group):
@@ -173,7 +224,7 @@ def main():
     conn = require_conn()
     cur = conn.cursor()
 
-    print("51 — Role-Specific Percentile Radar Fingerprints")
+    print("60 — Role-Specific Percentile Radar Fingerprints")
     print(f"  Pool: {args.pool}")
 
     # Load data
@@ -210,34 +261,49 @@ def main():
 
     print(f"  {len(all_model_scores)} players with model scores")
 
+    # First pass: count players per role to identify small pools
+    role_counts = {}
+    for pid in all_model_scores:
+        br = best_roles.get(pid)
+        if br and br in ROLE_AXES:
+            role_counts[br] = role_counts.get(br, 0) + 1
+
+    small_roles = {r for r, c in role_counts.items() if c < MIN_POOL_SIZE}
+    if small_roles:
+        print(f"  {len(small_roles)} roles below min pool size ({MIN_POOL_SIZE}), will use position fallback")
+
     # Compute raw axes (role-specific where possible, generic fallback)
     player_axes = {}   # pid → raw axis values
+    player_labels = {} # pid → axis model names
     player_groups = {} # group_key → {pid: axes} (for percentiling)
 
     for pid, ms in all_model_scores.items():
         pos = positions.get(pid, "CM")
         br = best_roles.get(pid)
 
-        # Try role-specific axes
-        if br and br in ROLE_AXES:
-            axes = role_axes(ms, br)
-        else:
-            axes = generic_axes(ms, pos)
+        # Try role-specific axes (skip if pool too small)
+        axes = None
+        labels = None
+        if br and br in ROLE_AXES and br not in small_roles:
+            axes, labels = role_axes(ms, br)
 
-        if not axes or not any(v > 0 for v in axes):
+        # Fallback to position axes
+        if not axes:
+            axes, labels = generic_axes(ms, pos)
+
+        if not axes or len(axes) < 2:
             continue
 
         player_axes[pid] = axes
+        player_labels[pid] = labels
 
-        # Determine percentile group
-        if args.pool == "role" and br and br in ROLE_AXES:
-            n_axes = len(ROLE_AXES[br])
+        # Determine percentile group — group by axis count + group key
+        n_axes = len(axes)
+        if args.pool == "role" and br and br in ROLE_AXES and br not in small_roles:
             group_key = f"role:{br}:{n_axes}"
-        elif args.pool == "position":
-            n_axes = len(axes)
+        elif args.pool == "position" or (br and br in small_roles):
             group_key = f"pos:{pos}:{n_axes}"
         else:
-            n_axes = len(axes)
             group_key = f"global:{n_axes}"
 
         player_groups.setdefault(group_key, {})[pid] = axes
@@ -270,14 +336,9 @@ def main():
         if fp:
             pos = positions.get(pid, "?")
             br = best_roles.get(pid, "generic")
-            role_models = ROLE_AXES.get(br)
-            if role_models:
-                labels = [MODEL_SHORT.get(m, m[:3]) for m in role_models]
-            elif pos == "GK":
-                labels = ["STP", "CMD", "SWP", "DST"]
-            else:
-                labels = ["DEF", "CRE", "ATK", "PWR", "PAC", "DRV"]
-            print(f"    {name:30s} ({pos:3s} {br:20s}): {' '.join(f'{l}:{v:2d}' for l, v in zip(labels, fp))}")
+            lbls = player_labels.get(pid, [])
+            short = [MODEL_SHORT.get(m, m[:3]) for m in lbls]
+            print(f"    {name:30s} ({pos:3s} {br:20s}): {' '.join(f'{l}:{v:2d}' for l, v in zip(short, fp))}")
 
     if args.dry_run:
         print("\n  DRY RUN — no changes written")

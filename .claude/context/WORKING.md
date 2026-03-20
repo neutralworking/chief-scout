@@ -1,56 +1,48 @@
 # Working Context — Chief Scout
-> Auto-updated at session start/end. Last updated: 2026-03-19
+> Auto-updated at session start/end. Last updated: 2026-03-21
 
 ## Current Sprint
-1. **Data Density** — 43/43 AF leagues fetched (32 senior + 11 youth). 119k grades, 9,471 players graded, 8,723 fingerprints — DONE
-2. **Four-Pillar QA** — rebuilt with real data, physical pillar 5-component formula. 7 issues found, 5 fix tasks created — QA PASS NEEDED
-3. **Scale to 200+ Tier 1** — currently ~50 on prod (276 total but most skeleton). LLM profiling button in admin. Needs automated batch generation — NOT STARTED
+1. **Data Density** — DONE. 119k grades, 9,471 players graded, 8,723 fingerprints
+2. **Four-Pillar QA** — DONE. All 5 issues fixed. Pillar scores precomputed for 15k players.
+3. **Scale to 200+ Tier 1** — NOT STARTED. LLM profiling button in admin. Needs automated batch generation.
 
 ## Resume Tasks (next session)
-- Four-pillar QA pass
-- Scale to 200+ Tier 1 profiles (LLM batch profiling)
+- Valuation integration: feed four-pillar scores into valuation engine
+- SEO: per-player OG images, JSON-LD structured data
+- MiniRadar expansion: shortlist detail, club detail, trending players
 
 ## Active Decisions
-- XP system v2: move to real XP scale (Ballon d'Or=1000) vs keep interim system
 - Women's players: decide long-term approach (separate pipeline? same tables?)
-- Four-pillar: precompute scores for player list, or keep as on-demand API?
 
 ## Blockers
-- FBRef CSV data only has basic columns (goals/assists) — advanced stats need manual paste
-- Script 04 (`refine_players.py`) crashes on news sentiment `story_types` field (string not dict)
 - Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator
+- FBRef CSV data only has basic columns — advanced stats need manual HTML paste
 
-## What Shipped Recently (sessions 12-13)
-- CS Value recalibrated against 10 DoF anchors
-- Four-pillar assessment rebuilt with real data (not level-anchored)
-- Physical pillar: 5-component data-driven formula
-- UEFA/FIFA coefficient system (pipeline 70, migration 037)
-- API-Football expanded to 43 leagues (25 ingested so far)
-- News cron moved to GitHub Actions (6x/day)
-- Dual skill sets + MODEL_LABELS taxonomy
-- LLM profiling with context-enriched bio mode
-- Kickoff Clash: KC flagging, pipeline 80 export, KCCard component, Love2D prototype, itch.io
-- /compare tool live (radar overlay, four-pillar, roles, personality, market)
-- /players overhaul (flags, league filter, CS value editing)
-- Radar: contrast stretch, proxy attributes, scale bug fix, quality filter
-- Sidebar regrouped, Legends mobile, Inventor→Inverted Winger
+## What Shipped (session 17, 2026-03-20/21)
+- Mobile bottom nav: top pills → bottom tab bar (Home/Players/Admin/More) + grouped sheet
+- Precomputed four-pillar scores: cron endpoint + daily GitHub Actions (15k players, 57s)
+- Migration 039 applied (tactical_score, mental_score, overall_pillar_score, pillar_updated_at)
+- player_intelligence_card view updated with all pillar + earned archetype columns
+- Compact PlayerCard: 7-row → 3-row with flags, inline pillar scores, value
+- Free agents mobile cards switched to shared PlayerCard component
+- Featured player: active-only filter + LLM-quality bio gate (80+ chars)
+- FourPillarDashboard: stored best_role preferred over live-computed
+- Nation flags on player detail page
+- KC link fix (/kc-preview), Gaffer confirmed working
+- Tasks.md fully audited (16+ stale items cleared)
+- 292 tests passing (13 new for MobileBottomNav)
 
 ## Key Metrics
 | Table | Count | Last Updated |
 |-------|-------|-------------|
 | people | 21,683+ | 2026-03-19 |
-| AF player-season rows | 14,429 | 2026-03-19 |
-| AF leagues ingested | 43 / 43 (32 senior) | 2026-03-19 |
-| league_coefficients | 53 | 2026-03-19 |
-| clubs with uefa_coefficient | 68 | 2026-03-19 |
-| nations with fifa_rank | 80 | 2026-03-19 |
 | attribute_grades | 500k+ | 2026-03-19 |
+| players with pillar scores | 15,057 | 2026-03-21 |
 | Tier 1 on prod | 276 | 2026-03-16 |
+| Tests passing | 292 | 2026-03-21 |
 
 ## Infrastructure Notes
-- `70_coefficients_ingest.py` — UEFA country/club + FIFA rankings → league_coefficients
-- `037_coefficients.sql` — league_coefficients table, uefa columns on clubs, fifa columns on nations
-- `player_intelligence_card` view has: `nation_code`, `league_name`, `peak`, `club_id`, `best_role_score`
-- News cron: `.github/workflows/news-cron.yml` (6x/day via GitHub Actions)
-- `scout` bash command in `~/.bashrc`
-- All migrations applied through 037 on staging
+- `assessments-cron.yml` — daily 3:30am UTC, computes all pillar scores
+- `MobileBottomNav.tsx` replaces `MobileTopNav.tsx` (bottom tab bar)
+- `lib/pillar-colors.ts` — centralised pillar color definitions
+- Pillar color scheme: technical=gold, tactical=purple, mental=green, physical=blue

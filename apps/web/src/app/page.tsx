@@ -71,11 +71,12 @@ async function getDashboardData() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
-    // 0: Featured: DOF picks
+    // 0: Featured: DOF picks (active players only)
     prodFilter(supabaseServer
       .from("player_intelligence_card")
       .select(FEATURED_COLS + ", pursuit_status")
       .in("pursuit_status", ["Priority", "Interested", "Scout Further", "Watch"])
+      .eq("active", true)
       .not("archetype", "is", null)
       .not("scouting_notes", "is", null))
       .order("level", { ascending: false })
@@ -144,19 +145,26 @@ async function getDashboardData() {
   let featuredPool: FeaturedProfile[] = [];
 
   // Build a large pool: DOF picks up front (weighted), then broad Tier 1 discovery
-  const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
+  // Filter for LLM-quality bios (80+ chars, contains a period = real sentences)
+  const hasQualityBio = (p: FeaturedProfile) =>
+    p.scouting_notes && p.scouting_notes.length >= 80 && p.scouting_notes.includes(".");
+
+  const dofCandidates = ((dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>)
+    .filter(hasQualityBio);
   const dofIds = new Set(dofCandidates.map((p) => p.person_id));
 
-  // Always fetch broad discovery pool
+  // Always fetch broad discovery pool (active players with quality bios)
   const { data: discoveryData } = await supabaseServer
     .from("player_intelligence_card")
     .select(FEATURED_COLS)
     .eq("profile_tier", 1)
+    .eq("active", true)
     .not("archetype", "is", null)
     .not("scouting_notes", "is", null)
     .order("level", { ascending: false })
     .limit(500);
-  const discoveryPlayers = ((discoveryData ?? []) as FeaturedProfile[]).filter((p) => !dofIds.has(p.person_id));
+  const discoveryPlayers = ((discoveryData ?? []) as FeaturedProfile[])
+    .filter((p) => !dofIds.has(p.person_id) && hasQualityBio(p));
 
   // DOF picks appear 3x in the pool for weighting, then discovery fills the rest
   const weightedPool: FeaturedProfile[] = [

@@ -12,7 +12,7 @@
 
 ### Product & UX
 - [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
-- [ ] **SEO advanced** — per-player OG images, structured data (JSON-LD)
+- [x] ~~SEO advanced~~ — OG images, generateMetadata, JSON-LD. Need NEXT_PUBLIC_SITE_URL in Vercel.
 - [ ] **Onboarding** — no help docs or tour for new users
 - [x] ~~Fix script 04~~ — `story_types` string guard already in place (lines 376-382), verified 2026-03-20
 - [x] ~~Showman→Catalyst test fix~~ — already updated, 33/33 passing (verified 2026-03-20)
@@ -20,7 +20,7 @@
 ## Medium Priority
 
 ### Data Quality
-- [ ] **Attribute grade backfill** — 193/250 top players have <20 grades. Run pipelines 22, 56, 66 to improve coverage
+- [x] ~~Attribute grade backfill~~ — pipelines 66 (API-Football), 56 (EAFC), 30 (Understat) rerun. Top 250 avg grades 16→28.8. GKs in top 250 dropped 138→85.
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables for meaningful grades
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling (low priority since role score is primary)
 - [ ] **Position audit** — Joe Worrall listed as CM lvl 86 (real-life CB). Likely more wrong positions in DB
@@ -35,6 +35,7 @@
 - [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)
 
 ### Product & Features
+- [ ] **TM value sparkline** — mini chart on player detail page showing transfermarkt value history over time
 - [ ] Add MiniRadar to shortlist detail page (`/shortlists/[slug]`)
 - [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
 - [ ] Add MiniRadar to TrendingPlayers component (homepage)
@@ -46,6 +47,7 @@
 
 ### Infrastructure
 - [ ] Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator — needs chunking or timeout increase
+- [ ] **Migrate remaining understat scripts** — scripts 13, 22, 44, 10 still reference `understat_player_match_stats` (only 2022+ data remains)
 
 ## Low Priority
 - [ ] Player list pillar spark bars (needs precomputed scores or batch API)
@@ -67,6 +69,20 @@
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo, fixture feed from CS pipeline 61
 
 ---
+
+## Completed (2026-03-21, session 16 continued)
+- [x] Grade backfill — pipelines 66, 56, 30 rerun. Top 250 avg grades 16→28.8
+- [x] Pipeline 27 rerun with fresh grades — 13,216 ratings recomputed
+- [x] Similar players algorithm rewrite — 8 factors (role, RS, archetype, pillars, personality, side, foot, club)
+- [x] Player side inference — pipeline 38c, EAFC positions (5,628) + foot fallback (828) + central default (8,182)
+- [x] Side added to player_intelligence_card view
+- [x] Side displayed on player detail, compare, free agents, club detail pages
+- [x] Level calibration pipeline (38b) — built but parked (level being phased out, role score is primary)
+- [x] Level review exported to Airtable (2,590 players in Fake Players base)
+- [x] Airtable credentials added to .env.local
+- [x] Supabase space reclaimed: 528→293 MB (understat pre-2022 purge + player_xp drop)
+- [x] understat_player_agg table created (9,595 players, preserves lifetime stats)
+- [x] Pipeline 30 updated to use agg table instead of match-level data
 
 ## Completed (2026-03-20, session 16)
 - [x] DoF data quality sweep on top 250 players

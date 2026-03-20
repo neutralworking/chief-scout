@@ -7,6 +7,7 @@ import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import { getCardTheme, CardTheme } from "@/lib/archetype-themes";
 import { MiniRadar } from "@/components/MiniRadar";
+import { PlayerCard } from "@/components/PlayerCard";
 import Link from "next/link";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
@@ -16,9 +17,12 @@ interface FreeAgent {
   name: string;
   dob: string | null;
   nation: string | null;
+  nation_code: string | null;
   club: string | null;
+  club_id: number | null;
   position: string | null;
   level: number | null;
+  best_role: string | null;
   best_role_score: number | null;
   archetype: string | null;
   personality_type: string | null;
@@ -30,6 +34,15 @@ interface FreeAgent {
   goals: number | null;
   assists: number | null;
   rating: number | null;
+  technical_score: number | null;
+  tactical_score: number | null;
+  mental_score: number | null;
+  physical_score: number | null;
+  overall_pillar_score: number | null;
+  earned_archetype: string | null;
+  archetype_tier: string | null;
+  legacy_tag: string | null;
+  behavioral_tag: string | null;
 }
 
 // Hex colors for radar polygon per theme
@@ -310,61 +323,57 @@ function FreeAgentsContent() {
         </div>
       )}
 
-      {/* Mobile card list */}
+      {/* Mobile card list — uses shared PlayerCard component */}
       {!loading && !error && players.length > 0 && (
         <div className="sm:hidden space-y-1">
-          {players.map((player) => {
-            const age = computeAge(player.dob);
-            const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
-            const theme = getCardTheme(player.personality_type);
-            const radarColor = RADAR_COLORS[theme];
-
-            return (
-              <Link key={player.person_id} href={`/players/${player.person_id}`}
-                className="glass rounded-lg p-3 flex items-center gap-3 hover:border-[var(--color-accent-personality)]/30 transition-colors block">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
-                    {player.position ?? "–"}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {player.club ? (isFreeTab ? `ex-${player.club}` : player.club) : "Unattached"}
-                      {player.nation && ` · ${player.nation}`}
-                      {age != null && ` · ${age}y`}
-                    </p>
-                    {(player.goals != null || player.assists != null) && (
-                      <p className="text-[10px] font-mono text-[var(--text-muted)]">
-                        {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
-                        {player.goals != null && player.assists != null && " "}
-                        {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
-                        {player.rating != null && <span className="text-amber-400"> · {player.rating.toFixed(1)}★</span>}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {player.fingerprint && player.fingerprint.some((v) => v > 0) && (
-                  <div className="shrink-0">
-                    <MiniRadar
-                      values={player.fingerprint}
-                      size={40}
-                      color={radarColor}
-                    />
-                  </div>
-                )}
-                <div className="flex items-center gap-3 shrink-0">
-                  {!isFreeTab && player.contract_expiry_date && (
-                    <span className="text-[9px] font-mono text-[var(--text-muted)]">
-                      {formatExpiry(player.contract_expiry_date)}
-                    </span>
-                  )}
-                  <span className={`text-lg font-mono font-bold ${ratingColor(player.best_role_score)}`}>
-                    {player.best_role_score ?? "–"}
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+          {players.map((player) => (
+            <PlayerCard
+              key={player.person_id}
+              player={{
+                person_id: player.person_id,
+                name: player.name,
+                dob: player.dob,
+                height_cm: null,
+                preferred_foot: null,
+                active: true,
+                nation: player.nation,
+                nation_code: player.nation_code,
+                club: player.club ? (isFreeTab ? `ex-${player.club}` : player.club) : null,
+                club_id: player.club_id,
+                league_name: null,
+                position: player.position,
+                level: player.level,
+                archetype: player.archetype,
+                model_id: null,
+                profile_tier: null,
+                personality_type: player.personality_type,
+                pursuit_status: player.pursuit_status,
+                market_value_tier: null,
+                true_mvt: null,
+                market_value_eur: player.market_value_eur,
+                director_valuation_meur: null,
+                best_role: player.best_role,
+                best_role_score: player.best_role_score,
+                engine_value_p50: null,
+                engine_confidence: null,
+                apps: null,
+                goals: player.goals,
+                assists: player.assists,
+                xg: null,
+                rating: player.rating,
+                fingerprint: player.fingerprint,
+                technical_score: player.technical_score,
+                tactical_score: player.tactical_score,
+                mental_score: player.mental_score,
+                physical_score: player.physical_score,
+                overall_pillar_score: player.overall_pillar_score,
+                earned_archetype: player.earned_archetype,
+                archetype_tier: player.archetype_tier,
+                legacy_tag: player.legacy_tag,
+                behavioral_tag: player.behavioral_tag,
+              }}
+            />
+          ))}
         </div>
       )}
 

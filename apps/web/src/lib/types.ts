@@ -43,6 +43,12 @@ export interface PlayerCard {
   archetype_tier?: string | null;
   legacy_tag?: string | null;
   behavioral_tag?: string | null;
+  // Four-pillar precomputed scores (0-100, from /api/cron/assessments)
+  technical_score?: number | null;
+  tactical_score?: number | null;
+  mental_score?: number | null;
+  physical_score?: number | null;
+  overall_pillar_score?: number | null;
 }
 
 export interface PlayerValuation {

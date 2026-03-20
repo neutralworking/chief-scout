@@ -117,10 +117,10 @@ Every player is scored 0-100 on all 13 models. The highest score determines thei
 
 | Compound | Models | UI Color | CSS Variable |
 |----------|--------|----------|-------------|
-| Mental | Controller, Commander, Creator | Blue | `--accent-mental` |
-| Physical | Target, Sprinter, Powerhouse | Amber | `--accent-physical` |
-| Tactical | Cover, Engine, Destroyer | Green | `--accent-tactical` |
-| Technical | Dribbler, Passer, Striker | Purple | `--accent-technical` |
+| Technical | Dribbler, Passer, Striker | Gold | `--color-accent-technical` |
+| Tactical | Cover, Engine, Destroyer | Purple | `--color-accent-tactical` |
+| Mental | Controller, Commander, Creator | Green | `--color-accent-mental` |
+| Physical | Target, Sprinter, Powerhouse | Blue | `--color-accent-physical` |
 
 ### Archetype Confidence
 
@@ -261,29 +261,29 @@ The unified assessment framework that synthesizes all other systems into four eq
 
 | Pillar | Question | Color | CSS Variable | Primary Sources |
 |--------|----------|-------|-------------|-----------------|
-| **Technical** | How good are they? | Purple | `--color-accent-technical` | `attribute_grades` → 13 model scores → position-weighted compound |
-| **Tactical** | How do they fit systems? | Green | `--color-accent-tactical` | Role fit + flexibility + trait profile |
-| **Mental** | Who are they psychologically? | Blue | `--color-accent-mental` | Personality-role alignment + strength + stability |
-| **Physical** | Are they available & durable? | Gold | `--color-accent-physical` | Age curve + availability (FBRef minutes) + trajectory |
+| **Technical** | How good are they? | Gold | `--color-accent-technical` | `attribute_grades` → 13 model scores → position-weighted compound |
+| **Tactical** | How do they fit systems? | Purple | `--color-accent-tactical` | Role fit + flexibility + trait profile |
+| **Mental** | Who are they psychologically? | Green | `--color-accent-mental` | Personality-role alignment + strength + stability |
+| **Physical** | Are they available & durable? | Blue | `--color-accent-physical` | Age curve + availability (FBRef minutes) + trajectory |
 
 ### Pillar Computation
 
-#### Technical (Purple)
+#### Technical (Gold)
 - Position-weighted average of the 13 archetype model scores (from `POSITION_WEIGHTS`)
 - Level-anchored: blended with `player_profiles.level` based on data quality weight
 - Data quality weight ranges from 0.3 (EAFC-only) to 1.0 (scout-assessed)
 
-#### Tactical (Green)
+#### Tactical (Purple)
 - **Role Fit (40%)**: Best tactical role score (from `scorePlayerForRole()`)
 - **Flexibility (30%)**: Count of viable roles (score > 40% of max). 1 role=20, 3-4=50, 6+=80
 - **Trait Profile (30%)**: Severity-scored traits matched against role demands via `TRAIT_ROLE_IMPACT`
 
-#### Mental (Blue)
+#### Mental (Green)
 - **Personality-Role Alignment (50%)**: How well personality type matches best-fit role's personality preferences
 - **Mental Strength (30%)**: `(competitiveness + coachability) / 2` from `player_personality`
 - **Mental Stability (20%)**: From `player_status.mental_tag` (Sharp=100, Confident=75, Low=40, Fragile=15)
 
-#### Physical (Gold)
+#### Physical (Blue)
 - **Availability (40%)**: Minutes played / possible minutes from `fbref_player_season_stats` (last 3 seasons, recency-weighted)
 - **Age Curve (35%)**: Position-specific peak windows. Within peak=100, each year below: -8, above: -10. Min 20.
 - **Trajectory (25%)**: From `career_metrics.trajectory` (rising=90, peak=80, declining=35)

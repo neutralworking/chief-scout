@@ -257,8 +257,9 @@ CSV import generates deterministic `fbref_id` as `csv_{comp_id}_{season}_{team_s
 
 ## CSS Variables
 Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
-- `--color-accent-tactical` (green), `--color-accent-mental` (blue), `--color-accent-physical` (gold)
-- `--color-accent-technical` (purple), `--color-accent-personality` (yellow)
+- `--color-accent-technical` (gold), `--color-accent-tactical` (purple)
+- `--color-accent-mental` (green), `--color-accent-physical` (blue)
+- `--color-accent-personality` (yellow)
 
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)

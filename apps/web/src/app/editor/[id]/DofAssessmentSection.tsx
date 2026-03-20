@@ -39,10 +39,10 @@ const DIMENSIONS: {
   color: string;
   barColor: string;
 }[] = [
-  { key: "technical", noteKey: "technical_note", label: "Technical", color: "var(--color-accent-technical)", barColor: "bg-purple-500" },
-  { key: "physical", noteKey: "physical_note", label: "Physical", color: "var(--color-accent-physical)", barColor: "bg-amber-500" },
-  { key: "tactical", noteKey: "tactical_note", label: "Tactical", color: "var(--color-accent-tactical)", barColor: "bg-green-500" },
-  { key: "personality", noteKey: "personality_note", label: "Personality", color: "var(--color-accent-mental)", barColor: "bg-blue-500" },
+  { key: "technical", noteKey: "technical_note", label: "Technical", color: "var(--color-accent-technical)", barColor: "bg-amber-500" },
+  { key: "physical", noteKey: "physical_note", label: "Physical", color: "var(--color-accent-physical)", barColor: "bg-blue-500" },
+  { key: "tactical", noteKey: "tactical_note", label: "Tactical", color: "var(--color-accent-tactical)", barColor: "bg-purple-500" },
+  { key: "personality", noteKey: "personality_note", label: "Personality", color: "var(--color-accent-mental)", barColor: "bg-green-500" },
   { key: "commercial", noteKey: "commercial_note", label: "Commercial", color: "var(--color-accent-personality)", barColor: "bg-yellow-500" },
   { key: "availability", noteKey: "availability_note", label: "Availability", color: "var(--text-secondary)", barColor: "bg-gray-400" },
 ];

@@ -6,49 +6,106 @@ import {
 } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
 import { getRoleRadarConfig } from "@/lib/role-radar";
-import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
 import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import { MiniRadar } from "@/components/MiniRadar";
-import { RoleTooltip } from "@/components/RoleTooltip";
+import {
+  PILLAR_KEYS,
+  PILLAR_HEX,
+  PILLAR_LABELS,
+  getDominantPillar,
+  hasAnyPillarScore,
+  getConditionLabel,
+  type PillarKey,
+} from "@/lib/pillar-colors";
 
-// Hex colors for radar polygon per theme (matches theme accent)
-const RADAR_COLORS: Record<CardTheme, string> = {
-  general: "#a1a1aa",   // zinc-400
-  catalyst: "#e879f9",  // fuchsia-400
-  maestro: "#fcd34d",   // amber-300
-  captain: "#f87171",   // red-400
-  professor: "#60a5fa", // blue-400
-  default: "#4ade80",   // green-400
+// Border color for the dominant pillar (left accent stripe)
+const PILLAR_BORDER: Record<PillarKey, string> = {
+  technical: "border-l-amber-500",
+  tactical: "border-l-purple-500",
+  mental: "border-l-green-500",
+  physical: "border-l-blue-500",
 };
+
+function formatValue(v: number): string {
+  if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}m`;
+  if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}k`;
+  return `€${v.toFixed(0)}`;
+}
+
+/** Compact 4-bar pillar strip */
+function PillarStrip({ scores }: { scores: Record<PillarKey, number | null> }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {PILLAR_KEYS.map((key) => {
+        const v = scores[key];
+        if (v == null) return null;
+        return (
+          <div key={key} className="flex items-center gap-0.5">
+            <span className="text-[8px] font-bold tracking-wider" style={{ color: PILLAR_HEX[key] }}>
+              {PILLAR_LABELS[key]}
+            </span>
+            <span className="text-[10px] font-mono font-bold text-[var(--text-primary)]">
+              {v}
+            </span>
+          </div>
+        );
+      }).filter(Boolean).reduce<React.ReactNode[]>((acc, el, i) => {
+        if (i > 0) acc.push(<span key={`sep-${i}`} className="text-[var(--text-muted)] text-[8px] mx-0.5">·</span>);
+        acc.push(el);
+        return acc;
+      }, [])}
+    </div>
+  );
+}
 
 export function PlayerCard({ player }: { player: PlayerCardType }) {
   const age = computeAge(player.dob);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
-  const theme = getCardTheme(player.personality_type);
-  const styles = THEME_STYLES[theme];
-
   const mentalLabel = getPersonalityName(player.personality_type);
+
+  const pillarScores = {
+    technical: player.technical_score ?? null,
+    tactical: player.tactical_score ?? null,
+    mental: player.mental_score ?? null,
+    physical: player.physical_score ?? null,
+  };
+  const hasPillars = hasAnyPillarScore(pillarScores);
+  const dominant = getDominantPillar(pillarScores);
+  const overall = player.overall_pillar_score;
+
+  const borderClass = dominant ? PILLAR_BORDER[dominant] : "border-l-zinc-600";
+  const conditionLabel = getConditionLabel(
+    pillarScores.physical, age, player.position, ageCurveScore,
+  );
 
   return (
     <Link
       href={`/players/${player.person_id}`}
       className="block group"
     >
-      <div className={`${styles.card} p-4 hover:brightness-110 transition-all duration-150`}>
-        {/* Row 1: Position badge + Name */}
-        <div className="flex items-center gap-2 mb-2 min-w-0">
+      <div className={`border-l-2 ${borderClass} bg-[var(--bg-surface)] rounded-lg p-4 hover:brightness-110 transition-all duration-150`}>
+        {/* Row 1: Position + Name + Overall */}
+        <div className="flex items-center gap-2 mb-1.5 min-w-0">
           <span
             className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}
           >
             {player.position ?? "–"}
           </span>
-          <h3 className={`text-sm text-[var(--text-primary)] truncate ${styles.nameFont}`}>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] truncate flex-1">
             {player.name}
           </h3>
+          {overall != null && (
+            <span
+              className="text-base font-mono font-bold shrink-0"
+              style={{ color: dominant ? PILLAR_HEX[dominant] : "var(--text-primary)" }}
+            >
+              {overall}
+            </span>
+          )}
         </div>
 
-        {/* Row 2: Club, Nation, Age */}
-        <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-3">
+        {/* Row 2: Club · Nation · Age */}
+        <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)] mb-2">
           {player.club && (
             player.club_id ? (
               <Link
@@ -75,45 +132,75 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           )}
         </div>
 
-        {/* Row 3: Role + Personality + Physical */}
-        {(mentalLabel || player.best_role) && (
-          <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
-            {player.best_role && (
-              <RoleTooltip
-                roleName={player.best_role}
-                roleScore={player.best_role_score}
-                position={player.position}
-                variant="card"
-              />
-            )}
-            {mentalLabel && (
-              <>
-                {player.best_role && <span className="text-[var(--text-muted)]">·</span>}
-                <span className="text-purple-400 font-medium">
-                  {mentalLabel}
-                </span>
-              </>
-            )}
-            {age !== null && (() => {
-              const phys = ageCurveScore(player.position, age);
-              return (
-                <>
-                  <span className="text-[var(--text-muted)]">·</span>
-                  <span className={`font-mono font-bold ${
-                    phys >= 80 ? "text-[var(--color-accent-physical)]" :
-                    phys >= 60 ? "text-[var(--text-secondary)]" :
-                    "text-[var(--text-muted)]"
-                  }`}>
-                    {phys}
-                    <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">PHY</span>
-                  </span>
-                </>
-              );
-            })()}
+        {/* Row 3: Pillar scores strip */}
+        {hasPillars && (
+          <div className="mb-2">
+            <PillarStrip scores={pillarScores} />
           </div>
         )}
 
-        {/* Row 3b: Stats line — goals/assists/rating */}
+        {/* Row 4: Four-pillar detail lines */}
+        <div className="space-y-0.5 mb-2">
+          {/* Technical (gold): archetype + level */}
+          {(player.archetype || player.level != null) && (
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: PILLAR_HEX.technical }} />
+              {player.archetype && (
+                <span className="font-medium" style={{ color: PILLAR_HEX.technical }}>
+                  {player.archetype}
+                </span>
+              )}
+              {player.level != null && (
+                <span className="font-mono text-[var(--text-muted)]">{player.level}</span>
+              )}
+            </div>
+          )}
+
+          {/* Tactical (purple): best role */}
+          {player.best_role && (
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: PILLAR_HEX.tactical }} />
+              <span className="font-medium" style={{ color: PILLAR_HEX.tactical }}>
+                {player.best_role}
+              </span>
+              {player.best_role_score != null && (
+                <span className="font-mono text-[var(--text-muted)]">{player.best_role_score}</span>
+              )}
+            </div>
+          )}
+
+          {/* Mental (green): personality */}
+          {mentalLabel && (
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: PILLAR_HEX.mental }} />
+              <span className="font-medium" style={{ color: PILLAR_HEX.mental }}>
+                {mentalLabel}
+              </span>
+              {player.personality_type && (
+                <span className="font-mono text-[var(--text-muted)]">{player.personality_type}</span>
+              )}
+            </div>
+          )}
+
+          {/* Physical (blue): condition */}
+          {(conditionLabel || pillarScores.physical != null) && (
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: PILLAR_HEX.physical }} />
+              {conditionLabel && (
+                <span className="font-medium" style={{ color: PILLAR_HEX.physical }}>
+                  {conditionLabel}
+                </span>
+              )}
+              {!conditionLabel && age != null && (
+                <span className="font-mono" style={{ color: PILLAR_HEX.physical }}>
+                  {ageCurveScore(player.position, age)}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Row 5: Stats line — goals/assists/rating */}
         {(player.goals != null || player.assists != null) && (
           <div className="text-[10px] font-mono mb-2">
             {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
@@ -123,16 +210,12 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           </div>
         )}
 
-        {/* Row 4: Market Value + Archetype + CSPER badge */}
+        {/* Row 6: Value + Earned archetype */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {player.engine_value_p50 != null ? (
-              <span className="text-sm font-mono font-bold text-[var(--color-accent-tactical)]">
-                &euro;{player.engine_value_p50 >= 1_000_000
-                  ? `${(player.engine_value_p50 / 1_000_000).toFixed(1)}m`
-                  : player.engine_value_p50 >= 1_000
-                  ? `${(player.engine_value_p50 / 1_000).toFixed(0)}k`
-                  : `${player.engine_value_p50.toFixed(0)}`}
+              <span className="text-sm font-mono font-bold text-[var(--text-primary)]">
+                {formatValue(player.engine_value_p50)}
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 align-middle ${
                   player.engine_confidence === "high" ? "bg-green-400" :
                   player.engine_confidence === "medium" ? "bg-amber-400" :
@@ -140,41 +223,33 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
                 }`} title={`${player.engine_confidence ?? "low"} confidence`} />
               </span>
             ) : player.market_value_eur != null ? (
-              <span className="text-sm font-mono font-bold text-[var(--accent-tactical)]">
-                &euro;{player.market_value_eur >= 1_000_000
-                  ? `${(player.market_value_eur / 1_000_000).toFixed(1)}m`
-                  : `${(player.market_value_eur / 1_000).toFixed(0)}k`}
+              <span className="text-sm font-mono font-bold text-[var(--text-secondary)]">
+                {formatValue(player.market_value_eur)}
                 <span className="text-[8px] font-normal text-[var(--text-muted)] ml-0.5">TM</span>
               </span>
             ) : null}
             {player.earned_archetype ? (
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                 player.archetype_tier === "elite" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                player.archetype_tier === "established" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30" :
+                player.archetype_tier === "established" ? "bg-purple-500/15 text-purple-400 border border-purple-500/30" :
                 player.archetype_tier === "aspiring" ? "bg-blue-500/10 text-blue-400/70 border border-blue-500/20" :
                 "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
               }`}>
                 {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
               </span>
-            ) : player.archetype ? (
-              <span className="text-[10px] text-[var(--text-muted)]">
-                {player.archetype}
-              </span>
             ) : null}
           </div>
-          {player.legacy_score != null && player.legacy_score > 0 ? (
+          {player.legacy_score != null && player.legacy_score > 0 && (
             <span className="text-[10px] font-mono font-bold" style={{
               color: player.legacy_score >= 5000 ? "#f59e0b" : player.legacy_score >= 2500 ? "#a855f7" : player.legacy_score >= 1000 ? "#3b82f6" : "var(--text-muted)"
             }}>
               {player.legacy_score.toLocaleString()}
               <span className="text-[8px] font-normal ml-0.5 opacity-60">XP</span>
             </span>
-          ) : player.archetype && !player.engine_value_p50 && !player.market_value_eur ? (
-            <span className="text-[9px] font-mono text-[var(--text-muted)]">{player.personality_type}</span>
-          ) : null}
+          )}
         </div>
 
-        {/* Row 5: MiniRadar fingerprint (role-specific axes) */}
+        {/* Row 7: MiniRadar fingerprint */}
         {player.fingerprint && player.fingerprint.some((v) => v > 0) && (() => {
           const radarConfig = getRoleRadarConfig(player.best_role, player.position);
           const labels = radarConfig.labels.length === player.fingerprint!.length
@@ -185,7 +260,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
               <MiniRadar
                 values={player.fingerprint!}
                 size={72}
-                color={RADAR_COLORS[theme]}
+                color={dominant ? PILLAR_HEX[dominant] : "#4ade80"}
                 labels={labels}
                 showLabels
               />

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const SELECT =
-  "person_id, name, dob, height_cm, preferred_foot, active, nation, nation_code, club, club_id, league_name, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint, earned_archetype, archetype_tier, legacy_tag, behavioral_tag";
+  "person_id, name, dob, height_cm, preferred_foot, active, nation, nation_code, club, club_id, league_name, position, level, peak, overall, archetype, model_id, profile_tier, personality_type, pursuit_status, market_value_tier, true_mvt, market_value_eur, director_valuation_meur, best_role, best_role_score, fingerprint, earned_archetype, archetype_tier, legacy_tag, behavioral_tag, technical_score, tactical_score, mental_score, physical_score, overall_pillar_score";
 
 // Fingerprints are precomputed by pipeline/51_fingerprints.py
 // and stored in player_profiles.fingerprint (percentile ranks within position group).
@@ -125,6 +125,9 @@ export async function GET(req: NextRequest) {
         break;
       case "value":
         query = query.order("director_valuation_meur", { ascending: false, nullsFirst: false });
+        break;
+      case "pillar":
+        query = query.order("overall_pillar_score", { ascending: false, nullsFirst: false });
         break;
       case "rating":
         // Rating sort uses client-side re-sort after stats enrichment

@@ -12,11 +12,11 @@
   --color-bg-elevated: #252526;
   --color-border-subtle: #6fc3df;
 
-  /* Compound category accents */
-  --color-accent-mental: #4a90d9;
-  --color-accent-physical: #d4a035;
-  --color-accent-tactical: #3dba6f;
-  --color-accent-technical: #9b59b6;
+  /* Four-pillar accents */
+  --color-accent-technical: #d4a035;
+  --color-accent-tactical: #9b59b6;
+  --color-accent-mental: #3dba6f;
+  --color-accent-physical: #4a90d9;
   --color-accent-personality: #e8c547;
 
   /* Pursuit status */

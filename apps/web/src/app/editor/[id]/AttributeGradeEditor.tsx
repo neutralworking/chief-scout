@@ -82,6 +82,7 @@ export default function AttributeGradeEditor({ personId }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [loaded, setLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("All");
 
   // Load existing grades
   useEffect(() => {
@@ -174,6 +175,19 @@ export default function AttributeGradeEditor({ personId }: Props) {
   const allAttrs = PILLAR_MODELS.flatMap((p) => p.models.flatMap((m) => m.attrs));
   const coveredCount = allAttrs.filter((a) => (grades[a]?.scout_grade ?? null) !== null || (grades[a]?.stat_score ?? null) !== null).length;
 
+  // Per-pillar counts for tab badges
+  const pillarCounts = PILLAR_MODELS.map((p) => {
+    const attrs = p.models.flatMap((m) => m.attrs);
+    const scout = attrs.filter((a) => (grades[a]?.scout_grade ?? null) !== null || dirty[a] !== undefined).length;
+    const stat = attrs.filter((a) => (grades[a]?.stat_score ?? null) !== null).length;
+    return { pillar: p.pillar, scout, stat, total: attrs.length };
+  });
+
+  // Filter pillars to display
+  const visiblePillars = activeTab === "All"
+    ? PILLAR_MODELS
+    : PILLAR_MODELS.filter((p) => p.pillar === activeTab);
+
   return (
     <div className="glass rounded-xl p-4 mb-4">
       <div className="flex items-center justify-between mb-1">
@@ -182,8 +196,31 @@ export default function AttributeGradeEditor({ personId }: Props) {
       </div>
       <p className="text-[10px] text-[var(--text-muted)] mb-3">Scout grades (0-10). Grey numbers = pipeline stat scores. Tap +/- or type directly.</p>
 
-      {PILLAR_MODELS.map((pillar) => (
-        <PillarSection key={pillar.pillar} pillar={pillar} grades={grades} dirty={dirty} setGrade={setGrade} clearGrade={clearGrade} />
+      {/* Pillar tabs */}
+      <div className="flex gap-1 mb-4 overflow-x-auto">
+        <TabButton
+          label="All"
+          active={activeTab === "All"}
+          onClick={() => setActiveTab("All")}
+        />
+        {PILLAR_MODELS.map((p, i) => {
+          const c = pillarCounts[i];
+          return (
+            <TabButton
+              key={p.pillar}
+              label={p.pillar}
+              color={p.color}
+              active={activeTab === p.pillar}
+              onClick={() => setActiveTab(p.pillar)}
+              badge={c.scout > 0 ? `${c.scout}/${c.total}` : undefined}
+            />
+          );
+        })}
+      </div>
+
+      {/* Models for visible pillars */}
+      {visiblePillars.map((pillar) => (
+        <PillarSection key={pillar.pillar} pillar={pillar} grades={grades} dirty={dirty} setGrade={setGrade} clearGrade={clearGrade} defaultOpen={activeTab !== "All"} />
       ))}
 
       {/* Save bar */}
@@ -206,20 +243,63 @@ export default function AttributeGradeEditor({ personId }: Props) {
   );
 }
 
+// ── Tab button ───────────────────────────────────────────────────────────────
+
+function TabButton({
+  label,
+  color,
+  active,
+  onClick,
+  badge,
+}: {
+  label: string;
+  color?: string;
+  active: boolean;
+  onClick: () => void;
+  badge?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${
+        active
+          ? "bg-[var(--bg-elevated)] border border-current text-[var(--text-primary)]"
+          : "border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-[var(--border-subtle)]/80"
+      }`}
+      style={active && color ? { borderColor: color, color } : undefined}
+    >
+      {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />}
+      {label}
+      {badge && (
+        <span className="text-[8px] font-mono opacity-60">{badge}</span>
+      )}
+    </button>
+  );
+}
+
+// ── Pillar section ───────────────────────────────────────────────────────────
+
 function PillarSection({
   pillar,
   grades,
   dirty,
   setGrade,
   clearGrade,
+  defaultOpen,
 }: {
   pillar: (typeof PILLAR_MODELS)[number];
   grades: Record<string, GradeData>;
   dirty: Record<string, number>;
   setGrade: (attr: string, value: number | null) => void;
   clearGrade: (attr: string) => void;
+  defaultOpen: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
+
+  // Sync open state when tab changes
+  useEffect(() => {
+    setOpen(defaultOpen);
+  }, [defaultOpen]);
 
   // Count grades in this pillar
   const pillarAttrs = pillar.models.flatMap((m) => m.attrs);

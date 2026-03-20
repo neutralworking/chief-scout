@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import DofAssessmentSection from "./DofAssessmentSection";
 import AttributeGradeEditor from "./AttributeGradeEditor";
+import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Scout Further", "Watch", "Monitor", "Pass"];
@@ -587,6 +588,11 @@ export default function PlayerEditorPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Four-Pillar Assessment (live scorecard) */}
+      <div className="mb-4">
+        <FourPillarDashboard playerId={personId} />
       </div>
 
       {/* Attribute Grades */}

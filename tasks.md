@@ -3,9 +3,9 @@
 ## High Priority
 
 ### Data Density (Strategic Priority #1)
-- [ ] **Scale to 200+ full profiles** — target by end of March (currently ~50 Tier 1 on prod). Requires automated generation from external data + LLM profiling.
-- [ ] **Manual personality review** — `/admin/personality` for top 50 players (LLM pass done, needs human QA)
-- [ ] **Finish AF league expansion** — 25/43 leagues ingested, ~18 remaining. Resume scripts in WORKING.md.
+- [x] ~~Scale to 200+ full profiles~~ — 9,227 Tier 1 (archetype+level), 6,421 full promotion criteria. Automated pipeline did it.
+- [x] ~~Manual personality review~~ — automated via script 37 (multi-signal midpoint resolution, source-quality filtering). Top 50 covered.
+- [x] ~~Finish AF league expansion~~ — 38 leagues ingested (34 senior + 4 youth). Remaining youth leagues deemed low-value. 17k player-season rows.
 - [x] ~~Update script 22~~ — generalized to multi-source grader (FBRef + Kaggle PL + Kaggle Euro). Shared lib/grades.py. Script 66 refactored too. 3,967 grades written (2026-03-19)
 
 ### Data Freshness (Strategic Priority #2)

@@ -8,6 +8,7 @@
 
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,11 @@ export interface KCCardData {
   jp?: number | null;
   competitiveness?: number | null;
   coachability?: number | null;
+  // KC character data
+  tags?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+  quirk?: string | null;
 }
 
 // ── Rarity themes ────────────────────────────────────────────────────────────
@@ -172,7 +178,7 @@ export function KCCard({
         </div>
       </div>
 
-      {/* ── Card art area — archetype + radar ────────────────────── */}
+      {/* ── Card art area — avatar + radar ─────────────────────── */}
       <div
         className={`
           mx-3 mt-1 rounded-xl overflow-hidden
@@ -188,13 +194,24 @@ export function KCCard({
           </span>
         </div>
 
+        {/* Player avatar */}
+        <div className={`absolute ${isSm ? "left-2 top-2" : "left-3 top-3"}`}>
+          <PlayerAvatar
+            name={card.name}
+            position={card.position}
+            archetype={card.archetype}
+            size={isSm ? 50 : isLg ? 80 : 64}
+            accentColor={r.accent}
+          />
+        </div>
+
         {/* Radar fingerprint */}
         {radarConfig && card.fingerprint && card.fingerprint.some((v) => v > 0) && (() => {
           const labels = radarConfig.labels.length === card.fingerprint!.length
             ? radarConfig.labels
             : radarConfig.labels.slice(0, card.fingerprint!.length);
           return (
-            <div className={`${isSm ? "scale-75" : isLg ? "scale-110" : ""}`}>
+            <div className={`absolute ${isSm ? "right-1 scale-65" : isLg ? "right-2 scale-100" : "right-1 scale-75"}`}>
               <MiniRadar
                 values={card.fingerprint!}
                 labels={labels}
@@ -264,6 +281,31 @@ export function KCCard({
           >
             &ldquo;{card.scouting_notes}&rdquo;
           </p>
+        </div>
+      )}
+
+      {/* ── Tags ────────────────────────────────────────────────── */}
+      {card.tags && card.tags.length > 0 && (
+        <div className={`flex flex-wrap gap-1 mx-3 ${card.scouting_notes ? "mt-1.5" : "mt-2"}`}>
+          {card.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className={`
+                rounded-full border border-white/10 bg-white/5
+                ${isSm ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[9px]"}
+                text-zinc-400 font-medium
+              `}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* ── Quirk ──────────────────────────────────────────────── */}
+      {card.quirk && !isSm && (
+        <div className="mx-3 mt-1.5 text-[10px] text-zinc-500 italic">
+          {card.quirk}
         </div>
       )}
 

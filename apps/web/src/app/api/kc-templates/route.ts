@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { readFile } from "fs/promises";
+import { join } from "path";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -7,6 +9,51 @@ const supabase = createClient(
 );
 
 export const dynamic = "force-dynamic";
+
+// Fake characters from Airtable + LLM bios — loaded once
+interface FakeCharacter {
+  name: string;
+  nation: string | null;
+  position: string | null;
+  model: string | null;
+  bio: string;
+  tags: string[];
+  strengths: string[];
+  weaknesses: string[];
+  quirk: string;
+}
+
+let fakeCharacters: FakeCharacter[] | null = null;
+
+async function loadFakeCharacters(): Promise<FakeCharacter[] | null> {
+  if (fakeCharacters) return fakeCharacters;
+  try {
+    const paths = [
+      join(process.cwd(), "../../pipeline/.cache/kc_characters.json"),
+      join(process.cwd(), "public/data/kc_characters.json"),
+    ];
+    for (const p of paths) {
+      try {
+        const raw = await readFile(p, "utf-8");
+        fakeCharacters = JSON.parse(raw);
+        return fakeCharacters;
+      } catch { /* try next */ }
+    }
+  } catch { /* fall through */ }
+  return null;
+}
+
+// Seeded shuffle — deterministic per session but looks random
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const copy = [...arr];
+  let s = seed;
+  for (let i = copy.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff;
+    const j = s % (i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -32,6 +79,10 @@ export async function GET(req: Request) {
 
   const personIds = players.map((p: Record<string, unknown>) => p.person_id);
 
+  // Load fake characters for skinning
+  const characters = await loadFakeCharacters();
+  const shuffledChars = characters ? seededShuffle(characters, 42) : null;
+
   // Fetch top attributes per player
   const { data: attrs } = await supabase
     .from("attribute_grades")
@@ -46,8 +97,6 @@ export async function GET(req: Request) {
 
   // Normalize raw score (0-20 scale) to 0-99
   function normalize(score: number, source: string): number {
-    // scout_assessment and stat sources are all 0-20
-    // computed/four-pillar are 0-10
     if (source === "computed") return Math.round(score * 9.9);
     return Math.round((score / 20) * 99);
   }
@@ -60,7 +109,6 @@ export async function GET(req: Request) {
     const pid = a.player_id;
     if (!attrMap[pid]) attrMap[pid] = [];
 
-    // Deduplicate: keep highest-priority source per attribute
     const existing = attrMap[pid].find(x => x.attribute === a.attribute);
     const rank = SOURCE_RANK[a.source] ?? 0;
     if (existing) {
@@ -78,8 +126,8 @@ export async function GET(req: Request) {
     attrMap[pid] = attrMap[pid].slice(0, 6);
   }
 
-  // Build card data
-  const cards = players.map((p: Record<string, unknown>) => {
+  // Build card data — skin with fake names
+  const cards = players.map((p: Record<string, unknown>, i: number) => {
     const ovr = (p.overall as number) || 50;
     let suggested_rarity: string;
     if (ovr >= 83) suggested_rarity = "legendary";
@@ -88,9 +136,12 @@ export async function GET(req: Request) {
     else if (ovr >= 58) suggested_rarity = "uncommon";
     else suggested_rarity = "common";
 
+    // Skin with fake character data
+    const fake = shuffledChars?.[i % shuffledChars.length];
+
     return {
       person_id: p.person_id,
-      name: p.name,
+      name: fake?.name ?? p.name,
       position: p.position,
       archetype: p.archetype,
       blueprint: p.blueprint,
@@ -98,9 +149,13 @@ export async function GET(req: Request) {
       level: p.level,
       peak: (p as Record<string, unknown>).peak || null,
       overall: p.overall,
-      scouting_notes: p.scouting_notes,
-      nation: p.nation,
-      club: p.club,
+      scouting_notes: fake?.bio || null,
+      nation: fake?.nation ?? p.nation,
+      club: null, // hide real club
+      tags: fake?.tags || [],
+      strengths: fake?.strengths || [],
+      weaknesses: fake?.weaknesses || [],
+      quirk: fake?.quirk || null,
       active: p.active,
       suggested_rarity,
       top_attributes: attrMap[p.person_id as number] || [],

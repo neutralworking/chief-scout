@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
         const tier = tierFromPriceId(priceId);
 
         await supabase
-          .from("profiles")
+          .from("fc_users")
           .update({
             tier,
             stripe_customer_id: session.customer as string,
           })
-          .eq("id", userId);
+          .eq("auth_id", userId);
 
         break;
       }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         const customerId = subscription.customer as string;
 
         await supabase
-          .from("profiles")
+          .from("fc_users")
           .update({ tier: "free" })
           .eq("stripe_customer_id", customerId);
 
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         const tier = tierFromPriceId(priceId);
 
         await supabase
-          .from("profiles")
+          .from("fc_users")
           .update({ tier })
           .eq("stripe_customer_id", customerId);
 

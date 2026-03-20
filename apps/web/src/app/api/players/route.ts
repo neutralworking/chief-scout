@@ -1,6 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 import { isProduction, prodFilter } from "@/lib/env";
+import { getUserTier, TIER_LIMITS } from "@/lib/stripe";
 
 const SELECT = [
   "id","name","club","division","nation",
@@ -40,13 +41,32 @@ const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFir
 export async function GET(req: Request) {
   const supabase = supabaseServer!;
   const { searchParams } = new URL(req.url);
-  const limit    = parseInt(searchParams.get("limit")  ?? "60");
-  const offset   = parseInt(searchParams.get("offset") ?? "0");
+  let limit      = parseInt(searchParams.get("limit")  ?? "60");
+  let offset     = parseInt(searchParams.get("offset") ?? "0");
   const search   = searchParams.get("search")?.trim()   ?? "";
   const position = searchParams.get("position")          ?? "";
   const pursuit  = searchParams.get("pursuit")           ?? "";
   const division = searchParams.get("division")          ?? "";
   const sortKey  = searchParams.get("sort")              ?? "level_desc";
+
+  // Enforce free-tier player limit in production
+  if (isProduction()) {
+    const authHeader = req.headers.get("authorization");
+    let tier: "free" | "scout" | "pro" = "free";
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) tier = await getUserTier(supabase, user.id);
+    }
+    const playerLimit = TIER_LIMITS[tier].playerLimit;
+    if (playerLimit) {
+      if (offset >= playerLimit) {
+        return NextResponse.json([]);
+      }
+      const maxRemaining = playerLimit - offset;
+      if (limit > maxRemaining) limit = maxRemaining;
+    }
+  }
 
   let query = supabase
     .from("players")

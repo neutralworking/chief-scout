@@ -31,9 +31,9 @@ export async function getUserTier(
   userId: string
 ): Promise<Tier> {
   const { data, error } = await supabase
-    .from("profiles")
+    .from("fc_users")
     .select("tier")
-    .eq("id", userId)
+    .eq("auth_id", userId)
     .single();
 
   if (error || !data) return "free";

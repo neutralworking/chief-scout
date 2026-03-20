@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import Link from "next/link";
 
 type Tier = "free" | "scout" | "pro";
 
@@ -49,6 +51,7 @@ const TIERS = [
 
 function PricingContent() {
   const searchParams = useSearchParams();
+  const { session, user } = useAuth();
   const [userTier, setUserTier] = useState<Tier>("free");
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
@@ -57,25 +60,39 @@ function PricingContent() {
   const canceled = searchParams.get("canceled") === "true";
 
   useEffect(() => {
-    fetch("/api/user/tier")
+    if (!session?.access_token) return;
+    fetch("/api/user/tier", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
       .then((r) => r.json())
       .then((d) => setUserTier(d.tier || "free"))
       .catch(() => {});
-  }, []);
+  }, [session?.access_token]);
 
   async function handleCheckout(tierId: Tier) {
+    if (!session?.access_token) {
+      window.location.href = "/login";
+      return;
+    }
+
     setLoading(tierId);
 
     try {
+      const priceId = annual
+        ? (tierId === "scout"
+          ? process.env.NEXT_PUBLIC_STRIPE_SCOUT_ANNUAL_PRICE_ID
+          : process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID)
+        : (tierId === "scout"
+          ? process.env.NEXT_PUBLIC_STRIPE_SCOUT_PRICE_ID
+          : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID);
+
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          priceId: tierId === "scout"
-            ? process.env.NEXT_PUBLIC_STRIPE_SCOUT_PRICE_ID
-            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-          tier: tierId,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ priceId }),
       });
 
       const data = await res.json();
@@ -83,7 +100,7 @@ function PricingContent() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error("No checkout URL returned");
+        console.error("No checkout URL returned:", data.error);
         setLoading(null);
       }
     } catch (err) {
@@ -257,6 +274,28 @@ function PricingContent() {
             </div>
           );
         })}
+      </div>
+
+      {/* Sign in prompt or manage subscription */}
+      <div className="text-center mt-8">
+        {!user ? (
+          <p className="text-sm text-[var(--text-muted)]">
+            <Link href="/login" className="text-[var(--color-accent-personality)] hover:underline">
+              Sign in
+            </Link>{" "}
+            to subscribe
+          </p>
+        ) : userTier !== "free" ? (
+          <p className="text-sm text-[var(--text-muted)]">
+            Need to change or cancel?{" "}
+            <a
+              href="/api/stripe/portal"
+              className="text-[var(--color-accent-personality)] hover:underline"
+            >
+              Manage subscription
+            </a>
+          </p>
+        ) : null}
       </div>
     </div>
   );

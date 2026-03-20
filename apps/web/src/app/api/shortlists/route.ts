@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getUserTier, hasTierAccess } from "@/lib/stripe";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ shortlists: merged });
 }
 
-// POST /api/shortlists — create a user shortlist
+// POST /api/shortlists — create a user shortlist (requires scout tier)
 export async function POST(request: Request) {
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -83,6 +84,21 @@ export async function POST(request: Request) {
 
   if (!user_id) {
     return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+  }
+
+  // Check tier — shortlists require scout+
+  const sbCheck = createClient(supabaseUrl, supabaseKey);
+  const { data: fcUser } = await sbCheck
+    .from("fc_users")
+    .select("tier")
+    .or(`auth_id.eq.${user_id},id.eq.${user_id}`)
+    .single();
+  const tier = (fcUser?.tier as "free" | "scout" | "pro") || "free";
+  if (!hasTierAccess(tier, "scout")) {
+    return NextResponse.json(
+      { error: "Shortlists require a Scout subscription" },
+      { status: 403 }
+    );
   }
   if (!title || typeof title !== "string" || title.trim().length === 0) {
     return NextResponse.json({ error: "Title is required" }, { status: 400 });

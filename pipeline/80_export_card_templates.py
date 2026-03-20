@@ -241,6 +241,47 @@ THEME_GATE_BONUS = {
     "Professor": 0,
 }
 
+def compute_durability(rarity, personality_theme, rng):
+    """Assign durability tier based on rarity and personality.
+
+    From mechanics doc — rarity × durability distribution:
+      Common:    mostly Standard, some Iron, rare Phoenix, never Titanium
+      Rare:      even spread, very rare Titanium
+      Epic:      even spread, rare Titanium, uncommon Glass/Phoenix
+      Legendary: rare everything — high-risk high-reward
+
+    Personality influence:
+      Catalyst → more Glass/Phoenix (volatile)
+      Captain  → more Iron/Titanium (reliable)
+      Maestro  → more Glass/Fragile (temperamental genius)
+      Professor → more Standard/Iron (consistent)
+      General  → baseline distribution
+    """
+    # Base weights per rarity: [glass, fragile, standard, iron, titanium, phoenix]
+    RARITY_WEIGHTS = {
+        "Common":    [3,  8, 55, 15, 0,  4],
+        "Rare":      [8, 15, 35, 20, 2, 10],
+        "Epic":      [10, 12, 30, 18, 5, 10],
+        "Legendary": [12, 10, 20, 15, 8, 12],
+    }
+    # Personality modifiers (additive to weights)
+    THEME_MODS = {
+        "Catalyst":  [8,  0,  -5, -3, 0,  8],   # volatile: more glass + phoenix
+        "Captain":   [-5, -3,  0,  8, 5, -3],   # reliable: more iron + titanium
+        "Maestro":   [8,  5,  -5, -5, 0,  3],   # genius: more glass/fragile
+        "Professor": [-3, -3,  5,  5, 2, -2],   # consistent: more standard/iron
+        "General":   [0,  0,  0,  0, 0,  0],    # baseline
+    }
+    TIERS = ["glass", "fragile", "standard", "iron", "titanium", "phoenix"]
+
+    weights = list(RARITY_WEIGHTS.get(rarity, RARITY_WEIGHTS["Common"]))
+    mods = THEME_MODS.get(personality_theme, THEME_MODS["General"])
+    weights = [max(0, w + m) for w, m in zip(weights, mods)]
+
+    # Weighted random selection
+    return rng.choices(TIERS, weights=weights, k=1)[0]
+
+
 def compute_gate_pull(archetype, personality_theme):
     """Compute gate pull from archetype + personality theme."""
     base = ARCHETYPE_GATE_PULL.get(archetype, 0)
@@ -377,6 +418,10 @@ def generate_card(player):
     # Gate pull
     gate_pull = compute_gate_pull(archetype, theme)
 
+    # Durability (deterministic per player)
+    dur_rng = random.Random(pid * 53 + 17)
+    durability = compute_durability(rarity, theme, dur_rng)
+
     # Art seed (deterministic)
     art_seed = f"kc_{pid}_{archetype}_{theme}"
 
@@ -395,6 +440,7 @@ def generate_card(player):
         "ability_name": ability_name,
         "ability_text": ability_text,
         "gate_pull": gate_pull,
+        "durability": durability,
         "source_person_id": pid,
     }
 
@@ -494,7 +540,7 @@ def main():
         print(f"    {card['name']:25s} {card['position']:3s}  "
               f"pwr={card['power']:2d}  {card['rarity']:10s}  "
               f"{card['archetype']:12s}  {card['personality_theme']:10s}  "
-              f"gate={card['gate_pull']}")
+              f"gate={card['gate_pull']}  {card['durability']}")
         print(f"      Role: {card['tactical_role'] or 'None':20s}  "
               f"Ability: {card['ability_name']}")
         print(f"      Bio: {card['bio'][:80]}...")
@@ -548,6 +594,16 @@ def main():
         count = theme_counts.get(theme, 0)
         pct = (count / len(cards) * 100) if cards else 0
         print(f"    {theme:12s} {count:5d}  ({pct:.1f}%)")
+
+    # By durability
+    dur_counts = {}
+    for card in cards:
+        dur_counts[card["durability"]] = dur_counts.get(card["durability"], 0) + 1
+    print(f"\n  By durability:")
+    for dur in ["glass", "fragile", "standard", "iron", "titanium", "phoenix"]:
+        count = dur_counts.get(dur, 0)
+        pct = (count / len(cards) * 100) if cards else 0
+        print(f"    {dur:10s} {count:5d}  ({pct:.1f}%)")
 
     if DRY_RUN:
         print("\n  (dry-run — no data was written)")

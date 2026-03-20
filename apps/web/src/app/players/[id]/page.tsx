@@ -12,6 +12,7 @@ import { NewsHeadlines } from "@/components/NewsHeadlines";
 import { PlayerStats } from "@/components/PlayerStats";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
+import { AddToShortlist } from "@/components/AddToShortlist";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
 import { BackLink } from "@/components/BackLink";
 import { ScoutingNotes } from "@/components/ScoutingNotes";
@@ -260,7 +261,9 @@ export default async function PlayerDetailPage({
         {/* Nav */}
         <div className="flex items-center justify-between">
           <BackLink fallback="/players" label="Players" />
-          <PlayerQuickEdit player={{
+          <div className="flex items-center gap-2">
+            <AddToShortlist personId={player.person_id} />
+            <PlayerQuickEdit player={{
             person_id: player.person_id,
             best_role: player.best_role,
             best_role_score: player.best_role_score,
@@ -271,6 +274,7 @@ export default async function PlayerDetailPage({
             squad_role: player.squad_role,
             scouting_notes: player.scouting_notes,
           }} />
+          </div>
         </div>
 
         {/* Identity bar — everything in one panel */}

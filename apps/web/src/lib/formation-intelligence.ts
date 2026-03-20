@@ -49,6 +49,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Reactions", "Handling", "Agility", "Positioning"],
     reference: "The Courtois role — traditional keeper, shot-stopping specialist",
   },
+  "Torwart": {
+    archetypes: ["GK", "Cover", "Commander"],
+    personalities: ["INSC", "ANSC", "ANLC"],
+    minLevel: 12,
+    positions: ["GK"],
+    keyAttributes: ["Reactions", "Handling", "Communication", "Positioning"],
+    reference: "The Kahn role — commanding box presence, organises the defence, dominates crosses",
+  },
+  "Ball-Playing GK": {
+    archetypes: ["GK", "Passer", "Controller"],
+    personalities: ["ANSP", "ANLP", "INSP"],
+    minLevel: 12,
+    positions: ["GK"],
+    keyAttributes: ["Pass Range", "Composure", "Footwork", "Anticipation"],
+    reference: "The Ederson role — distribution specialist who starts attacks from the back",
+  },
 
   // ── CD ──────────────────────────────────────────────────────────────────
   "Ball-Playing CB": {
@@ -83,6 +99,30 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Carries", "Composure", "Pass Range", "Pace"],
     reference: "The Van Dijk / Dias role — steps out, carries into midfield, progressive passing from deep",
   },
+  "Libero": {
+    archetypes: ["Cover", "Passer", "Controller"],
+    personalities: ["ANLC", "ANLP", "INLC"],
+    minLevel: 13,
+    positions: ["CD"],
+    keyAttributes: ["Pass Range", "Composure", "Positioning", "Awareness"],
+    reference: "The Beckenbauer role — ball-playing CB who steps into midfield to build attacks",
+  },
+  "Vorstopper": {
+    archetypes: ["Destroyer", "Powerhouse", "Cover"],
+    personalities: ["ANSC", "INSC", "AXSC"],
+    minLevel: 11,
+    positions: ["CD"],
+    keyAttributes: ["Tackling", "Aggression", "Heading", "Marking"],
+    reference: "The Chiellini role — aggressive front stopper who presses high and dominates duels",
+  },
+  "Zagueiro": {
+    archetypes: ["Destroyer", "Commander", "Cover"],
+    personalities: ["ANLC", "INLC", "ANSC"],
+    minLevel: 12,
+    positions: ["CD"],
+    keyAttributes: ["Leadership", "Tackling", "Heading", "Communication"],
+    reference: "The Thiago Silva role — commanding CB who leads by example and organises the backline",
+  },
 
   // ── WD ──────────────────────────────────────────────────────────────────
   "Inverted Full-Back": {
@@ -109,6 +149,30 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Stamina", "Pace", "Crossing", "Tackling"],
     reference: "The Moses/Maggio role — wide midfielder covering full flank in 3-5-2 systems",
   },
+  "Lateral": {
+    archetypes: ["Engine", "Dribbler", "Passer"],
+    personalities: ["AXSC", "ANSC", "IXSC"],
+    minLevel: 11,
+    positions: ["WD"],
+    keyAttributes: ["Pace", "Crossing", "Stamina", "Take-ons"],
+    reference: "The Cafu / TAA role — attacking full-back who delivers from the final third",
+  },
+  "Invertido": {
+    archetypes: ["Controller", "Passer", "Cover"],
+    personalities: ["ANSP", "ANLP", "INSP"],
+    minLevel: 12,
+    positions: ["WD"],
+    keyAttributes: ["Pass Accuracy", "Composure", "Decisions", "Positioning"],
+    reference: "The Lahm / Cancelo role — inverted full-back who tucks inside to control midfield",
+  },
+  "Carrilero": {
+    archetypes: ["Engine", "Sprinter", "Cover"],
+    personalities: ["ANSC", "INSC", "AXSC"],
+    minLevel: 11,
+    positions: ["WD"],
+    keyAttributes: ["Stamina", "Pace", "Tackling", "Acceleration"],
+    reference: "The Zanetti / Hakimi role — tireless lane runner covering the entire flank",
+  },
   // ── DM ──────────────────────────────────────────────────────────────────
   "Regista": {
     archetypes: ["Controller", "Passer", "Creator"],
@@ -133,6 +197,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     positions: ["DM", "CM"],
     keyAttributes: ["Tackling", "Stamina", "Pressing", "Aggression"],
     reference: "The Kante role — aggressive pressing, disrupts play, covers every blade of grass",
+  },
+  "Sentinelle": {
+    archetypes: ["Cover", "Destroyer", "Controller"],
+    personalities: ["ANSC", "ANLC", "INSC"],
+    minLevel: 12,
+    positions: ["DM"],
+    keyAttributes: ["Positioning", "Discipline", "Interceptions", "Awareness"],
+    reference: "The Makélélé role — shields the defence, breaks up play, guards the gate",
+  },
+  "Volante": {
+    archetypes: ["Destroyer", "Engine", "Powerhouse"],
+    personalities: ["AXSC", "ANSC", "INSC"],
+    minLevel: 11,
+    positions: ["DM"],
+    keyAttributes: ["Tackling", "Stamina", "Aggression", "Carries"],
+    reference: "The Gattuso / Kanté role — high-energy ball-winner who drives forward after recovering",
   },
 
   // ── CM ──────────────────────────────────────────────────────────────────
@@ -159,6 +239,30 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     positions: ["CM", "DM"],
     keyAttributes: ["Tempo", "Pass Range", "Vision", "Composure"],
     reference: "The Xavi role — receives deep, orchestrates possession with metronomic passing",
+  },
+  "Metodista": {
+    archetypes: ["Controller", "Passer", "Creator"],
+    personalities: ["ANLP", "INSP", "ANSP"],
+    minLevel: 13,
+    positions: ["CM"],
+    keyAttributes: ["Tempo", "Pass Accuracy", "Vision", "Composure"],
+    reference: "The Xavi / Kroos role — methodical conductor who controls the rhythm with intelligent passing",
+  },
+  "Tuttocampista": {
+    archetypes: ["Engine", "Cover", "Destroyer"],
+    personalities: ["ANSC", "INSC", "ANLC"],
+    minLevel: 12,
+    positions: ["CM"],
+    keyAttributes: ["Stamina", "Tackling", "Short Range", "Pass Accuracy"],
+    reference: "The Lampard / Gerrard role — all-pitch midfielder who tackles, passes, scores, and leads",
+  },
+  "Relayeur": {
+    archetypes: ["Engine", "Destroyer", "Passer"],
+    personalities: ["ANSC", "INSC", "AXSC"],
+    minLevel: 12,
+    positions: ["CM"],
+    keyAttributes: ["Stamina", "Tackling", "Carries", "Pace"],
+    reference: "The Valverde role — tireless shuttle who links defence to attack at pace",
   },
 
   // ── WM ──────────────────────────────────────────────────────────────────
@@ -194,6 +298,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Pace", "Crossing", "Take-ons", "Acceleration"],
     reference: "The classic wide man — width, delivery, and direct running",
   },
+  "Fantasista": {
+    archetypes: ["Creator", "Passer", "Dribbler"],
+    personalities: ["INSP", "IXSP", "IXLP"],
+    minLevel: 13,
+    positions: ["WM"],
+    keyAttributes: ["Creativity", "Vision", "Take-ons", "Guile"],
+    reference: "The Bernardo Silva role — wide creative artist who drifts inside to unlock defences",
+  },
+  "Winger": {
+    archetypes: ["Sprinter", "Passer", "Dribbler"],
+    personalities: ["IXSC", "AXSC", "IXSP"],
+    minLevel: 11,
+    positions: ["WM"],
+    keyAttributes: ["Pace", "Crossing", "Take-ons", "Acceleration"],
+    reference: "The Garrincha / Figo role — beats defenders with pace and trickery on the touchline",
+  },
 
   // ── AM ──────────────────────────────────────────────────────────────────
   "Trequartista": {
@@ -219,6 +339,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     positions: ["AM", "CF"],
     keyAttributes: ["Movement", "Pace", "Short Range", "Acceleration"],
     reference: "The Bergkamp role — drops into pockets, links play, arrives late in the box",
+  },
+  "Enganche": {
+    archetypes: ["Controller", "Creator", "Passer"],
+    personalities: ["INSP", "IXSP", "ANLP"],
+    minLevel: 14,
+    positions: ["AM"],
+    keyAttributes: ["Vision", "Creativity", "Composure", "Guile"],
+    reference: "The Riquelme role — the hook, sees everything, threads passes others cannot imagine",
+  },
+  "Seconda Punta": {
+    archetypes: ["Dribbler", "Striker", "Sprinter"],
+    personalities: ["IXSP", "INSC", "IXSC"],
+    minLevel: 12,
+    positions: ["AM", "CF"],
+    keyAttributes: ["Movement", "Take-ons", "Short Range", "Creativity"],
+    reference: "The Del Piero / Griezmann role — drops deep to link play, then arrives in the box to finish",
   },
 
   // ── WF ──────────────────────────────────────────────────────────────────
@@ -246,6 +382,14 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Pace", "Acceleration", "Movement", "Short Range"],
     reference: "The Mbappe role — stretches the defense, devastating pace in behind",
   },
+  "Extremo": {
+    archetypes: ["Sprinter", "Striker", "Dribbler"],
+    personalities: ["AXSC", "IXSC", "INSC"],
+    minLevel: 12,
+    positions: ["WF"],
+    keyAttributes: ["Pace", "Acceleration", "Short Range", "Movement"],
+    reference: "The Henry / Mbappé role — devastating wide forward who scores from wide areas with electric pace",
+  },
 
   // ── CF ──────────────────────────────────────────────────────────────────
   "Target Man": {
@@ -271,6 +415,22 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     positions: ["CF", "AM"],
     keyAttributes: ["Vision", "Creativity", "First Touch", "Guile"],
     reference: "The Messi role — drops deep, links play, creates space for runners",
+  },
+  "Prima Punta": {
+    archetypes: ["Target", "Powerhouse", "Striker"],
+    personalities: ["INLC", "AXLC", "ANLC"],
+    minLevel: 12,
+    positions: ["CF"],
+    keyAttributes: ["Heading", "Hold-up", "Strength", "Aerial Duels"],
+    reference: "The Toni / Giroud role — target striker who wins aerial duels and brings others into play",
+  },
+  "Falso Nove": {
+    archetypes: ["Creator", "Controller", "Dribbler"],
+    personalities: ["IXSP", "INSP", "IXLP"],
+    minLevel: 14,
+    positions: ["CF", "AM"],
+    keyAttributes: ["Vision", "Creativity", "First Touch", "Guile"],
+    reference: "The Messi 2009 / Firmino role — false nine who drops deep and pulls CBs out of position",
   },
   "Complete Forward": {
     archetypes: ["Engine", "Striker", "Target"],

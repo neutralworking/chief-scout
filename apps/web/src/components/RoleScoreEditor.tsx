@@ -3,18 +3,28 @@
 import { useState, useEffect, useRef } from "react";
 import { RoleTooltip } from "@/components/RoleTooltip";
 
+// Pipeline-computed roles (from 27_player_ratings.py TACTICAL_ROLES)
+// These are the roles the pipeline will assign — keep in sync!
 const TACTICAL_ROLES = [
   "",
-  "Sweeper Keeper", "Shot Stopper",
-  "Ball-Playing CB", "Stopper", "Sweeper", "Ball-Carrying CB",
-  "Inverted Full-Back", "Overlapping Full-Back", "Wing-Back",
-  "Regista", "Anchor", "Ball-Winner",
-  "Mezzala", "Box-to-Box", "Deep Playmaker",
-  "Wide Playmaker", "Wide Provider", "Direct Winger", "Traditional Winger",
-  "Trequartista", "Advanced Playmaker", "Second Striker",
-  "Inside Forward", "Inverted Winger", "Wide Forward",
-  "Target Man", "Poacher", "False 9", "Complete Forward", "Pressing Forward", "Raumdeuter",
-  "Carrier",
+  // GK
+  "Torwart", "Sweeper Keeper", "Ball-Playing GK",
+  // CD
+  "Libero", "Vorstopper", "Sweeper", "Zagueiro",
+  // WD
+  "Lateral", "Invertido", "Carrilero",
+  // DM
+  "Sentinelle", "Regista", "Volante",
+  // CM
+  "Metodista", "Tuttocampista", "Mezzala", "Relayeur",
+  // WM
+  "Fantasista", "Winger", "Raumdeuter",
+  // AM
+  "Trequartista", "Enganche", "Seconda Punta",
+  // WF
+  "Inside Forward", "Extremo", "Inverted Winger",
+  // CF
+  "Prima Punta", "Poacher", "Complete Forward", "Falso Nove",
 ];
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS kc_cards (
     ability_name        TEXT,                       -- role-specific ability name
     ability_text        TEXT,                       -- ability description
     gate_pull           INT DEFAULT 0,             -- fans attracted per match
+    durability          TEXT NOT NULL DEFAULT 'standard' CHECK (durability IN ('glass', 'fragile', 'standard', 'iron', 'titanium', 'phoenix')),
     source_person_id    INT REFERENCES people(id) ON DELETE SET NULL,
     created_at          TIMESTAMPTZ DEFAULT now(),
     updated_at          TIMESTAMPTZ DEFAULT now()

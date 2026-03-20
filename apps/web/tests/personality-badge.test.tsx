@@ -56,9 +56,9 @@ describe("PersonalityBadge", () => {
       expect(screen.getByText("Maestro")).toBeInTheDocument();
     });
 
-    it("renders personality name for Showman", () => {
+    it("renders personality name for Catalyst", () => {
       render(<PersonalityBadge personalityType="AXLC" size="compact" />);
-      expect(screen.getByText("Showman")).toBeInTheDocument();
+      expect(screen.getByText("Catalyst")).toBeInTheDocument();
     });
 
     it("renders personality name for Professor", () => {

@@ -22,30 +22,30 @@ import {
 
 describe("computeTechnical", () => {
   // Happy path
-  it("returns weighted average of model scores for CF", () => {
+  it("returns weighted average of model scores for CF, blended with level", () => {
     // CF weights: Striker 1.0, Target 0.7, Sprinter 0.6, Powerhouse 0.5, Dribbler 0.4, Creator 0.3
     const models = { Striker: 90, Target: 70, Sprinter: 80, Powerhouse: 60, Dribbler: 50, Creator: 40 };
     const result = computeTechnical(models, "CF", 85, 0.8, ["fbref"]);
-    // Weighted: (90*1 + 70*0.7 + 80*0.6 + 60*0.5 + 50*0.4 + 40*0.3) / (1+0.7+0.6+0.5+0.4+0.3)
-    // = (90 + 49 + 48 + 30 + 20 + 12) / 3.5 = 249/3.5 = 71.14
-    expect(result.score).toBe(71);
+    // Weighted: (90*1 + 70*0.7 + 80*0.6 + 60*0.5 + 50*0.4 + 40*0.3) / 3.5 = 71.14
+    // Blended: 71.14 * 0.8 + 85 * 0.2 = 73.9 → 74
+    expect(result.score).toBe(74);
     expect(result.sources).toEqual(["fbref"]);
   });
 
-  it("returns weighted average for GK position", () => {
+  it("returns weighted average for GK position, blended with level", () => {
     const models = { GK: 85, Cover: 60, Commander: 50, Controller: 40 };
     const result = computeTechnical(models, "GK", 80, 0.8, ["fbref"]);
-    // (85*1 + 60*0.6 + 50*0.5 + 40*0.3) / (1+0.6+0.5+0.3) = (85+36+25+12)/2.4 = 158/2.4 = 65.8
-    expect(result.score).toBe(66);
+    // (85+36+25+12)/2.4 = 65.8, blended: 65.8*0.8 + 80*0.2 = 68.6 → 69
+    expect(result.score).toBe(69);
   });
 
-  it("only uses models relevant to the position", () => {
+  it("only uses models relevant to the position, blended with level", () => {
     // Give high Striker score but test CD position — Striker not in CD weights
     const models = { Striker: 100, Destroyer: 40, Cover: 30 };
     const result = computeTechnical(models, "CD", 80, 0.5, []);
     // CD: Destroyer 1.0, Cover 0.9 — only these two contribute
-    // (40*1 + 30*0.9) / (1+0.9) = 67/1.9 = 35.3
-    expect(result.score).toBe(35);
+    // (40*1 + 30*0.9) / 1.9 = 35.3, blended: 35.3*0.5 + 80*0.5 = 57.6 → 58
+    expect(result.score).toBe(58);
   });
 
   // Edge cases
@@ -260,9 +260,12 @@ describe("computePhysical", () => {
     expect(result.durability).toBe(95);
   });
 
-  it("injury prone fitness tag gives low durability", () => {
+  it("injury prone fitness tag gives low durability, mitigated by availability", () => {
     const result = computePhysical({ ...baseInput, fitnessTag: "injury prone", durabilitySeverity: null });
-    expect(result.durability).toBe(15);
+    // tagScore=25, no trait. Mitigation: avail=70>50, durability=25<70
+    // mitigation = min(0.5, (70-50)/60) = 0.333
+    // durability = 25 + (70-25)*0.333 = 40
+    expect(result.durability).toBe(40);
   });
 
   // Height edge cases

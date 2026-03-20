@@ -21,6 +21,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { isProduction } from "@/lib/env";
 import { runRatings } from "@/lib/valuation/ratings";
 import { runSquadRoles } from "@/lib/valuation/squad-roles";
+import { runLevels } from "@/lib/valuation/levels";
 import {
   buildPlayerProfile,
   runValuation,
@@ -60,10 +61,39 @@ export async function GET(req: NextRequest) {
   const force = searchParams.get("force") === "true";
   const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
 
-  const allSteps = ["ratings", "roles", "valuations"];
+  const allSteps = ["levels", "ratings", "roles", "valuations"];
   const steps = stepsParam ? stepsParam.split(",").filter((s) => allSteps.includes(s)) : allSteps;
 
   const results: StepResult[] = [];
+
+  // ── Step 0: Levels ──────────────────────────────────────────────────────────
+
+  if (steps.includes("levels")) {
+    const start = Date.now();
+    try {
+      const r = await runLevels(supabaseServer, { limit, force });
+      results.push({
+        step: "levels",
+        status: r.errors.length > 0 ? "error" : "success",
+        ms: Date.now() - start,
+        detail: {
+          evaluated: r.evaluated,
+          inferred: r.inferred,
+          ageDecayed: r.ageDecayed,
+          written: r.written,
+          skipped: r.skipped,
+          errors: r.errors.slice(0, 3),
+        },
+      });
+    } catch (e) {
+      results.push({
+        step: "levels",
+        status: "error",
+        ms: Date.now() - start,
+        detail: { error: e instanceof Error ? e.message : String(e) },
+      });
+    }
+  }
 
   // ── Step 1: Ratings ───────────────────────────────────────────────────────
 

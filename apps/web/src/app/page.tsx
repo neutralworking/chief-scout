@@ -143,54 +143,45 @@ async function getDashboardData() {
   let featuredReason: FeaturedReason = "discovery";
   let featuredPool: FeaturedProfile[] = [];
 
+  // Build a large pool: DOF picks up front (weighted), then broad Tier 1 discovery
   const dofCandidates = (dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>;
-  const priorityPicks = dofCandidates.filter((p) => p.pursuit_status === "Priority");
-  const interestedPicks = dofCandidates.filter((p) => p.pursuit_status === "Interested");
-  const scoutPicks = dofCandidates.filter((p) => p.pursuit_status === "Scout Further");
-  const watchPicks = dofCandidates.filter((p) => p.pursuit_status === "Watch");
-  // Use widest pool available — prefer Priority but fall through to broader pools
-  const dofPool = priorityPicks.length >= 3 ? priorityPicks
-    : [...priorityPicks, ...interestedPicks].length >= 3 ? [...priorityPicks, ...interestedPicks]
-    : dofCandidates;
-  if (dofPool.length > 0) {
-    featured = dofPool[dailySeed() % dofPool.length];
-    featuredReason = "dof_pick";
-    featuredPool = dofPool;
+  const dofIds = new Set(dofCandidates.map((p) => p.person_id));
+
+  // Always fetch broad discovery pool
+  const { data: discoveryData } = await supabaseServer
+    .from("player_intelligence_card")
+    .select(FEATURED_COLS)
+    .eq("profile_tier", 1)
+    .not("archetype", "is", null)
+    .not("scouting_notes", "is", null)
+    .order("level", { ascending: false })
+    .limit(500);
+  const discoveryPlayers = ((discoveryData ?? []) as FeaturedProfile[]).filter((p) => !dofIds.has(p.person_id));
+
+  // DOF picks appear 3x in the pool for weighting, then discovery fills the rest
+  const weightedPool: FeaturedProfile[] = [
+    ...dofCandidates, ...dofCandidates, ...dofCandidates,  // 3x weight
+    ...discoveryPlayers,
+  ];
+
+  if (weightedPool.length > 0) {
+    const picked = weightedPool[dailySeed() % weightedPool.length];
+    featured = picked;
+    featuredReason = dofIds.has(picked.person_id) ? "dof_pick" : "discovery";
   }
 
-  if (!featured) {
-    const sentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; sentiment: string | null; people: { name: string } }>;
-    const playerSentiments = new Map<number, { positive: number; negative: number; total: number }>();
-    for (const row of sentimentRows) {
-      const existing = playerSentiments.get(row.player_id) ?? { positive: 0, negative: 0, total: 0 };
-      existing.total++;
-      if (row.sentiment === "positive") existing.positive++;
-      if (row.sentiment === "negative") existing.negative++;
-      playerSentiments.set(row.player_id, existing);
-    }
-    let bestPid: number | null = null;
-    let maxSwing = 0;
-    for (const [pid, s] of playerSentiments) {
-      const swing = Math.min(s.positive, s.negative) * 2 + s.total;
-      if (swing > maxSwing && s.total >= 2) { maxSwing = swing; bestPid = pid; }
-    }
-    if (!bestPid) {
-      let maxTotal = 0;
-      for (const [pid, s] of playerSentiments) {
-        if (s.total > maxTotal) { maxTotal = s.total; bestPid = pid; }
-      }
-    }
-    if (bestPid) {
-      const { data: fp } = await supabaseServer
-        .from("player_intelligence_card")
-        .select(FEATURED_COLS)
-        .eq("person_id", bestPid)
-        .single();
-      if (fp && (fp as FeaturedProfile).scouting_notes) { featured = fp as FeaturedProfile; featuredReason = "news_trending"; }
+  // Deduplicated pool for cycling (no repeats)
+  const seenIds = new Set<number>();
+  const uniquePool: FeaturedProfile[] = [];
+  for (const p of [...dofCandidates, ...discoveryPlayers]) {
+    if (!seenIds.has(p.person_id)) {
+      seenIds.add(p.person_id);
+      uniquePool.push(p);
     }
   }
+  featuredPool = uniquePool;
 
-  // Fetch API-Football stats for featured player (will be enriched after selection)
+  // Fetch API-Football stats for featured player
   async function enrichFeatured(fp: FeaturedProfile): Promise<FeaturedProfile & { af_appearances?: number; af_goals?: number; af_assists?: number; af_rating?: number | null }> {
     const { data: afRows } = await supabaseServer!
       .from("api_football_player_stats")
@@ -208,22 +199,6 @@ async function getDashboardData() {
       if (rtg != null && (bestRating == null || rtg > bestRating)) bestRating = rtg;
     }
     return { ...fp, af_appearances: apps, af_goals: goals, af_assists: assists, af_rating: bestRating };
-  }
-
-  if (!featured) {
-    const { data: fallbacks } = await supabaseServer
-      .from("player_intelligence_card")
-      .select(FEATURED_COLS)
-      .eq("profile_tier", 1)
-      .not("archetype", "is", null)
-      .not("scouting_notes", "is", null)
-      .limit(200);
-    const candidates = (fallbacks ?? []) as FeaturedProfile[];
-    if (candidates.length > 0) {
-      featured = candidates[dailySeed() % candidates.length];
-      featuredReason = "discovery";
-      featuredPool = candidates;
-    }
   }
 
   // Enrich featured player with API-Football stats

@@ -53,6 +53,14 @@ export function AdminActions() {
   const [profilesChecking, setProfilesChecking] = useState(false);
   const [profilesCount, setProfilesCount] = useState<number | null>(null);
 
+  // Club analysis state
+  const [clubAnalysisRunning, setClubAnalysisRunning] = useState(false);
+  const [clubAnalysisResult, setClubAnalysisResult] = useState<{
+    type: "success" | "error";
+    text: string;
+    data?: { summary: Record<string, number>; clubs: Record<string, unknown>[] };
+  } | null>(null);
+
   // SQL Runner state
   const [sql, setSql] = useState("");
   const [sqlRunning, setSqlRunning] = useState(false);
@@ -435,6 +443,7 @@ export function AdminActions() {
             <p className="text-[9px] text-[var(--text-muted)] mb-2 uppercase tracking-wider font-semibold">Compute</p>
             <div className="flex items-center gap-2 flex-wrap">
               {([
+                { key: "levels", label: "Levels", color: "bg-orange-600 hover:bg-orange-500" },
                 { key: "ratings", label: "Ratings", color: "bg-blue-600 hover:bg-blue-500" },
                 { key: "roles", label: "Squad Roles", color: "bg-teal-600 hover:bg-teal-500" },
                 { key: "valuations", label: "Valuations", color: "bg-violet-600 hover:bg-violet-500" },
@@ -507,6 +516,101 @@ export function AdminActions() {
           )}
           {pipelineResult && (
             <p className={`mt-2 text-xs ${pipelineResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-teal-400"}`}>{pipelineResult.text}</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Club Analysis (admin only) ────────────────────────────────────── */}
+      {adminLoggedIn && (
+        <div className="glass rounded-xl p-4 ring-1 ring-[var(--color-accent-mental)]/20">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-mental)] mb-3">
+            Club Analysis
+          </h2>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={async () => {
+                setClubAnalysisRunning(true);
+                setClubAnalysisResult(null);
+                try {
+                  const res = await fetch("/api/admin/club-analysis", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({}),
+                  });
+                  const data = await res.json();
+                  if (data.ok) {
+                    const s = data.summary;
+                    setClubAnalysisResult({
+                      type: "success",
+                      text: `${s.total_clubs} clubs, ${s.total_players} players — ${s.clubs_with_major_gaps} with major gaps, ${s.clubs_missing_levels} missing levels`,
+                      data: { summary: s, clubs: data.clubs },
+                    });
+                  } else {
+                    setClubAnalysisResult({ type: "error", text: data.error ?? "Failed" });
+                  }
+                } catch (e) {
+                  setClubAnalysisResult({ type: "error", text: String(e) });
+                }
+                setClubAnalysisRunning(false);
+              }}
+              disabled={clubAnalysisRunning}
+              className="px-4 py-2 rounded-lg bg-[var(--color-accent-mental)] text-[var(--bg-base)] text-sm font-semibold disabled:opacity-40 hover:brightness-110 transition-all cursor-pointer"
+            >
+              {clubAnalysisRunning ? "Analysing..." : "Run Club Analysis"}
+            </button>
+          </div>
+          {clubAnalysisResult && (
+            <div className="mt-3">
+              <p className={`text-xs ${clubAnalysisResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-accent-mental)]"}`}>
+                {clubAnalysisResult.text}
+              </p>
+              {clubAnalysisResult.data?.clubs && clubAnalysisResult.data.clubs.length > 0 && (
+                <div className="mt-3 overflow-auto max-h-[400px] rounded border border-[var(--border-subtle)]">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-[var(--bg-elevated)]">
+                      <tr>
+                        <th className="text-left px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Club</th>
+                        <th className="text-right px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Squad</th>
+                        <th className="text-right px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Avg Age</th>
+                        <th className="text-right px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Avg Lvl</th>
+                        <th className="text-right px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Top</th>
+                        <th className="text-left px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">Gaps</th>
+                        <th className="text-right px-2 py-1.5 font-semibold text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">No Lvl</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clubAnalysisResult.data.clubs.map((club: Record<string, unknown>) => (
+                        <tr key={club.club_id as number} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors">
+                          <td className="px-2 py-1">
+                            <a href={`/clubs/${club.club_id}`} className="text-[var(--color-accent-mental)] hover:text-[var(--text-primary)] transition-colors font-medium">
+                              {club.name as string}
+                            </a>
+                            {club.league && <span className="ml-1 text-[9px] text-[var(--text-muted)]">{club.league as string}</span>}
+                          </td>
+                          <td className="px-2 py-1 text-right font-mono text-[var(--text-primary)]">{club.squad_size as number}</td>
+                          <td className="px-2 py-1 text-right font-mono text-[var(--text-secondary)]">{(club.avg_age as number) ?? "–"}</td>
+                          <td className={`px-2 py-1 text-right font-mono font-bold ${(club.avg_level as number) >= 83 ? "text-green-400" : (club.avg_level as number) >= 78 ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                            {(club.avg_level as number) ?? "–"}
+                          </td>
+                          <td className={`px-2 py-1 text-right font-mono font-bold ${(club.top_level as number) >= 88 ? "text-amber-400" : "text-[var(--text-primary)]"}`}>
+                            {(club.top_level as number) ?? "–"}
+                          </td>
+                          <td className="px-2 py-1 text-[var(--text-muted)]">
+                            {(club.position_gaps as string[]).length > 0
+                              ? (club.position_gaps as string[]).join(", ")
+                              : <span className="text-[var(--color-accent-tactical)]">Full</span>
+                            }
+                          </td>
+                          <td className={`px-2 py-1 text-right font-mono ${(club.missing_levels as number) > 0 ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-accent-tactical)]"}`}>
+                            {club.missing_levels as number}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

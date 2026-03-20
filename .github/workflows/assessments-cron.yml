@@ -1,0 +1,35 @@
+name: Pillar Scores (daily)
+
+on:
+  schedule:
+    - cron: '30 3 * * *'  # 3:30am UTC daily
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  compute-assessments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Compute four-pillar scores
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          STAGING_URL: https://chief-scout.vercel.app
+        run: |
+          echo "Computing pillar scores at $(date -u)"
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --max-time 300 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${STAGING_URL}/api/cron/assessments")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "::error::Assessment cron failed with HTTP ${HTTP_CODE}"
+            exit 1
+          fi
+
+          echo "$BODY" | jq -r '.stats // empty' 2>/dev/null || true

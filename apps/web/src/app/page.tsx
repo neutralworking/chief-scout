@@ -6,6 +6,7 @@ import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { prodFilter, isProduction } from "@/lib/env";
 import { LandingPage } from "@/components/LandingPage";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
+import { TrendingPlayers } from "@/components/TrendingPlayers";
 
 interface NewsStoryWithTags {
   id: string;
@@ -52,11 +53,11 @@ interface MarketMover {
   market_premium: number;
 }
 
-// Deterministic rotation — changes every 8 hours (3x daily)
+// Deterministic rotation — changes every 2 hours (12x daily)
 function dailySeed(): number {
   const d = new Date();
-  const slot = Math.floor(d.getHours() / 8); // 0, 1, or 2
-  return d.getFullYear() * 100000 + (d.getMonth() + 1) * 1000 + d.getDate() * 10 + slot;
+  const slot = Math.floor(d.getHours() / 2); // 0-11
+  return d.getFullYear() * 100000 + (d.getMonth() + 1) * 1000 + d.getDate() * 100 + slot;
 }
 
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
@@ -78,11 +79,11 @@ async function getDashboardData() {
       .not("archetype", "is", null)
       .not("scouting_notes", "is", null))
       .order("level", { ascending: false })
-      .limit(50),
-    // 1: Sentiment data for swing-based selection
+      .limit(200),
+    // 1: Sentiment data for swing-based selection + trending derivation
     supabaseServer
       .from("news_player_tags")
-      .select("player_id, sentiment, people!inner(name)")
+      .select("player_id, sentiment, story_id, people!inner(name)")
       .order("created_at", { ascending: false })
       .limit(200),
     // 2: Recent news
@@ -216,7 +217,7 @@ async function getDashboardData() {
       .eq("profile_tier", 1)
       .not("archetype", "is", null)
       .not("scouting_notes", "is", null)
-      .limit(50);
+      .limit(200);
     const candidates = (fallbacks ?? []) as FeaturedProfile[];
     if (candidates.length > 0) {
       featured = candidates[dailySeed() % candidates.length];
@@ -303,7 +304,51 @@ async function getDashboardData() {
   const undervalued = marketRaw.filter((m) => m.market_premium < 0).sort((a, b) => a.market_premium - b.market_premium).slice(0, 3);
   const marketMovers = [...overpriced, ...undervalued].sort((a, b) => Math.abs(b.market_premium) - Math.abs(a.market_premium)).slice(0, 3);
 
-  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, contractPlayers, risingStars, marketMovers };
+  // Trending players — derived from sentiment data (distinct story counts per player)
+  type TrendingPlayer = {
+    person_id: number; name: string; position: string | null; club: string | null;
+    personality_type: string | null; archetype: string | null; level: number | null;
+    fingerprint: number[] | null; best_role: string | null; story_count: number;
+  };
+  let trendingPlayers: TrendingPlayer[] = [];
+  const allSentimentRows = (sentimentResult.data ?? []) as Array<{ player_id: number; story_id: string; people: { name: string } }>;
+  const storyCountMap = new Map<number, Set<string>>();
+  for (const row of allSentimentRows) {
+    const set = storyCountMap.get(row.player_id) ?? new Set();
+    set.add(row.story_id);
+    storyCountMap.set(row.player_id, set);
+  }
+  const trendingIds = [...storyCountMap.entries()]
+    .map(([pid, stories]) => ({ pid, count: stories.size }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+  if (trendingIds.length > 0) {
+    const { data: trendingCards } = await supabaseServer
+      .from("player_intelligence_card")
+      .select("person_id, name, position, club, personality_type, archetype, level, fingerprint, best_role")
+      .in("person_id", trendingIds.map((t) => t.pid));
+    const cardMap = new Map((trendingCards ?? []).map((c: Record<string, unknown>) => [c.person_id as number, c]));
+    trendingPlayers = trendingIds
+      .map((t) => {
+        const card = cardMap.get(t.pid) as Record<string, unknown> | undefined;
+        if (!card) return null;
+        return {
+          person_id: t.pid,
+          name: card.name as string,
+          position: (card.position as string | null) ?? null,
+          club: (card.club as string | null) ?? null,
+          personality_type: (card.personality_type as string | null) ?? null,
+          archetype: (card.archetype as string | null) ?? null,
+          level: (card.level as number | null) ?? null,
+          fingerprint: (card.fingerprint as number[] | null) ?? null,
+          best_role: (card.best_role as string | null) ?? null,
+          story_count: t.count,
+        };
+      })
+      .filter((p): p is TrendingPlayer => p !== null);
+  }
+
+  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -382,7 +427,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, news, fixtures, contractPlayers, risingStars, marketMovers } = data;
+  const { featured, featuredReason, featuredPool, news, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers } = data;
 
   return (
     <div className="flex flex-col gap-2 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
@@ -595,6 +640,11 @@ export default async function DashboardPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Trending Players */}
+          {trendingPlayers.length > 0 && (
+            <TrendingPlayers players={trendingPlayers} />
           )}
 
           {/* Gaffer — slim CTA */}

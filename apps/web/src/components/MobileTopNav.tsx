@@ -19,7 +19,7 @@ const ALL_NAV_ITEMS = [
   { label: "News", href: "/news" },
   // Games
   { label: "Gaffer", href: "/choices" },
-  { label: "Kickoff Clash", href: "/kickoff-clash", stagingOnly: true },
+  { label: "Kickoff Clash", href: "/kc-preview", stagingOnly: true },
   // Admin (staging only)
   { label: "Admin", href: "/admin", stagingOnly: true },
   { label: "Tactics", href: "/formations", stagingOnly: true },

@@ -15,18 +15,19 @@ import { computeTraitProfileScore } from "@/lib/assessment/trait-role-impact";
 export const maxDuration = 300; // 5 minutes for batch processing
 
 /** Paginated fetch — Supabase caps at 1,000 rows per request */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchAll<T>(
-  query: () => { range: (from: number, to: number) => { then: (onfulfilled: (value: { data: T[] | null; error: { message: string } | null }) => void) => Promise<void> } },
+  query: () => any,
   pageSize = 1000,
 ): Promise<T[]> {
   const all: T[] = [];
   let offset = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const result = await (query().range(offset, offset + pageSize - 1) as unknown as Promise<{ data: T[] | null; error: { message: string } | null }>);
+    const result = await query().range(offset, offset + pageSize - 1);
     if (result.error) throw new Error(result.error.message);
     if (!result.data || result.data.length === 0) break;
-    all.push(...result.data);
+    all.push(...(result.data as T[]));
     if (result.data.length < pageSize) break;
     offset += pageSize;
   }

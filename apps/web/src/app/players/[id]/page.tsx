@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
@@ -50,6 +51,7 @@ interface IntelligenceCard {
   club: string | null;
   club_id: number | null;
   position: string | null;
+  side: string | null;
   level: number | null;
   archetype: string | null;
   model_id: string | null;
@@ -139,6 +141,50 @@ function formatVal(v: number): string {
   if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}m`;
   if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}k`;
   return `€${v}`;
+}
+
+// ── SEO: Dynamic metadata + OG image ────────────────────────────────────
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const pid = parseInt(id, 10);
+  if (!supabaseServer || isNaN(pid)) return {};
+
+  const { data: p } = await supabaseServer
+    .from("player_intelligence_card")
+    .select("name, position, club, nation, archetype, scouting_notes, overall_pillar_score")
+    .eq("person_id", pid)
+    .single();
+
+  if (!p) return {};
+
+  const title = `${p.name} — ${p.position ?? "Player"}${p.club ? ` · ${p.club}` : ""} | Chief Scout`;
+  const description = p.scouting_notes
+    ? p.scouting_notes.slice(0, 160) + (p.scouting_notes.length > 160 ? "..." : "")
+    : `${p.name} player intelligence: role-fit scoring, personality profiling, and scouting assessment.`;
+
+  const ogUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/api/og/player?id=${pid}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      siteName: "Chief Scout",
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${p.name} scouting profile` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogUrl],
+    },
+  };
 }
 
 export default async function PlayerDetailPage({
@@ -268,8 +314,25 @@ export default async function PlayerDetailPage({
   const personalityName = getPersonalityFullName(player.personality_type);
   const fbrefId = fbrefLink?.external_id;
 
+  // ── JSON-LD structured data ──────────────────────────────────────────
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: player.name,
+    ...(player.dob ? { birthDate: player.dob } : {}),
+    ...(player.nation ? { nationality: { "@type": "Country", name: player.nation } } : {}),
+    ...(player.height_cm ? { height: { "@type": "QuantitativeValue", value: player.height_cm, unitCode: "CMT" } } : {}),
+    ...(player.club ? { memberOf: { "@type": "SportsTeam", name: player.club } } : {}),
+    ...(player.scouting_notes ? { description: player.scouting_notes.slice(0, 300) } : {}),
+    ...(player.image_url ? { image: player.image_url } : {}),
+  };
+
   return (
     <div className="flex flex-col lg:h-[calc(100vh-4rem)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ── Header: Identity + Bio + Assessment ─────────────────────────── */}
       <div className="shrink-0 space-y-1 mb-1">
         {/* Nav */}
@@ -309,7 +372,7 @@ export default async function PlayerDetailPage({
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-base font-bold tracking-tight truncate">{player.name}</h1>
                 <Link href={`/players?position=${player.position ?? ""}`} className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
-                  {player.position ?? "–"}
+                  {player.position ?? "–"}{player.side && ["WF", "WD", "WM"].includes(player.position ?? "") ? ` · ${player.side}` : ""}
                 </Link>
                 {!player.active && (
                   <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>

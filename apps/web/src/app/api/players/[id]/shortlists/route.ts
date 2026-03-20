@@ -5,8 +5,9 @@ const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 
 // GET /api/players/[id]/shortlists — get shortlists a player appears in
+// Pass ?user_id=X to also include the user's own private/unlisted shortlists
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!supabaseUrl || !supabaseKey) {
@@ -19,24 +20,28 @@ export async function GET(
     return NextResponse.json({ error: "Invalid player ID" }, { status: 400 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("user_id");
+
   const sb = createClient(supabaseUrl, supabaseKey);
 
   // Get all shortlist entries for this player, joined with shortlist metadata
   const { data: entries, error } = await sb
     .from("shortlist_players")
-    .select("shortlist_id, scout_note, shortlist:shortlists(slug, title, icon, visibility)")
+    .select("shortlist_id, scout_note, shortlist:shortlists(slug, title, icon, visibility, author_id)")
     .eq("person_id", personId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Filter to public shortlists only and flatten
-  // Supabase returns joined relations as arrays even for singular FK joins
+  // Filter: public shortlists + user's own (any visibility)
   const shortlists = (entries ?? [])
     .filter((e: Record<string, unknown>) => {
       const sl = Array.isArray(e.shortlist) ? e.shortlist[0] : e.shortlist;
-      return sl && (sl as Record<string, unknown>).visibility === "public";
+      if (!sl) return false;
+      const s = sl as Record<string, unknown>;
+      return s.visibility === "public" || (userId && s.author_id === userId);
     })
     .map((e: Record<string, unknown>) => {
       const sl = (Array.isArray(e.shortlist) ? e.shortlist[0] : e.shortlist) as Record<string, unknown>;
@@ -46,6 +51,7 @@ export async function GET(
         title: sl.title as string,
         icon: (sl.icon as string | null) ?? null,
         scout_note: (e.scout_note as string | null) ?? null,
+        author_id: (sl.author_id as string | null) ?? null,
       };
     });
 

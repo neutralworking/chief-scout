@@ -4,27 +4,33 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 
+type RouteContext = { params: Promise<{ slug: string }> };
+
 // GET /api/shortlists/[slug] — get shortlist detail with players
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function GET(request: Request, { params }: RouteContext) {
   if (!supabaseUrl || !supabaseKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
   const { slug } = await params;
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("user_id");
   const sb = createClient(supabaseUrl, supabaseKey);
 
-  // Fetch shortlist
+  // Fetch shortlist (no visibility filter — we check after)
   const { data: shortlist, error: slError } = await sb
     .from("shortlists")
     .select("*")
     .eq("slug", slug)
-    .eq("visibility", "public")
     .single();
 
   if (slError || !shortlist) {
+    return NextResponse.json({ error: "Shortlist not found" }, { status: 404 });
+  }
+
+  // Visibility check: public = anyone, unlisted = anyone with URL, private = owner only
+  const isOwner = userId && shortlist.author_id === userId;
+  if (shortlist.visibility === "private" && !isOwner) {
     return NextResponse.json({ error: "Shortlist not found" }, { status: 404 });
   }
 
@@ -39,7 +45,6 @@ export async function GET(
     return NextResponse.json({ error: spError.message }, { status: 500 });
   }
 
-  // Enrich with player data from the intelligence card view
   const personIds = (entries ?? []).map((e: { person_id: number }) => e.person_id);
 
   if (personIds.length === 0) {
@@ -48,7 +53,7 @@ export async function GET(
 
   const { data: cards } = await sb
     .from("player_intelligence_card")
-    .select("person_id, name, dob, nation, club, position, level, archetype, model_id, pursuit_status, market_value_tier, true_mvt, personality_type")
+    .select("person_id, name, dob, nation, club, position, level, archetype, model_id, pursuit_status, market_value_tier, true_mvt, personality_type, fingerprint, best_role")
     .in("person_id", personIds);
 
   const cardMap = new Map(
@@ -61,4 +66,93 @@ export async function GET(
   }));
 
   return NextResponse.json({ shortlist, players });
+}
+
+// PATCH /api/shortlists/[slug] — update shortlist metadata (owner only)
+export async function PATCH(request: Request, { params }: RouteContext) {
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  }
+
+  const { slug } = await params;
+  const body = await request.json();
+  const { user_id, title, description, icon, visibility } = body;
+
+  if (!user_id) {
+    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+  }
+
+  const sb = createClient(supabaseUrl, supabaseKey);
+
+  // Ownership check
+  const { data: shortlist } = await sb
+    .from("shortlists")
+    .select("id, author_id, author_type")
+    .eq("slug", slug)
+    .single();
+
+  if (!shortlist || shortlist.author_id !== user_id || shortlist.author_type !== "user") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (title !== undefined && typeof title === "string" && title.trim().length > 0) updates.title = title.trim();
+  if (description !== undefined) updates.description = description?.trim() || null;
+  if (icon !== undefined) updates.icon = icon || null;
+  if (visibility !== undefined && ["public", "private", "unlisted"].includes(visibility)) {
+    updates.visibility = visibility;
+  }
+
+  const { data, error } = await sb
+    .from("shortlists")
+    .update(updates)
+    .eq("id", shortlist.id)
+    .select("*")
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ shortlist: data });
+}
+
+// DELETE /api/shortlists/[slug] — delete shortlist (owner only)
+export async function DELETE(request: Request, { params }: RouteContext) {
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  }
+
+  const { slug } = await params;
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get("user_id");
+
+  if (!userId) {
+    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+  }
+
+  const sb = createClient(supabaseUrl, supabaseKey);
+
+  // Ownership check
+  const { data: shortlist } = await sb
+    .from("shortlists")
+    .select("id, author_id, author_type")
+    .eq("slug", slug)
+    .single();
+
+  if (!shortlist || shortlist.author_id !== userId || shortlist.author_type !== "user") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // CASCADE handles shortlist_players cleanup
+  const { error } = await sb
+    .from("shortlists")
+    .delete()
+    .eq("id", shortlist.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

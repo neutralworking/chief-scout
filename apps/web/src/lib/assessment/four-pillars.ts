@@ -152,6 +152,13 @@ export function computeTechnical(
     positionScore = Math.min(level, 100);
   }
 
+  // Blend attribute-based score with level anchor using dataWeight
+  // Low dataWeight (e.g. 0.3 for EAFC-only) dampens inflated attributes
+  if (level != null && totalWeight > 0 && dataWeight < 1.0) {
+    const levelAnchor = Math.min(level, 100);
+    positionScore = positionScore * dataWeight + levelAnchor * (1 - dataWeight);
+  }
+
   const score = Math.round(Math.max(0, Math.min(100, positionScore)));
 
   return { score, modelScores, positionScore: score, dataWeight, sources };
@@ -320,8 +327,8 @@ export function ageCurveScore(position: string | null, age: number | null): numb
 
 const FITNESS_TAG_SCORES: Record<string, number> = {
   "iron man": 95, "iron_man": 95, "fully fit": 75,
-  normal: 60, "moderate risk": 35, "moderate_risk": 35,
-  "injury prone": 15, "injury_prone": 15,
+  normal: 60, "moderate risk": 40, "moderate_risk": 40,
+  "injury prone": 25, "injury_prone": 25,
 };
 
 // ── Ideal height ranges by position (cm) ─────────────────────────────────
@@ -361,7 +368,7 @@ export function computePhysical(input: PhysicalInput): PhysicalBreakdown {
   // 2. Availability (25%): minutes-based (existing)
   const availability = availabilityScore ?? 50;
 
-  // 3. Durability (20%): fitness tag + durability trait
+  // 3. Durability (20%): fitness tag + durability trait, mitigated by actual minutes
   let durability = 50;
   const tagScore = FITNESS_TAG_SCORES[(fitnessTag ?? "").toLowerCase()] ?? null;
   const traitScore = durabilitySeverity != null ? durabilitySeverity * 10 : null;
@@ -371,6 +378,13 @@ export function computePhysical(input: PhysicalInput): PhysicalBreakdown {
     durability = tagScore;
   } else if (traitScore != null) {
     durability = traitScore;
+  }
+  // Mitigate harsh tags for players actively playing high minutes.
+  // If availability (from real minutes data) is strong, the tag is stale or overstated.
+  // Blend durability toward availability: at avail=80+ the tag penalty is halved.
+  if (availability > 50 && durability < availability) {
+    const mitigation = Math.min(0.5, (availability - 50) / 60); // 0→0.5 as avail goes 50→110
+    durability = Math.round(durability + (availability - durability) * mitigation);
   }
 
   // 4. Age Curve (15%): position-specific peak window

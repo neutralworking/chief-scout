@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { RoleTooltip } from "@/components/RoleTooltip";
 
 const TACTICAL_ROLES = [
   "",
@@ -22,9 +23,10 @@ interface Props {
   personId: number;
   bestRole: string | null;
   bestRoleScore: number | null;
+  position?: string | null;
 }
 
-export function RoleScoreEditor({ personId, bestRole, bestRoleScore }: Props) {
+export function RoleScoreEditor({ personId, bestRole, bestRoleScore, position }: Props) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editing, setEditing] = useState(false);
   const [role, setRole] = useState(bestRole ?? "");
@@ -75,16 +77,16 @@ export function RoleScoreEditor({ personId, bestRole, bestRoleScore }: Props) {
     }
   }
 
-  // Non-admin or no role: render static badge
+  // Non-admin or no role: render clickable role tooltip
   if (!isAdmin) {
     if (!bestRole) return null;
     return (
-      <div className="px-2.5 py-1 rounded-lg border border-[var(--color-accent-tactical)]/30 bg-[var(--color-accent-tactical)]/10 text-center">
-        {bestRoleScore != null && (
-          <span className="text-lg font-mono font-bold text-[var(--color-accent-tactical)] mr-1">{bestRoleScore}</span>
-        )}
-        <span className="text-sm font-bold text-[var(--color-accent-tactical)]">{bestRole}</span>
-      </div>
+      <RoleTooltip
+        roleName={bestRole}
+        roleScore={bestRoleScore}
+        position={position}
+        variant="badge"
+      />
     );
   }
 

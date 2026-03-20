@@ -332,19 +332,28 @@ def compute_best_role(model_scores, position):
     Returns (role_name, role_score) where role_score is 0-100.
     When a required model has no data, we skip that role entirely rather
     than letting a zero drag the score down.
+
+    Model scores are weighted by POSITION_WEIGHTS so that position-relevant
+    models contribute more to role fit (e.g. Destroyer matters more for CD
+    than Passer does).
     """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
         return None, 0
 
+    pos_weights = POSITION_WEIGHTS.get(position, {})
+
     best_role = None
     best_score = -1
     for primary, secondary, name in roles:
-        p_score = model_scores.get(primary)
-        s_score = model_scores.get(secondary)
+        p_raw = model_scores.get(primary)
+        s_raw = model_scores.get(secondary)
         # Skip roles where the primary model has no data at all
-        if p_score is None:
+        if p_raw is None:
             continue
+        # Apply position weights: models not listed default to 0.2
+        p_score = p_raw * pos_weights.get(primary, 0.2)
+        s_score = s_raw * pos_weights.get(secondary, 0.2) if s_raw is not None else None
         # If secondary is missing, score based on primary alone
         if s_score is None:
             score = p_score * 0.85  # slight penalty for incomplete role fit
@@ -356,7 +365,11 @@ def compute_best_role(model_scores, position):
 
     if best_role is None:
         return None, 0
-    return best_role, round(best_score)
+    # Rescale: scores are now weighted down by position weights (max ~1.0),
+    # so normalise back to 0-100 range using the max possible weight for this position
+    max_weight = max(pos_weights.values()) if pos_weights else 1.0
+    normalised = best_score / max_weight if max_weight > 0 else best_score
+    return best_role, round(min(normalised, 99))
 
 
 def has_differentiated_data(model_scores):

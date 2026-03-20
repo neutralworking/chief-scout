@@ -334,6 +334,7 @@ export default async function PlayerDetailPage({
                 personId={player.person_id}
                 bestRole={player.best_role}
                 bestRoleScore={player.best_role_score}
+                position={player.position}
               />
             </div>
           </div>

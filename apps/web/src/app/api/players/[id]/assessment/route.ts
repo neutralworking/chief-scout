@@ -203,7 +203,17 @@ export async function GET(
     minutes: s.minutes,
     matches_played: s.appearances,
   }));
-  const minuteSeasons = fbrefSeasons.length > 0 ? fbrefSeasons : afSeasons;
+  // Merge FBRef + AF minutes: take max from each source per season slot
+  const maxLen = Math.max(fbrefSeasons.length, afSeasons.length);
+  const minuteSeasons: Array<{ minutes: number | null; matches_played: number | null }> = [];
+  for (let i = 0; i < maxLen; i++) {
+    const fb = fbrefSeasons[i];
+    const af = afSeasons[i];
+    minuteSeasons.push({
+      minutes: Math.max(fb?.minutes ?? 0, af?.minutes ?? 0) || null,
+      matches_played: Math.max(fb?.matches_played ?? 0, af?.matches_played ?? 0) || null,
+    });
+  }
   const availabilityScore = computeAvailability(minuteSeasons);
 
   // Sprinter + Powerhouse model scores (already in modelScores from technical)

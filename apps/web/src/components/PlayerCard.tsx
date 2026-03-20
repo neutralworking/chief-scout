@@ -9,6 +9,7 @@ import { getRoleRadarConfig } from "@/lib/role-radar";
 import { getCardTheme, THEME_STYLES, type CardTheme } from "@/lib/archetype-themes";
 import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import { MiniRadar } from "@/components/MiniRadar";
+import { RoleTooltip } from "@/components/RoleTooltip";
 
 // Hex colors for radar polygon per theme (matches theme accent)
 const RADAR_COLORS: Record<CardTheme, string> = {
@@ -78,12 +79,12 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
         {(mentalLabel || player.best_role) && (
           <div className="flex items-center gap-2 text-[10px] mb-3 flex-wrap">
             {player.best_role && (
-              <span className="text-[var(--color-accent-tactical)] font-medium">
-                {player.best_role_score != null && (
-                  <span className="font-mono font-bold text-sm mr-1 leading-none align-baseline">{player.best_role_score}</span>
-                )}
-                {player.best_role}
-              </span>
+              <RoleTooltip
+                roleName={player.best_role}
+                roleScore={player.best_role_score}
+                position={player.position}
+                variant="card"
+              />
             )}
             {mentalLabel && (
               <>

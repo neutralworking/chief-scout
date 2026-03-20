@@ -164,19 +164,19 @@ def normalize_grades(grades: list[dict]) -> tuple[dict[str, float], dict[str, fl
         scout = g.get("scout_grade")
         stat = g.get("stat_score")
 
-        is_scout = scout is not None and scout > 0
-        raw = scout if is_scout else stat if (stat is not None and stat > 0) else None
+        is_scout_grade = scout is not None and scout > 0
+        raw = scout if is_scout_grade else stat if (stat is not None and stat > 0) else None
         if raw is None:
             continue
 
-        if is_scout:
+        if src == "scout_assessment":
             has_scout = True
         else:
             stat_values.add(stat)
 
         if attr not in attr_candidates:
             attr_candidates[attr] = []
-        attr_candidates[attr].append((src, raw, is_scout))
+        attr_candidates[attr].append((src, raw, is_scout_grade))
 
     # For each attribute, pick the highest-priority source and apply weight
     all_scores: dict[str, float] = {}

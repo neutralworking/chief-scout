@@ -7,6 +7,8 @@ interface ClubRow {
   league_name: string | null;
   player_count: number;
   avg_level: number | null;
+  power_rating: number | null;
+  power_confidence: number | null;
 }
 
 export default async function ClubsPage({ searchParams }: { searchParams: Promise<{ league?: string }> }) {
@@ -18,7 +20,7 @@ export default async function ClubsPage({ searchParams }: { searchParams: Promis
 
   // Single RPC call for club stats (replaces 20+ paginated queries)
   const [clubsResult, statsResult] = await Promise.all([
-    supabaseServer.from("clubs").select("id, clubname, league_name").order("clubname"),
+    supabaseServer.from("clubs").select("id, clubname, league_name, power_rating, power_confidence").order("clubname"),
     supabaseServer.rpc("get_club_stats"),
   ]);
 
@@ -45,6 +47,8 @@ export default async function ClubsPage({ searchParams }: { searchParams: Promis
       league_name: league,
       player_count: stats.player_count,
       avg_level: stats.avg_level,
+      power_rating: c.power_rating != null ? Number(c.power_rating) : null,
+      power_confidence: c.power_confidence != null ? Number(c.power_confidence) : null,
     });
   }
 

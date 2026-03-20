@@ -9,6 +9,8 @@ interface ClubRow {
   league_name: string | null;
   player_count: number;
   avg_level: number | null;
+  power_rating: number | null;
+  power_confidence: number | null;
 }
 
 const TOP_LEAGUES = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"];
@@ -28,6 +30,15 @@ function levelColor(level: number | null): string {
   return "text-[var(--text-secondary)]";
 }
 
+function powerColor(rating: number | null): string {
+  if (rating == null) return "text-[var(--text-muted)]";
+  if (rating >= 90) return "text-amber-400";
+  if (rating >= 80) return "text-green-400";
+  if (rating >= 70) return "text-[var(--text-primary)]";
+  if (rating >= 60) return "text-[var(--text-secondary)]";
+  return "text-[var(--text-muted)]";
+}
+
 export function ClubsList({
   clubs,
   leagues,
@@ -39,6 +50,7 @@ export function ClubsList({
 }) {
   const [search, setSearch] = useState("");
   const [league, setLeague] = useState(initialLeague);
+  const [sortBy, setSortBy] = useState<"power" | "level">("power");
 
   const filtered = useMemo(() => {
     let list = clubs;
@@ -49,9 +61,7 @@ export function ClubsList({
     if (league) {
       list = list.filter((c) => c.league_name === league);
     }
-    // Sort: clubs with no league sink, then <5 players sink, then avg_level desc
     return list.sort((a, b) => {
-      // Clubs without a recognized league go to the bottom (unless filtering by league)
       if (!league) {
         const aNoLeague = a.league_name ? 0 : 1;
         const bNoLeague = b.league_name ? 0 : 1;
@@ -60,11 +70,16 @@ export function ClubsList({
       const aSmall = a.player_count < 5 ? 1 : 0;
       const bSmall = b.player_count < 5 ? 1 : 0;
       if (aSmall !== bSmall) return aSmall - bSmall;
+      if (sortBy === "power") {
+        const aPwr = a.power_rating ?? 0;
+        const bPwr = b.power_rating ?? 0;
+        if (aPwr !== bPwr) return bPwr - aPwr;
+      }
       const diff = (b.avg_level ?? 0) - (a.avg_level ?? 0);
       if (diff !== 0) return diff;
       return b.player_count - a.player_count;
     });
-  }, [clubs, search, league]);
+  }, [clubs, search, league, sortBy]);
 
   return (
     <div>
@@ -144,7 +159,16 @@ export function ClubsList({
               <th className="text-left py-2 px-4 font-medium">Club</th>
               <th className="text-left py-2 px-4 font-medium">League</th>
               <th className="text-right py-2 px-4 font-medium w-20">Players</th>
-              <th className="text-right py-2 px-4 font-medium w-20">Avg Lvl</th>
+              <th className="text-right py-2 px-4 font-medium w-20">
+                <button onClick={() => setSortBy("power")} className={`hover:text-[var(--text-secondary)] transition-colors ${sortBy === "power" ? "text-[var(--color-accent-personality)]" : ""}`}>
+                  Power
+                </button>
+              </th>
+              <th className="text-right py-2 px-4 font-medium w-20">
+                <button onClick={() => setSortBy("level")} className={`hover:text-[var(--text-secondary)] transition-colors ${sortBy === "level" ? "text-[var(--color-accent-personality)]" : ""}`}>
+                  Avg Lvl
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +190,9 @@ export function ClubsList({
                 </td>
                 <td className="py-2 px-4 text-right font-mono text-[var(--text-muted)]">
                   {club.player_count}
+                </td>
+                <td className={`py-2 px-4 text-right font-mono font-bold ${powerColor(club.power_rating)}`}>
+                  {club.power_rating != null ? club.power_rating.toFixed(1) : "–"}
                 </td>
                 <td className={`py-2 px-4 text-right font-mono font-bold ${levelColor(club.avg_level)}`}>
                   {club.avg_level != null ? club.avg_level.toFixed(1) : "–"}
@@ -198,6 +225,14 @@ export function ClubsList({
                 <p className="text-xs font-mono text-[var(--text-muted)]">{club.player_count}</p>
                 <p className="text-[9px] text-[var(--text-muted)]">players</p>
               </div>
+              {club.power_rating != null && (
+                <div className="text-right">
+                  <p className={`text-sm font-mono font-bold ${powerColor(club.power_rating)}`}>
+                    {club.power_rating.toFixed(1)}
+                  </p>
+                  <p className="text-[9px] text-[var(--text-muted)]">power</p>
+                </div>
+              )}
               <div className="text-right">
                 <p className={`text-sm font-mono font-bold ${levelColor(club.avg_level)}`}>
                   {club.avg_level != null ? club.avg_level.toFixed(1) : "–"}

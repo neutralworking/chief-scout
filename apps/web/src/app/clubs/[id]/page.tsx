@@ -2,6 +2,8 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import { computeAge } from "@/lib/types";
+import { MiniRadar } from "@/components/MiniRadar";
+import { getRoleRadarConfig } from "@/lib/role-radar";
 
 interface ClubPlayer {
   person_id: number;
@@ -15,6 +17,8 @@ interface ClubPlayer {
   scouting_notes: string | null;
   squad_role: string | null;
   nation: string | null;
+  fingerprint: number[] | null;
+  best_role: string | null;
 }
 
 interface ClubPageProps {
@@ -52,11 +56,20 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
     return <div className="text-sm text-[var(--text-secondary)]">Invalid club or Supabase not configured.</div>;
   }
 
-  const { data: club } = await supabaseServer
-    .from("clubs")
-    .select("id, clubname, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, nations(name)")
-    .eq("id", clubId)
-    .single();
+  const [{ data: club }, { data: ratingData }] = await Promise.all([
+    supabaseServer
+      .from("clubs")
+      .select("id, clubname, league_name, stadium, stadium_capacity, founded_year, short_name, logo_url, wikidata_id, nations(name)")
+      .eq("id", clubId)
+      .single(),
+    supabaseServer
+      .from("club_ratings")
+      .select("power_rating, projected_gd, confidence, xg_diff_score, squad_value_score, defensive_score, buildup_score, data_sources")
+      .eq("club_id", clubId)
+      .order("computed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   if (!club) {
     return <div className="text-sm text-[var(--text-secondary)]">Club not found.</div>;
@@ -85,7 +98,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   if (personIds.length > 0) {
     const { data: playersData } = await supabaseServer
       .from("player_intelligence_card")
-      .select("person_id, name, dob, position, level, overall, archetype, pursuit_status, scouting_notes, squad_role, nation")
+      .select("person_id, name, dob, position, level, overall, archetype, pursuit_status, scouting_notes, squad_role, nation, fingerprint, best_role")
       .in("person_id", personIds)
       .order("overall", { ascending: false, nullsFirst: false });
     players = (playersData ?? []) as ClubPlayer[];
@@ -251,6 +264,57 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
         </div>
       </div>
 
+      {/* Power Rating */}
+      {ratingData && (() => {
+        const r = ratingData as any;
+        const rating = Number(r.power_rating);
+        const conf = Number(r.confidence);
+        const gd = r.projected_gd != null ? Number(r.projected_gd) : null;
+        const pillars = [
+          { label: "xG Diff", score: r.xg_diff_score != null ? Number(r.xg_diff_score) : null, color: "bg-[var(--color-accent-tactical)]" },
+          { label: "Squad Value", score: r.squad_value_score != null ? Number(r.squad_value_score) : null, color: "bg-[var(--color-accent-personality)]" },
+          { label: "Defense", score: r.defensive_score != null ? Number(r.defensive_score) : null, color: "bg-[var(--color-accent-physical)]" },
+          { label: "Buildup", score: r.buildup_score != null ? Number(r.buildup_score) : null, color: "bg-[var(--color-accent-mental)]" },
+        ];
+        const ratingColorClass = rating >= 90 ? "text-amber-400" : rating >= 80 ? "text-green-400" : rating >= 70 ? "text-[var(--text-primary)]" : rating >= 60 ? "text-[var(--text-secondary)]" : "text-[var(--text-muted)]";
+        const confLabel = conf >= 0.7 ? "High" : conf >= 0.4 ? "Medium" : "Low";
+        const confColor = conf >= 0.7 ? "text-green-400" : conf >= 0.4 ? "text-amber-400" : "text-[var(--text-muted)]";
+
+        return (
+          <div className="glass rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Power</span>
+                <span className={`text-3xl font-mono font-bold ${ratingColorClass}`}>{rating.toFixed(1)}</span>
+              </div>
+              <div className="flex-1 space-y-1.5">
+                {pillars.map(({ label, score, color }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="text-[9px] text-[var(--text-muted)] w-20">{label}</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+                      <div className={`h-full rounded-full ${color}/50`} style={{ width: `${score ?? 0}%` }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-[var(--text-secondary)] w-6 text-right">{score != null ? Math.round(score) : "–"}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center shrink-0 space-y-1">
+                {gd != null && (
+                  <div>
+                    <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">GD/M</span>
+                    <span className={`text-sm font-mono font-bold ${gd > 0 ? "text-green-400" : gd < 0 ? "text-red-400" : "text-[var(--text-secondary)]"}`}>{gd > 0 ? "+" : ""}{gd.toFixed(2)}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Conf</span>
+                  <span className={`text-[10px] font-semibold ${confColor}`}>{confLabel}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {players.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center">
           <p className="text-sm text-[var(--text-muted)]">No active players linked to this club.</p>
@@ -275,6 +339,15 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                       <div className="text-[10px] text-[var(--text-muted)] mt-0.5">
                         {[age != null ? `${age}y` : null, p.archetype].filter(Boolean).join(" · ")}
                       </div>
+                      {p.fingerprint?.some(v => v > 0) && (() => {
+                        const { labels } = getRoleRadarConfig(p.best_role, p.position);
+                        const trimmedLabels = labels.length === p.fingerprint!.length ? labels : labels.slice(0, p.fingerprint!.length);
+                        return (
+                          <div className="flex justify-center mt-1.5">
+                            <MiniRadar values={p.fingerprint!} size={48} color="rgba(52,211,153,0.7)" labels={trimmedLabels} />
+                          </div>
+                        );
+                      })()}
                     </Link>
                   );
                 })}

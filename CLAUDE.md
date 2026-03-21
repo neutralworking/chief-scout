@@ -4,7 +4,9 @@
 - **App**: Next.js (Turbopack) in `apps/web/`
 - **DB**: Supabase (project ref: `fnvlemkbhohyouhjebwf`, region: EU Frankfurt)
 - **Pipeline**: Python scripts in `pipeline/`
-- **Skills**: Custom commands in `.claude/commands/` (see below)
+- **Skills**: Custom commands in `.claude/commands/` + SKILL.md skills in `.claude/skills/` (see below)
+- **UI Components**: shadcn/ui (selective) in `apps/web/src/components/ui/` — Dialog, DropdownMenu, Select, Tooltip
+- **Design System**: Stitch MCP + `.stitch/DESIGN.md` for UI prototyping
 
 ## Database Schema (normalized 2026-03-09)
 The old monolithic `players` table has been split. A **`players` view** exists for backward compatibility (reads only).

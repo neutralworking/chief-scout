@@ -50,180 +50,195 @@ def pers_matches(pers_type, patterns):
 # ── Archetype definitions ────────────────────────────────────────────────────
 
 POSITIONAL_ARCHETYPES = {
-    # FORWARDS
-    "Hitman": {
-        "positions": {"CF"},
+    # ── ELITE ATTACKING ──────────────────────────────────────────
+    "Marksman": {
+        "positions": {"CF"},  # pure goalscorer — CF only
         "check": lambda s, p: (s.get("goals", 0) >= 20 or s.get("gp90", 0) >= 0.55),
-        "personality": ["AN_C"],
+        "personality": None,
         "tier_elite": lambda s: s.get("goals", 0) >= 25 or s.get("gp90", 0) >= 0.65,
     },
-    "Predator": {
-        "positions": {"CF"},
-        "check": lambda s, p: s.get("gp90", 0) >= 0.45 and s.get("shot_conv", 0) >= 20,
-        "personality": ["I__C"],
-    },
-    "Colossus": {
-        "positions": {"CF", "CD"},
-        "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("height", 0) >= 185),
-        "personality": ["__LC", "ANSC", "INSC"],  # dominant physical players
-        "tier_elite": lambda s: s.get("duel_pct", 0) >= 70 and s.get("height", 0) >= 190,
-    },
-    "Magician": {
-        "positions": {"WF", "AM"},
+    "Conjurer": {
+        "positions": None,  # any — elite dribble-creator
         "check": lambda s, p: (s.get("ap90", 0) >= 0.3 and s.get("drib_att_p90", 0) >= 3 and s.get("drib_pct", 0) >= 50),
-        "personality": ["IX_P", "INSP", "AN_C", "ANSP"],  # Messi-type analytical magicians too
+        "personality": None,
         "tier_elite": lambda s: s.get("ap90", 0) >= 0.4 and s.get("drib_att_p90", 0) >= 4,
     },
-    "Roadrunner": {
-        "positions": {"WF", "CF"},
-        "check": lambda s, p: (s.get("pace_grade", 0) >= 7 and s.get("drib_att_p90", 0) >= 3 and s.get("gp90", 0) >= 0.2),
-        "personality": ["AX__", "IX__", "ANSC"],  # analytical speedsters like Saka
+    "Virtuoso": {
+        "positions": None,  # any — goals + assists + dribbles, the complete attacker
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.25 and s.get("ap90", 0) >= 0.15 and s.get("drib_att_p90", 0) >= 2.0),
+        "personality": None,
     },
-    "Trickster": {
-        "positions": {"WF", "AM"},
-        "check": lambda s, p: (s.get("drib_att_p90", 0) >= 4 and s.get("drib_pct", 0) >= 55),
-        "personality": ["IX__"],
-    },
-    "Technician": {
-        "positions": {"AM", "WF"},
-        "check": lambda s, p: ((s.get("ap90", 0) >= 0.3 or s.get("kp90", 0) >= 2.5) and s.get("pass_acc", 0) >= 85),
-        "personality": ["___P"],
-    },
-    "Fox": {
-        "positions": {"CF", "AM"},
-        "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("drib_att_p90", 0) < 2),
-        "personality": ["AN__"],
-    },
-    "Workhorse": {
-        "positions": {"CF", "WF"},
-        "check": lambda s, p: s.get("def_actions_p90", 0) >= 3,
-        "personality": ["___C"],
-    },
-    "All-Rounder": {
-        "positions": {"CF", "WF"},
-        "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("ap90", 0) >= 0.15 and s.get("drib_att_p90", 0) >= 1.5),
-        "personality": None,  # any
+    "Fulcrum": {
+        "positions": {"DM", "CM"},  # midfielders — everything goes through them
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.2 and s.get("kp90", 0) >= 1.5),
+        "personality": None,
     },
 
-    # MIDFIELDERS
-    "Maestro": {
-        "positions": {"CM", "AM"},
+    # ── CREATIVE ─────────────────────────────────────────────────
+    "Architect": {
+        "positions": None,  # any — elite creator, high assists + pass quality
         "check": lambda s, p: ((s.get("assists", 0) >= 10 or s.get("ap90", 0) >= 0.25) and s.get("pass_acc", 0) >= 87),
-        "personality": ["___P"],
+        "personality": None,
         "tier_elite": lambda s: s.get("assists", 0) >= 15 or s.get("ap90", 0) >= 0.35,
     },
-    "Metronome": {
-        "positions": {"CM", "DM"},
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 90 and s.get("passes_p90", 0) >= 50),
-        "personality": ["AN_P", "AN_C"],
+    "Artisan": {
+        "positions": None,  # any — intelligent creator with end product (key passes + goals/assists)
+        "check": lambda s, p: (s.get("kp90", 0) >= 2.0 and (s.get("gp90", 0) >= 0.15 or s.get("ap90", 0) >= 0.15)),
+        "personality": None,
+    },
+    "Pulse": {
+        "positions": {"DM", "CM", "AM"},  # midfielders — tempo-setter, dictates play
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 89 and s.get("passes_p90", 0) >= 45),
+        "personality": None,
         "tier_elite": lambda s: s.get("pass_acc", 0) >= 92,
     },
-    "General": {
-        "positions": {"CM", "DM"},
-        "check": lambda s, p: (s.get("tackles_p90", 0) >= 2 and s.get("drib_att_p90", 0) >= 2 and s.get("gp90", 0) >= 0.1),
-        "personality": ["ANLC", "ANSC"],
-        "tier_elite": lambda s: s.get("tackles_p90", 0) >= 3 and s.get("gp90", 0) >= 0.15,
-    },
-    "Terrier": {
-        "positions": {"DM", "CM"},
-        "check": lambda s, p: s.get("def_actions_p90", 0) >= 4,
-        "personality": ["AX_C", "AN_C"],
-    },
-    "Conductor": {
-        "positions": {"DM", "CM"},
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 88 and s.get("prog_pass_p90", 0) >= 5),
-        "personality": ["INSP", "ANLP"],
-    },
-    "Dynamo": {
-        "positions": {"CM", "WM"},
-        "check": lambda s, p: (s.get("minutes", 0) >= 2500 and s.get("def_actions_p90", 0) >= 3 and s.get("rating", 0) >= 7.0),
-        "personality": ["ANSC", "INSC"],
-    },
-    "Spark Plug": {
-        "positions": {"CM"},
-        "check": lambda s, p: (s.get("gp90", 0) >= 0.1 and s.get("tackles_p90", 0) >= 2),
-        "personality": None,  # any competitive
-    },
-    "Schemer": {
-        "positions": {"WM", "CM", "AM"},
-        "check": lambda s, p: (s.get("kp90", 0) >= 2.5 and s.get("drib_att_p90", 0) >= 2),
-        "personality": ["IX_P", "IXSC"],
-    },
-    "Water Carrier": {
-        "positions": {"DM", "CM"},
-        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 3 and s.get("pass_acc", 0) >= 85 and p.get("coachability", 0) >= 7),
-        "personality": ["IN_P"],
-    },
 
-    # DEFENDERS
-    "Rock": {
-        "positions": {"CD"},
-        "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("def_actions_p90", 0) >= 2),
-        "personality": ["INLC", "ANLC", "ANSC"],  # VVD-type dominant defenders
-        "tier_elite": lambda s: s.get("duel_pct", 0) >= 68,
-    },
-    "Rolls Royce": {
-        "positions": {"CD"},
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 90 and s.get("prog_pass_p90", 0) >= 4),
-        "personality": ["AN_P", "ANLC"],
+    # ── PHYSICAL / COMBATIVE ─────────────────────────────────────
+    "Goliath": {
+        "positions": None,  # any — dominant physical presence, wins aerial/ground duels
+        "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("height", 0) >= 185),
+        "personality": None,
+        "tier_elite": lambda s: s.get("duel_pct", 0) >= 70 and s.get("height", 0) >= 190,
     },
     "Warrior": {
-        "positions": {"CD"},
-        "check": lambda s, p: (s.get("tackles_p90", 0) >= 3 and s.get("duel_pct", 0) >= 65),
-        "personality": ["AXSC", "ANSC"],
+        "positions": None,  # any — combative, wins tackles, imposes physically
+        "check": lambda s, p: (s.get("tackles_p90", 0) >= 3 and s.get("duel_pct", 0) >= 55),
+        "personality": None,
     },
-    "Tower": {
-        "positions": {"CD"},
-        "check": lambda s, p: (s.get("duel_pct", 0) >= 70 and s.get("height", 0) >= 190 and s.get("clearances_p90", 0) >= 4),
-        "personality": ["INLC", "ANLC"],
+    "Bastion": {
+        "positions": None,  # any — shield, wins duels + intercepts, protects the back line
+        "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("def_actions_p90", 0) >= 2.5),
+        "personality": None,
     },
-    "Marauder": {
-        "positions": {"WD"},
-        "check": lambda s, p: (s.get("crosses_p90", 0) >= 2 and s.get("drib_att_p90", 0) >= 2 and s.get("ap90", 0) >= 0.1),
-        "personality": ["AXSC", "IXSC"],
-    },
-    "Chameleon": {
-        "positions": {"WD"},
-        "check": lambda s, p: s.get("pass_acc", 0) >= 87,
-        "personality": ["ANSP", "ANLP"],
-    },
-    "Reader": {
-        "positions": {"CD"},
-        "check": lambda s, p: s.get("intercepts_p90", 0) >= 2.5,
-        "personality": ["IN__"],
+    "Terrier": {
+        "positions": None,  # any — ball-winner, high energy, never stops pressing
+        "check": lambda s, p: s.get("def_actions_p90", 0) >= 3.5,
+        "personality": None,
     },
 
-    # GOALKEEPERS
+    # ── DIRECT / WIDE ────────────────────────────────────────────
+    "Outlet": {
+        "positions": None,  # any — direct runner, takes on defenders
+        "check": lambda s, p: s.get("drib_att_p90", 0) >= 2.5,
+        "personality": None,
+    },
+    "Hunter": {
+        "positions": {"CF"},  # CF only — clinical finisher, high conversion
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.45 and s.get("shot_conv", 0) >= 20),
+        "personality": None,
+    },
+    "Fox": {
+        "positions": None,  # any — scores without dribbling, poacher instinct
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("drib_att_p90", 0) < 2),
+        "personality": None,
+    },
+
+    # ── DEFENSIVE ────────────────────────────────────────────────
+    "Fortress": {
+        "positions": {"CD", "DM"},  # centre-backs and holding midfielders
+        "check": lambda s, p: (s.get("duel_pct", 0) >= 65 and s.get("def_actions_p90", 0) >= 2),
+        "personality": None,
+        "tier_elite": lambda s: s.get("duel_pct", 0) >= 70,
+    },
+    "Reader": {
+        "positions": None,  # any — anticipation, intercepts everything
+        "check": lambda s, p: s.get("intercepts_p90", 0) >= 2.5,
+        "personality": None,
+    },
+    "Lockdown": {
+        "positions": {"WD", "CD"},  # defenders — tackles and marks
+        "check": lambda s, p: s.get("def_actions_p90", 0) >= 3.0,
+        "personality": None,
+    },
+
+    # ── ROLE PLAYERS ─────────────────────────────────────────────
+    "Marshal": {
+        "positions": None,  # any — imposes on the game, tackles and scores with authority
+        "check": lambda s, p: (s.get("tackles_p90", 0) >= 2.5 and s.get("gp90", 0) >= 0.15 and s.get("duel_pct", 0) >= 50),
+        "personality": None,
+        "tier_elite": lambda s: s.get("tackles_p90", 0) >= 3 and s.get("gp90", 0) >= 0.15,
+    },
+    "Utility": {
+        "positions": {"WD"},  # fullback who does everything
+        "check": lambda s, p: (s.get("tackles_p90", 0) >= 1.5 and s.get("drib_att_p90", 0) >= 1.0 and (s.get("assists", 0) >= 3 or s.get("ap90", 0) >= 0.1)),
+        "personality": None,
+    },
+    "Support": {
+        "positions": {"WD"},  # reliable, steady — Gary Neville type
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 83 and s.get("rating", 0) >= 6.7),
+        "personality": None,
+    },
+    "Grafter": {
+        "positions": None,  # any — defends from the front, does the dirty work
+        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 3 and s.get("gp90", 0) < 0.3),
+        "personality": None,
+    },
+
+    # ── MID-TIER / CATCH-ALL ────────────────────────────────────
+    "Connector": {
+        "positions": {"CM", "DM", "AM"},  # midfielders — links play, keeps possession moving
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 35),
+        "personality": None,
+    },
+    "Raider": {
+        "positions": {"CM", "AM"},  # scores from midfield, arrives late in the box
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.15 and s.get("kp90", 0) < 1.5),
+        "personality": None,
+    },
+    "Battering Ram": {
+        "positions": {"CF"},  # physical striker, holds up play, wins aerials
+        "check": lambda s, p: (s.get("height", 0) >= 185 and s.get("duel_pct", 0) >= 55),
+        "personality": None,
+    },
+    "Drifter": {
+        "positions": {"CF", "AM"},  # false 9, drops deep, combines and creates space
+        "check": lambda s, p: (s.get("ap90", 0) >= 0.1 and s.get("kp90", 0) >= 1.0 and s.get("gp90", 0) < 0.35),
+        "personality": None,
+    },
+    "Sentry": {
+        "positions": {"CD", "DM"},  # no-frills defender, positionally sound
+        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 2 and s.get("duel_pct", 0) >= 50),
+        "personality": None,
+    },
+    "Safety": {
+        "positions": {"CD", "WD"},  # last man back, recovery pace, sweeps up behind
+        "check": lambda s, p: (s.get("pace_grade", 0) >= 10 and s.get("def_actions_p90", 0) >= 1.5),
+        "personality": None,
+    },
+
+    # ── GOALKEEPERS ──────────────────────────────────────────────
     "Wall": {
         "positions": {"GK"},
-        "check": lambda s, p: s.get("save_pct", 0) >= 72,
-        "personality": ["INSC", "ANSC"],
+        "check": lambda s, p: (s.get("rating", 0) >= 6.95 and s.get("minutes", 0) >= 1500),
+        "personality": None,
     },
-    "Libero": {
+    "Sweeper": {
         "positions": {"GK"},
-        "check": lambda s, p: s.get("pass_acc", 0) >= 75,
-        "personality": ["ANSP", "ANLP"],
-    },
-    "Cat": {
-        "positions": {"GK"},
-        "check": lambda s, p: s.get("save_pct", 0) >= 70,
-        "personality": ["IX__", "IN__"],
-    },
-    "Organiser": {
-        "positions": {"GK"},
-        "check": lambda s, p: (s.get("age", 0) >= 33 and p.get("competitiveness", 0) >= 7),
-        "personality": ["ANLC", "INLC"],
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 60 and s.get("rating", 0) >= 6.7 and s.get("minutes", 0) >= 1500),
+        "personality": None,
     },
 }
 
 # Priority order: first match wins (elite archetypes first)
 ARCHETYPE_PRIORITY = [
-    "Hitman", "Magician", "General", "Colossus", "Rock", "Maestro", "Wall",
-    "All-Rounder", "Metronome", "Rolls Royce", "Tower", "Conductor",
-    "Predator", "Roadrunner", "Trickster", "Technician", "Fox",
-    "Workhorse", "Terrier", "Dynamo", "Spark Plug",
-    "Schemer", "Water Carrier", "Warrior", "Marauder", "Chameleon",
-    "Reader", "Libero", "Cat", "Organiser",
+    # Elite (rare, prestigious)
+    "Marksman", "Conjurer", "Virtuoso", "Hunter",
+    # Creative / Authority
+    "Architect", "Marshal", "Fulcrum", "Artisan",
+    # Tempo / Control
+    "Pulse", "Fortress",
+    # Physical / Combative
+    "Goliath", "Warrior", "Bastion", "Terrier",
+    # Direct
+    "Outlet", "Fox",
+    # Defensive
+    "Lockdown", "Reader",
+    # Role players
+    "Utility", "Grafter", "Support",
+    # Mid-tier / catch-all
+    "Battering Ram", "Drifter", "Raider", "Connector", "Sentry", "Safety",
+    # Goalkeepers
+    "Wall", "Sweeper",
 ]
 
 
@@ -430,7 +445,7 @@ def main():
 
         for arch_name in ARCHETYPE_PRIORITY:
             defn = POSITIONAL_ARCHETYPES[arch_name]
-            if pos not in defn["positions"]:
+            if defn["positions"] is not None and pos not in defn["positions"]:
                 continue
 
             # Check personality gate
@@ -454,7 +469,7 @@ def main():
             # Simple aspiring: scale thresholds by 0.8 and re-check
             for arch_name in ARCHETYPE_PRIORITY:
                 defn = POSITIONAL_ARCHETYPES[arch_name]
-                if pos not in defn["positions"]:
+                if defn["positions"] is not None and pos not in defn["positions"]:
                     continue
                 if defn["personality"] is not None:
                     if not pers_type or not pers_matches(pers_type, defn["personality"]):
@@ -517,11 +532,7 @@ def main():
         if total_reds >= 3 and coach <= 3:
             behavioral = "Fiery"
 
-        # Lifer overrides everything
-        if legacy == "Lifer":
-            earned = None
-            tier = "unclassified"
-            behavioral = None
+        # Lifer is a legacy tag alongside the positional archetype — don't override
 
         results.append((pid, earned, tier, legacy, behavioral))
 

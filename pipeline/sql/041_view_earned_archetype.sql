@@ -1,6 +1,5 @@
--- 040: Add tactical_score, mental_score, overall_pillar_score to player_intelligence_card view
--- These columns were added to player_profiles in migration 039 and computed by /api/cron/assessments
--- but were not yet exposed in the view.
+-- 041: Add earned archetype columns to player_intelligence_card view
+-- Exposes earned_archetype, archetype_tier, legacy_tag, behavioral_tag from player_profiles
 
 CREATE OR REPLACE VIEW player_intelligence_card AS
 SELECT
@@ -34,6 +33,10 @@ SELECT
   pp.best_role_score,
   pp.fingerprint,
   pp.side,
+  pp.earned_archetype,
+  pp.archetype_tier,
+  pp.legacy_tag,
+  pp.behavioral_tag,
   pper.ei,
   pper.sn,
   pper.tf,
@@ -73,4 +76,4 @@ LEFT JOIN player_personality pper ON pper.person_id = p.id
 LEFT JOIN player_market pm ON pm.person_id = p.id
 LEFT JOIN player_status ps ON ps.person_id = p.id;
 
-COMMENT ON VIEW player_intelligence_card IS 'Single-query Player Intelligence Card dossier with four-pillar scores.';
+COMMENT ON VIEW player_intelligence_card IS 'Single-query Player Intelligence Card dossier with earned archetypes and four-pillar scores.';

@@ -9,6 +9,8 @@
 ### Four-Pillar & Scoring
 - [x] ~~Precompute pillar scores~~ — cron endpoint + GitHub Actions daily. 15k scored. View update SQL in `pipeline/sql/039_pillar_scores.sql`
 - [ ] **Valuation integration** — feed four-pillar scores into valuation engine (Phase 5)
+- [x] ~~Valuation GK model fix~~ — min 2 attrs per model in `valuation_core/data_loader.py`. 12,632 revalued. Kane €123m→€81m.
+- [ ] **Re-run valuation with --force** — ~4,200 players still have stale pre-fix valuations
 
 ### Product & UX
 - [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
@@ -40,7 +42,8 @@
 - [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
 - [ ] Add MiniRadar to TrendingPlayers component (homepage)
 - [ ] **Formations seed** — populate from research data
-- [ ] **Product polish** — glass consistency, archetype styling
+- [ ] **Product polish** — glass consistency, archetype styling (29 new archetype names need UI update)
+- [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15% (was 7%)
 - [ ] **Free agent grader** — ranked shortlists
 - [ ] **Scouting radar** — statistical alert system
 - [ ] **News-driven alerts** on player list

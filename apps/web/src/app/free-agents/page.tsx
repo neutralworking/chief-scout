@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { ageCurveScore } from "@/lib/assessment/four-pillars";
 import { getCardTheme, CardTheme } from "@/lib/archetype-themes";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import { MiniRadar } from "@/components/MiniRadar";
 import { PlayerCard } from "@/components/PlayerCard";
 import Link from "next/link";
@@ -21,6 +22,7 @@ interface FreeAgent {
   club: string | null;
   club_id: number | null;
   position: string | null;
+  side: string | null;
   level: number | null;
   best_role: string | null;
   best_role_score: number | null;
@@ -75,6 +77,16 @@ function formatValue(eur: number | null): string {
   if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(1)}m`;
   if (eur >= 1_000) return `€${(eur / 1_000).toFixed(0)}k`;
   return `€${eur}`;
+}
+
+const WIDE_POSITIONS = new Set(["WF", "WD", "WM"]);
+const SIDE_ABBREV: Record<string, string> = { Left: "L", Right: "R", Both: "L/R" };
+
+function posWithSide(position: string | null, side: string | null): string {
+  if (!position) return "–";
+  if (!side || !WIDE_POSITIONS.has(position)) return position;
+  const abbr = SIDE_ABBREV[side];
+  return abbr ? `${position} (${abbr})` : position;
 }
 
 const TABS = [
@@ -238,7 +250,7 @@ function FreeAgentsContent() {
                   <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
                     <td className="py-2 px-4">
                       <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
-                        {player.position ?? "–"}
+                        {posWithSide(player.position, player.side)}
                       </span>
                     </td>
                     <td className="py-2 px-4">
@@ -271,7 +283,13 @@ function FreeAgentsContent() {
                         <div className="w-12 h-12 mx-auto" />
                       )}
                     </td>
-                    <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
+                    <td className="py-2 px-4 text-xs hidden xl:table-cell">
+                      {(player.earned_archetype || player.archetype) ? (
+                        <span style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype) }}>
+                          {player.earned_archetype ?? player.archetype}
+                        </span>
+                      ) : "–"}
+                    </td>
                     <td className="py-2 px-4 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
                       {player.goals ?? "–"}
                     </td>
@@ -341,7 +359,7 @@ function FreeAgentsContent() {
                 club: player.club ? (isFreeTab ? `ex-${player.club}` : player.club) : null,
                 club_id: player.club_id,
                 league_name: null,
-                position: player.position,
+                position: posWithSide(player.position, player.side),
                 level: player.level,
                 archetype: player.archetype,
                 model_id: null,

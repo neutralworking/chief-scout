@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS } from "@/lib/types";
 import { EditableCell } from "@/components/EditableCell";
+import { getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
@@ -411,11 +412,7 @@ function PlayersContent() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs text-[var(--text-muted)]">{player.club || ""}</span>
                             {player.earned_archetype && (
-                              <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${
-                                player.archetype_tier === "elite" ? "bg-amber-500/20 text-amber-400" :
-                                player.archetype_tier === "established" ? "bg-emerald-500/15 text-emerald-400" :
-                                "bg-blue-500/10 text-blue-400/70"
-                              }`}>
+                              <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
                                 {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
                               </span>
                             )}

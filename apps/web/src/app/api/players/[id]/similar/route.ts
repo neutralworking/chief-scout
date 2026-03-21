@@ -2,7 +2,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
 const SOURCE_FIELDS =
-  "person_id, name, position, archetype, earned_archetype, overall, best_role, best_role_score, technical_score, physical_score, personality_type, preferred_foot, side, club, nation, image_url, pursuit_status";
+  "person_id, name, position, archetype, earned_archetype, overall, best_role, best_role_score, technical_score, physical_score, personality_type, preferred_foot, side, club, nation, image_url, pursuit_status, active, peak" as const;
 
 export async function GET(
   _req: Request,
@@ -29,7 +29,7 @@ export async function GET(
   const [activeRes, legendRes] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
-      .select(SOURCE_FIELDS + ", active, peak")
+      .select(SOURCE_FIELDS)
       .eq("position", source.position)
       .eq("active", true)
       .neq("person_id", playerId)
@@ -37,7 +37,7 @@ export async function GET(
       .limit(500),
     supabaseServer
       .from("player_intelligence_card")
-      .select(SOURCE_FIELDS + ", active, peak")
+      .select(SOURCE_FIELDS)
       .eq("position", source.position)
       .eq("active", false)
       .not("best_role_score", "is", null)

@@ -298,6 +298,8 @@ def _process_grades(
         )
 
     # Compute archetype scores from attributes
+    # Require at least 2 of 4 attributes populated to score a model —
+    # prevents a single stray grade (e.g. reactions on a CF) inflating irrelevant models
     archetype_scores: dict[str, float] = {}
     for model, model_attrs in MODEL_ATTRIBUTES.items():
         values = []
@@ -305,7 +307,7 @@ def _process_grades(
             grade = attributes.get(attr)
             if grade:
                 values.append(grade.effective_grade)
-        if values:
+        if len(values) >= 2:
             # Mean of attributes × 10 → 0-100 scale
             archetype_scores[model] = min(round(sum(values) / len(values) * 10, 1), 100)
 

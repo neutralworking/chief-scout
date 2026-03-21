@@ -94,31 +94,27 @@ def main():
     conn.autocommit = False
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Aggregate Understat per-90 stats for matched players
-    print(f"Aggregating Understat stats (min {MIN_MINUTES} mins)...")
+    # Read pre-aggregated Understat stats (from understat_player_agg table)
+    print(f"Loading Understat aggregates (min {MIN_MINUTES} mins)...")
     cur.execute("""
         SELECT
             pil.person_id,
-            p.name,
-            sum(upms.time::numeric) as total_mins,
-            sum(upms.xg::numeric) as total_xg,
-            sum(upms.xa::numeric) as total_xa,
-            sum(upms.key_passes::numeric) as total_kp,
-            sum(upms.shots::numeric) as total_shots,
-            sum(upms.goals::numeric) as total_goals,
-            sum(upms.assists::numeric) as total_assists,
-            sum(upms.xgchain::numeric) as total_chain,
-            sum(upms.xgbuildup::numeric) as total_buildup,
-            sum(upms.npg::numeric) as total_npg,
-            sum(CASE WHEN upms.xg::numeric > 0
-                THEN upms.xg::numeric - (upms.xg::numeric - (upms.goals::numeric - upms.npg::numeric) * upms.xg::numeric / NULLIF(upms.goals::numeric,0))
-                ELSE 0 END) as total_npxg_approx
+            ua.player_name as name,
+            ua.minutes::numeric as total_mins,
+            ua.xg::numeric as total_xg,
+            ua.xa::numeric as total_xa,
+            ua.key_passes::numeric as total_kp,
+            ua.shots::numeric as total_shots,
+            ua.goals::numeric as total_goals,
+            ua.assists::numeric as total_assists,
+            ua.xgchain::numeric as total_chain,
+            ua.xgbuildup::numeric as total_buildup,
+            ua.npg::numeric as total_npg,
+            ua.xg::numeric as total_npxg_approx
         FROM player_id_links pil
-        JOIN understat_player_match_stats upms ON upms.player_id::text = pil.external_id
-        JOIN people p ON p.id = pil.person_id
-        WHERE pil.source = 'understat' AND upms.time > 0
-        GROUP BY pil.person_id, p.name
-        HAVING sum(upms.time::numeric) >= %s
+        JOIN understat_player_agg ua ON ua.player_id::text = pil.external_id
+        WHERE pil.source = 'understat'
+          AND ua.minutes >= %s
     """, (MIN_MINUTES,))
     players = cur.fetchall()
     print(f"  {len(players):,} players with {MIN_MINUTES}+ minutes")

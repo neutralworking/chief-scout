@@ -22,6 +22,7 @@ import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import type { PlayerValuation } from "@/lib/types";
+import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
@@ -82,6 +83,10 @@ interface IntelligenceCard {
   coachability: number | null;
   xp_level: number | null;
   legacy_score: number | null;
+  earned_archetype: string | null;
+  archetype_tier: string | null;
+  legacy_tag: string | null;
+  behavioral_tag: string | null;
 }
 
 interface FBRefStat {
@@ -422,10 +427,20 @@ export default async function PlayerDetailPage({
 
           {/* Row 2: Meta chips — archetype, personality, valuation, tags, links */}
           <div className="mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-3 gap-y-1">
-            {player.archetype && (
+            {(player.earned_archetype || player.archetype) && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Style</span>
-                <span className="text-[11px] font-semibold text-[var(--color-accent-tactical)]">{player.archetype}</span>
+                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">
+                  {player.earned_archetype ? "Archetype" : "Style"}
+                </span>
+                {player.earned_archetype ? (
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
+                    {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold" style={{ color: getArchetypeColor(player.archetype) }}>
+                    {player.archetype}
+                  </span>
+                )}
               </div>
             )}
 

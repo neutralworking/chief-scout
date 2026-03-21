@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { PERSONALITY_TYPES } from "@/lib/personality";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 // ── Personality system constants ─────────────────────────────────────────────
 
@@ -317,10 +318,12 @@ export default function PersonalityReassessmentPage() {
                         <span className="text-[10px] text-[var(--text-muted)] ml-1.5">{p.club}</span>
                       </td>
                       <td
-                        className="py-1.5 px-2 text-xs text-[var(--text-secondary)] hidden md:table-cell cursor-pointer"
+                        className="py-1.5 px-2 text-xs hidden md:table-cell cursor-pointer"
                         onClick={() => setActiveId(isActive ? null : p.person_id)}
                       >
-                        {p.archetype || "–"}
+                        {p.archetype ? (
+                          <span style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span>
+                        ) : "–"}
                       </td>
                       <td
                         className="py-1.5 px-2 text-center cursor-pointer"
@@ -467,7 +470,7 @@ function AssessmentPanel({
             </Link>
             <p className="text-[10px] text-[var(--text-muted)]">
               {player.club} · {player.nation} · {age != null ? `${age}y` : "?"} · {player.position}
-              {player.archetype && ` · ${player.archetype}`}
+              {player.archetype && <>{" · "}<span style={{ color: getArchetypeColor(player.archetype) }}>{player.archetype}</span></>}
               {player.peak != null && ` · Peak: ${player.peak}`}
               {player.active === false && " · Retired"}
             </p>

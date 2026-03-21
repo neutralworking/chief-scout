@@ -6,6 +6,7 @@ import { RadarChart } from "@/components/RadarChart";
 import { MODEL_ATTRIBUTES, MODEL_LABEL, MODEL_SHORT } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { POSITION_COLORS } from "@/lib/types";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 /* ────────────────────────── Types ────────────────────────── */
 
@@ -26,6 +27,7 @@ interface ComparePlayer {
   nation: string | null;
   height_cm: number | null;
   preferred_foot: string | null;
+  side: string | null;
   level: number | null;
   overall: number | null;
   archetype: string | null;
@@ -555,6 +557,14 @@ export default function ComparePage() {
                   ))}
                 </tr>
                 <tr>
+                  <td className="text-[var(--text-muted)] py-1">Side</td>
+                  {players.map((p) => (
+                    <td key={p.person_id} className="px-2 py-1 capitalize">
+                      {p.side ?? "—"}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
                   <td className="text-[var(--text-muted)] py-1">Overall</td>
                   {players.map((p) => (
                     <td key={p.person_id} className="px-2 py-1 font-bold">
@@ -566,7 +576,9 @@ export default function ComparePage() {
                   <td className="text-[var(--text-muted)] py-1">Archetype</td>
                   {players.map((p) => (
                     <td key={p.person_id} className="px-2 py-1">
-                      {p.archetype ?? "—"}
+                      {p.archetype ? (
+                        <span style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span>
+                      ) : "—"}
                     </td>
                   ))}
                 </tr>

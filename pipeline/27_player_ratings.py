@@ -380,6 +380,60 @@ def has_differentiated_data(model_scores):
     return len(set(values)) > 1
 
 
+def _compute_base_gk_score(grades):
+    """Compute a GK model score using the BASE attributes (agility, footwork,
+    handling, reactions) rather than the overridden ones.  Used for role
+    selection so GKs whose data comes from eafc_inferred (which provides the
+    base attrs, not positioning/awareness/pass_range/throwing) still get a
+    valid GK model score for role assignment.
+
+    Returns the score (0-99) or None if no matching attributes found.
+    """
+    base_gk_attrs = _BASE_MODEL_ATTRIBUTES["GK"]  # agility, footwork, handling, reactions
+
+    # Build best-grade-per-attribute map (same logic as compute_model_scores)
+    best = {}
+    for g in grades:
+        source = g.get("source", "")
+        attr = g["attribute"].lower().replace(" ", "_")
+        if g["scout_grade"] is not None and g["scout_grade"] > 0:
+            score_20 = min(g["scout_grade"], 20)
+        elif g.get("stat_score") is not None and g["stat_score"] > 0:
+            if source in ("statsbomb", "eafc_inferred"):
+                score_20 = min(g["stat_score"], 20)
+            elif source == "understat":
+                score_20 = min(g["stat_score"] * 1.7, 17)
+            else:
+                score_20 = min(g["stat_score"] * 2, 20)
+        else:
+            continue
+        priority = SOURCE_PRIORITY.get(source, 0)
+        existing = best.get(attr)
+        if existing is None or priority > existing[1]:
+            best[attr] = (score_20, priority)
+
+    values = []
+    used_attrs = set()
+    for a in base_gk_attrs:
+        if a in best:
+            values.append(best[a][0])
+            used_attrs.add(a)
+        else:
+            alias = ATTRIBUTE_ALIASES.get(a)
+            if alias and alias in best and alias not in used_attrs:
+                values.append(best[alias][0])
+                used_attrs.add(alias)
+
+    if not values:
+        return None
+
+    coverage_confidence = {4: 1.0, 3: 0.95, 2: 0.85, 1: 0.70}
+    avg = sum(values) / len(values)
+    full_score = min(avg * 5, 99)
+    confidence = coverage_confidence.get(len(values), 0.70)
+    return round(full_score * confidence)
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -528,6 +582,15 @@ def main():
                 r = raw_scores.get(k, 0)
                 a = anchored_scores.get(k, 0)
                 role_scores[k] = round(r * (1 - anchor_pct) + a * anchor_pct)
+
+        # GK fix: the overridden MODEL_ATTRIBUTES["GK"] uses positioning/
+        # awareness/pass_range/throwing for compound scoring, but data sources
+        # actually provide agility/footwork/handling/reactions (the base model).
+        # Recompute "GK" model score from base attrs so role selection works.
+        if position == "GK" and "GK" not in role_scores:
+            base_gk_score = _compute_base_gk_score(grades)
+            if base_gk_score is not None:
+                role_scores["GK"] = base_gk_score
 
         best_role, best_role_score = compute_best_role(role_scores, position)
 

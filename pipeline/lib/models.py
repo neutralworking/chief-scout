@@ -33,7 +33,7 @@ MODEL_SHORT = {
 SOURCE_PRIORITY = {
     "scout_assessment": 5,
     "statsbomb": 4,
-    "fbref": 3,
+    "fbref": 0,  # Demoted: CSV import only has goals/assists, no advanced stats. Grades for creativity/vision/through_balls are all assists_per_90 — garbage proxy that poisons scores.
     "api_football": 3,
     "kaggle_pl": 2,
     "kaggle_euro": 2,

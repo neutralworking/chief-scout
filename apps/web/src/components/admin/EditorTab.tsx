@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 interface PlayerResult {
   person_id: number;
@@ -152,7 +153,7 @@ export function EditorTab() {
                       <span className="text-[10px] font-mono text-[var(--text-muted)]">OVR {p.level}</span>
                     )}
                     {p.archetype && (
-                      <span className="text-[10px] text-purple-400">{p.archetype}</span>
+                      <span className="text-[10px]" style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span>
                     )}
                   </div>
                   <div className="text-xs text-[var(--text-muted)] mt-0.5">

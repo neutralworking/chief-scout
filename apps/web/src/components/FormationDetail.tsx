@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import { scorePlayerForRole, getRoleReference, getFormationBlueprint, getSlotBlueprint, ROLE_INTELLIGENCE, type SlotBlueprint } from "@/lib/formation-intelligence";
 
 interface FormationSlot {
@@ -374,7 +375,7 @@ export function FormationDetail({
                                     <span className="text-[10px] font-mono text-[var(--text-muted)]">OVR {player.level}</span>
                                   )}
                                   {player.archetype && (
-                                    <span className="text-[9px] text-[var(--text-muted)]">{player.archetype}</span>
+                                    <span className="text-[9px]" style={{ color: getArchetypeColor(player.archetype) }}>{player.archetype}</span>
                                   )}
                                   {player.personality_type && slot.role && (() => {
                                     const intel = ROLE_INTELLIGENCE[slot.role!.name];

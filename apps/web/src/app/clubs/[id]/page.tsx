@@ -4,6 +4,7 @@ import { POSITIONS, POSITION_COLORS } from "@/lib/types";
 import { computeAge } from "@/lib/types";
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 interface ClubPlayer {
   person_id: number;
@@ -19,6 +20,7 @@ interface ClubPlayer {
   nation: string | null;
   fingerprint: number[] | null;
   best_role: string | null;
+  side: string | null;
 }
 
 interface ClubPageProps {
@@ -98,7 +100,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
   if (personIds.length > 0) {
     const { data: playersData } = await supabaseServer
       .from("player_intelligence_card")
-      .select("person_id, name, dob, position, level, overall, archetype, pursuit_status, scouting_notes, squad_role, nation, fingerprint, best_role")
+      .select("person_id, name, dob, position, level, overall, archetype, pursuit_status, scouting_notes, squad_role, nation, fingerprint, best_role, side")
       .in("person_id", personIds)
       .order("overall", { ascending: false, nullsFirst: false });
     players = (playersData ?? []) as ClubPlayer[];
@@ -476,9 +478,9 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                       const pct = Math.round((count / players.length) * 100);
                       return (
                         <div key={archetype} className="flex items-center gap-2">
-                          <span className="text-[10px] text-[var(--text-secondary)] w-28 truncate">{archetype}</span>
+                          <span className="text-[10px] w-28 truncate" style={{ color: getArchetypeColor(archetype) }}>{archetype}</span>
                           <div className="flex-1 h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
-                            <div className="h-full rounded-full bg-[var(--color-accent-tactical)]/40" style={{ width: `${Math.max(pct, 5)}%` }} />
+                            <div className="h-full rounded-full" style={{ width: `${Math.max(pct, 5)}%`, backgroundColor: getArchetypeColor(archetype), opacity: 0.5 }} />
                           </div>
                           <span className="text-[10px] font-mono text-[var(--text-muted)] w-4 text-right">{count}</span>
                         </div>
@@ -519,12 +521,16 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                         </td>
                         <td className="py-1.5">
                           <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${posColor} text-white`}>
-                            {p.position ?? "–"}
+                            {p.position ?? "–"}{p.side && ["WF", "WD", "WM"].includes(p.position ?? "") ? ` (${p.side.charAt(0).toUpperCase()})` : ""}
                           </span>
                         </td>
                         <td className="py-1.5 text-right text-xs font-mono text-[var(--text-secondary)]">{age ?? "–"}</td>
                         <td className={`py-1.5 text-right text-xs font-mono font-bold ${ratingColor(p.overall)}`}>{p.overall ?? "–"}</td>
-                        <td className="py-1.5 text-[10px] text-[var(--text-secondary)]">{p.archetype ?? "–"}</td>
+                        <td className="py-1.5 text-[10px]">
+                          {p.archetype ? (
+                            <span style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span>
+                          ) : "–"}
+                        </td>
                         <td className="py-1.5 text-[10px] text-[var(--text-muted)] hidden md:table-cell">
                           {p.squad_role ? p.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) : "–"}
                         </td>

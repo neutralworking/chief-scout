@@ -6,6 +6,7 @@ import Link from "next/link";
 import { POSITION_COLORS, computeAge } from "@/lib/types";
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import { useAuth } from "@/components/AuthProvider";
 
 interface ShortlistDetail {
@@ -271,7 +272,7 @@ export default function ShortlistDetailPage() {
                   {age != null && <span>&middot; {age}</span>}
                   {p.nation && <span>&middot; {p.nation}</span>}
                   {p.archetype && (
-                    <span className="text-[var(--text-muted)]">&middot; {p.archetype}</span>
+                    <span style={{ color: getArchetypeColor(p.archetype) }}>&middot; {p.archetype}</span>
                   )}
                 </div>
                 {entry.scout_note && (

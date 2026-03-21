@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
 
@@ -56,7 +57,7 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
                 </p>
                 <p className="text-xs text-[var(--text-secondary)] truncate">
                   {p.club}
-                  {p.archetype && ` · ${p.archetype}`}
+                  {p.archetype && <>{" · "}<span style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span></>}
                 </p>
               </div>
               <div className="shrink-0 flex items-center gap-2">

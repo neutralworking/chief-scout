@@ -11,6 +11,7 @@ import {
   hasAnyPillarScore,
   type PillarKey,
 } from "@/lib/pillar-colors";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 const PILLAR_BORDER: Record<PillarKey, string> = {
   technical: "border-l-amber-500",
@@ -40,7 +41,8 @@ function nationFlag(code: string | null | undefined): string {
 
 export function PlayerCard({ player }: { player: PlayerCardType }) {
   const age = computeAge(player.dob);
-  const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
+  const posBase = (player.position ?? "").split(" ")[0];
+  const posColor = POSITION_COLORS[posBase] ?? "bg-zinc-700/60";
 
   const pillarScores = {
     technical: player.technical_score ?? null,
@@ -88,8 +90,8 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           {age !== null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0">{age}y</span></>
           )}
-          {player.archetype && (
-            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: PILLAR_HEX.technical }}>{player.archetype}</span></>
+          {(player.earned_archetype || player.archetype) && (
+            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype) }}>{player.earned_archetype ?? player.archetype}</span></>
           )}
         </div>
 

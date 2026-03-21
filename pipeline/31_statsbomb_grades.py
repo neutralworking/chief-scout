@@ -71,6 +71,13 @@ def main():
     if args.competition:
         comp_filter = "AND m.competition_id = %s"
         comp_params = [args.competition]
+    else:
+        # Default: only recent tournaments + full seasons (skip sparse data)
+        comp_filter = """AND (
+            m.competition_id IN (55, 223)  -- UEFA Euro, Copa America (all editions)
+            OR (m.competition_id = 43 AND c.season_name = '2022')  -- WC 2022
+            OR (m.competition_id IN (11, 2, 7, 9, 12) AND c.season_name = '2015/2016')  -- Full 15/16 seasons
+        )"""
 
     cur.execute(f"""
         SELECT m.match_id, m.competition_id, c.competition_name, c.season_name
@@ -245,10 +252,8 @@ def main():
         return
 
     # ── Write grades ─────────────────────────────────────────────────────
-    print("  Clearing old statsbomb grades...")
-    cur.execute("DELETE FROM attribute_grades WHERE source = 'statsbomb'")
-    deleted = cur.rowcount
-    print(f"  Deleted {deleted:,} old rows")
+    # Upsert handles conflicts — no need to clear all statsbomb grades.
+    # Just let new scores overwrite old ones for the same player+attribute.
 
     print("  Writing new grades...")
     BATCH = 2000

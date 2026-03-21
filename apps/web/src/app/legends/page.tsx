@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
 import { EditableCell } from "@/components/EditableCell";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import Link from "next/link";
 
 const NATION_FLAGS: Record<string, string> = {};
@@ -208,7 +209,7 @@ function LegendsContent() {
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
                     <th className="text-left py-1.5 px-3 font-medium">Last Club</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell"></th>
-                    <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Archetype</th>
+                    <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Skillset</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
@@ -235,7 +236,11 @@ function LegendsContent() {
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)]">{player.club || "–"}</td>
                         <td className="py-1.5 px-3 text-xs hidden lg:table-cell" title={player.nation || ""}>{player.nation ? nationFlag(player.nation) : "–"}</td>
-                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.archetype || "–"}</td>
+                        <td className="py-1.5 px-3 text-xs hidden xl:table-cell">
+                          {player.archetype ? (
+                            <span style={{ color: getArchetypeColor(player.archetype) }}>{player.archetype}</span>
+                          ) : "–"}
+                        </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
                         <td className="py-1.5 px-3 text-xs text-purple-400 hidden xl:table-cell">
                           {pName || "–"}

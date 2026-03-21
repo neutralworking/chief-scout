@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 
 interface SimilarPlayer {
   person_id: number;
@@ -18,8 +19,19 @@ interface SimilarPlayer {
   similarity: number;
 }
 
+interface LegendComp {
+  person_id: number;
+  name: string;
+  position: string | null;
+  archetype: string | null;
+  best_role: string | null;
+  peak: number | null;
+  similarity: number;
+}
+
 export function SimilarPlayers({ playerId }: { playerId: number }) {
   const [players, setPlayers] = useState<SimilarPlayer[]>([]);
+  const [legendComps, setLegendComps] = useState<LegendComp[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +41,7 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
         if (res.ok) {
           const data = await res.json();
           setPlayers(data.players ?? []);
+          setLegendComps(data.legendComps ?? []);
         }
       } catch {
         // silently fail
@@ -47,10 +60,30 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
     );
   }
 
-  if (players.length === 0) return null;
+  if (players.length === 0 && legendComps.length === 0) return null;
 
   return (
     <div className="glass rounded-xl p-3">
+      {/* Legend comparisons */}
+      {legendComps.length > 0 && (
+        <div className="mb-3">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-amber-400/80 mb-1.5">Plays Like</h3>
+          <div className="space-y-1">
+            {legendComps.map((leg) => (
+              <Link
+                key={leg.person_id}
+                href={`/players/${leg.person_id}`}
+                className="flex items-center gap-2 px-2 py-1.5 -mx-2 rounded-md bg-amber-400/5 border border-amber-400/10 hover:bg-amber-400/10 transition-colors"
+              >
+                <span className="text-amber-400 text-xs font-semibold truncate">{leg.name}</span>
+                {leg.peak && <span className="text-[10px] font-mono font-bold text-amber-400/60 shrink-0">{leg.peak}</span>}
+                {leg.best_role && <span className="text-[9px] text-[var(--text-muted)] shrink-0">{leg.best_role}</span>}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Similar Players</h3>
       <div className="space-y-0.5">
         {players.map((p) => {
@@ -80,7 +113,7 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
                   {p.archetype && (
                     <>
                       <span>&middot;</span>
-                      <span className="text-[var(--color-accent-tactical)] shrink-0">{p.archetype}</span>
+                      <span className="shrink-0" style={{ color: getArchetypeColor(p.archetype) }}>{p.archetype}</span>
                     </>
                   )}
                 </div>

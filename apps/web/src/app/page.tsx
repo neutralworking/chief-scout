@@ -62,7 +62,7 @@ function dailySeed(): number {
 
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
 
-const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, personality_type, market_value_tier, dob, blueprint, scouting_notes" as const;
+const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, earned_archetype, best_role, best_role_score, personality_type, market_value_tier, dob, blueprint, scouting_notes" as const;
 
 async function getDashboardData() {
   if (!supabaseServer) return null;
@@ -135,7 +135,9 @@ async function getDashboardData() {
   type FeaturedProfile = {
     person_id: number; name: string; position: string | null; club: string | null;
     nation: string | null; level: number | null; overall: number | null;
-    archetype: string | null; personality_type: string | null;
+    archetype: string | null; earned_archetype: string | null;
+    best_role: string | null; best_role_score: number | null;
+    personality_type: string | null;
     market_value_tier: string | null; dob: string | null; blueprint: string | null;
     scouting_notes: string | null;
   };

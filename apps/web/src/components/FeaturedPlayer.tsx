@@ -6,6 +6,7 @@ import { POSITION_COLORS } from "@/lib/types";
 import { MODEL_LABEL } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getCardTheme, THEME_STYLES } from "@/lib/archetype-themes";
+import { getArchetypeColor } from "@/lib/archetype-styles";
 import { RadarChart } from "./RadarChart";
 import { ScoutingNotes } from "./ScoutingNotes";
 
@@ -18,6 +19,9 @@ interface FeaturedPlayerData {
   level: number | null;
   overall: number | null;
   archetype: string | null;
+  earned_archetype: string | null;
+  best_role: string | null;
+  best_role_score: number | null;
   blueprint: string | null;
   personality_type: string | null;
   market_value_tier: string | null;
@@ -31,12 +35,11 @@ interface FeaturedPlayerData {
 }
 
 const POSITIONS = ["GK", "CD", "WD", "DM", "CM", "WM", "AM", "WF", "CF"] as const;
-const OUTFIELD_MODELS = ["Controller", "Commander", "Creator", "Target", "Sprinter", "Powerhouse", "Cover", "Engine", "Destroyer", "Dribbler", "Passer", "Striker"];
-const GK_MODELS = ["GK", "Cover", "Commander", "Controller", "Passer"];
 
 interface RadarData {
   modelScores: Record<string, number>;
   positionScores: Record<string, number>;
+  positionModels: Record<string, string[]>;
   roleScores: Record<string, Array<{ name: string; primary: string; secondary: string; score: number }>>;
   hasData: boolean;
   hasDifferentiatedData: boolean;
@@ -102,22 +105,33 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
       .then((r) => r.json())
       .then((d) => {
         setRadarData(d);
-        const roles = d.roleScores?.[player.position ?? "CM"];
-        if (roles?.length) setSelectedRole(roles[0].name);
+        const pos = player.position ?? "CM";
+        const roles = d.roleScores?.[pos];
+        // Prefer stored best_role if it exists in the role list
+        if (player.best_role && roles?.some((r: { name: string }) => r.name === player.best_role)) {
+          setSelectedRole(player.best_role);
+        } else if (roles?.length) {
+          setSelectedRole(roles[0].name);
+        }
       })
       .catch(() => {});
-  }, [player.person_id, player.position]);
+  }, [player.person_id, player.position, player.best_role]);
 
   useEffect(() => {
     if (!radarData) return;
     const roles = radarData.roleScores?.[selectedPos];
-    if (roles?.length) setSelectedRole(roles[0].name);
-  }, [selectedPos, radarData]);
+    // If switching back to home position, prefer stored best_role
+    if (player.best_role && selectedPos === (player.position ?? "CM") && roles?.some((r) => r.name === player.best_role)) {
+      setSelectedRole(player.best_role);
+    } else if (roles?.length) {
+      setSelectedRole(roles[0].name);
+    }
+  }, [selectedPos, radarData, player.best_role, player.position]);
 
-  // Radar computations
-  const isGK = selectedPos === "GK";
-  const models = isGK ? GK_MODELS : OUTFIELD_MODELS;
-  const radarLabels = models.map((m) => MODEL_LABEL[m]);
+  // Radar computations — use position-specific models from the API (same as PlayerRadar)
+  const models = radarData?.positionModels?.[selectedPos] ??
+    Object.keys(radarData?.modelScores ?? {});
+  const radarLabels = models.map((m) => MODEL_LABEL[m] ?? m);
   const radarValues = radarData ? models.map((m) => radarData.modelScores[m] ?? 0) : [];
   const roles = radarData?.roleScores?.[selectedPos] ?? [];
   const activeRole = roles.find((r) => r.name === selectedRole) ?? roles[0];
@@ -188,9 +202,9 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           <p className="text-sm text-[var(--text-secondary)]">
             {[player.club, player.nation, age ? `${age}y` : null].filter(Boolean).join(" · ")}
           </p>
-          {player.archetype && (
-            <p className="text-xs text-[var(--accent-tactical)] mt-1">
-              {player.archetype}
+          {(player.earned_archetype || player.archetype) && (
+            <p className="text-xs mt-1" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>
+              {player.earned_archetype ?? player.archetype}
               {player.blueprint && <span className="text-[var(--text-muted)]"> · {player.blueprint}</span>}
             </p>
           )}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { getPersonalityName } from "@/lib/personality";
 import { EditableCell } from "@/components/EditableCell";
 import { getArchetypeColor } from "@/lib/archetype-styles";
+import { getModelLabel, MODEL_ATTRIBUTES } from "@/lib/models";
 import Link from "next/link";
 
 const NATION_FLAGS: Record<string, string> = {};
@@ -47,13 +48,19 @@ function nationFlag(nation: string | null | undefined): string {
 
 const PAGE_SIZE = 50;
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
+const PLAYING_MODELS = Object.keys(MODEL_ATTRIBUTES);
+
+function splitArchetype(archetype: string | null): { primary: string | null; secondary: string | null } {
+  if (!archetype) return { primary: null, secondary: null };
+  const parts = archetype.split("-");
+  return { primary: parts[0] || null, secondary: parts[1] || null };
+}
 
 interface Legend {
   person_id: number;
   name: string;
   dob: string | null;
   nation: string | null;
-  club: string | null;
   position: string | null;
   level: number | null;
   overall: number | null;
@@ -90,6 +97,118 @@ function LegendsContent() {
   function updateLocal(personId: number, field: string, value: number) {
     setPlayers((prev) =>
       prev.map((p) => (p.person_id === personId ? { ...p, [field]: value } : p))
+    );
+  }
+
+  function updateLocalArchetype(personId: number, part: "primary" | "secondary", value: string | null) {
+    setPlayers((prev) =>
+      prev.map((p) => {
+        if (p.person_id !== personId) return p;
+        const { primary, secondary } = splitArchetype(p.archetype);
+        const newPrimary = part === "primary" ? value : primary;
+        const newSecondary = part === "secondary" ? value : secondary;
+        const newArchetype = newPrimary
+          ? newSecondary ? `${newPrimary}-${newSecondary}` : newPrimary
+          : null;
+        return { ...p, archetype: newArchetype };
+      })
+    );
+  }
+
+  function SimilarActivePlayer({ personId }: { personId: number }) {
+    const [similar, setSimilar] = useState<{ name: string; person_id: number; similarity: number; club: string | null } | null>(null);
+    const [loaded, setLoaded] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (loaded) return;
+      const el = ref.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setLoaded(true);
+            observer.disconnect();
+          }
+        },
+        { rootMargin: "100px" }
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, [loaded]);
+
+    useEffect(() => {
+      if (!loaded) return;
+      fetch(`/api/players/${personId}/similar`)
+        .then((r) => r.json())
+        .then((data) => {
+          const top = data.players?.[0];
+          if (top) setSimilar({ name: top.name, person_id: top.person_id, similarity: top.similarity, club: top.club });
+        })
+        .catch(() => {});
+    }, [loaded, personId]);
+
+    return (
+      <div ref={ref} className="min-w-[100px]">
+        {!loaded || !similar ? (
+          <span className="text-[var(--text-muted)] text-[10px]">&ndash;</span>
+        ) : (
+          <Link href={`/players/${similar.person_id}`} className="group flex items-center gap-1">
+            <span className="text-[10px] text-[var(--text-secondary)] group-hover:text-white transition-colors truncate max-w-[120px]">
+              {similar.name}
+            </span>
+            <span className="text-[8px] text-[var(--text-muted)] font-mono">{Math.round(similar.similarity / 1.3)}%</span>
+          </Link>
+        )}
+      </div>
+    );
+  }
+
+  function ArchetypeEditor({ player }: { player: Legend }) {
+    const { primary, secondary } = splitArchetype(player.archetype);
+    const [flash, setFlash] = useState<"saved" | "error" | null>(null);
+
+    async function savePart(part: "primary" | "secondary", value: string | null) {
+      const newPrimary = part === "primary" ? value : primary;
+      const newSecondary = part === "secondary" ? value : secondary;
+      const compound = newPrimary
+        ? newSecondary ? `${newPrimary}-${newSecondary}` : newPrimary
+        : null;
+      updateLocalArchetype(player.person_id, part, value);
+      try {
+        const res = await fetch("/api/admin/player-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            person_id: player.person_id,
+            table: "player_profiles",
+            updates: { archetype: compound },
+          }),
+        });
+        setFlash(res.ok ? "saved" : "error");
+      } catch {
+        setFlash("error");
+      }
+      setTimeout(() => setFlash(null), 600);
+    }
+
+    const secondaryOptions = PLAYING_MODELS.filter((m) => m !== (primary ?? ""));
+    const borderColor = flash === "saved" ? "border-[var(--color-accent-tactical)]"
+      : flash === "error" ? "border-red-400" : "border-transparent";
+    const selectClass = `bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-[10px] rounded px-1 py-0.5 border ${borderColor} focus:outline-none focus:border-[var(--color-accent-tactical)]/50 cursor-pointer`;
+
+    return (
+      <div className="flex items-center gap-0.5">
+        <select value={primary ?? ""} onChange={(e) => savePart("primary", e.target.value || null)} className={selectClass}>
+          <option value="">Pri</option>
+          {PLAYING_MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <span className="text-[var(--text-muted)] text-[8px]">&ndash;</span>
+        <select value={secondary ?? ""} onChange={(e) => savePart("secondary", e.target.value || null)} className={selectClass}>
+          <option value="">Sec</option>
+          {secondaryOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
+      </div>
     );
   }
 
@@ -207,25 +326,28 @@ function LegendsContent() {
                   <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                     <th className="text-center py-1.5 px-2 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
-                    <th className="text-left py-1.5 px-3 font-medium">Last Club</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell"></th>
-                    <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Skillset</th>
-                    <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell">Best Role</th>
+                    <th className="text-left py-1.5 px-2 font-medium">Primary</th>
+                    <th className="text-left py-1.5 px-2 font-medium">Secondary</th>
+                    <th className="text-left py-1.5 px-2 font-medium hidden lg:table-cell">Model</th>
+                    <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
-                    <th className="text-right py-1.5 px-3 font-medium w-14">Score</th>
+                    <th className="text-left py-1.5 px-3 font-medium">Similar</th>
                   </tr>
                 </thead>
                 <tbody>
                   {players.map((player, idx) => {
                     const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
                     const pName = getPersonalityName(player.personality_type);
+                    const { primary, secondary } = splitArchetype(player.archetype);
+                    const modelLabel = getModelLabel(player.archetype);
 
                     return (
                       <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
                         <td className="py-1.5 px-2 text-center">
                           <span className={`text-[10px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
-                            {player.position ?? "–"}
+                            {player.position ?? "\u2013"}
                           </span>
                         </td>
                         <td className="py-1.5 px-3">
@@ -234,30 +356,35 @@ function LegendsContent() {
                             {player.name}
                           </Link>
                         </td>
-                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)]">{player.club || "–"}</td>
-                        <td className="py-1.5 px-3 text-xs hidden lg:table-cell" title={player.nation || ""}>{player.nation ? nationFlag(player.nation) : "–"}</td>
-                        <td className="py-1.5 px-3 text-xs hidden xl:table-cell">
-                          {player.archetype ? (
-                            <span style={{ color: getArchetypeColor(player.archetype) }}>{player.archetype}</span>
-                          ) : "–"}
+                        <td className="py-1.5 px-3 text-xs hidden lg:table-cell" title={player.nation || ""}>{player.nation ? nationFlag(player.nation) : "\u2013"}</td>
+                        <td className="py-1.5 px-2 text-[10px]">
+                          {isAdmin ? (
+                            <ArchetypeEditor player={player} />
+                          ) : (
+                            <span className="text-[var(--text-secondary)]">{primary ?? "\u2013"}</span>
+                          )}
                         </td>
-                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
+                        <td className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)]">
+                          {isAdmin ? null : (secondary ?? "\u2013")}
+                        </td>
+                        <td className="py-1.5 px-2 text-[10px] hidden lg:table-cell">
+                          {modelLabel ? (
+                            <span style={{ color: getArchetypeColor(modelLabel) }} className="font-medium">{modelLabel}</span>
+                          ) : <span className="text-[var(--text-muted)]">{"\u2013"}</span>}
+                        </td>
+                        <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.best_role || "\u2013"}</td>
                         <td className="py-1.5 px-3 text-xs text-purple-400 hidden xl:table-cell">
-                          {pName || "–"}
+                          {pName || "\u2013"}
                         </td>
                         <td className="py-1.5 px-3 text-right">
                           {isAdmin ? (
                             <EditableCell value={player.peak} personId={player.person_id} field="peak" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "peak", v)} />
                           ) : (
-                            <span className={`font-mono font-bold text-sm ${peakColor(player.peak)}`}>{player.peak ?? "–"}</span>
+                            <span className={`font-mono font-bold text-sm ${peakColor(player.peak)}`}>{player.peak ?? "\u2013"}</span>
                           )}
                         </td>
-                        <td className="py-1.5 px-3 text-right">
-                          {isAdmin ? (
-                            <EditableCell value={player.best_role_score} personId={player.person_id} field="best_role_score" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)} />
-                          ) : (
-                            <span className={`font-mono text-xs ${peakColor(player.best_role_score)}`}>{player.best_role_score ?? "–"}</span>
-                          )}
+                        <td className="py-1.5 px-3 text-xs">
+                          <SimilarActivePlayer personId={player.person_id} />
                         </td>
                       </tr>
                     );
@@ -270,44 +397,36 @@ function LegendsContent() {
             <div className="sm:hidden flex-1 overflow-y-auto divide-y divide-[var(--border-subtle)]/30">
               {players.map((player, idx) => {
                 const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
+                const modelLabel = getModelLabel(player.archetype);
                 return (
                   <div key={player.person_id} className="px-3 py-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`text-[10px] font-bold px-2 py-1 rounded ${posColor} text-white shrink-0`}>
-                          {player.position ?? "–"}
+                          {player.position ?? "\u2013"}
                         </span>
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
                           <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                             {player.name}
                             {player.nation && <span className="text-[11px] ml-1">{nationFlag(player.nation)}</span>}
                           </p>
-                          <p className="text-[10px] text-[var(--text-muted)] truncate">{player.club || "Unknown"}</p>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate">
+                            {modelLabel ? <span style={{ color: getArchetypeColor(modelLabel) }}>{modelLabel}</span> : player.archetype || "\u2013"}
+                            {" \u00B7 "}{player.best_role || "\u2013"}
+                          </p>
                         </Link>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-1 pl-9">
-                      <span className="text-[10px] text-[var(--text-secondary)] truncate max-w-[120px]">
-                        {player.best_role || "–"}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <div className="text-center px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]">
-                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Peak</span>
-                          {isAdmin ? (
-                            <EditableCell value={player.peak} personId={player.person_id} field="peak" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "peak", v)} />
-                          ) : (
-                            <span className={`font-mono text-xs font-bold ${peakColor(player.peak)}`}>{player.peak ?? "–"}</span>
-                          )}
-                        </div>
-                        <div className="text-center px-1.5 py-0.5">
-                          <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Score</span>
-                          {isAdmin ? (
-                            <EditableCell value={player.best_role_score} personId={player.person_id} field="best_role_score" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)} />
-                          ) : (
-                            <span className={`font-mono text-xs ${peakColor(player.best_role_score)}`}>{player.best_role_score ?? "–"}</span>
-                          )}
-                        </div>
+                      <div className="text-center px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]">
+                        <span className="text-[7px] text-[var(--text-muted)] block leading-none mb-0.5">Peak</span>
+                        {isAdmin ? (
+                          <EditableCell value={player.peak} personId={player.person_id} field="peak" table="player_profiles" rowIndex={idx} onSaved={(v) => updateLocal(player.person_id, "peak", v)} />
+                        ) : (
+                          <span className={`font-mono text-xs font-bold ${peakColor(player.peak)}`}>{player.peak ?? "\u2013"}</span>
+                        )}
                       </div>
+                    </div>
+                    <div className="mt-1 pl-9">
+                      <SimilarActivePlayer personId={player.person_id} />
                     </div>
                   </div>
                 );

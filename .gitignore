@@ -37,3 +37,6 @@ archive/
 scripts/logs/
 .worktrees/
 .vercel
+
+# Stitch skills (third-party downloads)
+.agents/

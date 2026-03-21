@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   // Peak is now in the view directly
   let query = supabase
     .from("player_intelligence_card")
-    .select("person_id, name, dob, nation, club, position, level, peak, overall, archetype, personality_type, best_role, best_role_score, fingerprint")
+    .select("person_id, name, dob, nation, position, level, peak, overall, archetype, personality_type, best_role, best_role_score, fingerprint")
     .eq("active", false);
 
   if (position) query = query.eq("position", position);

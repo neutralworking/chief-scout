@@ -48,7 +48,7 @@ function confidenceLabel(w: number): string {
   return "Level-anchored";
 }
 
-export function PlayerRadar({ playerId, position, compact = false }: { playerId: number; position: string | null; compact?: boolean }) {
+export function PlayerRadar({ playerId, position, compact = false, storedBestRole }: { playerId: number; position: string | null; compact?: boolean; storedBestRole?: string | null }) {
   const [radarData, setRadarData] = useState<RadarData | null>(null);
   const [selectedPos, setSelectedPos] = useState(position ?? "CM");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -59,16 +59,26 @@ export function PlayerRadar({ playerId, position, compact = false }: { playerId:
       .then((d) => {
         setRadarData(d);
         const roles = d.roleScores?.[position ?? "CM"];
-        if (roles?.length) setSelectedRole(roles[0].name);
+        // Prefer stored best_role if it exists in the role list for this position
+        if (storedBestRole && roles?.some((r: { name: string }) => r.name === storedBestRole)) {
+          setSelectedRole(storedBestRole);
+        } else if (roles?.length) {
+          setSelectedRole(roles[0].name);
+        }
       })
       .catch(() => {});
-  }, [playerId, position]);
+  }, [playerId, position, storedBestRole]);
 
   useEffect(() => {
     if (!radarData) return;
     const roles = radarData.roleScores?.[selectedPos];
-    if (roles?.length) setSelectedRole(roles[0].name);
-  }, [selectedPos, radarData]);
+    // If switching back to home position, prefer stored best_role
+    if (storedBestRole && selectedPos === (position ?? "CM") && roles?.some((r) => r.name === storedBestRole)) {
+      setSelectedRole(storedBestRole);
+    } else if (roles?.length) {
+      setSelectedRole(roles[0].name);
+    }
+  }, [selectedPos, radarData, storedBestRole, position]);
 
   if (!radarData?.hasData) return null;
 

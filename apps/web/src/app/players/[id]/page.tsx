@@ -528,7 +528,7 @@ export default async function PlayerDetailPage({
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1">
         {/* Left: Radar + Personality + Stats */}
         <div className="lg:overflow-y-auto space-y-1 pr-0.5">
-          <PlayerRadar playerId={player.person_id} position={player.position} compact />
+          <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
 
           {(player.ei != null || player.personality_type) && (
             <div className="glass rounded-xl p-2.5">

@@ -54,18 +54,18 @@ export const TRAIT_DEFINITIONS: TraitDefinition[] = [
 export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   press_resistant: {
     "Regista": 10, "Ball-Playing CB": 8, "Deep Playmaker": 8, "Advanced Playmaker": 6,
-    "Inverted Full-Back": 7, "Mezzala": 5, "False 9": 7, "Trequartista": 6,
+    "Inverted Full-Back": 7, "Mezzala": 5, "Falso Nove": 7, "Trequartista": 6,
     "Sweeper Keeper": 6, "Ball-Carrying CB": 8,
   },
   flamboyant: {
-    "Trequartista": 8, "Inside Forward": 5, "Inverted Winger": 5, "False 9": 4,
+    "Trequartista": 8, "Inside Forward": 5, "Inverted Winger": 5, "Falso Nove": 4,
     "Wide Playmaker": 4, "Direct Winger": 3,
     "Anchor": -5, "Stopper": -4, "Ball-Winner": -3,
   },
   direct: {
     "Direct Winger": 8, "Wide Forward": 7, "Inside Forward": 6, "Pressing Forward": 5,
-    "Poacher": 4, "Second Striker": 5, "Counter Attack Threat": 6,
-    "Regista": -3, "Deep Playmaker": -3, "False 9": -2,
+    "Poacher": 4, "Seconda Punta": 5, "Counter Attack Threat": 6,
+    "Regista": -3, "Deep Playmaker": -3, "Falso Nove": -2,
   },
   patient: {
     "Regista": 7, "Deep Playmaker": 7, "Ball-Playing CB": 5, "Advanced Playmaker": 6,
@@ -73,14 +73,14 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Direct Winger": -4, "Pressing Forward": -3,
   },
   elegant: {
-    "Trequartista": 7, "Regista": 6, "False 9": 5, "Advanced Playmaker": 5,
+    "Trequartista": 7, "Regista": 6, "Falso Nove": 5, "Advanced Playmaker": 5,
     "Wide Playmaker": 5, "Inverted Winger": 5, "Ball-Playing CB": 4,
     "Stopper": -3, "Ball-Winner": -2,
   },
   aerial_threat: {
-    "Target Man": 10, "Stopper": 7, "Complete Forward": 5, "Ball-Playing CB": 3,
+    "Prima Punta": 10, "Stopper": 7, "Complete Forward": 5, "Ball-Playing CB": 3,
     "Sweeper": 3,
-    "False 9": -2, "Regista": -1,
+    "Falso Nove": -2, "Regista": -1,
   },
   endurance: {
     "Box-to-Box": 8, "Engine": 8, "Wing-Back": 8, "Pressing Forward": 7,
@@ -94,7 +94,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   set_piece_specialist: {
     "Wide Provider": 8, "Advanced Playmaker": 6, "Deep Playmaker": 5,
-    "Target Man": 5, "Complete Forward": 3,
+    "Prima Punta": 5, "Complete Forward": 3,
   },
   positional_discipline: {
     "Anchor": 10, "Sweeper": 8, "Stopper": 7, "Cover": 7,
@@ -102,14 +102,14 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Trequartista": -4, "Raumdeuter": -3,
   },
   high_press: {
-    "Pressing Forward": 10, "Ball-Winner": 8, "Second Striker": 6,
+    "Pressing Forward": 10, "Ball-Winner": 8, "Seconda Punta": 6,
     "Direct Winger": 5, "Complete Forward": 5, "Engine": 5,
     "Mezzala": 4, "Wide Forward": 4,
     "Regista": -3, "Sweeper": -2,
   },
   counter_attack_threat: {
     "Wide Forward": 8, "Inside Forward": 7, "Direct Winger": 7,
-    "Second Striker": 6, "Poacher": 5, "Overlapping Full-Back": 4,
+    "Seconda Punta": 6, "Poacher": 5, "Overlapping Full-Back": 4,
   },
   build_up_contributor: {
     "Ball-Playing CB": 8, "Ball-Carrying CB": 8, "Sweeper Keeper": 7,
@@ -117,7 +117,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Anchor": 4,
   },
   big_game_player: {
-    "Complete Forward": 7, "Target Man": 6, "Poacher": 6,
+    "Complete Forward": 7, "Prima Punta": 6, "Poacher": 6,
     "Stopper": 5, "Box-to-Box": 5, "Inside Forward": 5,
     "Regista": 4, "Advanced Playmaker": 4,
   },
@@ -128,7 +128,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   clutch: {
     "Poacher": 8, "Inside Forward": 6, "Complete Forward": 6,
-    "Second Striker": 5, "Target Man": 5, "Box-to-Box": 4,
+    "Seconda Punta": 5, "Prima Punta": 5, "Box-to-Box": 4,
   },
   hot_headed: {
     "Ball-Winner": -2, // tolerated for destroyers

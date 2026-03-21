@@ -26,9 +26,9 @@ const BLUEPRINT_BY_POSITION: Record<string, string[]> = {
   DM: ["Anchor", "Deep-Lying Playmaker", "Conductor", "Regista", "Box-to-Box Anchor", "Ball Winner", "Holding Midfielder"],
   CM: ["Metronome", "Maestro", "Conductor", "Deep-Lying Playmaker", "Box-to-Box", "Box-to-Box Creator", "Driver", "Interior Playmaker", "Playmaker", "Technical Midfielder", "Ball Winner", "Holding Midfielder", "General"],
   WM: ["Tireless Technician", "Free-Roaming Attacker", "Wide Playmaker", "Work-Rate Winger", "Wide Runner"],
-  AM: ["Playmaker", "Floating Playmaker", "Pressing Playmaker", "No.10", "Second Striker"],
+  AM: ["Playmaker", "Floating Playmaker", "Pressing Playmaker", "No.10", "Seconda Punta"],
   WF: ["Wizard", "Explosive Winger", "Inverted Winger", "Work-Rate Winger", "Direct Winger", "Inside Forward", "Wide Playmaker", "Flanker", "Defensive Winger", "No.10"],
-  CF: ["Complete Striker", "Poacher", "Colossus", "Target Man", "Goal Machine", "Runner", "Mobile Striker", "False Nine", "Pressing Forward"],
+  CF: ["Complete Striker", "Poacher", "Colossus", "Prima Punta", "Goal Machine", "Runner", "Mobile Striker", "Falso Nove", "Pressing Forward"],
 };
 
 const ALL_BLUEPRINTS = [...new Set(Object.values(BLUEPRINT_BY_POSITION).flat())].sort();

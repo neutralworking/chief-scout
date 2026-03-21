@@ -332,14 +332,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Vision", "Decisions", "Pass Accuracy", "Composure"],
     reference: "The De Bruyne role — links midfield to attack, controls the final third",
   },
-  "Second Striker": {
-    archetypes: ["Sprinter", "Striker", "Engine"],
-    personalities: ["INSC", "IXSC", "AXSC"],
-    minLevel: 12,
-    positions: ["AM", "CF"],
-    keyAttributes: ["Movement", "Pace", "Short Range", "Acceleration"],
-    reference: "The Bergkamp role — drops into pockets, links play, arrives late in the box",
-  },
+  // Second Striker merged into Seconda Punta (below)
   "Enganche": {
     archetypes: ["Controller", "Creator", "Passer"],
     personalities: ["INSP", "IXSP", "ANLP"],
@@ -392,14 +385,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
   },
 
   // ── CF ──────────────────────────────────────────────────────────────────
-  "Target Man": {
-    archetypes: ["Target", "Powerhouse", "Striker"],
-    personalities: ["INLC", "AXLC", "ANLC"],
-    minLevel: 12,
-    positions: ["CF"],
-    keyAttributes: ["Heading", "Aerial Duels", "Shielding", "Jumping"],
-    reference: "The Giroud role — holds up play, wins aerial duels, brings others into the game",
-  },
+  // Target Man merged into Prima Punta (below)
   "Poacher": {
     archetypes: ["Striker", "Sprinter"],
     personalities: ["ANSC", "INSC", "IXSC"],
@@ -408,14 +394,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Short Range", "Movement", "Penalties", "Reactions"],
     reference: "The Inzaghi role — lives on the shoulder, clinical finishing inside the box",
   },
-  "False 9": {
-    archetypes: ["Creator", "Controller", "Dribbler"],
-    personalities: ["IXSP", "INSP", "IXLP"],
-    minLevel: 14,
-    positions: ["CF", "AM"],
-    keyAttributes: ["Vision", "Creativity", "First Touch", "Guile"],
-    reference: "The Messi role — drops deep, links play, creates space for runners",
-  },
+  // False 9 merged into Falso Nove (below)
   "Prima Punta": {
     archetypes: ["Target", "Powerhouse", "Striker"],
     personalities: ["INLC", "AXLC", "ANLC"],
@@ -585,7 +564,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Messi", demand: "Cuts inside from the right, finishes or creates — the system's apex" },
         { role: "Traditional Winger", blueprint: "Henry/Villa", demand: "Stretches the defence wide left, runs in behind, clinical finishing" },
       ],
-      CF: [{ role: "False 9", blueprint: "Messi (2011)", demand: "Drops deep, drags CBs out, creates space for runners" }],
+      CF: [{ role: "Falso Nove", blueprint: "Messi (2011)", demand: "Drops deep, drags CBs out, creates space for runners" }],
     },
   },
 
@@ -639,7 +618,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       ],
       AM: [{ role: "Trequartista", blueprint: "Pogba", demand: "Drives forward from deep, arrives in the box, unpredictable creative force" }],
       CF: [
-        { role: "Target Man", blueprint: "Llorente/Mandzukic", demand: "Holds it up, wins aerial duels, brings others into play" },
+        { role: "Prima Punta", blueprint: "Llorente/Mandzukic", demand: "Holds it up, wins aerial duels, brings others into play" },
         { role: "Poacher", blueprint: "Tévez", demand: "Runs in behind, presses from the front, clinical finisher" },
       ],
     },
@@ -695,7 +674,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Pedro", demand: "Movement, pressing, works the channels — intelligent not flashy" },
         { role: "Inside Forward", blueprint: "Hazard", demand: "The X-factor — dribbles, creates, scores, pulls defences apart" },
       ],
-      CF: [{ role: "Target Man", blueprint: "Costa", demand: "Physical, aggressive, holds the line — scores ugly goals and loves it" }],
+      CF: [{ role: "Prima Punta", blueprint: "Costa", demand: "Physical, aggressive, holds the line — scores ugly goals and loves it" }],
     },
   },
 
@@ -721,7 +700,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       AM: [{ role: "Trequartista", blueprint: "Kaká", demand: "The most explosive no. 10 — receives, turns, accelerates into the final third" }],
       CF: [
         { role: "Complete Forward", blueprint: "Shevchenko", demand: "Clinical finisher, intelligent movement, scores from anywhere" },
-        { role: "Target Man", blueprint: "Inzaghi", demand: "Pure poacher — lives offside, scores tap-ins, ghosts into the box" },
+        { role: "Prima Punta", blueprint: "Inzaghi", demand: "Pure poacher — lives offside, scores tap-ins, ghosts into the box" },
       ],
     },
   },
@@ -826,9 +805,9 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Box-to-Box", blueprint: "Tiago", demand: "Links defence to attack, keeps it simple, covers the wide areas" },
         { role: "Ball-Winner", blueprint: "Koke", demand: "Presses, creates, works — the system's most versatile piece" },
       ],
-      AM: [{ role: "Second Striker", blueprint: "Arda Turan", demand: "Drifts between the lines, finds pockets, feeds the strikers" }],
+      AM: [{ role: "Seconda Punta", blueprint: "Arda Turan", demand: "Drifts between the lines, finds pockets, feeds the strikers" }],
       CF: [
-        { role: "Target Man", blueprint: "Costa", demand: "Physical, aggressive, holds it up, bullies centre-backs" },
+        { role: "Prima Punta", blueprint: "Costa", demand: "Physical, aggressive, holds it up, bullies centre-backs" },
         { role: "Poacher", blueprint: "Villa/Griezmann", demand: "Runs off the target man, finishes clinically, intelligent movement" },
       ],
     },

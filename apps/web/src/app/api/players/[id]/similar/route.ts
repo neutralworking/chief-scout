@@ -145,8 +145,13 @@ export async function GET(
     .neq("person_id", playerId);
 
   if (isLegend) {
-    // Legend→active: require archetype (skillset) instead of role score
-    activeQuery = activeQuery.not("archetype", "is", null).limit(800);
+    // Legend→active: require archetype + minimum quality floor
+    // Peak 96 → min level 87, Peak 92 → min level 85, Peak 88 → min level 83
+    const minLevel = Math.max(80, (source.peak ?? 90) - 9);
+    activeQuery = activeQuery
+      .not("archetype", "is", null)
+      .gte("level", minLevel)
+      .limit(800);
   } else {
     activeQuery = activeQuery.not("best_role_score", "is", null).limit(500);
   }

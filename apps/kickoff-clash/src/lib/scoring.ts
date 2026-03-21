@@ -37,6 +37,13 @@ export interface Card {
   durability: Durability;
   phoenixMatchesSurvived?: number;  // tracks for Phoenix promotion
   injured?: boolean;                 // for Fragile cards — miss next match
+  // Extended fields from kc_characters
+  bio?: string;
+  tags?: string[];
+  quirk?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  nation?: string;
 }
 
 export interface SlottedCard {

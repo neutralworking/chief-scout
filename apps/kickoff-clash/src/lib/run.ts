@@ -19,6 +19,8 @@ import {
   generateAcademyDurability, getAcademyTier,
 } from './economy';
 import { findConnections } from './chemistry';
+import { transformAllCharacters, type KCCharacter } from './transform';
+import kcCharactersData from '../../public/data/kc_characters.json';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -615,84 +617,13 @@ export function applyDurabilityResults(deck: Card[], result: DurabilityResult): 
 }
 
 // ---------------------------------------------------------------------------
-// Sample Cards (38 cards with durability)
+// Card Pool (500 characters from kc_characters.json)
 // ---------------------------------------------------------------------------
 
-function gatePullForArchetype(archetype: string): number {
-  const map: Record<string, number> = {
-    Dribbler: 30, Creator: 25, Striker: 20, Sprinter: 15,
-    Engine: 5, Target: 10, Powerhouse: 10, Passer: 5,
-    Cover: 0, Destroyer: 0, Controller: 0, Commander: 0, GK: 0,
-  };
-  return map[archetype] ?? 0;
-}
+export const ALL_CARDS: Card[] = transformAllCharacters(kcCharactersData as KCCharacter[]);
 
-export const SAMPLE_CARDS: Card[] = [
-  // --- Strikers / CF ---
-  // ~5 Glass
-  { id: 1, name: 'T. Thunderboot', position: 'CF', archetype: 'Striker', tacticalRole: 'Poacher', personalityTheme: 'Catalyst', personalityType: 'AXLC', power: 72, rarity: 'Rare', gatePull: 60, durability: 'standard', abilityName: 'Box Presence', abilityText: '+15% goal chance with attacking cards' },
-  { id: 2, name: 'G. Tapinski', position: 'CF', archetype: 'Striker', tacticalRole: 'Seconda Punta', personalityTheme: 'Professor', personalityType: 'ANSP', power: 64, rarity: 'Common', gatePull: 20, durability: 'standard', abilityName: 'Between Lines', abilityText: '+10% in AM/CF slot' },
-  { id: 3, name: 'B. Hattrick', position: 'CF', archetype: 'Target', tacticalRole: 'Prima Punta', personalityTheme: 'Captain', personalityType: 'INLC', power: 78, rarity: 'Epic', gatePull: 25, durability: 'iron', abilityName: 'Target Man', abilityText: '+20% if Target archetype' },
-  { id: 4, name: 'R. Volley', position: 'CF', archetype: 'Striker', tacticalRole: 'Complete Forward', personalityTheme: 'Maestro', personalityType: 'INSP', power: 85, rarity: 'Legendary', gatePull: 30, durability: 'glass', abilityName: 'Total', abilityText: '+5% per compound category' },
-  { id: 5, name: 'N. Offside', position: 'CF', archetype: 'Sprinter', tacticalRole: 'Poacher', personalityTheme: 'Catalyst', personalityType: 'IXSC', power: 58, rarity: 'Common', gatePull: 55, durability: 'fragile', abilityName: 'Box Presence', abilityText: '+15% goal chance with attacking cards' },
-
-  // --- Wingers / WF ---
-  { id: 6, name: 'D. Nutmeg', position: 'WF', archetype: 'Dribbler', tacticalRole: 'Inside Forward', personalityTheme: 'Maestro', personalityType: 'ANLP', power: 70, rarity: 'Rare', gatePull: 40, durability: 'phoenix', abilityName: 'Cut Inside', abilityText: '+15% if Dribbler/Striker' },
-  { id: 7, name: 'F. Stepover', position: 'WF', archetype: 'Dribbler', tacticalRole: 'Winger', personalityTheme: 'Catalyst', personalityType: 'AXLC', power: 66, rarity: 'Rare', gatePull: 70, durability: 'standard', abilityName: 'Touchline', abilityText: '+20% in WM/WF slot' },
-  { id: 8, name: 'J. Jetpace', position: 'WF', archetype: 'Sprinter', tacticalRole: 'Extremo', personalityTheme: 'General', personalityType: 'ANLC', power: 62, rarity: 'Common', gatePull: 20, durability: 'standard', abilityName: 'Jet Heels', abilityText: '+20% if Sprinter archetype' },
-  { id: 9, name: 'K. Invisible', position: 'WF', archetype: 'Creator', tacticalRole: 'Raumdeuter', personalityTheme: 'Professor', personalityType: 'AXSP', power: 74, rarity: 'Epic', gatePull: 25, durability: 'glass', abilityName: 'Space', abilityText: '+20% self, -5% adjacent' },
-  { id: 10, name: 'Z. Elastico', position: 'WF', archetype: 'Dribbler', tacticalRole: 'Invertido', personalityTheme: 'Maestro', personalityType: 'IXSP', power: 68, rarity: 'Rare', gatePull: 40, durability: 'standard', abilityName: 'Tuck Inside', abilityText: '+15% if Controller/Passer' },
-
-  // --- Central Midfielders / CM ---
-  { id: 11, name: 'P. Sideways', position: 'CM', archetype: 'Controller', tacticalRole: 'Metodista', personalityTheme: 'Professor', personalityType: 'ANSP', power: 58, rarity: 'Common', gatePull: 0, durability: 'standard', abilityName: 'Tempo', abilityText: 'Controller cards get +10%' },
-  { id: 12, name: 'M. Metronome', position: 'CM', archetype: 'Passer', tacticalRole: 'Regista', personalityTheme: 'Maestro', personalityType: 'INSP', power: 80, rarity: 'Epic', gatePull: 15, durability: 'iron', abilityName: 'Metronome', abilityText: '+5% to all connection bonuses' },
-  { id: 13, name: 'E. Lungs', position: 'CM', archetype: 'Engine', tacticalRole: 'Tuttocampista', personalityTheme: 'Captain', personalityType: 'INLC', power: 60, rarity: 'Common', gatePull: 20, durability: 'iron', abilityName: 'Box to Box', abilityText: '+3% per different archetype' },
-  { id: 14, name: 'C. Cruyff Jr.', position: 'CM', archetype: 'Creator', tacticalRole: 'Fantasista', personalityTheme: 'Maestro', personalityType: 'ANLP', power: 76, rarity: 'Epic', gatePull: 35, durability: 'fragile', abilityName: 'Half-Space Magic', abilityText: '+15% if Creator archetype' },
-  { id: 15, name: 'W. Workrate', position: 'CM', archetype: 'Engine', tacticalRole: 'Relayeur', personalityTheme: 'General', personalityType: 'ANSC', power: 55, rarity: 'Common', gatePull: 10, durability: 'iron', abilityName: 'Relay', abilityText: '+5% to every Engine' },
-  { id: 16, name: 'H. Hollywood', position: 'CM', archetype: 'Passer', tacticalRole: 'Enganche', personalityTheme: 'Catalyst', personalityType: 'IXLC', power: 71, rarity: 'Rare', gatePull: 45, durability: 'glass', abilityName: 'The Hook', abilityText: 'Best card +25%, self -10%' },
-  { id: 17, name: 'S. Shimmy', position: 'CM', archetype: 'Creator', tacticalRole: 'Trequartista', personalityTheme: 'Catalyst', personalityType: 'AXLC', power: 73, rarity: 'Rare', gatePull: 65, durability: 'phoenix', abilityName: 'Moment of Genius', abilityText: '30% chance to double own power' },
-  { id: 18, name: 'R. Runner', position: 'CM', archetype: 'Engine', tacticalRole: 'Mezzala', personalityTheme: 'Captain', personalityType: 'INLP', power: 63, rarity: 'Common', gatePull: 20, durability: 'standard', abilityName: 'Half-Space Run', abilityText: '+15% in CM slot' },
-
-  // --- Defensive Midfielders / DM ---
-  { id: 19, name: 'A. Anchor', position: 'DM', archetype: 'Destroyer', tacticalRole: 'Sentinelle', personalityTheme: 'General', personalityType: 'INSC', power: 61, rarity: 'Common', gatePull: 5, durability: 'iron', abilityName: 'The Shield', abilityText: 'Weakest XI player gets +30%' },
-  { id: 20, name: 'V. Violence', position: 'DM', archetype: 'Destroyer', tacticalRole: 'Volante', personalityTheme: 'Captain', personalityType: 'INLC', power: 67, rarity: 'Rare', gatePull: 15, durability: 'standard', abilityName: 'Tackle & Go', abilityText: '-5% opponent goal chance per round' },
-  { id: 21, name: 'Q. Quiet', position: 'DM', archetype: 'Controller', tacticalRole: 'Regista', personalityTheme: 'Professor', personalityType: 'AXLP', power: 69, rarity: 'Rare', gatePull: 0, durability: 'standard', abilityName: 'Metronome', abilityText: '+5% to all connection bonuses' },
-
-  // --- Centre-Backs / CD ---
-  { id: 22, name: 'L. McSlide', position: 'CD', archetype: 'Destroyer', tacticalRole: 'Vorstopper', personalityTheme: 'Captain', personalityType: 'INLC', power: 65, rarity: 'Rare', gatePull: 0, durability: 'iron', abilityName: 'Front Foot', abilityText: '+15% if Destroyer archetype' },
-  { id: 23, name: 'I. Immovable', position: 'CD', archetype: 'Cover', tacticalRole: 'Zagueiro', personalityTheme: 'General', personalityType: 'ANLC', power: 59, rarity: 'Common', gatePull: 0, durability: 'standard', abilityName: 'Commander', abilityText: 'Commander cards get +10%' },
-  { id: 24, name: 'B. Beckenboss', position: 'CD', archetype: 'Commander', tacticalRole: 'Libero', personalityTheme: 'General', personalityType: 'ANSC', power: 82, rarity: 'Epic', gatePull: 5, durability: 'titanium', abilityName: 'Surgical Pass', abilityText: 'Each attacker gets +10%' },
-  { id: 25, name: 'X. No-Nonsense', position: 'CD', archetype: 'Cover', tacticalRole: 'Sweeper', personalityTheme: 'General', personalityType: 'INSC', power: 56, rarity: 'Common', gatePull: 0, durability: 'standard', abilityName: 'Read Ahead', abilityText: 'Cover cards get +10%' },
-  { id: 26, name: 'U. Unbeatable', position: 'CD', archetype: 'Powerhouse', tacticalRole: 'Vorstopper', personalityTheme: 'Captain', personalityType: 'AXSC', power: 70, rarity: 'Rare', gatePull: 10, durability: 'fragile', abilityName: 'Front Foot', abilityText: '+15% if Destroyer archetype' },
-
-  // --- Full-Backs / WD ---
-  { id: 27, name: 'O. Overlap', position: 'WD', archetype: 'Engine', tacticalRole: 'Lateral', personalityTheme: 'General', personalityType: 'ANLC', power: 57, rarity: 'Common', gatePull: 10, durability: 'standard', abilityName: 'Overlap', abilityText: 'If paired with IF/Winger, both +15%' },
-  { id: 28, name: 'T. Turbo', position: 'WD', archetype: 'Sprinter', tacticalRole: 'Fluidificante', personalityTheme: 'Catalyst', personalityType: 'IXSC', power: 63, rarity: 'Common', gatePull: 55, durability: 'phoenix', abilityName: 'Surge', abilityText: '+10% self, +10% nearest attacker' },
-  { id: 29, name: 'C. Crossbar', position: 'WD', archetype: 'Passer', tacticalRole: 'Tornante', personalityTheme: 'Professor', personalityType: 'AXSP', power: 60, rarity: 'Common', gatePull: 5, durability: 'standard', abilityName: 'Full Flank', abilityText: '+10% if Engine archetype' },
-
-  // --- Wide Midfielders / WM ---
-  { id: 30, name: 'W. Whip', position: 'WM', archetype: 'Passer', tacticalRole: 'Winger', personalityTheme: 'General', personalityType: 'ANSC', power: 61, rarity: 'Common', gatePull: 10, durability: 'standard', abilityName: 'Touchline', abilityText: '+20% in WM/WF slot' },
-  { id: 31, name: 'F. Flashmob', position: 'WM', archetype: 'Dribbler', tacticalRole: 'Inside Forward', personalityTheme: 'Catalyst', personalityType: 'IXLC', power: 69, rarity: 'Rare', gatePull: 70, durability: 'glass', abilityName: 'Cut Inside', abilityText: '+15% if Dribbler/Striker' },
-  { id: 32, name: 'Y. Yoyo', position: 'WM', archetype: 'Engine', tacticalRole: 'Tornante', personalityTheme: 'Captain', personalityType: 'INLP', power: 54, rarity: 'Common', gatePull: 20, durability: 'standard', abilityName: 'Full Flank', abilityText: '+10% if Engine archetype' },
-
-  // --- Attacking Midfielders / AM ---
-  { id: 33, name: 'A. Assist King', position: 'AM', archetype: 'Creator', tacticalRole: 'Fantasista', personalityTheme: 'Maestro', personalityType: 'INSP', power: 77, rarity: 'Epic', gatePull: 35, durability: 'fragile', abilityName: 'Half-Space Magic', abilityText: '+15% if Creator archetype' },
-  { id: 34, name: 'J. Juggler', position: 'AM', archetype: 'Dribbler', tacticalRole: 'Trequartista', personalityTheme: 'Maestro', personalityType: 'ANLP', power: 75, rarity: 'Epic', gatePull: 40, durability: 'iron', abilityName: 'Moment of Genius', abilityText: '30% chance to double own power' },
-  { id: 35, name: 'D. Dictator', position: 'AM', archetype: 'Controller', tacticalRole: 'Inventor', personalityTheme: 'Professor', personalityType: 'AXLP', power: 72, rarity: 'Rare', gatePull: 0, durability: 'standard', abilityName: 'From Nothing', abilityText: '+20% if Creator archetype' },
-
-  // --- Extra variety ---
-  { id: 36, name: 'G. Ghost', position: 'CF', archetype: 'Striker', tacticalRole: 'Falso Nove', personalityTheme: 'Professor', personalityType: 'ANSP', power: 74, rarity: 'Epic', gatePull: 20, durability: 'glass', abilityName: 'The Drop', abilityText: 'Counts as CF and AM for synergies' },
-  { id: 37, name: 'K. Karate', position: 'CD', archetype: 'Destroyer', tacticalRole: 'Sentinelle', personalityTheme: 'Captain', personalityType: 'AXSC', power: 62, rarity: 'Common', gatePull: 15, durability: 'iron', abilityName: 'The Shield', abilityText: 'Weakest XI player +30%' },
-  { id: 38, name: 'M. Magnet', position: 'CM', archetype: 'Passer', tacticalRole: 'Metodista', personalityTheme: 'Professor', personalityType: 'AXSP', power: 64, rarity: 'Common', gatePull: 5, durability: 'fragile', abilityName: 'Tempo', abilityText: 'Controller cards get +10%' },
-];
-
-// Durability distribution in SAMPLE_CARDS:
-// Glass: 4 (ids 4, 9, 16, 31, 36) = 5
-// Fragile: 5 (ids 5, 14, 26, 33, 38)
-// Standard: 15 (ids 1, 2, 7, 8, 10, 11, 18, 20, 21, 23, 25, 27, 29, 30, 32, 35)
-// Iron: 8 (ids 3, 12, 13, 15, 19, 22, 34, 37)
-// Titanium: 2 (id 24) -- B. Beckenboss + could add another
-// Phoenix: 3 (ids 6, 17, 28)
+/** @deprecated Alias for backward compat — use ALL_CARDS */
+export const SAMPLE_CARDS = ALL_CARDS;
 
 // ---------------------------------------------------------------------------
 // Sample Action Deck (~30 cards for prototype)
@@ -740,11 +671,13 @@ export const SAMPLE_ACTION_DECK: ActionCard[] = [
 
 /**
  * Generate a starter deck: 5 common, 2 rare, 1 epic (seeded)
+ * Ensures position coverage (at least 1 GK/CD, 1 CM, 1 CF/WF)
  */
 export function generateStarterDeck(seed: number): Card[] {
-  const commons = SAMPLE_CARDS.filter(c => c.rarity === 'Common');
-  const rares = SAMPLE_CARDS.filter(c => c.rarity === 'Rare');
-  const epics = SAMPLE_CARDS.filter(c => c.rarity === 'Epic');
+  const pool = ALL_CARDS;
+  const commons = pool.filter(c => c.rarity === 'Common');
+  const rares = pool.filter(c => c.rarity === 'Rare');
+  const epics = pool.filter(c => c.rarity === 'Epic');
 
   const picked: Card[] = [
     ...seededShuffle(commons, seed).slice(0, 5),
@@ -972,8 +905,8 @@ export function advanceToNextMatch(state: RunState): RunState {
  */
 export function getShopCards(seed: number, rareOnly: boolean = false): Card[] {
   const pool = rareOnly
-    ? SAMPLE_CARDS.filter(c => c.rarity !== 'Common')
-    : SAMPLE_CARDS;
+    ? ALL_CARDS.filter(c => c.rarity !== 'Common')
+    : ALL_CARDS;
   return seededShuffle(pool, seed).slice(0, 3);
 }
 

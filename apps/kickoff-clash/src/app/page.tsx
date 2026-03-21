@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, createContext, useContext } from 'react';
 import {
   RunState, MatchResult, DurabilityResult,
   createRun, startMatch, playRound, finalizeMatch,
@@ -8,7 +8,7 @@ import {
   getOpponent, getOpponentBuild, getShopCards, addCardToDeck, sellCard,
   buyShopItem, buyAcademyPlayer, upgradeAcademy,
   analyzeDeck,
-  SAMPLE_CARDS,
+  SAMPLE_CARDS, ALL_CARDS,
   createSubCards, executeSubstitution,
 } from '../lib/run';
 import type { OpponentBuild, OpponentPlayer } from '../lib/run';
@@ -103,16 +103,22 @@ function DurabilityBadge({ durability, small = false }: { durability: Durability
   );
 }
 
+// Context for card detail inspection — avoids prop-drilling through every phase
+const InspectCardContext = createContext<((card: Card) => void) | null>(null);
+
 function CardDisplay({
-  card, size = 'normal', onClick, selected = false, sellMode = false, subbed = false,
+  card, size = 'normal', onClick, onInspect, selected = false, sellMode = false, subbed = false,
 }: {
   card: Card;
   size?: 'normal' | 'small' | 'mini';
   onClick?: () => void;
+  onInspect?: (card: Card) => void;
   selected?: boolean;
   sellMode?: boolean;
   subbed?: boolean;
 }) {
+  const contextInspect = useContext(InspectCardContext);
+  const inspect = onInspect ?? contextInspect;
   const rarityColor = RARITY_COLORS[card.rarity] ?? '#71717a';
   const glow = RARITY_GLOW[card.rarity] ?? 'none';
   const bg = THEME_GRADIENTS[card.personalityTheme ?? 'General'] ?? THEME_GRADIENTS.General;
@@ -212,6 +218,17 @@ function CardDisplay({
         </div>
       )}
 
+      {/* Info button — opens card detail popup */}
+      {!isMini && inspect && card.bio && (
+        <button
+          onClick={e => { e.stopPropagation(); inspect(card); }}
+          className="absolute top-0.5 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white/10 hover:bg-white/25 text-[8px] text-white/60 hover:text-white flex items-center justify-center transition-all"
+          title="View details"
+        >
+          i
+        </button>
+      )}
+
       {/* Sub indicator */}
       {subbed && (
         <div className="absolute top-0.5 left-1/2 -translate-x-1/2 px-1 rounded bg-green-500 text-[7px] font-black text-white">
@@ -240,6 +257,139 @@ function CardDisplay({
 
       {/* Rarity bar */}
       <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{ background: rarityColor }} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Card Detail Popup — shows bio, quirk, tags, strengths/weaknesses
+// ---------------------------------------------------------------------------
+
+function CardDetailPopup({ card, onClose }: { card: Card; onClose: () => void }) {
+  const rarityColor = RARITY_COLORS[card.rarity] ?? '#71717a';
+  const bg = THEME_GRADIENTS[card.personalityTheme ?? 'General'] ?? THEME_GRADIENTS.General;
+  const themeIcon = THEME_ICONS[card.personalityTheme ?? 'General'] ?? '';
+  const durStyle = DURABILITY_STYLES[card.durability];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-sm w-full rounded-xl overflow-hidden border-2 animate-in zoom-in-95 duration-200"
+        style={{ background: bg, borderColor: rarityColor, boxShadow: `0 0 30px ${rarityColor}40` }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-4 pb-2">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="rounded px-1.5 py-0.5 font-black uppercase text-[10px]"
+                  style={{ background: rarityColor, color: '#fff' }}>
+                  {card.position}
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)]">
+                  {card.rarity}
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-white mt-1">{card.name}</h3>
+              {card.nation && (
+                <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{card.nation}</div>
+              )}
+            </div>
+            <div className="text-4xl font-black" style={{ color: rarityColor, textShadow: `0 0 10px ${rarityColor}` }}>
+              {card.power}
+            </div>
+          </div>
+
+          {/* Role + Archetype */}
+          <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-secondary)]">
+            <span>{themeIcon} {card.personalityTheme}</span>
+            <span>{card.archetype}</span>
+            {card.tacticalRole && <span className="text-[var(--color-text-muted)]">{card.tacticalRole}</span>}
+          </div>
+
+          {/* Durability */}
+          <div className="mt-1">
+            <DurabilityBadge durability={card.durability} />
+          </div>
+        </div>
+
+        {/* Bio */}
+        {card.bio && (
+          <div className="mx-4 p-3 rounded-lg bg-black/30 border border-white/10">
+            <p className="text-xs text-[var(--color-text-secondary)] italic leading-relaxed">
+              &ldquo;{card.bio}&rdquo;
+            </p>
+          </div>
+        )}
+
+        {/* Quirk */}
+        {card.quirk && (
+          <div className="mx-4 mt-2 flex items-center gap-1.5">
+            <span className="text-[10px]">{'\u2728'}</span>
+            <span className="text-[11px] text-[var(--color-accent-gold)]">{card.quirk}</span>
+          </div>
+        )}
+
+        {/* Tags */}
+        {card.tags && card.tags.length > 0 && (
+          <div className="px-4 mt-3 flex flex-wrap gap-1.5">
+            {card.tags.map((tag, i) => (
+              <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-[var(--color-text-secondary)] border border-white/10">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Strengths & Weaknesses */}
+        {((card.strengths && card.strengths.length > 0) || (card.weaknesses && card.weaknesses.length > 0)) && (
+          <div className="px-4 mt-3 flex gap-4">
+            {card.strengths && card.strengths.length > 0 && (
+              <div>
+                <div className="text-[9px] uppercase tracking-widest text-green-400 font-bold mb-1">Strengths</div>
+                {card.strengths.map((s, i) => (
+                  <div key={i} className="text-[11px] text-green-300/80">{'\u2713'} {s}</div>
+                ))}
+              </div>
+            )}
+            {card.weaknesses && card.weaknesses.length > 0 && (
+              <div>
+                <div className="text-[9px] uppercase tracking-widest text-red-400 font-bold mb-1">Weaknesses</div>
+                {card.weaknesses.map((w, i) => (
+                  <div key={i} className="text-[11px] text-red-300/80">{'\u2717'} {w}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Ability */}
+        {card.abilityName && (
+          <div className="mx-4 mt-3 p-2 rounded bg-[var(--color-accent-gold)]/10 border border-[var(--color-accent-gold)]/30">
+            <div className="text-[10px] font-bold text-[var(--color-accent-gold)]">{card.abilityName}</div>
+            {card.abilityText && (
+              <div className="text-[10px] text-[var(--color-text-secondary)] mt-0.5">{card.abilityText}</div>
+            )}
+          </div>
+        )}
+
+        {/* Gate Pull */}
+        <div className="px-4 py-3 mt-2 flex items-center justify-between text-[10px] text-[var(--color-text-muted)]">
+          <span>Fan Pull: +{card.gatePull}</span>
+          <span>{durStyle.badge} {durStyle.label}</span>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white/80 hover:text-white text-sm flex items-center justify-center"
+        >
+          {'\u2715'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1140,8 +1290,8 @@ function ShopPhase({
   const acSeed = state.seed + state.round * 777;
   const academyDurabilities = generateAcademyDurability(state.academyTier, academy.playersOffered, acSeed);
 
-  // Generate academy cards from sample pool
-  const academyPool = SAMPLE_CARDS.filter(c => {
+  // Generate academy cards from full pool
+  const academyPool = ALL_CARDS.filter(c => {
     if (academy.maxRarity === 'Common') return c.rarity === 'Common';
     if (academy.maxRarity === 'Rare') return c.rarity === 'Common' || c.rarity === 'Rare';
     return c.rarity !== 'Legendary';
@@ -1927,16 +2077,182 @@ function DeckViewer({
 // Main Game Controller
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Persistence — save/load run state to localStorage
+// ---------------------------------------------------------------------------
+
+const SAVE_KEY = 'kickoff-clash-run';
+const HISTORY_KEY = 'kickoff-clash-history';
+
+interface SavedRun {
+  runState: RunState;
+  phase: string;
+  matchCommentary: string[];
+  activeMatchState: MatchState | null;
+  savedAt: number;
+}
+
+interface RunHistoryEntry {
+  formation: string;
+  style: string;
+  wins: number;
+  losses: number;
+  result: 'won' | 'lost' | 'abandoned';
+  timestamp: number;
+}
+
+function saveRunToStorage(data: SavedRun) {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch { /* quota exceeded — ignore */ }
+}
+
+function loadRunFromStorage(): SavedRun | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SavedRun;
+  } catch { return null; }
+}
+
+function clearRunStorage() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+function addToHistory(entry: RunHistoryEntry) {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const history: RunHistoryEntry[] = raw ? JSON.parse(raw) : [];
+    history.unshift(entry);
+    // Keep last 20
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
+  } catch { /* ignore */ }
+}
+
+function loadHistory(): RunHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+// ---------------------------------------------------------------------------
+// Title Screen
+// ---------------------------------------------------------------------------
+
+function TitleScreen({ onNewRun, onContinue, hasSavedRun }: {
+  onNewRun: () => void;
+  onContinue: () => void;
+  hasSavedRun: boolean;
+}) {
+  const [history] = useState(loadHistory);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen text-center space-y-8 p-6">
+      <div className="space-y-2">
+        <h1 className="text-6xl font-black tracking-tight uppercase">
+          <span className="text-[var(--color-accent-primary)]">Kickoff</span>{' '}
+          <span className="text-[var(--color-accent-secondary)]">Clash</span>
+        </h1>
+        <p className="text-[var(--color-text-secondary)] text-base">
+          Roguelike card battler. 500 players. 5 matches. One shot.
+        </p>
+      </div>
+
+      <div className="space-y-3 w-full max-w-xs">
+        {hasSavedRun && (
+          <button
+            onClick={onContinue}
+            className="w-full px-8 py-4 rounded-lg text-lg font-black uppercase tracking-wide
+              bg-[var(--color-accent-primary)] text-white hover:brightness-110 hover:scale-105 active:scale-95
+              shadow-lg shadow-[var(--color-accent-primary)]/30 transition-all"
+          >
+            Continue Run
+          </button>
+        )}
+        <button
+          onClick={onNewRun}
+          className={`w-full px-8 py-4 rounded-lg text-lg font-black uppercase tracking-wide transition-all
+            ${hasSavedRun
+              ? 'bg-[var(--color-bg-surface)] border-2 border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-secondary)] hover:text-white'
+              : 'bg-[var(--color-accent-primary)] text-white hover:brightness-110 hover:scale-105 active:scale-95 shadow-lg shadow-[var(--color-accent-primary)]/30'
+            }`}
+        >
+          New Run
+        </button>
+      </div>
+
+      {/* Run History */}
+      {history.length > 0 && (
+        <div className="w-full max-w-sm">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
+            Recent Runs
+          </h3>
+          <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+            {history.slice(0, 8).map((h, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--color-bg-surface)] border border-[var(--color-border-subtle)] text-xs">
+                <div>
+                  <span className="font-bold text-white">{h.formation}</span>
+                  <span className="text-[var(--color-text-muted)] ml-1.5">
+                    {Object.entries(PLAYING_STYLES).find(([k]) => k === h.style)?.[1]?.name ?? h.style}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--color-text-secondary)]">{h.wins}W-{h.losses}L</span>
+                  <span className={`font-bold ${h.result === 'won' ? 'text-green-400' : h.result === 'lost' ? 'text-red-400' : 'text-[var(--color-text-muted)]'}`}>
+                    {h.result === 'won' ? 'WON' : h.result === 'lost' ? 'LOST' : 'DNF'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [runState, setRunState] = useState<RunState | null>(null);
-  const [phase, setPhase] = useState<'setup' | 'pre_match' | 'match' | 'post_match' | 'shop' | 'end'>('setup');
+  const [phase, setPhase] = useState<'title' | 'setup' | 'pre_match' | 'match' | 'post_match' | 'shop' | 'end'>('title');
   const [lastMatchResult, setLastMatchResult] = useState<MatchResult | null>(null);
   const [lastDurabilityResult, setLastDurabilityResult] = useState<DurabilityResult | null>(null);
   const [matchCommentary, setMatchCommentary] = useState<string[]>([]);
   const [activeMatchState, setActiveMatchState] = useState<MatchState | null>(null);
   const [showDeckViewer, setShowDeckViewer] = useState(false);
+  const [detailCard, setDetailCard] = useState<Card | null>(null);
   // Track the last matchState before it was cleared (for finalizeMatch)
   const lastMatchStateRef = useRef<MatchState | null>(null);
+  const [hasSavedRun, setHasSavedRun] = useState(false);
+
+  // Check for saved run on mount
+  useEffect(() => {
+    const saved = loadRunFromStorage();
+    setHasSavedRun(!!saved);
+  }, []);
+
+  // Auto-save run state on changes
+  useEffect(() => {
+    if (runState && phase !== 'title' && phase !== 'end') {
+      saveRunToStorage({
+        runState,
+        phase,
+        matchCommentary,
+        activeMatchState,
+        savedAt: Date.now(),
+      });
+    }
+  }, [runState, phase, matchCommentary, activeMatchState]);
+
+  // Continue saved run
+  const handleContinueRun = useCallback(() => {
+    const saved = loadRunFromStorage();
+    if (!saved) return;
+    setRunState(saved.runState);
+    setPhase(saved.phase as typeof phase);
+    setMatchCommentary(saved.matchCommentary);
+    setActiveMatchState(saved.activeMatchState);
+  }, []);
 
   // 1. Setup -> create run, prepare pre-match
   const handleStart = useCallback((formation: string, style: string) => {
@@ -2081,22 +2397,44 @@ export default function Home() {
     setPhase('pre_match');
   }, [runState]);
 
-  // 6. New run
+  // 6. New run (save old run to history first)
   const handleNewRun = useCallback(() => {
+    if (runState) {
+      addToHistory({
+        formation: runState.formation,
+        style: runState.playingStyle,
+        wins: runState.wins,
+        losses: runState.losses,
+        result: runState.status === 'won' ? 'won' : runState.status === 'lost' ? 'lost' : 'abandoned',
+        timestamp: Date.now(),
+      });
+    }
+    clearRunStorage();
     setRunState(null);
     setPhase('setup');
     setLastMatchResult(null);
     setLastDurabilityResult(null);
     setMatchCommentary([]);
     setActiveMatchState(null);
-  }, []);
+    setHasSavedRun(false);
+  }, [runState]);
 
   // Should the deck viewer button be visible?
-  const showDeckButton = runState && phase !== 'setup' && phase !== 'end';
+  const showDeckButton = runState && phase !== 'title' && phase !== 'setup' && phase !== 'end';
 
   // Render current phase
   let phaseContent: React.ReactNode = null;
   switch (phase) {
+    case 'title':
+      phaseContent = (
+        <TitleScreen
+          onNewRun={() => setPhase('setup')}
+          onContinue={handleContinueRun}
+          hasSavedRun={hasSavedRun}
+        />
+      );
+      break;
+
     case 'setup':
       phaseContent = <SetupPhase onStart={handleStart} />;
       break;
@@ -2156,7 +2494,7 @@ export default function Home() {
   }
 
   return (
-    <>
+    <InspectCardContext.Provider value={setDetailCard}>
       {phaseContent}
 
       {/* Floating Deck Viewer Button */}
@@ -2181,6 +2519,11 @@ export default function Home() {
           onSellCard={phase === 'shop' ? handleSellCard : undefined}
         />
       )}
-    </>
+
+      {/* Card Detail Popup */}
+      {detailCard && (
+        <CardDetailPopup card={detailCard} onClose={() => setDetailCard(null)} />
+      )}
+    </InspectCardContext.Provider>
   );
 }

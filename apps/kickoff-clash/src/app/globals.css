@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: var(--bg-base);
-  --color-foreground: var(--text-primary);
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-text-primary);
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -27,8 +27,8 @@
 }
 
 body {
-  background: var(--bg-base);
-  color: var(--text-primary);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
 }
 
@@ -47,7 +47,7 @@ body {
 }
 
 .phase-match {
-  background: linear-gradient(180deg, rgba(20,60,30,0.25) 0%, transparent 30%, var(--bg-base) 100%);
+  background: linear-gradient(180deg, rgba(20,60,30,0.25) 0%, transparent 30%, var(--color-bg-base) 100%);
 }
 
 .phase-match .commentary-feed {
@@ -56,11 +56,11 @@ body {
 }
 
 .phase-shop {
-  background: linear-gradient(180deg, rgba(80,60,20,0.15) 0%, transparent 25%, var(--bg-base) 100%);
+  background: linear-gradient(180deg, rgba(80,60,20,0.15) 0%, transparent 25%, var(--color-bg-base) 100%);
 }
 
 .phase-postmatch {
-  background: radial-gradient(ellipse at center top, rgba(255,255,255,0.06) 0%, transparent 50%, var(--bg-base) 100%);
+  background: radial-gradient(ellipse at center top, rgba(255,255,255,0.06) 0%, transparent 50%, var(--color-bg-base) 100%);
 }
 
 /* Fix 4: Goal commentary styling */

@@ -157,7 +157,7 @@ function LegendsContent() {
             <span className="text-[10px] text-[var(--text-secondary)] group-hover:text-white transition-colors truncate max-w-[120px]">
               {similar.name}
             </span>
-            <span className="text-[8px] text-[var(--text-muted)] font-mono">{Math.round(similar.similarity / 1.3)}%</span>
+            <span className="text-[8px] text-[var(--text-muted)] font-mono">{Math.min(99, similar.similarity)}%</span>
           </Link>
         )}
       </div>

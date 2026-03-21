@@ -83,6 +83,21 @@ const MODEL_TO_ARCHETYPE: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// Secondary → Archetype mapping (secondary uses role/archetype names, not model names)
+// ---------------------------------------------------------------------------
+
+const SECONDARY_TO_ARCHETYPE: Record<string, string> = {
+  // Already archetype names — pass through
+  Commander: 'Commander', Controller: 'Controller', Cover: 'Cover',
+  Creator: 'Creator', Dribbler: 'Dribbler', Engine: 'Engine',
+  Passer: 'Passer', Powerhouse: 'Powerhouse', Sprinter: 'Sprinter',
+  Striker: 'Striker',
+  // Role names → archetype
+  Acrobat: 'GK', Aerial: 'Target', Distributor: 'Passer',
+  Orthodox: 'GK', Stopper: 'Destroyer', Sweeper: 'Cover',
+};
+
+// ---------------------------------------------------------------------------
 // Character → Personality Theme mapping
 // ---------------------------------------------------------------------------
 
@@ -151,10 +166,10 @@ function levelToRarity(level: number): string {
 // ---------------------------------------------------------------------------
 
 const DURABILITY_BY_RARITY: Record<string, { options: Durability[]; weights: number[] }> = {
-  Common:    { options: ['standard', 'standard', 'iron', 'fragile'],       weights: [0.45, 0.45, 0.30, 0.25] },
-  Rare:      { options: ['standard', 'iron', 'fragile', 'phoenix'],        weights: [0.40, 0.25, 0.20, 0.15] },
-  Epic:      { options: ['iron', 'standard', 'glass', 'phoenix'],          weights: [0.35, 0.30, 0.20, 0.15] },
-  Legendary: { options: ['glass', 'titanium', 'phoenix', 'iron'],          weights: [0.35, 0.25, 0.25, 0.15] },
+  Common:    { options: ['standard', 'iron', 'fragile'],            weights: [0.55, 0.30, 0.15] },
+  Rare:      { options: ['standard', 'iron', 'fragile', 'phoenix'], weights: [0.40, 0.25, 0.20, 0.15] },
+  Epic:      { options: ['iron', 'standard', 'glass', 'phoenix'],   weights: [0.35, 0.30, 0.20, 0.15] },
+  Legendary: { options: ['glass', 'titanium', 'phoenix', 'iron'],   weights: [0.35, 0.25, 0.25, 0.15] },
 };
 
 function rollDurability(rarity: string, seed: number): Durability {
@@ -205,7 +220,7 @@ export function transformCharacter(char: KCCharacter, index: number): Card {
     name: char.name,
     position,
     archetype,
-    secondaryArchetype: MODEL_TO_ARCHETYPE[char.secondary] ?? undefined,
+    secondaryArchetype: SECONDARY_TO_ARCHETYPE[char.secondary] ?? MODEL_TO_ARCHETYPE[char.secondary] ?? undefined,
     tacticalRole: char.primary,
     personalityType,
     personalityTheme: theme,

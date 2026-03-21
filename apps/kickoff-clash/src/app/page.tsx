@@ -8,7 +8,7 @@ import {
   getOpponent, getOpponentBuild, getShopCards, addCardToDeck, sellCard,
   buyShopItem, buyAcademyPlayer, upgradeAcademy,
   analyzeDeck,
-  SAMPLE_CARDS, ALL_CARDS,
+  ALL_CARDS,
   createSubCards, executeSubstitution,
 } from '../lib/run';
 import type { OpponentBuild, OpponentPlayer } from '../lib/run';
@@ -272,7 +272,7 @@ function CardDetailPopup({ card, onClose }: { card: Card; onClose: () => void })
   const durStyle = DURABILITY_STYLES[card.durability];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
       onClick={onClose}
     >
       <div
@@ -326,7 +326,7 @@ function CardDetailPopup({ card, onClose }: { card: Card; onClose: () => void })
         )}
 
         {/* Quirk */}
-        {card.quirk && (
+        {card.quirk && card.quirk.length > 0 && (
           <div className="mx-4 mt-2 flex items-center gap-1.5">
             <span className="text-[10px]">{'\u2728'}</span>
             <span className="text-[11px] text-[var(--color-accent-gold)]">{card.quirk}</span>
@@ -938,7 +938,7 @@ function MatchPhase({
   };
 
   return (
-    <div className="phase-match max-w-2xl mx-auto p-3 flex flex-col h-screen max-h-screen overflow-hidden">
+    <div className="phase-match max-w-2xl mx-auto p-3 pb-16 flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Top Bar: Scoreline */}
       <div className="flex-shrink-0 bg-[var(--color-bg-surface)] rounded-lg px-4 py-2 border border-[var(--color-border-subtle)] mb-3">
         <div className="flex items-center justify-between">

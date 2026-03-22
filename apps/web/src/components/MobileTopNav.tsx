@@ -20,6 +20,7 @@ const ALL_NAV_ITEMS = [
   // Games
   { label: "Gaffer", href: "/choices" },
   { label: "Kickoff Clash", href: "/kickoff-clash", stagingOnly: true },
+  { label: "On The Plane", href: "/on-the-plane", stagingOnly: true },
   // Admin (staging only)
   { label: "Admin", href: "/admin", stagingOnly: true },
   { label: "Tactics", href: "/formations", stagingOnly: true },

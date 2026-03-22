@@ -637,8 +637,8 @@ export default async function DashboardPage() {
           )}
 
           {/* Game CTAs — slim row */}
-          <div className="flex gap-2 shrink-0">
-            <Link href="/choices" className="glass rounded-xl px-3 py-2 flex-1 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Link href="/choices" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
                 <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-personality)] transition-colors hidden sm:inline">
@@ -649,7 +649,7 @@ export default async function DashboardPage() {
                 Play &rarr;
               </span>
             </Link>
-            <Link href="/kickoff-clash" className="glass rounded-xl px-3 py-2 flex-1 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+            <Link href="/kickoff-clash" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#e74c3c]">Kickoff Clash</span>
                 <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[#e74c3c] transition-colors hidden sm:inline">
@@ -657,6 +657,17 @@ export default async function DashboardPage() {
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-[#e74c3c] group-hover:translate-x-0.5 transition-transform">
+                Play &rarr;
+              </span>
+            </Link>
+            <Link href="/on-the-plane" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">On The Plane</span>
+                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-physical)] transition-colors hidden sm:inline">
+                  Pick your 26.
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold text-[var(--color-accent-physical)] group-hover:translate-x-0.5 transition-transform">
                 Play &rarr;
               </span>
             </Link>

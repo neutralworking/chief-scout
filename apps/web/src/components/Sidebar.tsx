@@ -46,6 +46,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Gaffer", href: "/choices" },
       { label: "Kickoff Clash", href: "/kickoff-clash", stagingOnly: true },
+      { label: "On The Plane", href: "/on-the-plane", stagingOnly: true },
     ],
   },
   {

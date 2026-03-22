@@ -50,6 +50,40 @@ const PAGE_SIZE = 50;
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PLAYING_MODELS = Object.keys(MODEL_ATTRIBUTES);
 
+const EDITORIAL_TRAITS = [
+  "set_piece_specialist", "dribble_artist", "playmaker_vision", "through_ball_king",
+  "one_touch_play", "tempo_controller", "long_range_threat", "fox_in_the_box",
+  "sweeper_reader", "brick_wall", "hard_man", "captain_leader",
+  "target_man", "pace_merchant", "big_game_player", "clutch",
+];
+
+const TRAIT_LABELS: Record<string, string> = {
+  set_piece_specialist: "Set Piece", dribble_artist: "Dribble Artist",
+  playmaker_vision: "Vision", through_ball_king: "Through Ball",
+  one_touch_play: "One Touch", tempo_controller: "Tempo",
+  long_range_threat: "Long Range", fox_in_the_box: "Fox in the Box",
+  sweeper_reader: "Reader", brick_wall: "Brick Wall",
+  hard_man: "Hard Man", captain_leader: "Captain",
+  target_man: "Target Man", pace_merchant: "Pace",
+  big_game_player: "Big Game", clutch: "Clutch",
+};
+
+const TRAIT_COLORS: Record<string, string> = {
+  style: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  tactical: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  physical: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  behavioral: "bg-green-500/20 text-green-400 border-green-500/30",
+};
+
+const TRAIT_CATEGORY: Record<string, string> = {
+  set_piece_specialist: "tactical", dribble_artist: "style", playmaker_vision: "style",
+  through_ball_king: "style", one_touch_play: "style", tempo_controller: "style",
+  long_range_threat: "tactical", fox_in_the_box: "tactical", sweeper_reader: "tactical",
+  brick_wall: "tactical", hard_man: "tactical", captain_leader: "tactical",
+  target_man: "physical", pace_merchant: "physical",
+  big_game_player: "behavioral", clutch: "behavioral",
+};
+
 function splitArchetype(archetype: string | null): { primary: string | null; secondary: string | null } {
   if (!archetype) return { primary: null, secondary: null };
   const parts = archetype.split("-");
@@ -69,6 +103,7 @@ interface Legend {
   personality_type: string | null;
   best_role: string | null;
   best_role_score: number | null;
+  traits: { trait: string; category: string; severity: number }[];
 }
 
 function peakColor(peak: number | null): string {
@@ -212,6 +247,62 @@ function LegendsContent() {
     );
   }
 
+  function TraitPills({ player }: { player: Legend }) {
+    const [traits, setTraits] = useState(player.traits ?? []);
+    const [adding, setAdding] = useState(false);
+
+    const assigned = new Set(traits.map((t) => t.trait));
+    const available = EDITORIAL_TRAITS.filter((t) => !assigned.has(t));
+
+    async function addTrait(trait: string) {
+      setTraits((prev) => [...prev, { trait, category: TRAIT_CATEGORY[trait] ?? "style", severity: 7 }]);
+      setAdding(false);
+      await fetch("/api/admin/trait-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_id: player.person_id, trait, action: "add" }),
+      });
+    }
+
+    async function removeTrait(trait: string) {
+      setTraits((prev) => prev.filter((t) => t.trait !== trait));
+      await fetch("/api/admin/trait-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_id: player.person_id, trait, action: "remove" }),
+      });
+    }
+
+    return (
+      <div className="flex flex-wrap items-center gap-0.5">
+        {traits.map((t) => (
+          <span key={t.trait} className={`inline-flex items-center gap-0.5 text-[8px] font-medium px-1.5 py-0.5 rounded-full border ${TRAIT_COLORS[t.category] ?? TRAIT_COLORS.style}`}>
+            {TRAIT_LABELS[t.trait] ?? t.trait}
+            {isAdmin && (
+              <button onClick={() => removeTrait(t.trait)} className="ml-0.5 opacity-50 hover:opacity-100">&times;</button>
+            )}
+          </span>
+        ))}
+        {isAdmin && available.length > 0 && (
+          adding ? (
+            <select
+              autoFocus
+              onChange={(e) => { if (e.target.value) addTrait(e.target.value); }}
+              onBlur={() => setAdding(false)}
+              className="text-[8px] bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded px-1 py-0.5 border border-[var(--border-subtle)]"
+            >
+              <option value="">Pick...</option>
+              {available.map((t) => <option key={t} value={t}>{TRAIT_LABELS[t] ?? t}</option>)}
+            </select>
+          ) : (
+            <button onClick={() => setAdding(true)} className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] px-1">+</button>
+          )
+        )}
+        {traits.length === 0 && !isAdmin && <span className="text-[var(--text-muted)] text-[9px]">&ndash;</span>}
+      </div>
+    );
+  }
+
   const position = searchParams.get("position") ?? "";
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "peak";
@@ -330,6 +421,7 @@ function LegendsContent() {
                     <th className="text-left py-1.5 px-2 font-medium">Primary</th>
                     <th className="text-left py-1.5 px-2 font-medium">Secondary</th>
                     <th className="text-left py-1.5 px-2 font-medium hidden lg:table-cell">Model</th>
+                    <th className="text-left py-1.5 px-2 font-medium">Traits</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
@@ -371,6 +463,9 @@ function LegendsContent() {
                           {modelLabel ? (
                             <span style={{ color: getArchetypeColor(modelLabel) }} className="font-medium">{modelLabel}</span>
                           ) : <span className="text-[var(--text-muted)]">{"\u2013"}</span>}
+                        </td>
+                        <td className="py-1.5 px-2">
+                          <TraitPills player={player} />
                         </td>
                         <td className="py-1.5 px-3 text-xs text-[var(--text-secondary)] hidden xl:table-cell">{player.best_role || "\u2013"}</td>
                         <td className="py-1.5 px-3 text-xs text-purple-400 hidden xl:table-cell">
@@ -424,6 +519,9 @@ function LegendsContent() {
                           <span className={`font-mono text-xs font-bold ${peakColor(player.peak)}`}>{player.peak ?? "\u2013"}</span>
                         )}
                       </div>
+                    </div>
+                    <div className="mt-0.5 pl-9">
+                      <TraitPills player={player} />
                     </div>
                     <div className="mt-1 pl-9">
                       <SimilarActivePlayer personId={player.person_id} />

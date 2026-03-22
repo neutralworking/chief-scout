@@ -128,6 +128,138 @@
     border-top: 2px solid var(--cyan);
   }
 
+  /* NEWS / INTELLIGENCE */
+  .news-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    min-height: 44px;
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .story-badge {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    background: var(--elevated);
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .story-badge.transfer { color: var(--mental); border-color: rgba(61,186,111,0.3); }
+  .story-badge.injury { color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+  .story-badge.form { color: var(--technical); border-color: rgba(212,160,53,0.3); }
+  .story-badge.contract { color: var(--personality); border-color: rgba(232,197,71,0.3); }
+  .news-headline {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .news-summary {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .news-source {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+    margin-top: 4px;
+    display: block;
+  }
+  .news-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .news-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .sentiment-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+  .sentiment-dot.positive { background: var(--mental); }
+  .sentiment-dot.negative { background: #e74c3c; }
+  .sentiment-dot.neutral { background: var(--text-muted); }
+
+  /* FIXTURES */
+  .fixture-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    min-height: 44px;
+    gap: 8px;
+  }
+  .fixture-row:last-child { border-bottom: none; }
+  .fixture-comp {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .fixture-teams {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .fixture-odds {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .fixture-odd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--pit);
+    border: 1px solid rgba(111,195,223,0.08);
+    padding: 2px 4px;
+    min-width: 28px;
+    text-align: center;
+  }
+  .fixture-date {
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .odds-header-mobile {
+    display: flex;
+    justify-content: flex-end;
+    gap: 3px;
+    padding: 4px 12px 0;
+    margin-right: 42px;
+  }
+  .odds-header-mobile span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    min-width: 28px;
+    text-align: center;
+  }
+
   /* FEATURED PLAYER */
   .featured {
     position: relative;
@@ -191,11 +323,17 @@
     padding: 2px 8px;
     letter-spacing: 0.5px;
   }
+
+  /* Pillar scores with attribute detail */
   .featured-row3 {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
     margin-bottom: 8px;
+  }
+  .pillar-block {
+    display: flex;
+    flex-direction: column;
   }
   .pillar-score {
     font-size: 13px;
@@ -212,6 +350,12 @@
   .pillar-score.tact { color: var(--tactical); }
   .pillar-score.ment { color: var(--mental); }
   .pillar-score.phys { color: var(--physical); }
+  .pillar-attrs {
+    font-size: 8px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
 
   .featured-row4 {
     font-size: 11px;
@@ -236,98 +380,6 @@
     background: var(--text-muted);
   }
   .swipe-dot.active { background: var(--cyan); }
-
-  /* FIXTURES */
-  .fixture-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    min-height: 44px;
-    gap: 10px;
-  }
-  .fixture-row:last-child { border-bottom: none; }
-  .fixture-comp {
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--cyan);
-    letter-spacing: 0.5px;
-    width: 28px;
-    flex-shrink: 0;
-  }
-  .fixture-teams {
-    flex: 1;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .fixture-date {
-    font-size: 10px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-
-  /* NEWS / INTELLIGENCE */
-  .news-item {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    min-height: 44px;
-  }
-  .news-item:last-child { border-bottom: none; }
-  .news-top {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-  .story-badge {
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    padding: 2px 5px;
-    background: var(--elevated);
-    color: var(--cyan);
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .story-badge.transfer { color: var(--mental); border-color: rgba(61,186,111,0.3); }
-  .story-badge.injury { color: #e74c3c; border-color: rgba(231,76,60,0.3); }
-  .story-badge.form { color: var(--technical); border-color: rgba(212,160,53,0.3); }
-  .story-badge.contract { color: var(--personality); border-color: rgba(232,197,71,0.3); }
-  .news-headline {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.4;
-  }
-  .news-summary {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    line-height: 1.4;
-  }
-  .news-tags {
-    display: flex;
-    gap: 8px;
-    margin-top: 6px;
-    flex-wrap: wrap;
-  }
-  .news-tag {
-    font-size: 10px;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 3px;
-  }
-  .sentiment-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-  }
-  .sentiment-dot.positive { background: var(--mental); }
-  .sentiment-dot.negative { background: #e74c3c; }
-  .sentiment-dot.neutral { background: var(--text-muted); }
 
   /* INTEL GRID */
   .intel-grid {
@@ -463,77 +515,15 @@
 
 <!-- TOP BAR -->
 <div class="top-bar">
-  <div class="top-bar-left">TACTICAL COMMAND</div>
+  <div class="top-bar-left">CHIEF SCOUT</div>
   <div class="top-bar-right">
     <div class="live-dot"></div>
     <span class="mono">276 T1</span>
   </div>
 </div>
 
-<!-- FEATURED PLAYER -->
+<!-- LATEST INTELLIGENCE (first) -->
 <div class="section">
-  <div class="panel panel-top-border">
-    <div class="featured">
-      <div class="dof-badge">DOF PICK</div>
-      <div class="featured-row1">
-        <span class="pos-badge mono">AM</span>
-        <span class="player-name">Jude Bellingham</span>
-        <span class="role-score mono">94</span>
-      </div>
-      <div class="featured-row2">
-        <span>Real Madrid</span>
-        <span>&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
-        <span class="archetype-chip">Maestro</span>
-      </div>
-      <div class="featured-row3">
-        <span class="pillar-score tech"><span class="label">T</span><span class="mono">88</span></span>
-        <span class="pillar-score tact"><span class="label">T</span><span class="mono">91</span></span>
-        <span class="pillar-score ment"><span class="label">M</span><span class="mono">85</span></span>
-        <span class="pillar-score phys"><span class="label">P</span><span class="mono">87</span></span>
-      </div>
-      <div class="featured-row4">
-        <span>32 apps</span><span class="stat-sep">&middot;</span>
-        <span>14 goals</span><span class="stat-sep">&middot;</span>
-        <span>8 assists</span><span class="stat-sep">&middot;</span>
-        <span class="value-tag">&euro;120M</span>
-      </div>
-      <div class="swipe-dots">
-        <div class="swipe-dot active"></div>
-        <div class="swipe-dot"></div>
-        <div class="swipe-dot"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FIXTURES -->
-<div class="section" style="padding-top:0;">
-  <div class="section-header">
-    <div class="section-pip cyan"></div>
-    <span class="section-title">Fixtures</span>
-    <a href="#" class="section-link">See all &rarr;</a>
-  </div>
-  <div class="panel">
-    <div class="fixture-row">
-      <span class="fixture-comp mono">PL</span>
-      <span class="fixture-teams">Arsenal vs Liverpool</span>
-      <span class="fixture-date">Mar 23</span>
-    </div>
-    <div class="fixture-row">
-      <span class="fixture-comp mono">UCL</span>
-      <span class="fixture-teams">Barcelona vs PSG</span>
-      <span class="fixture-date">Mar 25</span>
-    </div>
-    <div class="fixture-row">
-      <span class="fixture-comp mono">BL</span>
-      <span class="fixture-teams">Bayern vs Dortmund</span>
-      <span class="fixture-date">Mar 26</span>
-    </div>
-  </div>
-</div>
-
-<!-- LATEST INTELLIGENCE -->
-<div class="section" style="padding-top:0;">
   <div class="section-header">
     <div class="section-pip green"></div>
     <span class="section-title">Latest Intelligence</span>
@@ -550,35 +540,122 @@
         <span class="news-tag"><span class="sentiment-dot positive"></span> Wirtz</span>
         <span class="news-tag"><span class="sentiment-dot neutral"></span> Arsenal</span>
       </div>
+      <span class="news-source">2h &middot; The Athletic</span>
     </div>
     <div class="news-item">
       <div class="news-top">
         <span class="story-badge injury">Injury</span>
         <span class="news-headline">Gavi expected back in full training by late April</span>
       </div>
+      <span class="news-source">4h &middot; Marca</span>
     </div>
     <div class="news-item">
       <div class="news-top">
         <span class="story-badge form">Form</span>
         <span class="news-headline">Saka continues electric form with 3 assists in 2 matches</span>
       </div>
+      <span class="news-source">5h &middot; BBC Sport</span>
     </div>
     <div class="news-item">
       <div class="news-top">
         <span class="story-badge contract">Contract</span>
         <span class="news-headline">Salah contract talks stall as Liverpool weigh summer options</span>
       </div>
+      <span class="news-source">7h &middot; Sky Sports</span>
     </div>
     <div class="news-item">
       <div class="news-top">
         <span class="story-badge">Scouting</span>
         <span class="news-headline">Kobbie Mainoo impresses in U21 qualifier against Italy</span>
       </div>
+      <span class="news-source">9h &middot; The Guardian</span>
     </div>
   </div>
 </div>
 
-<!-- INTEL GRID -->
+<!-- FIXTURES (second) -->
+<div class="section" style="padding-top:0;">
+  <div class="section-header">
+    <div class="section-pip cyan"></div>
+    <span class="section-title">Fixtures</span>
+    <a href="#" class="section-link">See all &rarr;</a>
+  </div>
+  <div class="panel">
+    <div class="odds-header-mobile">
+      <span>1</span>
+      <span>X</span>
+      <span>2</span>
+    </div>
+    <div class="fixture-row">
+      <span class="fixture-comp mono">Prem</span>
+      <span class="fixture-teams">Arsenal vs Liverpool</span>
+      <span class="fixture-odds"><span class="fixture-odd">1.85</span><span class="fixture-odd">3.40</span><span class="fixture-odd">4.50</span></span>
+      <span class="fixture-date">Mar 23</span>
+    </div>
+    <div class="fixture-row">
+      <span class="fixture-comp mono">UCL</span>
+      <span class="fixture-teams">Barcelona vs PSG</span>
+      <span class="fixture-odds"><span class="fixture-odd">2.10</span><span class="fixture-odd">3.30</span><span class="fixture-odd">3.50</span></span>
+      <span class="fixture-date">Mar 25</span>
+    </div>
+    <div class="fixture-row">
+      <span class="fixture-comp mono">Bundes.</span>
+      <span class="fixture-teams">Bayern vs Dortmund</span>
+      <span class="fixture-odds"><span class="fixture-odd">1.55</span><span class="fixture-odd">4.20</span><span class="fixture-odd">5.50</span></span>
+      <span class="fixture-date">Mar 26</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURED PLAYER (third) -->
+<div class="section" style="padding-top:0;">
+  <div class="panel panel-top-border">
+    <div class="featured">
+      <div class="dof-badge">DOF PICK</div>
+      <div class="featured-row1">
+        <span class="pos-badge mono">AM</span>
+        <span class="player-name">Jude Bellingham</span>
+        <span class="role-score mono">94</span>
+      </div>
+      <div class="featured-row2">
+        <span>Real Madrid</span>
+        <span>&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+        <span class="archetype-chip">Maestro</span>
+      </div>
+      <div class="featured-row3">
+        <div class="pillar-block">
+          <span class="pillar-score tech"><span class="label">T</span><span class="mono">88</span></span>
+          <div class="pillar-attrs">Passing A<br>First Touch A</div>
+        </div>
+        <div class="pillar-block">
+          <span class="pillar-score tact"><span class="label">T</span><span class="mono">91</span></span>
+          <div class="pillar-attrs">Positioning A+<br>Vision A</div>
+        </div>
+        <div class="pillar-block">
+          <span class="pillar-score ment"><span class="label">M</span><span class="mono">85</span></span>
+          <div class="pillar-attrs">Leadership A<br>Composure A</div>
+        </div>
+        <div class="pillar-block">
+          <span class="pillar-score phys"><span class="label">P</span><span class="mono">87</span></span>
+          <div class="pillar-attrs">Power B+<br>Stamina A</div>
+        </div>
+      </div>
+      <div class="featured-row4">
+        <span>32 apps</span><span class="stat-sep">&middot;</span>
+        <span>14 goals</span><span class="stat-sep">&middot;</span>
+        <span>8 assists</span><span class="stat-sep">&middot;</span>
+        <span class="value-tag">&euro;120M</span>
+      </div>
+      <div class="swipe-dots">
+        <div class="swipe-dot active"></div>
+        <div class="swipe-dot"></div>
+        <div class="swipe-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTEL GRID (Market Movers only — removed Contracts, Rising Stars) -->
 <div class="section" style="padding-top:0; padding-bottom: 0;">
   <div class="section-header">
     <div class="section-pip purple"></div>
@@ -586,22 +663,6 @@
   </div>
 </div>
 <div class="intel-grid">
-  <!-- Rising Stars -->
-  <div class="intel-card" style="border-top: 2px solid var(--mental);">
-    <div class="intel-card-header">
-      <div class="intel-pip" style="background:var(--mental);box-shadow:0 0 4px var(--mental);"></div>
-      <span style="color:var(--mental);">Rising Stars</span>
-    </div>
-    <div class="intel-row">
-      <span class="name">L. Yamal</span>
-      <span class="meta up mono">RS 91</span>
-    </div>
-    <div class="intel-row">
-      <span class="name">K. Mainoo</span>
-      <span class="meta up mono">RS 84</span>
-    </div>
-  </div>
-
   <!-- Market Movers -->
   <div class="intel-card" style="border-top: 2px solid var(--technical);">
     <div class="intel-card-header">
@@ -615,22 +676,6 @@
     <div class="intel-row">
       <span class="name">M. Salah</span>
       <span class="meta down mono">-12%</span>
-    </div>
-  </div>
-
-  <!-- Contracts -->
-  <div class="intel-card" style="border-top: 2px solid var(--personality);">
-    <div class="intel-card-header">
-      <div class="intel-pip" style="background:var(--personality);box-shadow:0 0 4px var(--personality);"></div>
-      <span style="color:var(--personality);">Contracts</span>
-    </div>
-    <div class="intel-row">
-      <span class="name">M. Salah</span>
-      <span class="meta expiry">Jun 26</span>
-    </div>
-    <div class="intel-row">
-      <span class="name">V. van Dijk</span>
-      <span class="meta expiry">Jun 26</span>
     </div>
   </div>
 

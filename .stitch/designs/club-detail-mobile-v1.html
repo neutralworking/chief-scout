@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club Detail — Arsenal | Chief Scout (Mobile)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    max-width: 390px;
+    margin: 0 auto;
+    background: #000;
+    min-height: 100vh;
+    padding-bottom: 56px;
+  }
+
+  /* ---------- TOPBAR (sticky) ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 48px;
+    background: #141414;
+    border-bottom: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .topbar-back {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #6fc3df;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .topbar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+
+  /* ---------- PANELS ---------- */
+  .panel {
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.35);
+    border-radius: 0;
+    margin: 12px 12px 0;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6fc3df;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .panel-header::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: #6fc3df;
+    box-shadow: 0 0 6px #6fc3df;
+    flex-shrink: 0;
+  }
+
+  /* ---------- CLUB HEADER ---------- */
+  .club-header {
+    border-top: 2px solid #6fc3df;
+    padding: 16px 14px;
+  }
+  .club-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .club-name {
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .league-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #c8c8c8;
+    text-align: right;
+  }
+  .league-pos strong {
+    color: #6fc3df;
+    font-size: 16px;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .form-label {
+    font-size: 10px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .form-guide {
+    display: flex;
+    gap: 4px;
+  }
+  .form-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .form-badge.w { background: #3dba6f; color: #000; }
+  .form-badge.d { background: #d4a035; color: #000; }
+  .form-badge.l { background: #d94040; color: #fff; }
+  .club-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #252526;
+    border: 1px solid rgba(111,195,223,0.2);
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #c8c8c8;
+  }
+
+  /* Quick Stats: 2x2 grid */
+  .quick-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .quick-stat {
+    background: #0a0a0a;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .quick-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .quick-stat-value.text-val {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .quick-stat-label {
+    font-size: 9px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .next-fixture {
+    font-size: 11px;
+    color: #6a6a6a;
+    padding: 0 2px;
+  }
+  .next-fixture strong {
+    color: #c8c8c8;
+    font-weight: 600;
+  }
+
+  /* ---------- BEST XI (compact list) ---------- */
+  .xi-panel {
+    border-top: 2px solid #3dba6f;
+  }
+  .xi-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 14px;
+  }
+  .xi-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+  }
+  .xi-meta span { color: #6fc3df; }
+  .xi-list {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .xi-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .xi-row:last-child { border-bottom: none; }
+  .xi-row .pos-badge {
+    font-size: 8px;
+    padding: 2px 6px;
+    min-width: 26px;
+  }
+  .xi-row-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+  }
+  .xi-row-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6fc3df;
+    font-weight: 600;
+  }
+
+  /* ---------- SQUAD DEPTH ---------- */
+  .depth-panel {
+    border-top: 2px solid #4a90d9;
+  }
+  .depth-list {
+    padding: 6px 10px;
+  }
+  .depth-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .depth-row:last-child { border-bottom: none; }
+  .pos-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: #000;
+    background: #6fc3df;
+    padding: 2px 7px;
+    min-width: 28px;
+    text-align: center;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .pos-badge.gk { background: #e8c547; }
+  .pos-badge.def { background: #4a90d9; }
+  .pos-badge.mid { background: #3dba6f; }
+  .pos-badge.att { background: #d4a035; }
+  .depth-players {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .depth-player {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+  }
+  .depth-player.choice-1 { color: #fff; }
+  .depth-player.choice-2 { color: #c8c8c8; }
+  .depth-player.choice-3 { color: #6a6a6a; }
+  .depth-player .rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6fc3df;
+  }
+
+  /* ---------- ARCHETYPE DISTRIBUTION ---------- */
+  .archetype-panel {
+    border-top: 2px solid #e8c547;
+  }
+  .bar-list {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bar-label {
+    font-size: 11px;
+    color: #c8c8c8;
+    width: 68px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-track {
+    flex: 1;
+    height: 14px;
+    background: #0a0a0a;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #e8c547;
+  }
+  .bar-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #e8c547;
+    width: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- KEY PLAYERS (horizontal scroll) ---------- */
+  .key-panel {
+    border-top: 2px solid #d4a035;
+    overflow: hidden;
+  }
+  .key-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .key-scroll::-webkit-scrollbar { display: none; }
+  .key-card {
+    background: #252526;
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 10px 12px;
+    min-width: 172px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  .key-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .key-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .key-card-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #6fc3df;
+  }
+  .key-card-mid {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .key-card-archetype {
+    font-size: 10px;
+    color: #e8c547;
+  }
+  .key-card-pillars {
+    display: flex;
+    gap: 4px;
+  }
+  .mini-pillar {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 4px;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .mini-pillar .plabel {
+    font-size: 7px;
+    font-weight: 400;
+    opacity: 0.7;
+    letter-spacing: 0.3px;
+  }
+  .mini-pillar.tech { color: #d4a035; border-bottom: 2px solid #d4a035; }
+  .mini-pillar.tact { color: #9b59b6; border-bottom: 2px solid #9b59b6; }
+  .mini-pillar.ment { color: #3dba6f; border-bottom: 2px solid #3dba6f; }
+  .mini-pillar.phys { color: #4a90d9; border-bottom: 2px solid #4a90d9; }
+
+  /* ---------- PILLAR AVERAGES ---------- */
+  .pillar-panel {
+    border-top: 2px solid #9b59b6;
+    margin-bottom: 16px;
+  }
+  .pillar-bars {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pillar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pillar-label {
+    font-size: 10px;
+    color: #c8c8c8;
+    width: 58px;
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .pillar-track {
+    flex: 1;
+    height: 16px;
+    background: #0a0a0a;
+  }
+  .pillar-fill { height: 100%; }
+  .pillar-fill.tech { background: #d4a035; }
+  .pillar-fill.tact { background: #9b59b6; }
+  .pillar-fill.ment { background: #3dba6f; }
+  .pillar-fill.phys { background: #4a90d9; }
+  .pillar-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    width: 24px;
+    flex-shrink: 0;
+  }
+  .pillar-score.tech { color: #d4a035; }
+  .pillar-score.tact { color: #9b59b6; }
+  .pillar-score.ment { color: #3dba6f; }
+  .pillar-score.phys { color: #4a90d9; }
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 56px;
+    background: #141414;
+    border-top: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    color: #6a6a6a;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .nav-item.active {
+    color: #6fc3df;
+  }
+  .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-back">&larr;</div>
+  <div class="topbar-title">Arsenal</div>
+</div>
+
+<!-- CLUB HEADER -->
+<div class="panel club-header">
+  <div class="club-name-row">
+    <div class="club-name">Arsenal</div>
+    <div class="league-pos"><strong>3rd</strong><br>in PL</div>
+  </div>
+  <div class="form-row">
+    <div class="form-label">Form</div>
+    <div class="form-guide">
+      <div class="form-badge w">W</div>
+      <div class="form-badge w">W</div>
+      <div class="form-badge d">D</div>
+      <div class="form-badge l">L</div>
+      <div class="form-badge w">W</div>
+    </div>
+  </div>
+  <div class="club-meta">
+    <div class="chip">&#9917; Premier League</div>
+    <div class="chip">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631; England</div>
+    <div class="chip">Est. 1886</div>
+    <div class="chip">&#127967; Emirates Stadium (60,704)</div>
+  </div>
+  <div class="quick-stats">
+    <div class="quick-stat">
+      <div class="quick-stat-value">28</div>
+      <div class="quick-stat-label">Squad Size</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-value">25.3</div>
+      <div class="quick-stat-label">Avg Age</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-value">86</div>
+      <div class="quick-stat-label">Avg Role Score</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-value text-val">Mikel Arteta</div>
+      <div class="quick-stat-label">Manager</div>
+    </div>
+  </div>
+  <div class="next-fixture">Next: <strong>vs Chelsea</strong>, Sat 22 Mar</div>
+</div>
+
+<!-- BEST XI (compact formation list) -->
+<div class="panel xi-panel">
+  <div class="xi-header-row">
+    <div class="panel-header">Best XI</div>
+    <div class="xi-meta"><span>4-3-3</span> &middot; Avg RS <span>87.8</span></div>
+  </div>
+  <div class="xi-list">
+    <div class="xi-row">
+      <div class="pos-badge gk">GK</div>
+      <div class="xi-row-name">Raya</div>
+      <div class="xi-row-rs">87</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge def">LB</div>
+      <div class="xi-row-name">Timber</div>
+      <div class="xi-row-rs">83</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge def">CB</div>
+      <div class="xi-row-name">Saliba</div>
+      <div class="xi-row-rs">88</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge def">CB</div>
+      <div class="xi-row-name">Gabriel</div>
+      <div class="xi-row-rs">86</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge def">RB</div>
+      <div class="xi-row-name">White</div>
+      <div class="xi-row-rs">85</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge mid">CM</div>
+      <div class="xi-row-name">Rice</div>
+      <div class="xi-row-rs">91</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge mid">CM</div>
+      <div class="xi-row-name">&Oslash;degaard</div>
+      <div class="xi-row-rs">92</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge mid">CM</div>
+      <div class="xi-row-name">Havertz</div>
+      <div class="xi-row-rs">85</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge att">LW</div>
+      <div class="xi-row-name">Martinelli</div>
+      <div class="xi-row-rs">84</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge att">ST</div>
+      <div class="xi-row-name">Havertz</div>
+      <div class="xi-row-rs">85</div>
+    </div>
+    <div class="xi-row">
+      <div class="pos-badge att">RW</div>
+      <div class="xi-row-name">Saka</div>
+      <div class="xi-row-rs">90</div>
+    </div>
+  </div>
+</div>
+
+<!-- SQUAD DEPTH -->
+<div class="panel depth-panel">
+  <div class="panel-header">Squad Depth</div>
+  <div class="depth-list">
+    <div class="depth-row">
+      <div class="pos-badge gk">GK</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Raya <span class="rs">87</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge def">WD</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">White <span class="rs">85</span></div>
+        <div class="depth-player choice-2">Timber <span class="rs">83</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge def">CD</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Saliba <span class="rs">88</span></div>
+        <div class="depth-player choice-1">Gabriel <span class="rs">86</span></div>
+        <div class="depth-player choice-3">Kiwior <span class="rs">79</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge mid">DM</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Rice <span class="rs">91</span></div>
+        <div class="depth-player choice-2">Jorginho <span class="rs">82</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge mid">CM</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">&Oslash;degaard <span class="rs">92</span></div>
+        <div class="depth-player choice-2">Havertz <span class="rs">85</span></div>
+        <div class="depth-player choice-2">Merino <span class="rs">83</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge mid">WM</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Saka <span class="rs">90</span></div>
+        <div class="depth-player choice-2">Trossard <span class="rs">84</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge att">WF</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Martinelli <span class="rs">84</span></div>
+        <div class="depth-player choice-3">Sterling <span class="rs">80</span></div>
+      </div>
+    </div>
+    <div class="depth-row">
+      <div class="pos-badge att">CF</div>
+      <div class="depth-players">
+        <div class="depth-player choice-1">Havertz <span class="rs">85</span></div>
+        <div class="depth-player choice-2">Jesus <span class="rs">82</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHETYPE DISTRIBUTION -->
+<div class="panel archetype-panel">
+  <div class="panel-header">Archetype Distribution</div>
+  <div class="bar-list">
+    <div class="bar-row">
+      <div class="bar-label">Virtuoso</div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+      <div class="bar-count">6</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Rock</div>
+      <div class="bar-track"><div class="bar-fill" style="width:66%"></div></div>
+      <div class="bar-count">4</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Engine</div>
+      <div class="bar-track"><div class="bar-fill" style="width:50%"></div></div>
+      <div class="bar-count">3</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Maestro</div>
+      <div class="bar-track"><div class="bar-fill" style="width:50%"></div></div>
+      <div class="bar-count">3</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Outlet</div>
+      <div class="bar-track"><div class="bar-fill" style="width:33%"></div></div>
+      <div class="bar-count">2</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Catalyst</div>
+      <div class="bar-track"><div class="bar-fill" style="width:33%"></div></div>
+      <div class="bar-count">2</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Hitman</div>
+      <div class="bar-track"><div class="bar-fill" style="width:33%"></div></div>
+      <div class="bar-count">2</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Mamba</div>
+      <div class="bar-track"><div class="bar-fill" style="width:16%"></div></div>
+      <div class="bar-count">1</div>
+    </div>
+  </div>
+</div>
+
+<!-- KEY PLAYERS (horizontal scroll) -->
+<div class="panel key-panel">
+  <div class="panel-header">Key Players</div>
+  <div class="key-scroll">
+
+    <div class="key-card">
+      <div class="key-card-top">
+        <div class="key-card-name">&Oslash;degaard</div>
+        <div class="key-card-rs">92</div>
+      </div>
+      <div class="key-card-mid">
+        <div class="pos-badge mid">CM</div>
+        <div class="key-card-archetype">Maestro</div>
+      </div>
+      <div class="key-card-pillars">
+        <div class="mini-pillar tech"><span class="plabel">TEC</span> 93</div>
+        <div class="mini-pillar tact"><span class="plabel">TAC</span> 91</div>
+        <div class="mini-pillar ment"><span class="plabel">MEN</span> 90</div>
+        <div class="mini-pillar phys"><span class="plabel">PHY</span> 78</div>
+      </div>
+    </div>
+
+    <div class="key-card">
+      <div class="key-card-top">
+        <div class="key-card-name">Rice</div>
+        <div class="key-card-rs">91</div>
+      </div>
+      <div class="key-card-mid">
+        <div class="pos-badge mid">DM</div>
+        <div class="key-card-archetype">Engine</div>
+      </div>
+      <div class="key-card-pillars">
+        <div class="mini-pillar tech"><span class="plabel">TEC</span> 85</div>
+        <div class="mini-pillar tact"><span class="plabel">TAC</span> 90</div>
+        <div class="mini-pillar ment"><span class="plabel">MEN</span> 88</div>
+        <div class="mini-pillar phys"><span class="plabel">PHY</span> 91</div>
+      </div>
+    </div>
+
+    <div class="key-card">
+      <div class="key-card-top">
+        <div class="key-card-name">Saka</div>
+        <div class="key-card-rs">90</div>
+      </div>
+      <div class="key-card-mid">
+        <div class="pos-badge mid">WM</div>
+        <div class="key-card-archetype">Virtuoso</div>
+      </div>
+      <div class="key-card-pillars">
+        <div class="mini-pillar tech"><span class="plabel">TEC</span> 91</div>
+        <div class="mini-pillar tact"><span class="plabel">TAC</span> 87</div>
+        <div class="mini-pillar ment"><span class="plabel">MEN</span> 85</div>
+        <div class="mini-pillar phys"><span class="plabel">PHY</span> 86</div>
+      </div>
+    </div>
+
+    <div class="key-card">
+      <div class="key-card-top">
+        <div class="key-card-name">Saliba</div>
+        <div class="key-card-rs">88</div>
+      </div>
+      <div class="key-card-mid">
+        <div class="pos-badge def">CD</div>
+        <div class="key-card-archetype">Rock</div>
+      </div>
+      <div class="key-card-pillars">
+        <div class="mini-pillar tech"><span class="plabel">TEC</span> 76</div>
+        <div class="mini-pillar tact"><span class="plabel">TAC</span> 88</div>
+        <div class="mini-pillar ment"><span class="plabel">MEN</span> 86</div>
+        <div class="mini-pillar phys"><span class="plabel">PHY</span> 90</div>
+      </div>
+    </div>
+
+    <div class="key-card">
+      <div class="key-card-top">
+        <div class="key-card-name">Raya</div>
+        <div class="key-card-rs">87</div>
+      </div>
+      <div class="key-card-mid">
+        <div class="pos-badge gk">GK</div>
+        <div class="key-card-archetype">Virtuoso</div>
+      </div>
+      <div class="key-card-pillars">
+        <div class="mini-pillar tech"><span class="plabel">TEC</span> 87</div>
+        <div class="mini-pillar tact"><span class="plabel">TAC</span> 85</div>
+        <div class="mini-pillar ment"><span class="plabel">MEN</span> 84</div>
+        <div class="mini-pillar phys"><span class="plabel">PHY</span> 83</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PILLAR AVERAGES -->
+<div class="panel pillar-panel">
+  <div class="panel-header">Pillar Averages</div>
+  <div class="pillar-bars">
+    <div class="pillar-row">
+      <div class="pillar-label">Technical</div>
+      <div class="pillar-track"><div class="pillar-fill tech" style="width:82%"></div></div>
+      <div class="pillar-score tech">82</div>
+    </div>
+    <div class="pillar-row">
+      <div class="pillar-label">Tactical</div>
+      <div class="pillar-track"><div class="pillar-fill tact" style="width:84%"></div></div>
+      <div class="pillar-score tact">84</div>
+    </div>
+    <div class="pillar-row">
+      <div class="pillar-label">Mental</div>
+      <div class="pillar-track"><div class="pillar-fill ment" style="width:81%"></div></div>
+      <div class="pillar-score ment">81</div>
+    </div>
+    <div class="pillar-row">
+      <div class="pillar-label">Physical</div>
+      <div class="pillar-track"><div class="pillar-fill phys" style="width:83%"></div></div>
+      <div class="pillar-score phys">83</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <div class="nav-icon">&#8962;</div>
+    <div>Home</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#9823;</div>
+    <div>Players</div>
+  </div>
+  <div class="nav-item active">
+    <div class="nav-icon">&#9878;</div>
+    <div>Clubs</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#8644;</div>
+    <div>Compare</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#8943;</div>
+    <div>More</div>
+  </div>
+</div>
+
+</body>
+</html>

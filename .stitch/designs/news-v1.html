@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Intelligence Feed (Desktop)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --cyan: #6fc3df;
+    --text: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --gold: #d4a035;
+    --purple: #9b59b6;
+    --green: #3dba6f;
+    --blue: #4a90d9;
+    --yellow: #e8c547;
+    --red: #e74c3c;
+    --neutral-sentiment: #6a6a7a;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 48px;
+    min-height: 48px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-logo {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 2px;
+  }
+  .topbar-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* MAIN CONTENT */
+  .content {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* LEFT COLUMN — FEED */
+  .feed {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .filter-strip {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--pit);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip:hover { color: var(--text-secondary); border-color: var(--cyan); }
+  .chip.active { color: var(--text); background: var(--elevated); border-color: var(--cyan); }
+  .chip[data-type="transfer"] { border-top: 2px solid var(--purple); }
+  .chip[data-type="transfer"].active { color: var(--purple); border-color: var(--purple); }
+  .chip[data-type="injury"] { border-top: 2px solid var(--red); }
+  .chip[data-type="injury"].active { color: var(--red); border-color: var(--red); }
+  .chip[data-type="contract"] { border-top: 2px solid var(--green); }
+  .chip[data-type="contract"].active { color: var(--green); border-color: var(--green); }
+  .chip[data-type="tactical"] { border-top: 2px solid var(--blue); }
+  .chip[data-type="tactical"].active { color: var(--blue); border-color: var(--blue); }
+  .chip[data-type="scouting"] { border-top: 2px solid var(--yellow); }
+  .chip[data-type="scouting"].active { color: var(--yellow); border-color: var(--yellow); }
+  .chip[data-type="analysis"] { border-top: 2px solid var(--cyan); }
+  .chip[data-type="analysis"].active { color: var(--cyan); border-color: var(--cyan); }
+
+  .feed-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+  }
+  .feed-scroll::-webkit-scrollbar { width: 4px; }
+  .feed-scroll::-webkit-scrollbar-track { background: var(--pit); }
+  .feed-scroll::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* NEWS CARD */
+  .news-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .news-card:hover { border-color: var(--cyan); }
+  .news-card.featured {
+    border-top: 2px solid var(--cyan);
+    padding-top: 18px;
+    margin-bottom: 14px;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .type-badge {
+    font-family: var(--mono);
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    display: inline-block;
+  }
+  .type-badge.transfer { background: rgba(155,89,182,0.2); color: var(--purple); border: 1px solid rgba(155,89,182,0.4); }
+  .type-badge.injury { background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid rgba(231,76,60,0.4); }
+  .type-badge.contract { background: rgba(61,186,111,0.2); color: var(--green); border: 1px solid rgba(61,186,111,0.4); }
+  .type-badge.tactical { background: rgba(74,144,217,0.2); color: var(--blue); border: 1px solid rgba(74,144,217,0.4); }
+  .type-badge.scouting { background: rgba(232,197,71,0.2); color: var(--yellow); border: 1px solid rgba(232,197,71,0.4); }
+  .type-badge.analysis { background: rgba(111,195,223,0.2); color: var(--cyan); border: 1px solid rgba(111,195,223,0.4); }
+
+  .card-headline {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+    margin-bottom: 4px;
+  }
+  .featured .card-headline {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .card-summary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .featured .card-summary {
+    -webkit-line-clamp: 4;
+  }
+
+  .card-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    margin-bottom: 8px;
+  }
+  .card-meta .source-name { color: var(--text-secondary); }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .player-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    background: var(--elevated);
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .player-tag:hover { border-color: var(--cyan); }
+  .sentiment-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 3px currentColor;
+  }
+  .sentiment-dot.positive { background: var(--green); color: var(--green); }
+  .sentiment-dot.negative { background: var(--red); color: var(--red); }
+  .sentiment-dot.neutral { background: var(--neutral-sentiment); color: var(--neutral-sentiment); }
+
+  /* RIGHT SIDEBAR */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: var(--pit); }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .sidebar-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .sidebar-panel-header {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    color: var(--text-muted);
+  }
+  .sidebar-panel.trending { border-top: 2px solid var(--yellow); }
+  .sidebar-panel.trending .sidebar-panel-header { color: var(--yellow); }
+  .sidebar-panel.sources { border-top: 2px solid var(--cyan); }
+  .sidebar-panel.sources .sidebar-panel-header { color: var(--cyan); }
+  .sidebar-panel.sentiment { border-top: 2px solid var(--green); }
+  .sidebar-panel.sentiment .sidebar-panel-header { color: var(--green); }
+
+  .sidebar-panel-body { padding: 0 14px 12px; }
+
+  /* TRENDING */
+  .trending-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .trending-item:last-child { border-bottom: none; }
+  .trending-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .trending-rank {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    width: 16px;
+  }
+  .trending-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .trending-pos {
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    background: var(--elevated);
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+  .trending-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trending-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--cyan);
+  }
+  .trending-sentiment {
+    font-size: 9px;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+  }
+  .trending-sentiment.mostly-positive { color: var(--green); }
+  .trending-sentiment.mostly-negative { color: var(--red); }
+  .trending-sentiment.mixed { color: var(--yellow); }
+
+  /* SOURCES */
+  .source-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+  }
+  .source-name-list {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .source-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* SENTIMENT */
+  .sentiment-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .sentiment-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sentiment-stat .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 3px currentColor;
+  }
+  .sentiment-stat .dot.pos { background: var(--green); color: var(--green); }
+  .sentiment-stat .dot.neg { background: var(--red); color: var(--red); }
+  .sentiment-stat .dot.neu { background: var(--neutral-sentiment); color: var(--neutral-sentiment); }
+  .sentiment-stat .val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .sentiment-stat .label {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .sentiment-bar {
+    display: flex;
+    height: 6px;
+    overflow: hidden;
+    gap: 2px;
+  }
+  .sentiment-bar .seg {
+    height: 100%;
+  }
+  .sentiment-bar .seg.pos { background: var(--green); flex: 23; }
+  .sentiment-bar .seg.neg { background: var(--red); flex: 8; }
+  .sentiment-bar .seg.neu { background: var(--neutral-sentiment); flex: 14; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">CHIEF SCOUT</div>
+    <div class="topbar-title">Intelligence Feed</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <!-- LEFT: FEED -->
+    <div class="feed">
+      <div class="filter-strip">
+        <div class="chip active">ALL</div>
+        <div class="chip" data-type="transfer">TRANSFER</div>
+        <div class="chip" data-type="injury">INJURY</div>
+        <div class="chip" data-type="contract">CONTRACT</div>
+        <div class="chip" data-type="tactical">TACTICAL</div>
+        <div class="chip" data-type="scouting">SCOUTING</div>
+        <div class="chip" data-type="analysis">ANALYSIS</div>
+      </div>
+
+      <div class="feed-scroll">
+
+        <!-- STORY 1 — FEATURED -->
+        <div class="news-card featured">
+          <div class="card-top">
+            <span class="type-badge transfer">TRANSFER</span>
+          </div>
+          <div class="card-headline">Arsenal target &euro;80M move for Florian Wirtz</div>
+          <div class="card-summary">Arsenal are preparing an audacious &euro;80M bid for Bayer Leverkusen's creative force Florian Wirtz, with Arteta viewing the German international as the ideal long-term successor to Martin &Oslash;degaard in the No. 10 role. The Gunners have been monitoring the 21-year-old throughout the season and believe his technical profile fits their system perfectly.</div>
+          <div class="card-meta"><span class="source-name">The Athletic</span> &middot; 2h ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Wirtz</span>
+            <span class="player-tag"><span class="sentiment-dot neutral"></span> &Oslash;degaard</span>
+          </div>
+        </div>
+
+        <!-- STORY 2 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge injury">INJURY</span>
+          </div>
+          <div class="card-headline">Mbapp&eacute; ruled out for two weeks with hamstring strain</div>
+          <div class="card-summary">Real Madrid confirm Kylian Mbapp&eacute; has suffered a grade 1 hamstring injury during training and will miss the upcoming Champions League fixture.</div>
+          <div class="card-meta"><span class="source-name">Marca</span> &middot; 4h ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot negative"></span> Mbapp&eacute;</span>
+          </div>
+        </div>
+
+        <!-- STORY 3 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge contract">CONTRACT</span>
+          </div>
+          <div class="card-headline">Yamal signs new deal until 2030 with &euro;1B clause</div>
+          <div class="card-summary">Barcelona secure the future of their teenage prodigy Lamine Yamal with a long-term contract featuring a record-breaking release clause.</div>
+          <div class="card-meta"><span class="source-name">Sport</span> &middot; 5h ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Yamal</span>
+          </div>
+        </div>
+
+        <!-- STORY 4 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge tactical">TACTICAL</span>
+          </div>
+          <div class="card-headline">Slot's 4-2-3-1 transforming Liverpool's press</div>
+          <div class="card-summary">An in-depth look at how Arne Slot has restructured Liverpool's pressing triggers and defensive shape since taking over at Anfield.</div>
+          <div class="card-meta"><span class="source-name">The Guardian</span> &middot; 7h ago</div>
+        </div>
+
+        <!-- STORY 5 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge transfer">TRANSFER</span>
+          </div>
+          <div class="card-headline">Chelsea preparing &euro;45M offer for Marc Gu&eacute;hi</div>
+          <div class="card-summary">Chelsea reignite their interest in Crystal Palace defender Marc Gu&eacute;hi after failed summer negotiations.</div>
+          <div class="card-meta"><span class="source-name">Sky Sports</span> &middot; 9h ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Gu&eacute;hi</span>
+          </div>
+        </div>
+
+        <!-- STORY 6 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge scouting">SCOUTING</span>
+          </div>
+          <div class="card-headline">Mainoo's emergence: statistical breakdown</div>
+          <div class="card-summary">A detailed statistical profile of Kobbie Mainoo's breakout season at Manchester United, covering progressive passing, ball-carrying, and defensive contribution.</div>
+          <div class="card-meta"><span class="source-name">BBC Sport</span> &middot; 12h ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Mainoo</span>
+          </div>
+        </div>
+
+        <!-- STORY 7 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge transfer">TRANSFER</span>
+          </div>
+          <div class="card-headline">Napoli demand &euro;100M for Kvaratskhelia</div>
+          <div class="card-summary">Napoli president De Laurentiis has set a firm price tag on Georgian winger Khvicha Kvaratskhelia amid interest from PSG.</div>
+          <div class="card-meta"><span class="source-name">Gazzetta</span> &middot; 1d ago</div>
+        </div>
+
+        <!-- STORY 8 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge analysis">ANALYSIS</span>
+          </div>
+          <div class="card-headline">Rodri: why City's metronome is Ballon d'Or favourite</div>
+          <div class="card-summary">Breaking down Rodri's unique influence on Manchester City's build-up play and why his metrics make a compelling case for the 2024 award.</div>
+          <div class="card-meta"><span class="source-name">The Athletic</span> &middot; 1d ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Rodri</span>
+          </div>
+        </div>
+
+        <!-- STORY 9 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge transfer">TRANSFER</span>
+          </div>
+          <div class="card-headline">Bayern monitoring Olise situation at Palace</div>
+          <div class="card-summary">Bayern Munich are keeping tabs on Michael Olise as they look to bolster their attacking options ahead of next season.</div>
+          <div class="card-meta"><span class="source-name">Bild</span> &middot; 1d ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot positive"></span> Olise</span>
+          </div>
+        </div>
+
+        <!-- STORY 10 -->
+        <div class="news-card">
+          <div class="card-top">
+            <span class="type-badge contract">CONTRACT</span>
+          </div>
+          <div class="card-headline">De Bruyne considering Saudi move as contract nears end</div>
+          <div class="card-summary">Kevin De Bruyne has reportedly held preliminary talks with Saudi Pro League clubs as his Manchester City contract enters its final six months.</div>
+          <div class="card-meta"><span class="source-name">Telegraph</span> &middot; 2d ago</div>
+          <div class="card-tags">
+            <span class="player-tag"><span class="sentiment-dot negative"></span> De Bruyne</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- TRENDING PLAYERS -->
+      <div class="sidebar-panel trending">
+        <div class="sidebar-panel-header">Trending Players</div>
+        <div class="sidebar-panel-body">
+          <div class="trending-item">
+            <div class="trending-left">
+              <span class="trending-rank">1</span>
+              <span class="trending-name">Wirtz</span>
+              <span class="trending-pos">AM</span>
+            </div>
+            <div class="trending-right">
+              <span class="trending-count">7</span>
+              <span class="trending-sentiment mostly-positive">POSITIVE</span>
+            </div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-left">
+              <span class="trending-rank">2</span>
+              <span class="trending-name">Mbapp&eacute;</span>
+              <span class="trending-pos">CF</span>
+            </div>
+            <div class="trending-right">
+              <span class="trending-count">5</span>
+              <span class="trending-sentiment mixed">MIXED</span>
+            </div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-left">
+              <span class="trending-rank">3</span>
+              <span class="trending-name">Yamal</span>
+              <span class="trending-pos">WF</span>
+            </div>
+            <div class="trending-right">
+              <span class="trending-count">4</span>
+              <span class="trending-sentiment mostly-positive">POSITIVE</span>
+            </div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-left">
+              <span class="trending-rank">4</span>
+              <span class="trending-name">Rodri</span>
+              <span class="trending-pos">DM</span>
+            </div>
+            <div class="trending-right">
+              <span class="trending-count">3</span>
+              <span class="trending-sentiment mostly-positive">POSITIVE</span>
+            </div>
+          </div>
+          <div class="trending-item">
+            <div class="trending-left">
+              <span class="trending-rank">5</span>
+              <span class="trending-name">De Bruyne</span>
+              <span class="trending-pos">AM</span>
+            </div>
+            <div class="trending-right">
+              <span class="trending-count">3</span>
+              <span class="trending-sentiment mostly-negative">NEGATIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BY SOURCE -->
+      <div class="sidebar-panel sources">
+        <div class="sidebar-panel-header">By Source</div>
+        <div class="sidebar-panel-body">
+          <div class="source-item"><span class="source-name-list">The Athletic</span><span class="source-count">12</span></div>
+          <div class="source-item"><span class="source-name-list">BBC Sport</span><span class="source-count">8</span></div>
+          <div class="source-item"><span class="source-name-list">Sky Sports</span><span class="source-count">7</span></div>
+          <div class="source-item"><span class="source-name-list">The Guardian</span><span class="source-count">6</span></div>
+          <div class="source-item"><span class="source-name-list">Marca</span><span class="source-count">5</span></div>
+          <div class="source-item"><span class="source-name-list">Gazzetta</span><span class="source-count">4</span></div>
+          <div class="source-item"><span class="source-name-list">Bild</span><span class="source-count">3</span></div>
+          <div class="source-item"><span class="source-name-list">Sport</span><span class="source-count">3</span></div>
+          <div class="source-item"><span class="source-name-list">Telegraph</span><span class="source-count">2</span></div>
+        </div>
+      </div>
+
+      <!-- SENTIMENT OVERVIEW -->
+      <div class="sidebar-panel sentiment">
+        <div class="sidebar-panel-header">Sentiment Overview</div>
+        <div class="sidebar-panel-body">
+          <div class="sentiment-stats">
+            <div class="sentiment-stat">
+              <span class="dot pos"></span>
+              <span class="val">23</span>
+              <span class="label">positive</span>
+            </div>
+            <div class="sentiment-stat">
+              <span class="dot neg"></span>
+              <span class="val">8</span>
+              <span class="label">negative</span>
+            </div>
+            <div class="sentiment-stat">
+              <span class="dot neu"></span>
+              <span class="val">14</span>
+              <span class="label">neutral</span>
+            </div>
+          </div>
+          <div class="sentiment-bar">
+            <div class="seg pos"></div>
+            <div class="seg neg"></div>
+            <div class="seg neu"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

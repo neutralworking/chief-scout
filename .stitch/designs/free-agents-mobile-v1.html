@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Free Agents - Chief Scout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+    border-top: 2px solid #6fc3df;
+  }
+  .top-bar h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .top-bar .count-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6a6a6a;
+  }
+  .top-bar .count-badge span {
+    color: #6fc3df;
+  }
+
+  /* ── Sticky Controls ── */
+  .sticky-controls {
+    position: sticky;
+    top: 46px;
+    z-index: 90;
+    background: #000;
+    border-bottom: 1px solid rgba(111,195,223,0.1);
+  }
+
+  /* ── Search Bar ── */
+  .search-bar {
+    padding: 8px 16px 4px;
+  }
+  .search-input {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.15);
+    color: #fff;
+    outline: none;
+  }
+  .search-input::placeholder {
+    color: #6a6a6a;
+  }
+  .search-input:focus {
+    border-color: rgba(111,195,223,0.35);
+  }
+
+  /* ── Filter Chips (horizontal scroll) ── */
+  .filter-strip {
+    padding: 6px 0 8px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-strip::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid rgba(111,195,223,0.15);
+    color: #6a6a6a;
+    margin-right: 6px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .filter-chip.active {
+    background: #6fc3df;
+    border-color: #6fc3df;
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* ── Sort Indicator ── */
+  .sort-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .sort-indicator .sort-active {
+    color: #6fc3df;
+  }
+
+  /* ── Content ── */
+  .content {
+    padding: 0 0 80px;
+  }
+
+  /* ── Player Row Card ── */
+  .player-row {
+    background: #141414;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    transition: background 0.1s;
+  }
+  .player-row:nth-child(even) {
+    background: rgba(255,255,255,0.02);
+  }
+  .player-row:active {
+    background: rgba(111,195,223,0.08);
+  }
+
+  /* Row 1: pos badge + name + CS value */
+  .row-1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .pos-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 5px;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pos-gk { background: rgba(74,144,217,0.15); color: #4a90d9; }
+  .pos-wd { background: rgba(61,186,111,0.15); color: #3dba6f; }
+  .pos-cd { background: rgba(61,186,111,0.15); color: #3dba6f; }
+  .pos-dm, .pos-cm { background: rgba(155,89,182,0.15); color: #9b59b6; }
+  .pos-am { background: rgba(232,197,71,0.15); color: #e8c547; }
+  .pos-wf { background: rgba(212,160,53,0.15); color: #d4a035; }
+  .pos-cf { background: rgba(231,76,60,0.15); color: #e74c3c; }
+
+  .row-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-cs-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6fc3df;
+    flex-shrink: 0;
+  }
+
+  /* Row 2: ex-club + flag + age + contract */
+  .row-2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    padding-left: 32px;
+  }
+  .row-ex-club {
+    font-size: 11px;
+    color: #6a6a6a;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .row-flag { font-size: 13px; line-height: 1; }
+  .row-age {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #c8c8c8;
+  }
+  .row-contract {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .row-contract .dot {
+    width: 5px;
+    height: 5px;
+    display: inline-block;
+  }
+  .contract-expired .dot { background: #e74c3c; box-shadow: 0 0 4px #e74c3c; }
+  .contract-expired { color: #e74c3c; }
+  .contract-expiring .dot { background: #e8a83e; box-shadow: 0 0 4px #e8a83e; }
+  .contract-expiring { color: #e8a83e; }
+
+  /* Row 3: archetype + role score + pillars */
+  .row-3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 32px;
+  }
+  .row-archetype {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #e8c547;
+    background: rgba(232,197,71,0.1);
+    padding: 2px 6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .row-role-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #9b59b6;
+  }
+  .row-pillars {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    width: 24px;
+    text-align: center;
+  }
+  .pill-t { color: #d4a035; }
+  .pill-a { color: #9b59b6; }
+  .pill-m { color: #3dba6f; }
+  .pill-p { color: #4a90d9; }
+
+  /* ── Footer ── */
+  .list-footer {
+    text-align: center;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 64px;
+    background: #0a0a0a;
+    border-top: 1px solid rgba(111,195,223,0.15);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: #6a6a6a;
+    text-decoration: none;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .nav-item.active {
+    color: #6fc3df;
+  }
+  .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <h1>Free Agents</h1>
+    <div class="count-badge"><span>47</span> available</div>
+  </div>
+
+  <!-- STICKY CONTROLS -->
+  <div class="sticky-controls">
+    <!-- SEARCH -->
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="Search free agents...">
+    </div>
+
+    <!-- FILTER CHIPS -->
+    <div class="filter-strip">
+      <span class="filter-chip active">ALL</span>
+      <span class="filter-chip">GK</span>
+      <span class="filter-chip">WD</span>
+      <span class="filter-chip">CD</span>
+      <span class="filter-chip">DM</span>
+      <span class="filter-chip">CM</span>
+      <span class="filter-chip">AM</span>
+      <span class="filter-chip">WF</span>
+      <span class="filter-chip">CF</span>
+    </div>
+
+    <!-- SORT INDICATOR -->
+    <div class="sort-indicator">
+      <span>Sorted by <span class="sort-active">CS Value &#9660;</span></span>
+      <span>47 results</span>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- 1. Davies — €35M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-wd">WD</span>
+        <span class="row-name">Alphonso Davies</span>
+        <span class="row-cs-value">&euro;35M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Bayern Munich</span>
+        <span class="row-flag">&#127464;&#127462;</span>
+        <span class="row-age mono">25</span>
+        <span class="row-contract contract-expiring"><span class="dot"></span> Jun 26</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Outlet</span>
+        <span class="row-role-score">87</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">82</span>
+          <span class="pill pill-a">80</span>
+          <span class="pill pill-m">78</span>
+          <span class="pill pill-p">88</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. TAA — €30M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-wd">WD</span>
+        <span class="row-name">Trent Alexander-Arnold</span>
+        <span class="row-cs-value">&euro;30M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Liverpool</span>
+        <span class="row-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+        <span class="row-age mono">27</span>
+        <span class="row-contract contract-expiring"><span class="dot"></span> Jun 26</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Maestro</span>
+        <span class="row-role-score">88</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">88</span>
+          <span class="pill pill-a">86</span>
+          <span class="pill pill-m">80</span>
+          <span class="pill pill-p">82</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Salah — €28M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-wf">WF</span>
+        <span class="row-name">Mohamed Salah</span>
+        <span class="row-cs-value">&euro;28M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Liverpool</span>
+        <span class="row-flag">&#127466;&#127468;</span>
+        <span class="row-age mono">33</span>
+        <span class="row-contract contract-expiring"><span class="dot"></span> Jun 26</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Hitman</span>
+        <span class="row-role-score">89</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">90</span>
+          <span class="pill pill-a">82</span>
+          <span class="pill pill-m">78</span>
+          <span class="pill pill-p">80</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Onana — €18M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-gk">GK</span>
+        <span class="row-name">Andre Onana</span>
+        <span class="row-cs-value">&euro;18M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Man United</span>
+        <span class="row-flag">&#127464;&#127474;</span>
+        <span class="row-age mono">28</span>
+        <span class="row-contract contract-expiring"><span class="dot"></span> Jun 26</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Virtuoso</span>
+        <span class="row-role-score">83</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">80</span>
+          <span class="pill pill-a">76</span>
+          <span class="pill pill-m">79</span>
+          <span class="pill pill-p">81</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Rabiot — €15M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cm">CM</span>
+        <span class="row-name">Adrien Rabiot</span>
+        <span class="row-cs-value">&euro;15M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Juventus</span>
+        <span class="row-flag">&#127467;&#127479;</span>
+        <span class="row-age mono">30</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Engine</span>
+        <span class="row-role-score">82</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">78</span>
+          <span class="pill pill-a">80</span>
+          <span class="pill pill-m">82</span>
+          <span class="pill pill-p">84</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Depay — €10M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-wf">WF</span>
+        <span class="row-name">Memphis Depay</span>
+        <span class="row-cs-value">&euro;10M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Atletico</span>
+        <span class="row-flag">&#127475;&#127473;</span>
+        <span class="row-age mono">31</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Maverick</span>
+        <span class="row-role-score">80</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">84</span>
+          <span class="pill pill-a">76</span>
+          <span class="pill pill-m">74</span>
+          <span class="pill pill-p">82</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Martial — €8M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cf">CF</span>
+        <span class="row-name">Anthony Martial</span>
+        <span class="row-cs-value">&euro;8M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Man United</span>
+        <span class="row-flag">&#127467;&#127479;</span>
+        <span class="row-age mono">29</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Maverick</span>
+        <span class="row-role-score">78</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">82</span>
+          <span class="pill pill-a">74</span>
+          <span class="pill pill-m">70</span>
+          <span class="pill pill-p">80</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Yazici — €6M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-am">AM</span>
+        <span class="row-name">Yusuf Yazici</span>
+        <span class="row-cs-value">&euro;6M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Lille</span>
+        <span class="row-flag">&#127481;&#127479;</span>
+        <span class="row-age mono">28</span>
+        <span class="row-contract contract-expiring"><span class="dot"></span> Jun 26</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Virtuoso</span>
+        <span class="row-role-score">78</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">79</span>
+          <span class="pill pill-a">74</span>
+          <span class="pill pill-m">72</span>
+          <span class="pill pill-p">75</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Matip — €5M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cd">CD</span>
+        <span class="row-name">Joel Matip</span>
+        <span class="row-cs-value">&euro;5M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Liverpool</span>
+        <span class="row-flag">&#127464;&#127474;</span>
+        <span class="row-age mono">33</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Rock</span>
+        <span class="row-role-score">79</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">72</span>
+          <span class="pill pill-a">80</span>
+          <span class="pill pill-m">82</span>
+          <span class="pill pill-p">78</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Ben Yedder — €4M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cf">CF</span>
+        <span class="row-name">Wissam Ben Yedder</span>
+        <span class="row-cs-value">&euro;4M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">free</span>
+        <span class="row-flag">&#127467;&#127479;</span>
+        <span class="row-age mono">35</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Virtuoso</span>
+        <span class="row-role-score">75</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">80</span>
+          <span class="pill pill-a">76</span>
+          <span class="pill pill-m">74</span>
+          <span class="pill pill-p">68</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. Navas — €3M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-gk">GK</span>
+        <span class="row-name">Keylor Navas</span>
+        <span class="row-cs-value">&euro;3M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-PSG</span>
+        <span class="row-flag">&#127464;&#127479;</span>
+        <span class="row-age mono">38</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Rock</span>
+        <span class="row-role-score">76</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">78</span>
+          <span class="pill pill-a">74</span>
+          <span class="pill pill-m">82</span>
+          <span class="pill pill-p">72</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12. Ramos — €2M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cd">CD</span>
+        <span class="row-name">Sergio Ramos</span>
+        <span class="row-cs-value">&euro;2M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Sevilla</span>
+        <span class="row-flag">&#127466;&#127480;</span>
+        <span class="row-age mono">39</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Rock</span>
+        <span class="row-role-score">74</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">68</span>
+          <span class="pill pill-a">78</span>
+          <span class="pill pill-m">80</span>
+          <span class="pill pill-p">72</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. Cavani — €2M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cf">CF</span>
+        <span class="row-name">Edinson Cavani</span>
+        <span class="row-cs-value">&euro;2M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">free</span>
+        <span class="row-flag">&#127482;&#127486;</span>
+        <span class="row-age mono">38</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Engine</span>
+        <span class="row-role-score">74</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">76</span>
+          <span class="pill pill-a">78</span>
+          <span class="pill pill-m">82</span>
+          <span class="pill pill-p">70</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. Thiago Silva — €2M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cd">CD</span>
+        <span class="row-name">Thiago Silva</span>
+        <span class="row-cs-value">&euro;2M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-Fluminense</span>
+        <span class="row-flag">&#127463;&#127479;</span>
+        <span class="row-age mono">40</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Maestro</span>
+        <span class="row-role-score">76</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">79</span>
+          <span class="pill pill-a">85</span>
+          <span class="pill pill-m">88</span>
+          <span class="pill pill-p">65</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. Giroud — €1M -->
+    <div class="player-row">
+      <div class="row-1">
+        <span class="pos-badge pos-cf">CF</span>
+        <span class="row-name">Olivier Giroud</span>
+        <span class="row-cs-value">&euro;1M</span>
+      </div>
+      <div class="row-2">
+        <span class="row-ex-club">ex-AC Milan</span>
+        <span class="row-flag">&#127467;&#127479;</span>
+        <span class="row-age mono">38</span>
+        <span class="row-contract contract-expired"><span class="dot"></span> Expired</span>
+      </div>
+      <div class="row-3">
+        <span class="row-archetype">Rock</span>
+        <span class="row-role-score">73</span>
+        <div class="row-pillars">
+          <span class="pill pill-t">74</span>
+          <span class="pill pill-a">76</span>
+          <span class="pill pill-m">80</span>
+          <span class="pill pill-p">68</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-footer">
+      47 free agents &middot; Sorted by CS Value
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <a class="nav-item" href="#">
+      <span class="nav-icon">&#9750;</span>
+      Home
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">&#9823;</span>
+      Players
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">&#9876;</span>
+      Clubs
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">&#8860;</span>
+      Compare
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon">&#8943;</span>
+      More
+    </a>
+  </div>
+
+</body>
+</html>

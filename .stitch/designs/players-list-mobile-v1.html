@@ -38,13 +38,20 @@
   }
   .top-bar .count-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
+    color: #6a6a6a;
+  }
+  .top-bar .count-badge span {
     color: #6fc3df;
-    background: rgba(111,195,223,0.1);
-    border: 1px solid rgba(111,195,223,0.35);
-    padding: 2px 8px;
-    border-radius: 0;
+  }
+
+  /* ── Sticky Controls (search + filters) ── */
+  .sticky-controls {
+    position: sticky;
+    top: 40px;
+    z-index: 90;
+    background: #000;
   }
 
   /* ── Search ── */
@@ -112,6 +119,41 @@
   .filter-chip[data-pos="WF"].active,
   .filter-chip[data-pos="CF"].active { background: #e74c3c; border-color: #e74c3c; }
 
+  /* ── Age Filter Row ── */
+  .age-filter-row {
+    display: flex;
+    gap: 6px;
+    padding: 2px 16px 6px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: #000;
+  }
+  .age-filter-row::-webkit-scrollbar { display: none; }
+  .age-chip {
+    flex-shrink: 0;
+    height: 28px;
+    min-width: 36px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: #6a6a6a;
+    background: #0a0a0a;
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+  .age-chip.active {
+    color: #c8c8c8;
+    background: #1a1a1a;
+    border-color: rgba(111,195,223,0.35);
+  }
+
   /* ── Sort Strip ── */
   .sort-strip {
     display: flex;
@@ -128,31 +170,6 @@
     font-family: 'JetBrains Mono', monospace;
   }
   .sort-label span { color: #c8c8c8; cursor: pointer; }
-  .tier-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: #c8c8c8;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-  }
-  .tier-toggle .toggle-track {
-    width: 28px;
-    height: 14px;
-    background: #6fc3df;
-    position: relative;
-    border-radius: 0;
-  }
-  .tier-toggle .toggle-knob {
-    width: 10px;
-    height: 10px;
-    background: #fff;
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    border-radius: 0;
-  }
 
   /* ── Player Cards ── */
   .player-list {
@@ -201,6 +218,10 @@
   .pos-badge.pos-cm { background: rgba(155,89,182,0.3); color: #9b59b6; border-top: 2px solid #9b59b6; }
   .pos-badge.pos-cf { background: rgba(231,76,60,0.3); color: #e74c3c; border-top: 2px solid #e74c3c; }
   .pos-badge.pos-cd { background: rgba(61,186,111,0.3); color: #3dba6f; border-top: 2px solid #3dba6f; }
+  .pos-badge.pos-dm { background: rgba(155,89,182,0.3); color: #9b59b6; border-top: 2px solid #9b59b6; }
+  .pos-badge.pos-wm { background: rgba(155,89,182,0.3); color: #9b59b6; border-top: 2px solid #9b59b6; }
+  .pos-badge.pos-wd { background: rgba(61,186,111,0.3); color: #3dba6f; border-top: 2px solid #3dba6f; }
+  .pos-badge.pos-gk { background: rgba(74,144,217,0.3); color: #4a90d9; border-top: 2px solid #4a90d9; }
 
   .player-name {
     font-size: 14px;
@@ -244,6 +265,12 @@
     background: rgba(232,197,71,0.15);
     color: #e8c547;
     border: 1px solid rgba(232,197,71,0.3);
+  }
+  .model-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: #6a6a6a;
     margin-left: auto;
   }
 
@@ -255,22 +282,49 @@
   }
   .pillar-scores {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex: 1;
   }
   .pillar-score {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    font-weight: 500;
-    display: flex;
+    font-weight: 700;
+    display: inline-flex;
     align-items: center;
-    gap: 1px;
+    justify-content: center;
+    min-width: 24px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 0;
   }
-  .pillar-score .label { opacity: 0.6; }
-  .pillar-score.tech { color: #d4a035; }
-  .pillar-score.tact { color: #9b59b6; }
-  .pillar-score.ment { color: #3dba6f; }
-  .pillar-score.phys { color: #4a90d9; }
+  .pillar-score.tech {
+    color: #fff;
+    background: rgba(212,160,53,0.25);
+    border: 1px solid rgba(212,160,53,0.4);
+  }
+  .pillar-score.tact {
+    color: #fff;
+    background: rgba(155,89,182,0.25);
+    border: 1px solid rgba(155,89,182,0.4);
+  }
+  .pillar-score.ment {
+    color: #fff;
+    background: rgba(61,186,111,0.25);
+    border: 1px solid rgba(61,186,111,0.4);
+  }
+  .pillar-score.phys {
+    color: #fff;
+    background: rgba(74,144,217,0.25);
+    border: 1px solid rgba(74,144,217,0.4);
+  }
+  .pillar-label {
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-right: 2px;
+    opacity: 0.7;
+  }
 
   .market-value {
     font-family: 'JetBrains Mono', monospace;
@@ -340,35 +394,46 @@
 <!-- Top Bar -->
 <div class="top-bar">
   <h1>Players</h1>
-  <span class="count-badge">276</span>
+  <span class="count-badge"><span>276</span> scouted</span>
 </div>
 
-<!-- Search -->
-<div class="search-bar">
-  <input type="text" placeholder="Search players...">
-</div>
+<!-- Sticky Controls: Search + Filters -->
+<div class="sticky-controls">
 
-<!-- Filter Row -->
-<div class="filter-row">
-  <div class="filter-chip active">ALL</div>
-  <div class="filter-chip" data-pos="GK">GK</div>
-  <div class="filter-chip" data-pos="WD">WD</div>
-  <div class="filter-chip" data-pos="CD">CD</div>
-  <div class="filter-chip" data-pos="DM">DM</div>
-  <div class="filter-chip" data-pos="CM">CM</div>
-  <div class="filter-chip" data-pos="WM">WM</div>
-  <div class="filter-chip" data-pos="AM">AM</div>
-  <div class="filter-chip" data-pos="WF">WF</div>
-  <div class="filter-chip" data-pos="CF">CF</div>
+  <!-- Search -->
+  <div class="search-bar">
+    <input type="text" placeholder="Search players...">
+  </div>
+
+  <!-- Position Filter Row -->
+  <div class="filter-row">
+    <div class="filter-chip active">ALL</div>
+    <div class="filter-chip" data-pos="GK">GK</div>
+    <div class="filter-chip" data-pos="WD">WD</div>
+    <div class="filter-chip" data-pos="CD">CD</div>
+    <div class="filter-chip" data-pos="DM">DM</div>
+    <div class="filter-chip" data-pos="CM">CM</div>
+    <div class="filter-chip" data-pos="WM">WM</div>
+    <div class="filter-chip" data-pos="AM">AM</div>
+    <div class="filter-chip" data-pos="WF">WF</div>
+    <div class="filter-chip" data-pos="CF">CF</div>
+  </div>
+
+  <!-- Age Filter Row -->
+  <div class="age-filter-row">
+    <div class="age-chip active">All</div>
+    <div class="age-chip">U21</div>
+    <div class="age-chip">U23</div>
+    <div class="age-chip">23-27</div>
+    <div class="age-chip">28-32</div>
+    <div class="age-chip">32+</div>
+  </div>
+
 </div>
 
 <!-- Sort Strip -->
 <div class="sort-strip">
   <div class="sort-label">Sort: <span>Role Score &#9660;</span></div>
-  <div class="tier-toggle">
-    Tier 1
-    <div class="toggle-track"><div class="toggle-knob"></div></div>
-  </div>
 </div>
 
 <!-- Player Cards -->
@@ -386,13 +451,14 @@
       <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
       <span class="player-age">22</span>
       <span class="archetype-chip">Maestro</span>
+      <span class="model-label">Creator-9</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>88</span>
-        <span class="pillar-score tact"><span class="label">T</span>91</span>
-        <span class="pillar-score ment"><span class="label">M</span>85</span>
-        <span class="pillar-score phys"><span class="label">P</span>87</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>88</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>91</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>85</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>87</span>
       </div>
       <span class="market-value">&euro;120M</span>
     </div>
@@ -410,13 +476,14 @@
       <span class="nation-flag">&#127466;&#127480;</span>
       <span class="player-age">18</span>
       <span class="archetype-chip">Prodigy</span>
+      <span class="model-label">Striker-7</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>90</span>
-        <span class="pillar-score tact"><span class="label">T</span>82</span>
-        <span class="pillar-score ment"><span class="label">M</span>78</span>
-        <span class="pillar-score phys"><span class="label">P</span>85</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>90</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>82</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>78</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>85</span>
       </div>
       <span class="market-value">&euro;150M</span>
     </div>
@@ -434,13 +501,14 @@
       <span class="nation-flag">&#127465;&#127466;</span>
       <span class="player-age">22</span>
       <span class="archetype-chip">Virtuoso</span>
+      <span class="model-label">Creator-8</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>91</span>
-        <span class="pillar-score tact"><span class="label">T</span>89</span>
-        <span class="pillar-score ment"><span class="label">M</span>84</span>
-        <span class="pillar-score phys"><span class="label">P</span>80</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>91</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>89</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>84</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>80</span>
       </div>
       <span class="market-value">&euro;130M</span>
     </div>
@@ -458,13 +526,14 @@
       <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
       <span class="player-age">19</span>
       <span class="archetype-chip">Engine</span>
+      <span class="model-label">Controller-6</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>78</span>
-        <span class="pillar-score tact"><span class="label">T</span>80</span>
-        <span class="pillar-score ment"><span class="label">M</span>82</span>
-        <span class="pillar-score phys"><span class="label">P</span>79</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>78</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>80</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>82</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>79</span>
       </div>
       <span class="market-value">&euro;45M</span>
     </div>
@@ -482,13 +551,14 @@
       <span class="nation-flag">&#127466;&#127480;</span>
       <span class="player-age">23</span>
       <span class="archetype-chip">Maestro</span>
+      <span class="model-label">Creator-9</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>89</span>
-        <span class="pillar-score tact"><span class="label">T</span>92</span>
-        <span class="pillar-score ment"><span class="label">M</span>86</span>
-        <span class="pillar-score phys"><span class="label">P</span>76</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>89</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>92</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>86</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>76</span>
       </div>
       <span class="market-value">&euro;100M</span>
     </div>
@@ -506,13 +576,14 @@
       <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
       <span class="player-age">24</span>
       <span class="archetype-chip">Virtuoso</span>
+      <span class="model-label">Creator-8</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>88</span>
-        <span class="pillar-score tact"><span class="label">T</span>85</span>
-        <span class="pillar-score ment"><span class="label">M</span>83</span>
-        <span class="pillar-score phys"><span class="label">P</span>84</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>88</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>85</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>83</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>84</span>
       </div>
       <span class="market-value">&euro;120M</span>
     </div>
@@ -530,13 +601,14 @@
       <span class="nation-flag">&#127463;&#127479;</span>
       <span class="player-age">25</span>
       <span class="archetype-chip">Maverick</span>
+      <span class="model-label">Runner-9</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>92</span>
-        <span class="pillar-score tact"><span class="label">T</span>80</span>
-        <span class="pillar-score ment"><span class="label">M</span>76</span>
-        <span class="pillar-score phys"><span class="label">P</span>90</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>92</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>80</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>76</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>90</span>
       </div>
       <span class="market-value">&euro;150M</span>
     </div>
@@ -554,13 +626,14 @@
       <span class="nation-flag">&#127475;&#127476;</span>
       <span class="player-age">25</span>
       <span class="archetype-chip">Hitman</span>
+      <span class="model-label">Striker-9</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>82</span>
-        <span class="pillar-score tact"><span class="label">T</span>78</span>
-        <span class="pillar-score ment"><span class="label">M</span>80</span>
-        <span class="pillar-score phys"><span class="label">P</span>92</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>82</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>78</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>80</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>92</span>
       </div>
       <span class="market-value">&euro;180M</span>
     </div>
@@ -578,13 +651,14 @@
       <span class="nation-flag">&#127467;&#127479;</span>
       <span class="player-age">24</span>
       <span class="archetype-chip">Rock</span>
+      <span class="model-label">Defender-8</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>72</span>
-        <span class="pillar-score tact"><span class="label">T</span>85</span>
-        <span class="pillar-score ment"><span class="label">M</span>86</span>
-        <span class="pillar-score phys"><span class="label">P</span>89</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>72</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>85</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>86</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>89</span>
       </div>
       <span class="market-value">&euro;90M</span>
     </div>
@@ -602,13 +676,14 @@
       <span class="nation-flag">&#127465;&#127466;</span>
       <span class="player-age">22</span>
       <span class="archetype-chip">Virtuoso</span>
+      <span class="model-label">Creator-9</span>
     </div>
     <div class="card-row3">
       <div class="pillar-scores">
-        <span class="pillar-score tech"><span class="label">T</span>91</span>
-        <span class="pillar-score tact"><span class="label">T</span>86</span>
-        <span class="pillar-score ment"><span class="label">M</span>82</span>
-        <span class="pillar-score phys"><span class="label">P</span>79</span>
+        <span class="pillar-score tech"><span class="pillar-label">TEC</span>91</span>
+        <span class="pillar-score tact"><span class="pillar-label">TAC</span>86</span>
+        <span class="pillar-score ment"><span class="pillar-label">MEN</span>82</span>
+        <span class="pillar-score phys"><span class="pillar-label">PHY</span>79</span>
       </div>
       <span class="market-value">&euro;120M</span>
     </div>

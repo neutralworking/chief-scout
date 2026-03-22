@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0">
+<title>Chief Scout — Intelligence Feed (Mobile)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --cyan: #6fc3df;
+    --text: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --gold: #d4a035;
+    --purple: #9b59b6;
+    --green: #3dba6f;
+    --blue: #4a90d9;
+    --yellow: #e8c547;
+    --red: #e74c3c;
+    --neutral-sentiment: #6a6a7a;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    width: 390px;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* TOP BAR — STICKY */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 44px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+  }
+  .topbar-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .topbar-icon svg { width: 18px; height: 18px; }
+
+  /* FILTER CHIPS — HORIZONTAL SCROLL */
+  .filter-strip {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--pit);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: sticky;
+    top: 44px;
+    z-index: 99;
+  }
+  .filter-strip::-webkit-scrollbar { display: none; }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .chip.active { color: var(--text); background: var(--elevated); border-color: var(--cyan); }
+  .chip[data-type="transfer"] { border-top: 2px solid var(--purple); }
+  .chip[data-type="transfer"].active { color: var(--purple); border-color: var(--purple); }
+  .chip[data-type="injury"] { border-top: 2px solid var(--red); }
+  .chip[data-type="injury"].active { color: var(--red); border-color: var(--red); }
+  .chip[data-type="contract"] { border-top: 2px solid var(--green); }
+  .chip[data-type="contract"].active { color: var(--green); border-color: var(--green); }
+  .chip[data-type="tactical"] { border-top: 2px solid var(--blue); }
+  .chip[data-type="tactical"].active { color: var(--blue); border-color: var(--blue); }
+  .chip[data-type="scouting"] { border-top: 2px solid var(--yellow); }
+  .chip[data-type="scouting"].active { color: var(--yellow); border-color: var(--yellow); }
+  .chip[data-type="analysis"] { border-top: 2px solid var(--cyan); }
+  .chip[data-type="analysis"].active { color: var(--cyan); border-color: var(--cyan); }
+
+  /* MAIN FEED */
+  .feed {
+    padding: 10px 12px;
+    padding-bottom: 70px; /* space for bottom nav */
+  }
+
+  /* NEWS CARD — MOBILE */
+  .news-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .news-card.featured {
+    border-top: 2px solid var(--cyan);
+  }
+
+  .card-row-1 {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .type-badge {
+    font-family: var(--mono);
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .type-badge.transfer { background: rgba(155,89,182,0.2); color: var(--purple); border: 1px solid rgba(155,89,182,0.4); }
+  .type-badge.injury { background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid rgba(231,76,60,0.4); }
+  .type-badge.contract { background: rgba(61,186,111,0.2); color: var(--green); border: 1px solid rgba(61,186,111,0.4); }
+  .type-badge.tactical { background: rgba(74,144,217,0.2); color: var(--blue); border: 1px solid rgba(74,144,217,0.4); }
+  .type-badge.scouting { background: rgba(232,197,71,0.2); color: var(--yellow); border: 1px solid rgba(232,197,71,0.4); }
+  .type-badge.analysis { background: rgba(111,195,223,0.2); color: var(--cyan); border: 1px solid rgba(111,195,223,0.4); }
+
+  .card-headline {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .featured .card-headline {
+    font-size: 14px;
+  }
+
+  .card-summary {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-row-2 {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    margin-top: 6px;
+  }
+  .card-row-2 .source-name { color: var(--text-secondary); }
+
+  .card-row-3 {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .player-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 8px;
+    background: var(--elevated);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sentiment-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 3px currentColor;
+  }
+  .sentiment-dot.positive { background: var(--green); color: var(--green); }
+  .sentiment-dot.negative { background: var(--red); color: var(--red); }
+  .sentiment-dot.neutral { background: var(--neutral-sentiment); color: var(--neutral-sentiment); }
+
+  /* TRENDING STRIP — HORIZONTAL SCROLL */
+  .trending-strip {
+    margin: 8px -12px;
+    padding: 0 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    gap: 8px;
+  }
+  .trending-strip::-webkit-scrollbar { display: none; }
+
+  .trending-strip-header {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--yellow);
+    padding: 10px 0 6px;
+  }
+
+  .trending-card {
+    flex-shrink: 0;
+    width: 130px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--yellow);
+    padding: 10px 12px;
+  }
+  .trending-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .trending-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .trending-card-pos {
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 5px;
+    background: var(--elevated);
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+  .trending-card-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cyan);
+  }
+  .trending-card-sentiment {
+    font-family: var(--mono);
+    font-size: 8px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+  .trending-card-sentiment.pos { color: var(--green); }
+  .trending-card-sentiment.neg { color: var(--red); }
+  .trending-card-sentiment.mix { color: var(--yellow); }
+
+  /* BOTTOM NAV — STICKY */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 56px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-muted);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-item.active { color: var(--cyan); }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-title">INTELLIGENCE</span>
+  <div class="topbar-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- FILTER CHIPS -->
+<div class="filter-strip">
+  <div class="chip active">ALL</div>
+  <div class="chip" data-type="transfer">TRANSFER</div>
+  <div class="chip" data-type="injury">INJURY</div>
+  <div class="chip" data-type="contract">CONTRACT</div>
+  <div class="chip" data-type="tactical">TACTICAL</div>
+  <div class="chip" data-type="scouting">SCOUTING</div>
+  <div class="chip" data-type="analysis">ANALYSIS</div>
+</div>
+
+<!-- FEED -->
+<div class="feed">
+
+  <!-- STORY 1 — FEATURED -->
+  <div class="news-card featured">
+    <div class="card-row-1">
+      <span class="type-badge transfer">TRANSFER</span>
+      <span class="card-headline">Arsenal target &euro;80M move for Florian Wirtz</span>
+    </div>
+    <div class="card-summary">Arsenal are preparing an audacious &euro;80M bid for Bayer Leverkusen's creative force Florian Wirtz, with Arteta viewing the German international as the ideal long-term successor to &Oslash;degaard.</div>
+    <div class="card-row-2"><span class="source-name">The Athletic</span> &middot; 2h ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Wirtz</span>
+      <span class="player-tag"><span class="sentiment-dot neutral"></span> &Oslash;degaard</span>
+    </div>
+  </div>
+
+  <!-- STORY 2 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge injury">INJURY</span>
+      <span class="card-headline">Mbapp&eacute; ruled out for two weeks with hamstring strain</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Marca</span> &middot; 4h ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot negative"></span> Mbapp&eacute;</span>
+    </div>
+  </div>
+
+  <!-- STORY 3 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge contract">CONTRACT</span>
+      <span class="card-headline">Yamal signs new deal until 2030 with &euro;1B clause</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Sport</span> &middot; 5h ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Yamal</span>
+    </div>
+  </div>
+
+  <!-- TRENDING STRIP — after story 3 -->
+  <div class="trending-strip-header">Trending Players</div>
+  <div class="trending-strip">
+    <div class="trending-card">
+      <div class="trending-card-name">Wirtz</div>
+      <div class="trending-card-meta">
+        <span class="trending-card-pos">AM</span>
+        <span class="trending-card-count">7 stories</span>
+      </div>
+      <div class="trending-card-sentiment pos">POSITIVE</div>
+    </div>
+    <div class="trending-card">
+      <div class="trending-card-name">Mbapp&eacute;</div>
+      <div class="trending-card-meta">
+        <span class="trending-card-pos">CF</span>
+        <span class="trending-card-count">5 stories</span>
+      </div>
+      <div class="trending-card-sentiment mix">MIXED</div>
+    </div>
+    <div class="trending-card">
+      <div class="trending-card-name">Yamal</div>
+      <div class="trending-card-meta">
+        <span class="trending-card-pos">WF</span>
+        <span class="trending-card-count">4 stories</span>
+      </div>
+      <div class="trending-card-sentiment pos">POSITIVE</div>
+    </div>
+    <div class="trending-card">
+      <div class="trending-card-name">Rodri</div>
+      <div class="trending-card-meta">
+        <span class="trending-card-pos">DM</span>
+        <span class="trending-card-count">3 stories</span>
+      </div>
+      <div class="trending-card-sentiment pos">POSITIVE</div>
+    </div>
+    <div class="trending-card">
+      <div class="trending-card-name">De Bruyne</div>
+      <div class="trending-card-meta">
+        <span class="trending-card-pos">AM</span>
+        <span class="trending-card-count">3 stories</span>
+      </div>
+      <div class="trending-card-sentiment neg">NEGATIVE</div>
+    </div>
+  </div>
+
+  <!-- STORY 4 -->
+  <div class="news-card" style="margin-top: 8px;">
+    <div class="card-row-1">
+      <span class="type-badge tactical">TACTICAL</span>
+      <span class="card-headline">Slot's 4-2-3-1 transforming Liverpool's press</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">The Guardian</span> &middot; 7h ago</div>
+  </div>
+
+  <!-- STORY 5 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge transfer">TRANSFER</span>
+      <span class="card-headline">Chelsea preparing &euro;45M offer for Marc Gu&eacute;hi</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Sky Sports</span> &middot; 9h ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Gu&eacute;hi</span>
+    </div>
+  </div>
+
+  <!-- STORY 6 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge scouting">SCOUTING</span>
+      <span class="card-headline">Mainoo's emergence: statistical breakdown</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">BBC Sport</span> &middot; 12h ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Mainoo</span>
+    </div>
+  </div>
+
+  <!-- STORY 7 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge transfer">TRANSFER</span>
+      <span class="card-headline">Napoli demand &euro;100M for Kvaratskhelia</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Gazzetta</span> &middot; 1d ago</div>
+  </div>
+
+  <!-- STORY 8 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge analysis">ANALYSIS</span>
+      <span class="card-headline">Rodri: why City's metronome is Ballon d'Or favourite</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">The Athletic</span> &middot; 1d ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Rodri</span>
+    </div>
+  </div>
+
+  <!-- STORY 9 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge transfer">TRANSFER</span>
+      <span class="card-headline">Bayern monitoring Olise situation at Palace</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Bild</span> &middot; 1d ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot positive"></span> Olise</span>
+    </div>
+  </div>
+
+  <!-- STORY 10 -->
+  <div class="news-card">
+    <div class="card-row-1">
+      <span class="type-badge contract">CONTRACT</span>
+      <span class="card-headline">De Bruyne considering Saudi move as contract nears end</span>
+    </div>
+    <div class="card-row-2"><span class="source-name">Telegraph</span> &middot; 2d ago</div>
+    <div class="card-row-3">
+      <span class="player-tag"><span class="sentiment-dot negative"></span> De Bruyne</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <span class="nav-label">Players</span>
+  </div>
+  <div class="nav-item">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    <span class="nav-label">Clubs</span>
+  </div>
+  <div class="nav-item">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+    <span class="nav-label">Compare</span>
+  </div>
+  <div class="nav-item">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+    <span class="nav-label">More</span>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

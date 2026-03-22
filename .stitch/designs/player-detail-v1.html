@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TACTICAL COMMAND — Jude Bellingham</title>
+<title>CHIEF SCOUT — Jude Bellingham</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -134,6 +134,24 @@
     color: var(--tactical);
     border: 1px solid var(--tactical);
     padding: 2px 8px;
+    margin-right: 6px;
+  }
+  .position-secondary {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 2px 6px;
+    margin-right: 4px;
+  }
+  .position-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
     margin-bottom: 8px;
   }
   .player-name {
@@ -283,7 +301,7 @@
     text-shadow: 0 0 10px rgba(111,195,223,0.3);
   }
 
-  /* ── RADAR PANEL ── */
+  /* ── TACTICAL FINGERPRINT — BEST ROLES ── */
   .radar-container {
     flex: 1;
     display: flex;
@@ -294,11 +312,11 @@
   }
   .radar-svg {
     width: 100%;
-    max-width: 260px;
+    max-width: 220px;
     height: auto;
   }
   .plays-like {
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 10px;
     color: var(--text-muted);
     text-align: center;
@@ -311,6 +329,54 @@
     padding: 2px 8px;
     margin-left: 4px;
     font-size: 10px;
+  }
+  .best-roles {
+    width: 100%;
+    margin-top: 12px;
+  }
+  .best-roles-title {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .role-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .role-row:last-child { margin-bottom: 0; }
+  .role-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    width: 130px;
+    flex-shrink: 0;
+  }
+  .role-bar-bg {
+    flex: 1;
+    height: 14px;
+    background: var(--pit);
+    position: relative;
+    overflow: hidden;
+  }
+  .role-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(155,89,182,0.35);
+    border-right: 2px solid var(--tactical);
+  }
+  .role-rs {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
   }
 
   /* ── ATTRIBUTE TABLE ── */
@@ -338,7 +404,7 @@
 
   .attr-row {
     display: grid;
-    grid-template-columns: 1fr 36px 50px;
+    grid-template-columns: 1fr 36px;
     align-items: center;
     padding: 4px 8px;
     font-size: 11px;
@@ -353,20 +419,19 @@
   .attr-name { color: var(--text-secondary); }
   .attr-grade {
     font-family: var(--font-mono);
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
-    font-size: 11px;
+    font-size: 12px;
+    width: 28px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  .grade-a { color: var(--mental); }
-  .grade-b { color: var(--cyan); }
-  .grade-c { color: var(--personality); }
-  .grade-d { color: #e74c3c; }
-  .attr-stat {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-align: right;
-    color: var(--text-secondary);
-  }
+  .grade-a { background: rgba(61,186,111,0.15); color: var(--mental); border: 1px solid rgba(61,186,111,0.4); }
+  .grade-b { background: rgba(111,195,223,0.12); color: var(--cyan); border: 1px solid rgba(111,195,223,0.3); }
+  .grade-c { background: rgba(232,197,71,0.1); color: var(--personality); border: 1px solid rgba(232,197,71,0.25); }
+  .grade-d { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid rgba(231,76,60,0.25); }
 
   /* ── SEASON STATS ── */
   .stats-grid {
@@ -427,6 +492,13 @@
     font-size: 10px;
     color: var(--text-muted);
     margin-top: 1px;
+  }
+  .timeline-stats {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    letter-spacing: 0.3px;
   }
 
   /* ── SCOUTING NOTES ── */
@@ -526,19 +598,23 @@
 
 <div class="layout">
 
-  <!-- ══════ TOPBAR ══════ -->
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">TACTICAL COMMAND</div>
+    <div class="topbar-left">CHIEF SCOUT</div>
     <div class="topbar-right">Players / <span>Jude Bellingham</span></div>
   </div>
 
-  <!-- ══════ ROW 1 — TOP 40% ══════ -->
+  <!-- ROW 1 — TOP 40% -->
   <div class="row-top">
 
     <!-- IDENTITY -->
     <div class="panel panel-personality">
       <div class="section-header h-yellow">Player Identity</div>
-      <div class="position-badge">AM</div>
+      <div class="position-row">
+        <span class="position-badge">AM</span>
+        <span class="position-secondary">CM</span>
+        <span class="position-secondary">WM</span>
+      </div>
       <div class="player-name">Jude Bellingham</div>
       <div class="chip-row">
         <span class="chip">Real Madrid</span>
@@ -587,7 +663,7 @@
       </div>
     </div>
 
-    <!-- RADAR -->
+    <!-- TACTICAL FINGERPRINT + BEST ROLES -->
     <div class="panel panel-tactical">
       <div class="section-header h-purple">Tactical Fingerprint</div>
       <div class="radar-container">
@@ -601,23 +677,19 @@
             <line x1="0" y1="0" x2="0" y2="110" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
             <line x1="0" y1="0" x2="-95.3" y2="55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
             <line x1="0" y1="0" x2="-95.3" y2="-55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
-
             <!-- Outer hex -->
             <polygon points="0,-110 95.3,-55 95.3,55 0,110 -95.3,55 -95.3,-55" fill="none" stroke="rgba(111,195,223,0.15)" stroke-width="1"/>
             <!-- Mid hex -->
             <polygon points="0,-73.3 63.5,-36.7 63.5,36.7 0,73.3 -63.5,36.7 -63.5,-36.7" fill="none" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
             <!-- Inner hex -->
             <polygon points="0,-36.7 31.8,-18.3 31.8,18.3 0,36.7 -31.8,18.3 -31.8,-18.3" fill="none" stroke="rgba(111,195,223,0.07)" stroke-width="1"/>
-
-            <!-- Data polygon: Passing 92, Vision 90, Decision 88, Power 85, Dribbling 89, Finishing 86 -->
-            <!-- Normalized to 110 max: 92=92, 90=90, 88=88, 85=85, 89=89, 86=86 / scale to % of 110 -->
+            <!-- Data polygon -->
             <polygon
               points="0,-101.2  82.5,-49.5  84.7,46.8  0,94.6  -77.6,48.9  -83.1,-45.1"
               fill="rgba(155,89,182,0.18)"
               stroke="rgba(155,89,182,0.7)"
               stroke-width="1.5"
             />
-
             <!-- Vertex dots -->
             <circle cx="0" cy="-101.2" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
             <circle cx="82.5" cy="-49.5" r="4" fill="#9b59b6" style="filter: drop-shadow(0 0 4px #9b59b6);"/>
@@ -626,9 +698,8 @@
             <circle cx="-77.6" cy="48.9" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
             <circle cx="-83.1" cy="-45.1" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
           </g>
-
           <!-- Labels -->
-          <text x="150" y="14" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1" text-transform="uppercase">PASSING</text>
+          <text x="150" y="14" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">PASSING</text>
           <text x="264" y="72" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">VISION</text>
           <text x="264" y="198" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">DECISION</text>
           <text x="150" y="258" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">POWER</text>
@@ -636,54 +707,73 @@
           <text x="36" y="72" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">FINISHING</text>
         </svg>
       </div>
+      <!-- Best Roles -->
+      <div class="best-roles">
+        <div class="best-roles-title">Best Roles</div>
+        <div class="role-row">
+          <span class="role-name">Box-to-Box</span>
+          <div class="role-bar-bg"><div class="role-bar-fill" style="width:94%;"></div></div>
+          <span class="role-rs">94</span>
+        </div>
+        <div class="role-row">
+          <span class="role-name">Advanced Playmaker</span>
+          <div class="role-bar-bg"><div class="role-bar-fill" style="width:89%;"></div></div>
+          <span class="role-rs">89</span>
+        </div>
+        <div class="role-row">
+          <span class="role-name">Mezzala</span>
+          <div class="role-bar-bg"><div class="role-bar-fill" style="width:86%;"></div></div>
+          <span class="role-rs">86</span>
+        </div>
+      </div>
       <div class="plays-like">Plays Like <span class="plays-like-name">Frank Lampard</span></div>
     </div>
 
   </div>
 
-  <!-- ══════ ROW 2 — BOTTOM 60% ══════ -->
+  <!-- ROW 2 — BOTTOM 60% -->
   <div class="row-bottom">
 
-    <!-- ATTRIBUTES -->
+    <!-- ATTRIBUTES (grades only, no raw scores) -->
     <div class="panel panel-gold">
       <div class="section-header h-gold">Attribute Grades</div>
-      <div style="display:grid;grid-template-columns:1fr 36px 50px;padding:0 8px 4px;font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">
-        <span>Attribute</span><span style="text-align:center">Grade</span><span style="text-align:right">Score</span>
+      <div style="display:grid;grid-template-columns:1fr 36px;padding:0 8px 4px;font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">
+        <span>Attribute</span><span style="text-align:center">Grade</span>
       </div>
       <div class="attr-scroll">
         <!-- Technical -->
         <div class="attr-group-technical">
           <div class="attr-group-label">Technical</div>
-          <div class="attr-row"><span class="attr-name">Passing</span><span class="attr-grade grade-a">A</span><span class="attr-stat">92</span></div>
-          <div class="attr-row"><span class="attr-name">First Touch</span><span class="attr-grade grade-a">A</span><span class="attr-stat">89</span></div>
-          <div class="attr-row"><span class="attr-name">Dribbling</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">87</span></div>
-          <div class="attr-row"><span class="attr-name">Crossing</span><span class="attr-grade grade-b">B</span><span class="attr-stat">78</span></div>
-          <div class="attr-row"><span class="attr-name">Shooting</span><span class="attr-grade grade-a">A</span><span class="attr-stat">88</span></div>
-          <div class="attr-row"><span class="attr-name">Finishing</span><span class="attr-grade grade-a">A-</span><span class="attr-stat">86</span></div>
+          <div class="attr-row"><span class="attr-name">Passing</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">First Touch</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Dribbling</span><span class="attr-grade grade-b">B</span></div>
+          <div class="attr-row"><span class="attr-name">Crossing</span><span class="attr-grade grade-c">C</span></div>
+          <div class="attr-row"><span class="attr-name">Shooting</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Finishing</span><span class="attr-grade grade-b">B</span></div>
         </div>
         <!-- Tactical -->
         <div class="attr-group-tactical">
           <div class="attr-group-label">Tactical</div>
-          <div class="attr-row"><span class="attr-name">Positioning</span><span class="attr-grade grade-a">A</span><span class="attr-stat">91</span></div>
-          <div class="attr-row"><span class="attr-name">Movement</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
-          <div class="attr-row"><span class="attr-name">Vision</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
-          <div class="attr-row"><span class="attr-name">Decision Making</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">88</span></div>
+          <div class="attr-row"><span class="attr-name">Positioning</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Movement</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Vision</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Decision Making</span><span class="attr-grade grade-b">B</span></div>
         </div>
         <!-- Mental -->
         <div class="attr-group-mental">
           <div class="attr-group-label">Mental</div>
-          <div class="attr-row"><span class="attr-name">Composure</span><span class="attr-grade grade-a">A</span><span class="attr-stat">89</span></div>
-          <div class="attr-row"><span class="attr-name">Leadership</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">84</span></div>
-          <div class="attr-row"><span class="attr-name">Work Rate</span><span class="attr-grade grade-a">A</span><span class="attr-stat">91</span></div>
-          <div class="attr-row"><span class="attr-name">Concentration</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">83</span></div>
+          <div class="attr-row"><span class="attr-name">Composure</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Leadership</span><span class="attr-grade grade-b">B</span></div>
+          <div class="attr-row"><span class="attr-name">Work Rate</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Concentration</span><span class="attr-grade grade-b">B</span></div>
         </div>
         <!-- Physical -->
         <div class="attr-group-physical">
           <div class="attr-group-label">Physical</div>
-          <div class="attr-row"><span class="attr-name">Pace</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">84</span></div>
-          <div class="attr-row"><span class="attr-name">Stamina</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
-          <div class="attr-row"><span class="attr-name">Strength</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">85</span></div>
-          <div class="attr-row"><span class="attr-name">Aerial</span><span class="attr-grade grade-b">B</span><span class="attr-stat">82</span></div>
+          <div class="attr-row"><span class="attr-name">Pace</span><span class="attr-grade grade-b">B</span></div>
+          <div class="attr-row"><span class="attr-name">Stamina</span><span class="attr-grade grade-a">A</span></div>
+          <div class="attr-row"><span class="attr-name">Strength</span><span class="attr-grade grade-b">B</span></div>
+          <div class="attr-row"><span class="attr-name">Aerial</span><span class="attr-grade grade-c">C</span></div>
         </div>
       </div>
     </div>
@@ -723,14 +813,17 @@
           <div class="timeline-item">
             <div class="timeline-club">Birmingham City</div>
             <div class="timeline-years">2019 - 2020</div>
+            <div class="timeline-stats">44 apps &middot; 4 goals &middot; 3 assists</div>
           </div>
           <div class="timeline-item">
             <div class="timeline-club">Borussia Dortmund</div>
             <div class="timeline-years">2020 - 2023</div>
+            <div class="timeline-stats">132 apps &middot; 32 goals &middot; 20 assists</div>
           </div>
           <div class="timeline-item">
             <div class="timeline-club">Real Madrid</div>
             <div class="timeline-years">2023 - Present</div>
+            <div class="timeline-stats">98 apps &middot; 38 goals &middot; 18 assists</div>
           </div>
         </div>
       </div>

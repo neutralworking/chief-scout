@@ -94,6 +94,9 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     min-height: 52px;
+    position: sticky;
+    top: 44px;
+    z-index: 50;
   }
   .filterbar::-webkit-scrollbar { height: 0; }
 
@@ -184,45 +187,10 @@
   .sort-btn:hover { border-color: var(--border); color: var(--text-secondary); }
   .sort-btn.active { border-color: var(--tactical); color: var(--tactical); background: rgba(155,89,182,0.08); }
 
-  .toggle-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .toggle-label {
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-  .toggle-switch {
-    width: 32px;
-    height: 16px;
-    background: var(--pit);
-    border: 1px solid rgba(255,255,255,0.15);
-    position: relative;
-    cursor: pointer;
-  }
-  .toggle-switch.on { border-color: var(--cyan); background: rgba(111,195,223,0.15); }
-  .toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 10px;
-    height: 10px;
-    background: var(--text-muted);
-    transition: all 0.15s;
-  }
-  .toggle-switch.on::after { left: 18px; background: var(--cyan); }
-
   /* ── TABLE HEADER ── */
   .table-header-row {
     display: grid;
-    grid-template-columns: 44px 200px 140px 36px 40px 110px 110px 64px 140px 80px 32px;
+    grid-template-columns: 44px 200px 140px 36px 40px 110px 90px 110px 64px 140px 80px;
     align-items: center;
     padding: 0 20px;
     height: 32px;
@@ -249,6 +217,7 @@
   .th .pip.cyan { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
   .th .pip.tactical { background: var(--tactical); box-shadow: 0 0 4px var(--tactical); }
   .th .pip.technical { background: var(--technical); box-shadow: 0 0 4px var(--technical); }
+  .th .pip.personality { background: var(--personality); box-shadow: 0 0 4px var(--personality); }
 
   /* ── PLAYER TABLE ── */
   .table-body {
@@ -263,7 +232,7 @@
 
   .player-row {
     display: grid;
-    grid-template-columns: 44px 200px 140px 36px 40px 110px 110px 64px 140px 80px 32px;
+    grid-template-columns: 44px 200px 140px 36px 40px 110px 90px 110px 64px 140px 80px;
     align-items: center;
     padding: 0 20px;
     height: 42px;
@@ -339,6 +308,17 @@
     max-width: 100%;
   }
 
+  /* Model label */
+  .model-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   /* Best Role */
   .best-role {
     font-size: 11px;
@@ -388,19 +368,6 @@
     text-align: right;
   }
 
-  /* Pursuit dot */
-  .pursuit-dot {
-    width: 8px;
-    height: 8px;
-    margin: 0 auto;
-  }
-  .pursuit-priority   { background: #e74c3c; box-shadow: 0 0 6px rgba(231,76,60,0.5); }
-  .pursuit-interested { background: var(--technical); box-shadow: 0 0 6px rgba(212,160,53,0.5); }
-  .pursuit-watch      { background: var(--physical); box-shadow: 0 0 6px rgba(74,144,217,0.5); }
-  .pursuit-scout      { background: var(--mental); box-shadow: 0 0 6px rgba(61,186,111,0.5); }
-  .pursuit-monitor    { background: var(--cyan); box-shadow: 0 0 6px rgba(111,195,223,0.4); }
-  .pursuit-pass       { background: var(--text-muted); }
-
   /* ── FOOTER ── */
   .footer {
     display: flex;
@@ -448,12 +415,12 @@
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-brand">TACTICAL COMMAND</div>
+    <div class="topbar-brand">CHIEF SCOUT</div>
     <div class="topbar-title">Players</div>
-    <div class="topbar-stats"><span>276</span> Tier 1 &middot; <span>21,683</span> Total</div>
+    <div class="topbar-stats"><span>276</span> scouted players</div>
   </div>
 
-  <!-- FILTER BAR -->
+  <!-- FILTER BAR (sticky) -->
   <div class="filterbar">
     <input type="text" class="search-input" placeholder="Search players...">
 
@@ -493,16 +460,6 @@
       <option>Catalyst</option>
     </select>
 
-    <select class="filter-select">
-      <option>Pursuit</option>
-      <option>Priority</option>
-      <option>Interested</option>
-      <option>Watch</option>
-      <option>Scout Further</option>
-      <option>Monitor</option>
-      <option>Pass</option>
-    </select>
-
     <div class="filter-divider"></div>
 
     <div class="sort-group">
@@ -510,13 +467,6 @@
       <div class="sort-btn">Level</div>
       <div class="sort-btn">Name</div>
       <div class="sort-btn">Age</div>
-    </div>
-
-    <div class="filter-divider"></div>
-
-    <div class="toggle-wrap">
-      <span class="toggle-label">Tier 1 only</span>
-      <div class="toggle-switch on"></div>
     </div>
   </div>
 
@@ -528,11 +478,11 @@
     <div class="th"></div>
     <div class="th">AGE</div>
     <div class="th"><span class="pip technical"></span>ARCHETYPE</div>
+    <div class="th"><span class="pip personality"></span>MODEL</div>
     <div class="th">BEST ROLE</div>
     <div class="th"><span class="pip tactical"></span>RS</div>
     <div class="th">T / T / M / P</div>
     <div class="th" style="justify-content:flex-end;">VALUE</div>
-    <div class="th" style="justify-content:center;"></div>
   </div>
 
   <!-- TABLE BODY -->
@@ -546,6 +496,7 @@
       <div class="nation">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</div>
       <div class="age mono">22</div>
       <div><span class="archetype-chip">Maestro</span></div>
+      <div class="model-label">Creator-9</div>
       <div class="best-role">Box-to-Box</div>
       <div class="role-score">94</div>
       <div class="pillars">
@@ -555,7 +506,6 @@
         <span class="pillar p-phys">87</span>
       </div>
       <div class="market-val">&euro;120M</div>
-      <div><div class="pursuit-dot pursuit-interested"></div></div>
     </div>
 
     <!-- Row 2 -->
@@ -566,6 +516,7 @@
       <div class="nation">&#127466;&#127480;</div>
       <div class="age mono">18</div>
       <div><span class="archetype-chip">Prodigy</span></div>
+      <div class="model-label">Striker-7</div>
       <div class="best-role">Inside Forward</div>
       <div class="role-score">89</div>
       <div class="pillars">
@@ -575,7 +526,6 @@
         <span class="pillar p-phys">85</span>
       </div>
       <div class="market-val">&euro;150M</div>
-      <div><div class="pursuit-dot pursuit-priority"></div></div>
     </div>
 
     <!-- Row 3 -->
@@ -586,6 +536,7 @@
       <div class="nation">&#127465;&#127466;</div>
       <div class="age mono">22</div>
       <div><span class="archetype-chip">Virtuoso</span></div>
+      <div class="model-label">Creator-8</div>
       <div class="best-role">Playmaker</div>
       <div class="role-score">92</div>
       <div class="pillars">
@@ -595,7 +546,6 @@
         <span class="pillar p-phys">80</span>
       </div>
       <div class="market-val">&euro;130M</div>
-      <div><div class="pursuit-dot pursuit-priority"></div></div>
     </div>
 
     <!-- Row 4 -->
@@ -606,6 +556,7 @@
       <div class="nation">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</div>
       <div class="age mono">19</div>
       <div><span class="archetype-chip">Engine</span></div>
+      <div class="model-label">Controller-6</div>
       <div class="best-role">Box-to-Box</div>
       <div class="role-score">82</div>
       <div class="pillars">
@@ -615,7 +566,6 @@
         <span class="pillar p-phys">79</span>
       </div>
       <div class="market-val">&euro;45M</div>
-      <div><div class="pursuit-dot pursuit-watch"></div></div>
     </div>
 
     <!-- Row 5 -->
@@ -626,6 +576,7 @@
       <div class="nation">&#127466;&#127480;</div>
       <div class="age mono">23</div>
       <div><span class="archetype-chip">Maestro</span></div>
+      <div class="model-label">Creator-9</div>
       <div class="best-role">Regista</div>
       <div class="role-score">91</div>
       <div class="pillars">
@@ -635,7 +586,6 @@
         <span class="pillar p-phys">76</span>
       </div>
       <div class="market-val">&euro;100M</div>
-      <div><div class="pursuit-dot pursuit-monitor"></div></div>
     </div>
 
     <!-- Row 6 -->
@@ -646,6 +596,7 @@
       <div class="nation">&#127467;&#127479;</div>
       <div class="age mono">24</div>
       <div><span class="archetype-chip">Rock</span></div>
+      <div class="model-label">Defender-8</div>
       <div class="best-role">Ball-Playing CB</div>
       <div class="role-score">90</div>
       <div class="pillars">
@@ -655,7 +606,6 @@
         <span class="pillar p-phys">91</span>
       </div>
       <div class="market-val">&euro;95M</div>
-      <div><div class="pursuit-dot pursuit-interested"></div></div>
     </div>
 
     <!-- Row 7 -->
@@ -666,6 +616,7 @@
       <div class="nation">&#127475;&#127476;</div>
       <div class="age mono">25</div>
       <div><span class="archetype-chip">Hitman</span></div>
+      <div class="model-label">Striker-9</div>
       <div class="best-role">Target Man</div>
       <div class="role-score">93</div>
       <div class="pillars">
@@ -675,7 +626,6 @@
         <span class="pillar p-phys">95</span>
       </div>
       <div class="market-val">&euro;180M</div>
-      <div><div class="pursuit-dot pursuit-pass"></div></div>
     </div>
 
     <!-- Row 8 -->
@@ -686,6 +636,7 @@
       <div class="nation">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</div>
       <div class="age mono">26</div>
       <div><span class="archetype-chip">Engine</span></div>
+      <div class="model-label">Controller-7</div>
       <div class="best-role">Destroyer</div>
       <div class="role-score">89</div>
       <div class="pillars">
@@ -695,7 +646,6 @@
         <span class="pillar p-phys">90</span>
       </div>
       <div class="market-val">&euro;110M</div>
-      <div><div class="pursuit-dot pursuit-watch"></div></div>
     </div>
 
     <!-- Row 9 -->
@@ -706,6 +656,7 @@
       <div class="nation">&#127474;&#127462;</div>
       <div class="age mono">26</div>
       <div><span class="archetype-chip">Virtuoso</span></div>
+      <div class="model-label">Runner-8</div>
       <div class="best-role">Wing-Back</div>
       <div class="role-score">88</div>
       <div class="pillars">
@@ -715,7 +666,6 @@
         <span class="pillar p-phys">93</span>
       </div>
       <div class="market-val">&euro;65M</div>
-      <div><div class="pursuit-dot pursuit-scout"></div></div>
     </div>
 
     <!-- Row 10 -->
@@ -726,6 +676,7 @@
       <div class="nation">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</div>
       <div class="age mono">24</div>
       <div><span class="archetype-chip">Virtuoso</span></div>
+      <div class="model-label">Creator-8</div>
       <div class="best-role">Inside Forward</div>
       <div class="role-score">91</div>
       <div class="pillars">
@@ -735,7 +686,6 @@
         <span class="pillar p-phys">84</span>
       </div>
       <div class="market-val">&euro;120M</div>
-      <div><div class="pursuit-dot pursuit-interested"></div></div>
     </div>
 
     <!-- Row 11 -->
@@ -746,6 +696,7 @@
       <div class="nation">&#127470;&#127481;</div>
       <div class="age mono">26</div>
       <div><span class="archetype-chip">Rock</span></div>
+      <div class="model-label">Keeper-7</div>
       <div class="best-role">Sweeper Keeper</div>
       <div class="role-score">86</div>
       <div class="pillars">
@@ -755,7 +706,6 @@
         <span class="pillar p-phys">88</span>
       </div>
       <div class="market-val">&euro;50M</div>
-      <div><div class="pursuit-dot pursuit-pass"></div></div>
     </div>
 
     <!-- Row 12 -->
@@ -766,6 +716,7 @@
       <div class="nation">&#127465;&#127466;</div>
       <div class="age mono">22</div>
       <div><span class="archetype-chip">Virtuoso</span></div>
+      <div class="model-label">Creator-9</div>
       <div class="best-role">Playmaker</div>
       <div class="role-score">92</div>
       <div class="pillars">
@@ -775,7 +726,6 @@
         <span class="pillar p-phys">83</span>
       </div>
       <div class="market-val">&euro;140M</div>
-      <div><div class="pursuit-dot pursuit-priority"></div></div>
     </div>
 
     <!-- Row 13 -->
@@ -786,6 +736,7 @@
       <div class="nation">&#127469;&#127479;</div>
       <div class="age mono">23</div>
       <div><span class="archetype-chip">Engine</span></div>
+      <div class="model-label">Defender-6</div>
       <div class="best-role">Ball-Playing CB</div>
       <div class="role-score">85</div>
       <div class="pillars">
@@ -795,7 +746,6 @@
         <span class="pillar p-phys">89</span>
       </div>
       <div class="market-val">&euro;75M</div>
-      <div><div class="pursuit-dot pursuit-watch"></div></div>
     </div>
 
     <!-- Row 14 -->
@@ -806,6 +756,7 @@
       <div class="nation">&#127480;&#127466;</div>
       <div class="age mono">27</div>
       <div><span class="archetype-chip">Hitman</span></div>
+      <div class="model-label">Striker-7</div>
       <div class="best-role">Poacher</div>
       <div class="role-score">87</div>
       <div class="pillars">
@@ -815,7 +766,6 @@
         <span class="pillar p-phys">90</span>
       </div>
       <div class="market-val">&euro;70M</div>
-      <div><div class="pursuit-dot pursuit-scout"></div></div>
     </div>
 
     <!-- Row 15 -->
@@ -826,6 +776,7 @@
       <div class="nation">&#127466;&#127480;</div>
       <div class="age mono">23</div>
       <div><span class="archetype-chip">Virtuoso</span></div>
+      <div class="model-label">Runner-7</div>
       <div class="best-role">Wide Playmaker</div>
       <div class="role-score">88</div>
       <div class="pillars">
@@ -835,14 +786,13 @@
         <span class="pillar p-phys">91</span>
       </div>
       <div class="market-val">&euro;60M</div>
-      <div><div class="pursuit-dot pursuit-interested"></div></div>
     </div>
 
   </div>
 
   <!-- FOOTER -->
   <div class="footer">
-    <div class="footer-info">Showing <span>276</span> of <span>21,683</span></div>
+    <div class="footer-info"><span>276</span> scouted players</div>
     <div class="pagination">
       <div class="page-btn active">1</div>
       <div class="page-btn">2</div>

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0">
+<title>Squad Builder — Chief Scout (Mobile)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #000; }
+  body {
+    width: 390px;
+    margin: 0 auto;
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    padding-bottom: 64px; /* space for bottom nav */
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STICKY TOPBAR */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 52px;
+    background: #141414;
+    border-bottom: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+  .topbar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #6fc3df;
+    letter-spacing: 1px;
+  }
+  .formation-select {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    background: #0a0a0a;
+    color: #6fc3df;
+    border: 1px solid rgba(111,195,223,0.35);
+    padding: 6px 12px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+  }
+  .formation-select option { background: #141414; color: #fff; }
+
+  /* PITCH */
+  .pitch-section {
+    padding: 12px 16px;
+  }
+  .pitch {
+    position: relative;
+    width: 340px;
+    height: 460px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #0d1f0d 0%, #0a1a0a 50%, #0d1f0d 100%);
+    border: 2px solid rgba(111,195,223,0.25);
+    overflow: hidden;
+  }
+  /* Pitch markings */
+  .pitch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+  .pitch::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .pitch-box-top {
+    position: absolute;
+    top: 0;
+    left: 22%;
+    width: 56%;
+    height: 14%;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: none;
+  }
+  .pitch-box-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 22%;
+    width: 56%;
+    height: 14%;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-bottom: none;
+  }
+  .pitch-6yd-top {
+    position: absolute;
+    top: 0;
+    left: 33%;
+    width: 34%;
+    height: 6%;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: none;
+  }
+  .pitch-6yd-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 33%;
+    width: 34%;
+    height: 6%;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-bottom: none;
+  }
+
+  /* Formation lines */
+  .formation-lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .formation-lines svg { width: 100%; height: 100%; }
+  .formation-lines line {
+    stroke: rgba(111,195,223,0.06);
+    stroke-width: 1;
+  }
+
+  /* MOBILE SLOT: circle with initials */
+  .slot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    text-align: center;
+    cursor: pointer;
+  }
+  .slot-circle {
+    width: 42px;
+    height: 42px;
+    background: #141414;
+    border: 1.5px solid rgba(111,195,223,0.4);
+    border-top: 2px solid #6fc3df;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .slot-circle:active {
+    background: #1e1e1e;
+    border-color: #6fc3df;
+    box-shadow: 0 0 10px rgba(111,195,223,0.2);
+  }
+  .slot-initials {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+  .slot-rs-mobile {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    color: #d4a035;
+    line-height: 1;
+    margin-top: 1px;
+  }
+  .slot-pos-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    color: #6fc3df;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+  }
+  .slot-pip {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background: #6fc3df;
+    box-shadow: 0 0 4px #6fc3df;
+  }
+
+  /* Player popup card */
+  .player-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.5);
+    border-top: 2px solid #6fc3df;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  }
+  .player-popup.active { display: block; }
+  .popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 199;
+  }
+  .popup-overlay.active { display: block; }
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .popup-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .popup-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #6fc3df;
+    background: rgba(111,195,223,0.1);
+    padding: 3px 8px;
+  }
+  .popup-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .popup-stat {
+    background: #0a0a0a;
+    padding: 8px;
+  }
+  .popup-stat-label {
+    font-size: 8px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .popup-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #d4a035;
+  }
+  .popup-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .popup-btn {
+    flex: 1;
+    padding: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid rgba(111,195,223,0.3);
+    background: #0a0a0a;
+    color: #c8c8c8;
+    transition: all 0.12s;
+  }
+  .popup-btn:active { background: #252526; }
+  .popup-btn.primary {
+    background: rgba(111,195,223,0.12);
+    color: #6fc3df;
+    border-color: #6fc3df;
+  }
+
+  /* SQUAD STATS */
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #6fc3df;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px 16px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-title::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: #6fc3df;
+    box-shadow: 0 0 4px #6fc3df;
+    flex-shrink: 0;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px 8px;
+  }
+  .stat-cell {
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.12);
+    padding: 10px;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .stat-value.cyan { color: #6fc3df; }
+  .stat-value.gold { color: #d4a035; }
+  .stat-value.white { color: #fff; }
+
+  /* PILLAR BALANCE */
+  .pillar-section {
+    padding: 0 16px 12px;
+  }
+  .pillar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .pillar-label {
+    font-size: 10px;
+    font-weight: 600;
+    width: 68px;
+    flex-shrink: 0;
+  }
+  .pillar-label.tech { color: #d4a035; }
+  .pillar-label.tact { color: #9b59b6; }
+  .pillar-label.ment { color: #3dba6f; }
+  .pillar-label.phys { color: #4a90d9; }
+  .pillar-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .pillar-bar-fill {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .pillar-bar-fill.tech { background: #d4a035; width: 78%; }
+  .pillar-bar-fill.tact { background: #9b59b6; width: 82%; }
+  .pillar-bar-fill.ment { background: #3dba6f; width: 74%; }
+  .pillar-bar-fill.phys { background: #4a90d9; width: 80%; }
+  .pillar-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #c8c8c8;
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* BENCH */
+  .bench-section {
+    padding: 0 16px 16px;
+  }
+  .bench-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.08);
+    margin-bottom: 4px;
+  }
+  .bench-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    width: 16px;
+    flex-shrink: 0;
+  }
+  .bench-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: #6fc3df;
+    background: rgba(111,195,223,0.08);
+    padding: 2px 6px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .bench-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    flex: 1;
+  }
+  .bench-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: #d4a035;
+    flex-shrink: 0;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 56px;
+    background: #141414;
+    border-top: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    padding: 6px 12px;
+  }
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #6a6a6a;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nav-item.active .nav-icon svg { stroke: #6fc3df; }
+  .nav-label {
+    font-size: 9px;
+    color: #6a6a6a;
+    font-weight: 500;
+  }
+  .nav-item.active .nav-label { color: #6fc3df; }
+</style>
+</head>
+<body>
+
+<!-- STICKY TOPBAR -->
+<div class="topbar">
+  <span class="topbar-title">SQUAD BUILDER</span>
+  <select class="formation-select">
+    <option selected>4-3-3</option>
+    <option>4-4-2</option>
+    <option>3-5-2</option>
+    <option>4-2-3-1</option>
+    <option>3-4-3</option>
+  </select>
+</div>
+
+<!-- PITCH -->
+<div class="pitch-section">
+  <div class="pitch">
+    <div class="pitch-box-top"></div>
+    <div class="pitch-box-bottom"></div>
+    <div class="pitch-6yd-top"></div>
+    <div class="pitch-6yd-bottom"></div>
+
+    <!-- Formation lines -->
+    <div class="formation-lines">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="50" y1="90" x2="15" y2="72" />
+        <line x1="50" y1="90" x2="38" y2="72" />
+        <line x1="50" y1="90" x2="62" y2="72" />
+        <line x1="50" y1="90" x2="85" y2="72" />
+        <line x1="15" y1="72" x2="38" y2="72" />
+        <line x1="38" y1="72" x2="62" y2="72" />
+        <line x1="62" y1="72" x2="85" y2="72" />
+        <line x1="15" y1="72" x2="25" y2="50" />
+        <line x1="62" y1="72" x2="50" y2="50" />
+        <line x1="85" y1="72" x2="75" y2="50" />
+        <line x1="25" y1="50" x2="50" y2="50" />
+        <line x1="50" y1="50" x2="75" y2="50" />
+        <line x1="25" y1="50" x2="15" y2="24" />
+        <line x1="50" y1="50" x2="50" y2="24" />
+        <line x1="75" y1="50" x2="85" y2="24" />
+        <line x1="15" y1="24" x2="50" y2="24" />
+        <line x1="50" y1="24" x2="85" y2="24" />
+      </svg>
+    </div>
+
+    <!-- GK -->
+    <div class="slot" style="left:50%; top:90%;" onclick="showPopup('Raya','GK','84','25','Sentinel')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">RAY</span>
+        <span class="slot-rs-mobile">84</span>
+      </div>
+      <div class="slot-pos-label">GK</div>
+    </div>
+
+    <!-- Defense -->
+    <div class="slot" style="left:13%; top:72%;" onclick="showPopup('Timber','LB','83','23','Virtuoso')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">TIM</span>
+        <span class="slot-rs-mobile">83</span>
+      </div>
+      <div class="slot-pos-label">LB</div>
+    </div>
+    <div class="slot" style="left:37%; top:72%;" onclick="showPopup('Saliba','CB','89','25','Rock')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">SAL</span>
+        <span class="slot-rs-mobile">89</span>
+      </div>
+      <div class="slot-pos-label">CB</div>
+    </div>
+    <div class="slot" style="left:63%; top:72%;" onclick="showPopup('Gabriel','CB','87','28','Rock')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">GAB</span>
+        <span class="slot-rs-mobile">87</span>
+      </div>
+      <div class="slot-pos-label">CB</div>
+    </div>
+    <div class="slot" style="left:87%; top:72%;" onclick="showPopup('White','RB','85','26','Engine')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">WHI</span>
+        <span class="slot-rs-mobile">85</span>
+      </div>
+      <div class="slot-pos-label">RB</div>
+    </div>
+
+    <!-- Midfield -->
+    <div class="slot" style="left:25%; top:50%;" onclick="showPopup('Rice','CM','89','27','Engine')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">RIC</span>
+        <span class="slot-rs-mobile">89</span>
+      </div>
+      <div class="slot-pos-label">CM</div>
+    </div>
+    <div class="slot" style="left:50%; top:50%;" onclick="showPopup('&Oslash;degaard','CM','90','27','Maestro')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">&Oslash;DE</span>
+        <span class="slot-rs-mobile">90</span>
+      </div>
+      <div class="slot-pos-label">CM</div>
+    </div>
+    <div class="slot" style="left:75%; top:50%;" onclick="showPopup('Havertz','CM','84','26','Virtuoso')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">HAV</span>
+        <span class="slot-rs-mobile">84</span>
+      </div>
+      <div class="slot-pos-label">CM</div>
+    </div>
+
+    <!-- Attack -->
+    <div class="slot" style="left:15%; top:24%;" onclick="showPopup('Martinelli','LW','83','24','Outlet')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">MAR</span>
+        <span class="slot-rs-mobile">83</span>
+      </div>
+      <div class="slot-pos-label">LW</div>
+    </div>
+    <div class="slot" style="left:50%; top:24%;" onclick="showPopup('Jesus','ST','82','29','Hitman')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">JES</span>
+        <span class="slot-rs-mobile">82</span>
+      </div>
+      <div class="slot-pos-label">ST</div>
+    </div>
+    <div class="slot" style="left:85%; top:24%;" onclick="showPopup('Saka','RW','91','24','Virtuoso')">
+      <div class="slot-circle">
+        <div class="slot-pip"></div>
+        <span class="slot-initials">SAK</span>
+        <span class="slot-rs-mobile">91</span>
+      </div>
+      <div class="slot-pos-label">RW</div>
+    </div>
+  </div>
+</div>
+
+<!-- SQUAD STATS (2x2 grid) -->
+<div class="section-title">Squad Overview</div>
+<div class="stats-grid">
+  <div class="stat-cell">
+    <div class="stat-label">Avg Age</div>
+    <div class="stat-value white">25.4</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Avg Role Score</div>
+    <div class="stat-value gold">86.1</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Total Value</div>
+    <div class="stat-value white">&euro;847m</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Squad Depth</div>
+    <div class="stat-value cyan">18</div>
+  </div>
+</div>
+
+<!-- PILLAR BALANCE -->
+<div class="section-title">Pillar Balance</div>
+<div class="pillar-section">
+  <div class="pillar-row">
+    <span class="pillar-label tech">Technical</span>
+    <div class="pillar-bar-bg"><div class="pillar-bar-fill tech"></div></div>
+    <span class="pillar-score">78</span>
+  </div>
+  <div class="pillar-row">
+    <span class="pillar-label tact">Tactical</span>
+    <div class="pillar-bar-bg"><div class="pillar-bar-fill tact"></div></div>
+    <span class="pillar-score">82</span>
+  </div>
+  <div class="pillar-row">
+    <span class="pillar-label ment">Mental</span>
+    <div class="pillar-bar-bg"><div class="pillar-bar-fill ment"></div></div>
+    <span class="pillar-score">74</span>
+  </div>
+  <div class="pillar-row">
+    <span class="pillar-label phys">Physical</span>
+    <div class="pillar-bar-bg"><div class="pillar-bar-fill phys"></div></div>
+    <span class="pillar-score">80</span>
+  </div>
+</div>
+
+<!-- BENCH -->
+<div class="section-title">Bench (7)</div>
+<div class="bench-section">
+  <div class="bench-row">
+    <span class="bench-num">12</span>
+    <span class="bench-pos">GK</span>
+    <span class="bench-name">Ramsdale</span>
+    <span class="bench-rs">78</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">18</span>
+    <span class="bench-pos">CB</span>
+    <span class="bench-name">Kiwior</span>
+    <span class="bench-rs">79</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">15</span>
+    <span class="bench-pos">CM</span>
+    <span class="bench-name">Jorginho</span>
+    <span class="bench-rs">81</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">21</span>
+    <span class="bench-pos">CM</span>
+    <span class="bench-name">Vieira</span>
+    <span class="bench-rs">77</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">24</span>
+    <span class="bench-pos">WF</span>
+    <span class="bench-name">Nelson</span>
+    <span class="bench-rs">76</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">19</span>
+    <span class="bench-pos">CF</span>
+    <span class="bench-name">Trossard</span>
+    <span class="bench-rs">82</span>
+  </div>
+  <div class="bench-row">
+    <span class="bench-num">30</span>
+    <span class="bench-pos">CF</span>
+    <span class="bench-name">Nketiah</span>
+    <span class="bench-rs">75</span>
+  </div>
+</div>
+
+<!-- PLAYER POPUP (tap a slot to show) -->
+<div class="popup-overlay" id="popupOverlay" onclick="hidePopup()"></div>
+<div class="player-popup" id="playerPopup">
+  <div class="popup-header">
+    <span class="popup-name" id="popupName">Saka</span>
+    <span class="popup-pos" id="popupPos">RW</span>
+  </div>
+  <div class="popup-stats">
+    <div class="popup-stat">
+      <div class="popup-stat-label">Role Score</div>
+      <div class="popup-stat-value" id="popupRS">91</div>
+    </div>
+    <div class="popup-stat">
+      <div class="popup-stat-label">Age</div>
+      <div class="popup-stat-value" id="popupAge" style="color:#fff">24</div>
+    </div>
+    <div class="popup-stat">
+      <div class="popup-stat-label">Archetype</div>
+      <div class="popup-stat-value" id="popupArch" style="color:#6fc3df; font-size:13px;">Virtuoso</div>
+    </div>
+    <div class="popup-stat">
+      <div class="popup-stat-label">Fit</div>
+      <div class="popup-stat-value" style="color:#3dba6f; font-size:13px;">Ideal</div>
+    </div>
+  </div>
+  <div class="popup-actions">
+    <div class="popup-btn" onclick="hidePopup()">Close</div>
+    <div class="popup-btn primary">Change Player</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <span class="nav-label">Players</span>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+    </div>
+    <span class="nav-label">Clubs</span>
+  </div>
+  <div class="nav-item active">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+    </div>
+    <span class="nav-label">Squad</span>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+    </div>
+    <span class="nav-label">More</span>
+  </div>
+</div>
+
+<script>
+  function showPopup(name, pos, rs, age, arch) {
+    document.getElementById('popupName').innerHTML = name;
+    document.getElementById('popupPos').textContent = pos;
+    document.getElementById('popupRS').textContent = rs;
+    document.getElementById('popupAge').textContent = age;
+    document.getElementById('popupArch').textContent = arch;
+    document.getElementById('playerPopup').classList.add('active');
+    document.getElementById('popupOverlay').classList.add('active');
+  }
+  function hidePopup() {
+    document.getElementById('playerPopup').classList.remove('active');
+    document.getElementById('popupOverlay').classList.remove('active');
+  }
+</script>
+
+</body>
+</html>

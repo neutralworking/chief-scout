@@ -73,9 +73,21 @@
     background: #252526;
   }
 
-  /* ── Hero ── */
-  .hero { text-align: center; padding: 20px 16px; }
-  .hero-position {
+  /* ── Hero (dense info card) ── */
+  .hero { padding: 16px; }
+  .hero-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .hero-positions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .hero-position-primary {
     display: inline-block;
     background: rgba(155,89,182,0.2);
     border: 1px solid rgba(155,89,182,0.5);
@@ -84,21 +96,45 @@
     font-weight: 700;
     letter-spacing: 1px;
     padding: 3px 10px;
-    margin-bottom: 8px;
+  }
+  .hero-position-secondary {
+    display: inline-block;
+    background: rgba(111,195,223,0.08);
+    border: 1px solid rgba(111,195,223,0.2);
+    color: #6a6a6a;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+  }
+  .hero-role-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: #9b59b6;
+    line-height: 1;
+    text-align: right;
+  }
+  .hero-role-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6a6a6a;
+    text-align: right;
+    margin-top: 2px;
   }
   .hero-name {
     font-size: 22px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
-  .hero-chips {
+  .hero-meta-grid {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 18px;
+    gap: 5px;
+    margin-bottom: 10px;
   }
   .chip {
     background: #0a0a0a;
@@ -108,18 +144,29 @@
     padding: 4px 10px;
     white-space: nowrap;
   }
-  .role-score-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 36px;
-    font-weight: 700;
-    color: #9b59b6;
-    line-height: 1;
+  .chip-accent {
+    background: rgba(232,197,71,0.08);
+    border: 1px solid rgba(232,197,71,0.3);
+    color: #e8c547;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    white-space: nowrap;
   }
-  .role-score-label {
-    color: #c8c8c8;
-    font-size: 13px;
-    margin-top: 4px;
-    margin-bottom: 10px;
+  .chip-personality {
+    background: rgba(232,197,71,0.12);
+    border: 1px solid rgba(232,197,71,0.4);
+    color: #e8c547;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .hero-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .archetype-tag {
     display: inline-block;
@@ -195,6 +242,53 @@
     margin-top: 14px;
   }
   .plays-like-chip span { color: #9b59b6; font-weight: 600; }
+
+  /* ── Best Roles ── */
+  .best-roles-section { padding: 14px 16px; }
+  .best-roles-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .role-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .role-row:last-child { margin-bottom: 0; }
+  .role-name {
+    font-size: 13px;
+    color: #c8c8c8;
+    width: 140px;
+    flex-shrink: 0;
+  }
+  .role-bar-bg {
+    flex: 1;
+    height: 16px;
+    background: #0a0a0a;
+    position: relative;
+    overflow: hidden;
+  }
+  .role-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(155,89,182,0.3);
+    border-right: 2px solid #9b59b6;
+  }
+  .role-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    width: 30px;
+    text-align: right;
+    flex-shrink: 0;
+  }
 
   /* ── Personality ── */
   .personality-card {
@@ -287,7 +381,7 @@
     color: #c8c8c8;
   }
 
-  /* ── Attributes ── */
+  /* ── Attributes (grades only) ── */
   .attr-section { margin: 12px 12px 0; }
   .attr-group {
     background: #141414;
@@ -334,24 +428,67 @@
     color: #c8c8c8;
   }
   .attr-grade {
-    width: 28px;
-    height: 22px;
+    width: 32px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    margin-right: 12px;
-  }
-  .grade-a { background: rgba(61,186,111,0.2); color: #3dba6f; border: 1px solid rgba(61,186,111,0.4); }
-  .grade-b { background: rgba(212,160,53,0.2); color: #d4a035; border: 1px solid rgba(212,160,53,0.4); }
-  .grade-c { background: rgba(74,144,217,0.2); color: #4a90d9; border: 1px solid rgba(74,144,217,0.4); }
-  .attr-score {
     font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .grade-a { background: rgba(61,186,111,0.15); color: #3dba6f; border: 1px solid rgba(61,186,111,0.4); }
+  .grade-b { background: rgba(111,195,223,0.12); color: #6fc3df; border: 1px solid rgba(111,195,223,0.3); }
+  .grade-c { background: rgba(232,197,71,0.1); color: #e8c547; border: 1px solid rgba(232,197,71,0.25); }
+  .grade-d { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid rgba(231,76,60,0.25); }
+
+  /* ── Career Timeline ── */
+  .career-section { padding: 14px 16px; }
+  .career-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .career-timeline {
+    padding-left: 14px;
+    border-left: 2px solid rgba(111,195,223,0.2);
+    margin-left: 4px;
+  }
+  .career-item {
+    position: relative;
+    padding-bottom: 14px;
+    padding-left: 14px;
+  }
+  .career-item:last-child { padding-bottom: 0; }
+  .career-item::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 5px;
+    width: 8px;
+    height: 8px;
+    background: #6fc3df;
+    box-shadow: 0 0 6px rgba(111,195,223,0.5);
+  }
+  .career-club {
     font-size: 13px;
-    font-weight: 500;
-    width: 24px;
-    text-align: right;
+    font-weight: 600;
+    color: #fff;
+  }
+  .career-years {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    margin-top: 2px;
+  }
+  .career-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #c8c8c8;
+    margin-top: 2px;
+    letter-spacing: 0.3px;
   }
 
   /* ── Market Intelligence ── */
@@ -470,24 +607,37 @@
 <!-- Top Bar -->
 <div class="top-bar">
   <div class="top-bar-back">&larr;</div>
-  <div class="top-bar-name">Bellingham</div>
+  <div class="top-bar-name">CHIEF SCOUT</div>
   <div class="pursuit-badge">Interested</div>
 </div>
 
-<!-- Hero -->
+<!-- Hero (dense info card) -->
 <div class="panel hero">
-  <div class="hero-position">AM</div>
+  <div class="hero-top-row">
+    <div>
+      <div class="hero-positions">
+        <span class="hero-position-primary">AM</span>
+        <span class="hero-position-secondary">CM</span>
+        <span class="hero-position-secondary">WM</span>
+      </div>
+    </div>
+    <div>
+      <div class="hero-role-score">94</div>
+      <div class="hero-role-label">Box-to-Box</div>
+    </div>
+  </div>
   <div class="hero-name">Jude Bellingham</div>
-  <div class="hero-chips">
+  <div class="hero-meta-grid">
     <div class="chip">Real Madrid</div>
     <div class="chip">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631; England</div>
     <div class="chip">Age 22</div>
     <div class="chip">185cm</div>
     <div class="chip">Right foot</div>
   </div>
-  <div class="role-score-value">94</div>
-  <div class="role-score-label">Box-to-Box</div>
-  <div class="archetype-tag">Maestro</div>
+  <div class="hero-bottom-row">
+    <div class="archetype-tag">Maestro</div>
+    <div class="chip-personality">Mamba (ENTJ)</div>
+  </div>
 </div>
 
 <!-- Pillar Scores -->
@@ -547,11 +697,11 @@
       <line x1="0" y1="0" x2="0" y2="120" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
       <line x1="0" y1="0" x2="-103.9" y2="60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
       <line x1="0" y1="0" x2="-103.9" y2="-60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
-      <!-- Data polygon: Passing 92, Vision 90, Decision 85, Power 87, Dribbling 88, Finishing 86 -->
+      <!-- Data polygon -->
       <polygon
         points="0,-110.4 93.5,-54 88.1,62.4 -2.4,104.4 -91.5,52.8 -96.7,-50.4"
         fill="rgba(155,89,182,0.2)" stroke="#9b59b6" stroke-width="2"/>
-      <!-- Data points (glowing pips) -->
+      <!-- Data points -->
       <circle cx="0" cy="-110.4" r="3.5" fill="#9b59b6"/>
       <circle cx="93.5" cy="-54" r="3.5" fill="#9b59b6"/>
       <circle cx="88.1" cy="62.4" r="3.5" fill="#9b59b6"/>
@@ -575,6 +725,26 @@
     <text x="32" y="72" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Finishing</text>
   </svg>
   <div class="plays-like-chip">Plays Like: <span>Frank Lampard</span></div>
+</div>
+
+<!-- Best Roles -->
+<div class="panel best-roles-section">
+  <h3>Best Roles</h3>
+  <div class="role-row">
+    <span class="role-name">Box-to-Box</span>
+    <div class="role-bar-bg"><div class="role-bar-fill" style="width:94%;"></div></div>
+    <span class="role-rs">94</span>
+  </div>
+  <div class="role-row">
+    <span class="role-name">Adv. Playmaker</span>
+    <div class="role-bar-bg"><div class="role-bar-fill" style="width:89%;"></div></div>
+    <span class="role-rs">89</span>
+  </div>
+  <div class="role-row">
+    <span class="role-name">Mezzala</span>
+    <div class="role-bar-bg"><div class="role-bar-fill" style="width:86%;"></div></div>
+    <span class="role-rs">86</span>
+  </div>
 </div>
 
 <!-- Personality -->
@@ -621,13 +791,35 @@
   </div>
 </div>
 
+<!-- Career Timeline -->
+<div class="panel career-section">
+  <h3>Career Timeline</h3>
+  <div class="career-timeline">
+    <div class="career-item">
+      <div class="career-club">Birmingham City</div>
+      <div class="career-years">2019 - 2020</div>
+      <div class="career-stats">44 apps &middot; 4 goals &middot; 3 assists</div>
+    </div>
+    <div class="career-item">
+      <div class="career-club">Borussia Dortmund</div>
+      <div class="career-years">2020 - 2023</div>
+      <div class="career-stats">132 apps &middot; 32 goals &middot; 20 assists</div>
+    </div>
+    <div class="career-item">
+      <div class="career-club">Real Madrid</div>
+      <div class="career-years">2023 - Present</div>
+      <div class="career-stats">98 apps &middot; 38 goals &middot; 18 assists</div>
+    </div>
+  </div>
+</div>
+
 <!-- Scouting Notes -->
 <div class="scouting-notes">
   <h3>Scouting Notes</h3>
   <p>Complete midfielder with elite box-to-box capability. Exceptional at arriving late in the penalty area with devastating timing. Combines technical quality on the ball with genuine physical presence — rare combination at this level. Leadership qualities evident from teenage years at Dortmund. Immediate impact at Real Madrid suggests elite mentality and adaptability. Primary concern is workload management given his all-action style.</p>
 </div>
 
-<!-- Attributes -->
+<!-- Attributes (grades only, no raw scores) -->
 <div class="attr-section">
   <!-- Technical -->
   <div class="attr-group open">
@@ -639,22 +831,18 @@
       <div class="attr-row">
         <div class="attr-name">Passing</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">92</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Dribbling</div>
-        <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">88</div>
+        <div class="attr-grade grade-b">B</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">First Touch</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">89</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Finishing</div>
         <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">86</div>
       </div>
     </div>
   </div>
@@ -668,22 +856,18 @@
       <div class="attr-row">
         <div class="attr-name">Vision</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">90</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Positioning</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">91</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Off the Ball</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">93</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Work Rate</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">90</div>
       </div>
     </div>
   </div>
@@ -697,22 +881,18 @@
       <div class="attr-row">
         <div class="attr-name">Decision Making</div>
         <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">85</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Composure</div>
         <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">86</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Leadership</div>
-        <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">88</div>
+        <div class="attr-grade grade-b">B</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Concentration</div>
-        <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">83</div>
+        <div class="attr-grade grade-c">C</div>
       </div>
     </div>
   </div>
@@ -726,22 +906,18 @@
       <div class="attr-row">
         <div class="attr-name">Pace</div>
         <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">84</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Strength</div>
-        <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">87</div>
+        <div class="attr-grade grade-b">B</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Stamina</div>
         <div class="attr-grade grade-a">A</div>
-        <div class="attr-score mono">90</div>
       </div>
       <div class="attr-row">
         <div class="attr-name">Aerial</div>
-        <div class="attr-grade grade-b">B</div>
-        <div class="attr-score mono">85</div>
+        <div class="attr-grade grade-c">C</div>
       </div>
     </div>
   </div>

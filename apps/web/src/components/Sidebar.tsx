@@ -37,6 +37,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
     items: [
       { label: "Clubs", href: "/clubs" },
       { label: "Leagues", href: "/leagues" },
+      { label: "Tactics", href: "/tactics" },
       { label: "Fixtures", href: "/fixtures" },
       { label: "News", href: "/news" },
     ],
@@ -53,7 +54,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
     heading: "Admin",
     items: [
       { label: "Admin", href: "/admin", stagingOnly: true },
-      { label: "Tactics", href: "/formations", stagingOnly: true },
+      { label: "Editor", href: "/editor", stagingOnly: true },
     ],
   },
 ];

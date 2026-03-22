@@ -36,6 +36,11 @@ interface TrackedPlayer {
   personality_type: string | null;
 }
 
+interface PhilosophyBadge {
+  philosophy: { name: string; slug: string };
+  affinity: string;
+}
+
 interface FormationDetailProps {
   formation: {
     id: number;
@@ -49,6 +54,7 @@ interface FormationDetailProps {
   playersByPosition: Record<string, TrackedPlayer[]>;
   rolesMap?: Record<number, TacticalRole>;
   rolesByPosition?: Record<string, TacticalRole[]>;
+  philosophies?: PhilosophyBadge[];
 }
 
 // Pitch Y positions (0 = GK end, 100 = striker end)
@@ -169,6 +175,7 @@ export function FormationDetail({
   playersByPosition,
   rolesMap = {},
   rolesByPosition = {},
+  philosophies: philosophyBadges,
 }: FormationDetailProps) {
   const [expanded, setExpanded] = useState(false);
   const [activeRoleIcon, setActiveRoleIcon] = useState<RoleIcon | null>(null);
@@ -262,6 +269,24 @@ export function FormationDetail({
             })}
             <span className="text-[10px] text-[var(--text-muted)] ml-1">{totalPlayers} players</span>
           </div>
+          {philosophyBadges && philosophyBadges.length > 0 && (
+            <div className="flex items-center gap-1 mt-1">
+              {philosophyBadges.map(({ philosophy, affinity }) => (
+                <span
+                  key={philosophy.slug}
+                  className={`text-[8px] px-1.5 py-0.5 rounded border ${
+                    affinity === "primary"
+                      ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/30"
+                      : affinity === "secondary"
+                        ? "bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-subtle)]"
+                        : "text-[var(--text-muted)] border-[var(--border-subtle)]"
+                  }`}
+                >
+                  {philosophy.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <span className={`text-[var(--text-muted)] transition-transform text-lg ${expanded ? "rotate-90" : ""}`}>

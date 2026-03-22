@@ -199,6 +199,16 @@ TACTICAL_SYSTEMS: dict[str, dict] = {
     },
 }
 
+# Map TACTICAL_SYSTEMS keys to tactical_philosophies.slug in DB
+PHILOSOPHY_SLUG_MAP: dict[str, str] = {
+    "gegenpress": "gegenpressing",
+    "tiki_taka": "la_masia",
+    "counter_attacking": "cholismo",
+    "wing_play": "fergie_time",
+    "catenaccio": "catenaccio",
+    "total_football": "total_football",
+}
+
 # ── Personality tag value adjustments ─────────────────────────────────────────
 
 RISK_TAGS = {

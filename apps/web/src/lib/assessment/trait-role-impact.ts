@@ -45,6 +45,21 @@ export const TRAIT_DEFINITIONS: TraitDefinition[] = [
   { name: "clutch", category: "behavioral", description: "Delivers in decisive moments (late goals, penalties)" },
   { name: "hot_headed", category: "behavioral", description: "Prone to cards, confrontations, losing focus" },
   { name: "quiet_leader", category: "behavioral", description: "Leads by example rather than vocal command" },
+
+  // Editorial — playing style descriptors (not stat-derived)
+  { name: "dribble_artist", category: "style", description: "Beating players is the identity, not just a stat" },
+  { name: "playmaker_vision", category: "style", description: "Sees passes nobody else does" },
+  { name: "through_ball_king", category: "style", description: "Threading the needle is the signature" },
+  { name: "one_touch_play", category: "style", description: "First-time combinations, wall passes" },
+  { name: "tempo_controller", category: "style", description: "Dictates match speed, slows and accelerates at will" },
+  { name: "long_range_threat", category: "tactical", description: "Scores and shoots from distance" },
+  { name: "fox_in_the_box", category: "tactical", description: "Poacher instinct, lives in the 6-yard area" },
+  { name: "sweeper_reader", category: "tactical", description: "Reads danger before it happens, intercepts everything" },
+  { name: "brick_wall", category: "tactical", description: "Unbeatable 1v1 defender" },
+  { name: "hard_man", category: "tactical", description: "Physical intimidation, tackles define reputation" },
+  { name: "captain_leader", category: "tactical", description: "On-pitch authority beyond the armband" },
+  { name: "target_man", category: "physical", description: "Aerial focal point, hold-up play" },
+  { name: "pace_merchant", category: "physical", description: "Raw speed defines the game" },
 ];
 
 /**

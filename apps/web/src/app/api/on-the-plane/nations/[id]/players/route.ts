@@ -45,13 +45,22 @@ export async function GET(
   const dualIds = (dualNationals ?? []).map((d) => d.person_id);
 
   // Step 1: Get person IDs from people table (primary nation)
-  const { data: primaryPeople } = await sb
-    .from("people")
-    .select("id")
-    .eq("nation_id", nationId)
-    .eq("active", true);
-
-  const primaryIds = (primaryPeople ?? []).map((p) => p.id);
+  // Use range queries to bypass Supabase 1000-row default limit
+  const primaryIds: number[] = [];
+  let from = 0;
+  const PAGE = 1000;
+  while (true) {
+    const { data } = await sb
+      .from("people")
+      .select("id")
+      .eq("nation_id", nationId)
+      .eq("active", true)
+      .range(from, from + PAGE - 1);
+    if (!data || data.length === 0) break;
+    primaryIds.push(...data.map((p) => p.id));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
 
   // Combine primary + dual national IDs
   const allIds = [...new Set([...primaryIds, ...dualIds])];

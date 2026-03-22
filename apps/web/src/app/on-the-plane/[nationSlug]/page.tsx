@@ -339,13 +339,14 @@ export default function SquadBuilderPage() {
   }, [selectedPlayers, pitchSlots]);
 
   // Pitch row layout for common formations
+  // Row sizes must sum to 11 and match FORMATION_SLOTS order
   const PITCH_ROWS: Record<string, number[]> = {
-    "4-3-3": [1, 3, 3, 1, 3],        // GK, DEF×3(CB+WBs grouped), MID×3, gap, FWD×3
-    "4-2-3-1": [1, 4, 2, 3, 1],
-    "3-5-2": [1, 3, 2, 2, 1, 2],
-    "4-4-2": [1, 4, 4, 2],
-    "3-4-3": [1, 3, 4, 3],
-    "4-1-2-1-2": [1, 4, 1, 2, 1, 2],
+    "4-3-3":     [1, 4, 3, 3],           // GK | WD CD CD WD | CM CM CM | WF CF WF
+    "4-2-3-1":   [1, 4, 2, 3, 1],        // GK | WD CD CD WD | DM DM | WF AM WF | CF
+    "3-5-2":     [1, 3, 4, 1, 2],        // GK | CD CD CD | WM CM CM WM | AM | CF CF
+    "4-4-2":     [1, 4, 4, 2],           // GK | WD CD CD WD | WM CM CM WM | CF CF
+    "3-4-3":     [1, 3, 4, 3],           // GK | CD CD CD | WM CM CM WM | WF CF WF
+    "4-1-2-1-2": [1, 4, 1, 2, 1, 2],    // GK | WD CD CD WD | DM | CM CM | AM | CF CF
   };
 
   const pitchRows = useMemo(() => {

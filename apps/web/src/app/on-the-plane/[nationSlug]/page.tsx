@@ -543,7 +543,7 @@ function SquadBuilderPage() {
                     Tap players below to add
                   </div>
                 ) : (
-                  selectedPlayers
+                  [...selectedPlayers]
                     .sort((a, b) => {
                       const posOrder = POSITIONS.indexOf(a.position ?? "CM") - POSITIONS.indexOf(b.position ?? "CM");
                       return posOrder !== 0 ? posOrder : (b.level ?? 0) - (a.level ?? 0);

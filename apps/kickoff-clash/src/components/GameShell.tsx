@@ -5,24 +5,29 @@ import type { Card, SlottedCard } from '../lib/scoring';
 import type { RunState, MatchResult, DurabilityResult } from '../lib/run';
 import {
   createRun,
+  getOpponent,
   getOpponentBuild,
   postMatchDurabilityCheck,
   applyDurabilityResults,
-  advanceToNextMatch,
   addCardToDeck,
   sellCard,
   upgradeAcademy,
   buyAcademyPlayer,
+  applyTraining,
+  buyFormation,
+  buyTacticPack,
 } from '../lib/run';
-import type { HandScore, MatchOutcome } from '../lib/hand';
+import type { HandState } from '../lib/hand';
 import type { JokerCard } from '../lib/jokers';
 import { rehydrateJokers } from '../lib/jokers';
+import type { PackType } from '../lib/packs';
+import { openPack } from '../lib/packs';
+import { getTacticById, rehydrateTacticSlots } from '../lib/tactics';
 import { calculateAttendance, getTransferFee } from '../lib/economy';
 import { findConnections } from '../lib/chemistry';
 import TitleScreen from './TitleScreen';
 import SetupPhase from './SetupPhase';
-import HandPhase from './HandPhase';
-import ScoreReveal from './ScoreReveal';
+import MatchPhase from './MatchPhase';
 import PostMatch from './PostMatch';
 import ShopPhase from './ShopPhase';
 import EndScreen from './EndScreen';
@@ -31,24 +36,26 @@ import EndScreen from './EndScreen';
 // Constants
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'kickoff-clash-v3-run';
-const HISTORY_KEY = 'kickoff-clash-v3-history';
+const STORAGE_KEY = 'kickoff-clash-v4-run';
+const HISTORY_KEY = 'kickoff-clash-v4-history';
 const MAX_LOSSES = 3;
 const MAX_ROUNDS = 5;
 
 // ---------------------------------------------------------------------------
-// Serialization helpers — joker compute functions aren't serializable
+// Serialization helpers — joker/tactic compute functions aren't serializable
 // ---------------------------------------------------------------------------
 
-interface SerializedRunState extends Omit<RunState, 'jokers'> {
+interface SerializedRunState extends Omit<RunState, 'jokers' | 'tacticsDeck'> {
   jokerIds: string[];
+  tacticIds: string[];
 }
 
 function serializeRun(state: RunState): string {
-  const { jokers, ...rest } = state;
+  const { jokers, tacticsDeck, ...rest } = state;
   const serialized: SerializedRunState = {
     ...rest,
     jokerIds: jokers.map(j => j.id),
+    tacticIds: tacticsDeck.map(t => t.id),
   };
   return JSON.stringify(serialized);
 }
@@ -56,10 +63,11 @@ function serializeRun(state: RunState): string {
 function deserializeRun(json: string): RunState | null {
   try {
     const parsed = JSON.parse(json) as SerializedRunState;
-    const { jokerIds, ...rest } = parsed;
+    const { jokerIds, tacticIds, ...rest } = parsed;
     return {
       ...rest,
       jokers: rehydrateJokers(jokerIds ?? []),
+      tacticsDeck: (tacticIds ?? []).map(id => getTacticById(id)).filter((t): t is NonNullable<typeof t> => t !== undefined),
     } as RunState;
   } catch {
     return null;
@@ -114,10 +122,12 @@ function saveHistory(state: RunState): void {
 // Phase type
 // ---------------------------------------------------------------------------
 
-type Phase = 'title' | 'setup' | 'hand' | 'scoring' | 'postmatch' | 'shop' | 'end';
+type Phase = 'title' | 'setup' | 'match' | 'postmatch' | 'shop' | 'end';
 
 function phaseFromStatus(status: RunState['status']): Phase {
   if (status === 'won' || status === 'lost') return 'end';
+  if (status === 'packSelect') return 'setup';
+  if (status === 'title') return 'title';
   return status as Phase;
 }
 
@@ -128,9 +138,6 @@ function phaseFromStatus(status: RunState['status']): Phase {
 export default function GameShell() {
   const [runState, setRunState] = useState<RunState | null>(null);
   const [phase, setPhase] = useState<Phase>('title');
-  const [handScore, setHandScore] = useState<HandScore | null>(null);
-  const [matchOutcome, setMatchOutcome] = useState<MatchOutcome | null>(null);
-  const [matchXI, setMatchXI] = useState<Card[]>([]);
   const [hasExistingRun, setHasExistingRun] = useState(false);
   const [durabilityResult, setDurabilityResult] = useState<DurabilityResult | null>(null);
   const [lastMatchResult, setLastMatchResult] = useState<MatchResult | null>(null);
@@ -167,117 +174,95 @@ export default function GameShell() {
     }
   }, []);
 
-  // --- Setup ---
-  const handleStart = useCallback((formation: string, style: string) => {
-    const run = createRun(formation, style);
+  // --- Setup (Pack Opening) ---
+  const handleStart = useCallback((packType: PackType, style: string) => {
+    const seed = Date.now();
+    const contents = openPack(packType, seed);
+    const run = createRun(contents, style, seed);
     setRunState(run);
-    setPhase('hand');
+    setPhase('match');
+    saveRun(run);
   }, []);
 
-  // --- Hand ---
-  const handleLockIn = useCallback((score: HandScore, xi: Card[]) => {
-    setHandScore(score);
-    setMatchXI(xi);
-    setPhase('scoring');
-  }, []);
+  // --- Match Complete ---
+  const handleMatchComplete = useCallback((result: { yourGoals: number; opponentGoals: number; result: 'win' | 'draw' | 'loss'; handState: HandState }) => {
+    if (!runState) return;
 
-  // --- Scoring ---
-  const handleScoreComplete = useCallback((outcome: MatchOutcome) => {
-    if (!runState || !handScore) return;
-
-    setMatchOutcome(outcome);
-
-    // Convert Card[] xi to SlottedCard[] for attendance + durability
-    const slottedXI: SlottedCard[] = matchXI.map((card, i) => ({
+    // Calculate attendance from hand's final XI
+    const slottedXI: SlottedCard[] = result.handState.xi.map((card, i) => ({
       card,
-      slot: `slot_${i}`,
+      slot: 'slot_' + i,
     }));
-
-    // Calculate connections for attendance
     const connections = findConnections(slottedXI);
-
-    // Calculate attendance
-    const attendanceResult = calculateAttendance(
+    const attendance = calculateAttendance(
       slottedXI,
       connections,
-      outcome.yourGoals,
-      outcome.opponentGoals,
-      0, // actionFanAccumulator
+      result.yourGoals,
+      result.opponentGoals,
+      0,
       runState.stadiumTier,
       runState.ticketPriceBonus,
     );
 
-    // Build match result
-    const opponent = getOpponentBuild(runState.round);
+    // Durability check on the XI cards
+    const durResult = postMatchDurabilityCheck(slottedXI, runState.seed + runState.round * 999);
+
+    // Create match result entry
     const matchResult: MatchResult = {
       round: runState.round,
-      opponentName: opponent.name,
-      yourGoals: outcome.yourGoals,
-      opponentGoals: outcome.opponentGoals,
-      attendance: attendanceResult.attendance,
-      revenue: attendanceResult.revenue,
-      result: outcome.result,
-      synergiesTriggered: handScore.connections.map(c => c.name),
-      shattered: [],
-      injured: [],
-      promoted: [],
+      opponentName: getOpponent(runState.round).name,
+      yourGoals: result.yourGoals,
+      opponentGoals: result.opponentGoals,
+      attendance: attendance.attendance,
+      revenue: attendance.revenue,
+      result: result.result,
+      synergiesTriggered: connections.map(c => c.name),
+      shattered: durResult.shattered.map(c => c.name),
+      injured: durResult.injured.map(c => c.name),
+      promoted: durResult.promoted.map(c => c.name),
     };
-
-    // Durability check
-    const durResult = postMatchDurabilityCheck(slottedXI, runState.seed + runState.round * 777);
-    setDurabilityResult(durResult);
-
-    // Update match result with durability info
-    matchResult.shattered = durResult.shattered.map(c => c.name);
-    matchResult.injured = durResult.injured.map(c => c.name);
-    matchResult.promoted = durResult.promoted.map(c => c.name);
-
-    setLastMatchResult(matchResult);
 
     // Apply durability to deck
     const updatedDeck = applyDurabilityResults(runState.deck, durResult);
 
-    // Update run state
-    const newWins = runState.wins + (outcome.result === 'win' ? 1 : 0);
-    const newLosses = runState.losses + (outcome.result === 'loss' ? 1 : 0);
+    // Update wins/losses
+    const wins = runState.wins + (result.result === 'win' ? 1 : 0);
+    const losses = runState.losses + (result.result === 'loss' ? 1 : 0);
 
-    setRunState({
+    const newState: RunState = {
       ...runState,
       deck: updatedDeck,
-      cash: runState.cash + attendanceResult.revenue,
-      wins: newWins,
-      losses: newLosses,
+      cash: runState.cash + attendance.revenue,
+      wins,
+      losses,
+      round: runState.round,
       matchHistory: [...runState.matchHistory, matchResult],
-      status: 'postmatch',
-    });
+    };
 
+    setRunState(newState);
+    setLastMatchResult(matchResult);
+    setDurabilityResult(durResult);
     setPhase('postmatch');
-  }, [runState, handScore, matchXI]);
+    saveRun(newState);
+  }, [runState]);
 
   // --- Post Match ---
   const handlePostMatchContinue = useCallback(() => {
     if (!runState) return;
 
     if (runState.losses >= MAX_LOSSES) {
-      setRunState(prev => {
-        if (!prev) return prev;
-        const ended = { ...prev, status: 'lost' as const };
-        saveHistory(ended);
-        clearRun();
-        return ended;
-      });
+      const ended = { ...runState, status: 'lost' as const };
+      setRunState(ended);
+      saveHistory(ended);
+      clearRun();
       setPhase('end');
     } else if (runState.round >= MAX_ROUNDS) {
-      setRunState(prev => {
-        if (!prev) return prev;
-        const ended = { ...prev, status: 'won' as const };
-        saveHistory(ended);
-        clearRun();
-        return ended;
-      });
+      const ended = { ...runState, status: 'won' as const };
+      setRunState(ended);
+      saveHistory(ended);
+      clearRun();
       setPhase('end');
     } else {
-      setRunState(prev => prev ? { ...prev, status: 'shop' as const } : prev);
       setPhase('shop');
     }
   }, [runState]);
@@ -325,21 +310,36 @@ export default function GameShell() {
     });
   }, []);
 
+  const handleBuyTacticPack = useCallback(() => {
+    if (!runState) return;
+    const result = buyTacticPack(runState, runState.seed + runState.round * 777);
+    if (result) { setRunState(result); saveRun(result); }
+  }, [runState]);
+
+  const handleBuyFormation = useCallback((formationId: string) => {
+    if (!runState) return;
+    const result = buyFormation(runState, formationId);
+    if (result) { setRunState(result); saveRun(result); }
+  }, [runState]);
+
+  const handleTrainPlayer = useCallback((cardId: number) => {
+    if (!runState) return;
+    const result = applyTraining(runState, cardId);
+    if (result) { setRunState(result); saveRun(result); }
+  }, [runState]);
+
   const handleShopNext = useCallback(() => {
-    setRunState(prev => {
-      if (!prev) return prev;
-      return advanceToNextMatch(prev);
-    });
-    setPhase('hand');
-  }, []);
+    if (!runState) return;
+    const newState = { ...runState, round: runState.round + 1 };
+    setRunState(newState);
+    setPhase('match');
+    saveRun(newState);
+  }, [runState]);
 
   // --- End ---
   const handleEndNewRun = useCallback(() => {
     clearRun();
     setRunState(null);
-    setHandScore(null);
-    setMatchOutcome(null);
-    setMatchXI([]);
     setDurabilityResult(null);
     setLastMatchResult(null);
     setHasExistingRun(false);
@@ -363,39 +363,12 @@ export default function GameShell() {
     case 'setup':
       return <SetupPhase onStart={handleStart} />;
 
-    case 'hand': {
+    case 'match': {
       if (!runState) return null;
-      const opponent = getOpponentBuild(runState.round);
-      const matchSeed = runState.seed + runState.round * 1000;
       return (
-        <HandPhase
-          deck={runState.deck}
-          formation={runState.formation}
-          playingStyle={runState.playingStyle}
-          jokers={runState.jokers}
-          opponent={{
-            name: opponent.name,
-            baseStrength: opponent.baseStrength,
-            weaknessArchetype: opponent.weaknessArchetype,
-          }}
-          seed={matchSeed}
-          round={runState.round}
-          onLockIn={handleLockIn}
-        />
-      );
-    }
-
-    case 'scoring': {
-      if (!handScore || !runState) return null;
-      const scoringOpponent = getOpponentBuild(runState.round);
-      const scoringSeed = runState.seed + runState.round * 1000 + 500;
-      return (
-        <ScoreReveal
-          handScore={handScore}
-          opponentName={scoringOpponent.name}
-          opponentStrength={scoringOpponent.baseStrength}
-          seed={scoringSeed}
-          onComplete={handleScoreComplete}
+        <MatchPhase
+          runState={runState}
+          onMatchComplete={handleMatchComplete}
         />
       );
     }
@@ -413,7 +386,7 @@ export default function GameShell() {
 
     case 'shop': {
       if (!runState) return null;
-      const shopSeed = runState.seed + runState.round * 500 + 333;
+      const shopSeed = runState.seed + runState.round * 999;
       return (
         <ShopPhase
           state={runState}
@@ -422,6 +395,9 @@ export default function GameShell() {
           onBuyJoker={handleBuyJoker}
           onBuyAcademy={handleBuyAcademy}
           onUpgradeAcademy={handleUpgradeAcademy}
+          onBuyTacticPack={handleBuyTacticPack}
+          onBuyFormation={handleBuyFormation}
+          onTrainPlayer={handleTrainPlayer}
           onNext={handleShopNext}
           shopSeed={shopSeed}
         />

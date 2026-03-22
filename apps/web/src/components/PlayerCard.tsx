@@ -64,7 +64,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
       href={`/players/${player.person_id}`}
       className="block group"
     >
-      <div className={`border-l-2 ${borderClass} bg-[var(--bg-surface)] rounded-lg px-3 py-2.5 hover:brightness-110 transition-all duration-150`}>
+      <div className={`border-l-2 ${borderClass} bg-[var(--bg-surface)] px-3 py-2.5 hover:brightness-110 transition-all duration-150`}>
         {/* Row 1: Position + Name + Overall */}
         <div className="flex items-center gap-2 min-w-0">
           <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
@@ -92,6 +92,11 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           )}
           {(player.earned_archetype || player.archetype) && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype) }}>{player.earned_archetype ?? player.archetype}</span></>
+          )}
+          {player.model_id && (
+            <span className="font-mono text-[10px] text-[var(--text-muted)] ml-auto">
+              {player.model_id}
+            </span>
           )}
         </div>
 

@@ -14,21 +14,29 @@ const TIERS = [
     name: "Free",
     monthlyPrice: 0,
     yearlyPrice: 0,
-    description: "Get started with basic scouting tools",
-    features: ["500 players", "Basic search", "Player profiles"],
+    description: "Games, legends, free agents, and news — no sign-up required",
+    features: [
+      "Gaffer manager identity game",
+      "On The Plane squad picker",
+      "Free agent tracker",
+      "Legends database",
+      "News feed & fixtures",
+    ],
     cta: "Current Plan",
   },
   {
     id: "scout" as Tier,
     name: "Scout",
-    monthlyPrice: 9,
-    yearlyPrice: 79,
-    description: "Full scouting toolkit for serious analysts",
+    monthlyPrice: 7,
+    yearlyPrice: 59,
+    description: "Full player intelligence — profiles, archetypes, and comparisons",
     features: [
-      "Full database access",
-      "Player archetypes",
-      "Suitability scoring",
-      "Squad builder",
+      "19,000+ player database",
+      "Full profiles & radar charts",
+      "Archetypes & personality",
+      "Player comparison tool",
+      "Formation & club analysis",
+      "Market intelligence",
     ],
     cta: "Upgrade to Scout",
     popular: true,
@@ -36,14 +44,16 @@ const TIERS = [
   {
     id: "pro" as Tier,
     name: "Pro",
-    monthlyPrice: 29,
-    yearlyPrice: 249,
-    description: "Everything you need for professional scouting",
+    monthlyPrice: 19,
+    yearlyPrice: 149,
+    description: "Scouting operations — shortlists, squad builder, and data export",
     features: [
       "Everything in Scout",
-      "API access",
+      "Shortlists & tracking",
+      "Squad builder & gap analysis",
+      "Scout Pad workspace",
       "CSV export",
-      "Priority support",
+      "API access",
     ],
     cta: "Upgrade to Pro",
   },
@@ -133,7 +143,7 @@ function PricingContent() {
           Pick your level
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mt-2 max-w-md mx-auto">
-          Free gets you started. Scout gets you serious. Pro gets you everything.
+          Play for free. Scout for intelligence. Go Pro for operations.
         </p>
 
         {/* Annual/Monthly toggle */}

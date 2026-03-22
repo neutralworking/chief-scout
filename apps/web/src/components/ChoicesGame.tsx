@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { UpgradeCTA } from "@/components/UpgradeCTA";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -246,9 +247,13 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
             You&apos;ve answered everything. New questions coming soon.
           </p>
+          <UpgradeCTA
+            message="Your manager style is taking shape"
+            detail="See which players match your philosophy with full scouting intelligence."
+          />
           <button
             onClick={() => fetchQuestion()}
-            className="px-6 py-2 bg-[var(--color-accent-tactical)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+            className="px-6 py-2 mt-4 bg-[var(--color-accent-tactical)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Try Again
           </button>
@@ -300,6 +305,10 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
                 <span className="text-xs text-[var(--text-muted)]">
                   {currentQuestion.total_votes + 1} votes
                 </span>
+                <UpgradeCTA
+                  message="See which players match your style"
+                  variant="inline"
+                />
                 <button
                   onClick={nextQuestion}
                   className="px-6 py-2 bg-[var(--color-accent-tactical)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"

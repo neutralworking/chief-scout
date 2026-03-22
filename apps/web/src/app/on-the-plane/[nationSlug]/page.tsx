@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+import { UpgradeCTA } from "@/components/UpgradeCTA";
 
 // Error boundary to catch and display the actual error message
 class OTPErrorBoundary extends React.Component<
@@ -874,6 +875,12 @@ function SquadBuilderPage() {
                 </div>
               </div>
             </div>
+
+            {/* Conversion CTA */}
+            <UpgradeCTA
+              message="Our scouts rated this squad — want to know why?"
+              detail="Unlock full player profiles, archetypes, and scouting intelligence."
+            />
           </>
         )}
       </div>

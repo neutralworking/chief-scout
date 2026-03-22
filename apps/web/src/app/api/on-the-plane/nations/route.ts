@@ -37,19 +37,22 @@ export async function GET() {
   // For each nation, get player pool count
   const nationIds = (nations ?? []).map((n) => n.nation_id);
 
-  // Get player counts per nation (primary nationality)
+  // Get player counts per nation using individual count queries (avoids row limit)
   const countMap = new Map<number, number>();
   if (nationIds.length > 0) {
-    const { data: peopleCounts } = await sb
-      .from("people")
-      .select("nation_id")
-      .in("nation_id", nationIds)
-      .eq("active", true);
-
-    if (peopleCounts) {
-      for (const p of peopleCounts) {
-        countMap.set(p.nation_id, (countMap.get(p.nation_id) ?? 0) + 1);
-      }
+    // Use a single SQL query via rpc or batch count calls
+    // Supabase default limit is 1000 rows — counting 21k+ people would be truncated
+    const countPromises = nationIds.map(async (nid) => {
+      const { count } = await sb
+        .from("people")
+        .select("id", { count: "exact", head: true })
+        .eq("nation_id", nid)
+        .eq("active", true);
+      return { nid, count: count ?? 0 };
+    });
+    const counts = await Promise.all(countPromises);
+    for (const { nid, count } of counts) {
+      countMap.set(nid, count);
     }
   }
 

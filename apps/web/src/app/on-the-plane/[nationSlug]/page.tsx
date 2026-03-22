@@ -310,6 +310,55 @@ export default function SquadBuilderPage() {
 
   // ── Step 1: Pick Squad ───────────────────────────────────────────────────
 
+  // ── Pitch layout helpers ──────────────────────────────────────────────────
+  // Map selected players to formation slots by position affinity
+  const selectedPlayers = useMemo(() => {
+    if (!nationData) return [];
+    return nationData.players.filter((p) => selectedIds.has(p.person_id));
+  }, [nationData, selectedIds]);
+
+  const pitchSlots = useMemo(() => {
+    const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
+    const used = new Set<number>();
+    return slots.map((slotPos, idx) => {
+      // Find best unused selected player for this position
+      const candidate = selectedPlayers
+        .filter((p) => !used.has(p.person_id) && p.position === slotPos)
+        .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))[0];
+      if (candidate) {
+        used.add(candidate.person_id);
+        return { slot: slotPos, idx, player: candidate };
+      }
+      return { slot: slotPos, idx, player: null };
+    });
+  }, [selectedPlayers, formation]);
+
+  const benchPlayers = useMemo(() => {
+    const pitchIds = new Set(pitchSlots.filter((s) => s.player).map((s) => s.player!.person_id));
+    return selectedPlayers.filter((p) => !pitchIds.has(p.person_id));
+  }, [selectedPlayers, pitchSlots]);
+
+  // Pitch row layout for common formations
+  const PITCH_ROWS: Record<string, number[]> = {
+    "4-3-3": [1, 3, 3, 1, 3],        // GK, DEF×3(CB+WBs grouped), MID×3, gap, FWD×3
+    "4-2-3-1": [1, 4, 2, 3, 1],
+    "3-5-2": [1, 3, 2, 2, 1, 2],
+    "4-4-2": [1, 4, 4, 2],
+    "3-4-3": [1, 3, 4, 3],
+    "4-1-2-1-2": [1, 4, 1, 2, 1, 2],
+  };
+
+  const pitchRows = useMemo(() => {
+    const rowSizes = PITCH_ROWS[formation] ?? [1, 4, 3, 3];
+    const rows: typeof pitchSlots[] = [];
+    let offset = 0;
+    for (const size of rowSizes) {
+      rows.push(pitchSlots.slice(offset, offset + size));
+      offset += size;
+    }
+    return rows;
+  }, [pitchSlots, formation]);
+
   if (step === "pick-squad") {
     return (
       <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -319,11 +368,7 @@ export default function SquadBuilderPage() {
           style={{ background: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}
         >
           <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <Link
-              href="/on-the-plane"
-              className="text-xs"
-              style={{ color: "var(--text-muted)" }}
-            >
+            <Link href="/on-the-plane" className="text-xs" style={{ color: "var(--text-muted)" }}>
               ← Nations
             </Link>
             <div className="text-center">
@@ -338,111 +383,175 @@ export default function SquadBuilderPage() {
               onClick={() => selectedIds.size === 26 && setStep("pick-xi")}
               disabled={selectedIds.size !== 26}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{
-                background: "var(--color-accent-personality)",
-                color: "var(--bg-base)",
-              }}
+              style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
             >
               Next →
             </button>
           </div>
-
           {/* Balance bar */}
           <div className="max-w-5xl mx-auto mt-2 flex gap-2 text-[10px]">
             {Object.entries(squadBalance).map(([grp, cnt]) => (
-              <span
-                key={grp}
-                className="px-2 py-0.5 rounded"
-                style={{
-                  background: "var(--bg-elevated)",
-                  color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)",
-                }}
-              >
+              <span key={grp} className="px-2 py-0.5 rounded" style={{ background: "var(--bg-elevated)", color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
                 {grp} {cnt}
               </span>
             ))}
+            {/* Formation selector inline */}
+            <select
+              value={formation}
+              onChange={(e) => setFormation(e.target.value)}
+              className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-mono cursor-pointer"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+            >
+              {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="max-w-5xl mx-auto px-4 pt-3 pb-2 space-y-2">
-          {/* Position pills */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            <button
-              onClick={() => setPosFilter(null)}
-              className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer"
-              style={{
-                background: !posFilter ? "var(--color-accent-personality)/20" : "var(--bg-surface)",
-                color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)",
-                border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}`,
-              }}
-            >
-              All
-            </button>
-            {POSITIONS.map((pos) => (
-              <button
-                key={pos}
-                onClick={() => setPosFilter(posFilter === pos ? null : pos)}
-                className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer"
+        {/* ── Split: Pitch + Additions ── */}
+        <div className="max-w-5xl mx-auto px-4 pt-3 pb-2">
+          <div className="flex gap-3" style={{ minHeight: "260px" }}>
+            {/* LEFT: Pitch + Bench */}
+            <div className="w-1/2 flex flex-col gap-2">
+              {/* Pitch */}
+              <div
+                className="rounded-lg p-2 flex flex-col justify-between relative"
                 style={{
-                  background: posFilter === pos ? "var(--color-accent-personality)/20" : "var(--bg-surface)",
-                  color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)",
-                  border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}`,
+                  background: "linear-gradient(180deg, #0d3b1e 0%, #0a2e17 100%)",
+                  border: "1px solid rgba(111,195,223,0.15)",
+                  minHeight: "200px",
                 }}
               >
-                {pos}
-              </button>
+                {/* Center circle decoration */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-12 h-12 rounded-full border border-white/10" />
+                </div>
+                {/* Halfway line */}
+                <div className="absolute left-0 right-0 top-1/2 border-t border-white/10" />
+
+                {pitchRows.map((row, ri) => (
+                  <div key={ri} className="flex justify-center gap-1 relative z-10" style={{ flex: 1, alignItems: "center" }}>
+                    {row.map((s) => (
+                      <div
+                        key={s.idx}
+                        className="flex flex-col items-center"
+                        style={{ width: "48px" }}
+                      >
+                        {s.player ? (
+                          <button
+                            onClick={() => togglePlayer(s.player!.person_id)}
+                            className="cursor-pointer text-center"
+                            title={`Remove ${s.player.name}`}
+                          >
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-[8px] font-bold mx-auto"
+                              style={{ background: "var(--color-accent-personality)", color: "#000" }}
+                            >
+                              {s.player.position}
+                            </div>
+                            <div className="text-[7px] mt-0.5 truncate leading-tight" style={{ color: "#fff", maxWidth: "48px" }}>
+                              {s.player.name.split(" ").pop()}
+                            </div>
+                          </button>
+                        ) : (
+                          <div className="text-center">
+                            <div
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-[8px] font-mono mx-auto"
+                              style={{ border: "1px dashed rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.3)" }}
+                            >
+                              {s.slot}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Bench */}
+              {benchPlayers.length > 0 && (
+                <div className="rounded-lg p-2" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
+                  <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
+                    Bench ({benchPlayers.length})
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {benchPlayers.map((p) => (
+                      <button
+                        key={p.person_id}
+                        onClick={() => togglePlayer(p.person_id)}
+                        className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] cursor-pointer"
+                        style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}
+                        title={`Remove ${p.name}`}
+                      >
+                        <span className="font-mono" style={{ color: "var(--text-muted)", fontSize: "8px" }}>{p.position}</span>
+                        <span className="truncate" style={{ maxWidth: "60px" }}>{p.name.split(" ").pop()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT: Additions list */}
+            <div className="w-1/2 rounded-lg overflow-hidden flex flex-col" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
+              <div className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)", borderBottom: "1px solid var(--border-subtle)" }}>
+                Squad ({selectedIds.size}/26)
+              </div>
+              <div className="flex-1 overflow-y-auto" style={{ maxHeight: "280px" }}>
+                {selectedPlayers.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    Tap players below to add
+                  </div>
+                ) : (
+                  selectedPlayers
+                    .sort((a, b) => {
+                      const posOrder = POSITIONS.indexOf(a.position ?? "CM") - POSITIONS.indexOf(b.position ?? "CM");
+                      return posOrder !== 0 ? posOrder : (b.level ?? 0) - (a.level ?? 0);
+                    })
+                    .map((p) => (
+                      <button
+                        key={p.person_id}
+                        onClick={() => togglePlayer(p.person_id)}
+                        className="w-full flex items-center gap-1.5 px-2 py-1 text-left cursor-pointer hover:bg-[var(--bg-elevated)] transition-colors"
+                        title={`Remove ${p.name}`}
+                      >
+                        <span
+                          className={`text-[8px] font-mono px-1 py-0.5 rounded shrink-0 ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
+                          style={{ color: "white" }}
+                        >
+                          {p.position}
+                        </span>
+                        <span className="text-[11px] truncate flex-1" style={{ color: "var(--text-primary)" }}>
+                          {p.name}
+                        </span>
+                        <span className="text-[10px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
+                          {p.level ?? "—"}
+                        </span>
+                        <span className="text-[9px] shrink-0" style={{ color: "var(--text-muted)" }}>✕</span>
+                      </button>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Filters ── */}
+        <div className="max-w-5xl mx-auto px-4 pt-2 pb-2 space-y-2">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            <button onClick={() => setPosFilter(null)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: !posFilter ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>All</button>
+            {POSITIONS.map((pos) => (
+              <button key={pos} onClick={() => setPosFilter(posFilter === pos ? null : pos)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: posFilter === pos ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{pos}</button>
             ))}
           </div>
-
-          {/* Category tabs */}
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {POOL_CATEGORIES.map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => setCatFilter(cat.key)}
-                className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer"
-                style={{
-                  background: catFilter === cat.key
-                    ? `${CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)"}20`
-                    : "var(--bg-surface)",
-                  color: catFilter === cat.key
-                    ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)"
-                    : "var(--text-muted)",
-                  border: `1px solid ${catFilter === cat.key
-                    ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)"
-                    : "var(--border-subtle)"}`,
-                }}
-              >
-                {cat.label}
-              </button>
+              <button key={cat.key} onClick={() => setCatFilter(cat.key)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: catFilter === cat.key ? `${CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)"}20` : "var(--bg-surface)", color: catFilter === cat.key ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${catFilter === cat.key ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{cat.label}</button>
             ))}
           </div>
-
-          {/* Search + Sort */}
           <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Search players..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="flex-1 px-3 py-1.5 rounded-lg text-xs"
-              style={{
-                background: "var(--bg-surface)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--border-subtle)",
-              }}
-            />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "level" | "age" | "name")}
-              className="px-2 py-1.5 rounded-lg text-xs cursor-pointer"
-              style={{
-                background: "var(--bg-surface)",
-                color: "var(--text-secondary)",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
+            <input type="text" placeholder="Search players..." value={searchText} onChange={(e) => setSearchText(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg text-xs" style={{ background: "var(--bg-surface)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "level" | "age" | "name")} className="px-2 py-1.5 rounded-lg text-xs cursor-pointer" style={{ background: "var(--bg-surface)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
               <option value="level">Level</option>
               <option value="age">Age</option>
               <option value="name">Name</option>
@@ -450,7 +559,7 @@ export default function SquadBuilderPage() {
           </div>
         </div>
 
-        {/* Player List */}
+        {/* ── Player List (full width) ── */}
         <div className="max-w-5xl mx-auto px-4 pb-24">
           {filteredPlayers.map((p) => {
             const selected = selectedIds.has(p.person_id);
@@ -458,81 +567,33 @@ export default function SquadBuilderPage() {
               <button
                 key={p.person_id}
                 onClick={() => togglePlayer(p.person_id)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1.5 transition-all text-left cursor-pointer"
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg mb-1 transition-all text-left cursor-pointer"
                 style={{
                   background: selected ? "var(--bg-elevated)" : "var(--bg-surface)",
                   border: `1px solid ${selected ? "var(--color-accent-personality)" : "var(--border-subtle)"}`,
                   opacity: !selected && selectedIds.size >= 26 ? 0.4 : 1,
                 }}
               >
-                {/* Selection indicator */}
-                <div
-                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                  style={{
-                    borderColor: selected ? "var(--color-accent-personality)" : "var(--border-subtle)",
-                    background: selected ? "var(--color-accent-personality)" : "transparent",
-                  }}
-                >
-                  {selected && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path d="M1 4L3.5 6.5L9 1" stroke="var(--bg-base)" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  )}
+                <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" style={{ borderColor: selected ? "var(--color-accent-personality)" : "var(--border-subtle)", background: selected ? "var(--color-accent-personality)" : "transparent" }}>
+                  {selected && <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="var(--bg-base)" strokeWidth="2" strokeLinecap="round" /></svg>}
                 </div>
-
-                {/* Position badge */}
-                <span
-                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
-                  style={{ color: "white" }}
-                >
-                  {p.position ?? "?"}
-                </span>
-
-                {/* Player info */}
+                <span className={`text-[9px] font-mono px-1 py-0.5 rounded ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`} style={{ color: "white" }}>{p.position ?? "?"}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                      {p.name}
-                    </span>
-                    <span
-                      className="text-[9px] px-1 py-0.5 rounded shrink-0"
-                      style={{
-                        background: `${CATEGORY_COLORS[p.pool_category] ?? "#71717a"}20`,
-                        color: CATEGORY_COLORS[p.pool_category] ?? "#71717a",
-                      }}
-                    >
-                      {p.pool_category.replace("_", " ")}
-                    </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</span>
+                    <span className="text-[8px] px-1 py-0.5 rounded shrink-0" style={{ background: `${CATEGORY_COLORS[p.pool_category] ?? "#71717a"}20`, color: CATEGORY_COLORS[p.pool_category] ?? "#71717a" }}>{p.pool_category.replace("_", " ")}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                    {p.club && <span>{p.club}</span>}
+                  <div className="flex items-center gap-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
+                    {p.club && <span className="truncate" style={{ maxWidth: "100px" }}>{p.club}</span>}
                     {p.age && <span>· {p.age}y</span>}
-                    {p.archetype && <span>· {p.archetype}</span>}
                   </div>
                 </div>
-
-                {/* Level */}
-                <span
-                  className="text-xs font-mono shrink-0"
-                  style={{
-                    color:
-                      (p.level ?? 0) >= 16
-                        ? "var(--color-accent-technical)"
-                        : (p.level ?? 0) >= 12
-                          ? "var(--color-accent-tactical)"
-                          : "var(--text-muted)",
-                  }}
-                >
-                  {p.level ?? "—"}
-                </span>
+                <span className="text-xs font-mono shrink-0" style={{ color: (p.level ?? 0) >= 16 ? "var(--color-accent-technical)" : (p.level ?? 0) >= 12 ? "var(--color-accent-tactical)" : "var(--text-muted)" }}>{p.level ?? "—"}</span>
               </button>
             );
           })}
-
           {filteredPlayers.length === 0 && (
-            <p className="text-center py-8 text-xs" style={{ color: "var(--text-muted)" }}>
-              No players match filters
-            </p>
+            <p className="text-center py-8 text-xs" style={{ color: "var(--text-muted)" }}>No players match filters</p>
           )}
         </div>
       </div>

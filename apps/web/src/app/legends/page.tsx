@@ -247,7 +247,7 @@ function LegendsContent() {
     );
   }
 
-  function TraitPills({ player }: { player: Legend }) {
+  function TraitPills({ player, mobile }: { player: Legend; mobile?: boolean }) {
     const [traits, setTraits] = useState(player.traits ?? []);
     const [adding, setAdding] = useState(false);
 
@@ -273,10 +273,13 @@ function LegendsContent() {
       });
     }
 
+    const pillSize = mobile ? "text-[10px] px-2 py-1" : "text-[9px] px-2 py-0.5";
+    const addSelectSize = mobile ? "text-[10px]" : "text-[9px]";
+
     return (
-      <div className="flex flex-wrap items-center gap-0.5">
+      <div className="flex flex-wrap items-center gap-1">
         {traits.map((t) => (
-          <span key={t.trait} className={`inline-flex items-center gap-0.5 text-[8px] font-medium px-1.5 py-0.5 rounded-full border ${TRAIT_COLORS[t.category] ?? TRAIT_COLORS.style}`}>
+          <span key={t.trait} className={`inline-flex items-center gap-0.5 font-medium rounded-full border ${pillSize} ${TRAIT_COLORS[t.category] ?? TRAIT_COLORS.style}`}>
             {TRAIT_LABELS[t.trait] ?? t.trait}
             {isAdmin && (
               <button onClick={() => removeTrait(t.trait)} className="ml-0.5 opacity-50 hover:opacity-100">&times;</button>
@@ -289,13 +292,13 @@ function LegendsContent() {
               autoFocus
               onChange={(e) => { if (e.target.value) addTrait(e.target.value); }}
               onBlur={() => setAdding(false)}
-              className="text-[8px] bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded px-1 py-0.5 border border-[var(--border-subtle)]"
+              className={`${addSelectSize} bg-[var(--bg-elevated)] text-[var(--text-secondary)] rounded px-1 py-0.5 border border-[var(--border-subtle)]`}
             >
               <option value="">Pick...</option>
               {available.map((t) => <option key={t} value={t}>{TRAIT_LABELS[t] ?? t}</option>)}
             </select>
           ) : (
-            <button onClick={() => setAdding(true)} className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] px-1">+</button>
+            <button onClick={() => setAdding(true)} className={`${addSelectSize} text-[var(--text-muted)] hover:text-[var(--text-secondary)] px-1`}>+</button>
           )
         )}
         {traits.length === 0 && !isAdmin && <span className="text-[var(--text-muted)] text-[9px]">&ndash;</span>}
@@ -418,10 +421,9 @@ function LegendsContent() {
                     <th className="text-center py-1.5 px-2 font-medium w-10">Pos</th>
                     <th className="text-left py-1.5 px-3 font-medium">Player</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden lg:table-cell"></th>
-                    <th className="text-left py-1.5 px-2 font-medium">Primary</th>
-                    <th className="text-left py-1.5 px-2 font-medium">Secondary</th>
+                    <th className="text-left py-1.5 px-2 font-medium">Skillset</th>
                     <th className="text-left py-1.5 px-2 font-medium hidden lg:table-cell">Model</th>
-                    <th className="text-left py-1.5 px-2 font-medium">Traits</th>
+                    <th className="text-left py-1.5 px-2 font-medium min-w-[140px]">Traits</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Best Role</th>
                     <th className="text-left py-1.5 px-3 font-medium hidden xl:table-cell">Personality</th>
                     <th className="text-right py-1.5 px-3 font-medium w-14">Peak</th>
@@ -453,11 +455,10 @@ function LegendsContent() {
                           {isAdmin ? (
                             <ArchetypeEditor player={player} />
                           ) : (
-                            <span className="text-[var(--text-secondary)]">{primary ?? "\u2013"}</span>
+                            <span className="text-[var(--text-secondary)]">
+                              {primary ? (secondary ? `${primary}-${secondary}` : primary) : "\u2013"}
+                            </span>
                           )}
-                        </td>
-                        <td className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)]">
-                          {isAdmin ? null : (secondary ?? "\u2013")}
                         </td>
                         <td className="py-1.5 px-2 text-[10px] hidden lg:table-cell">
                           {modelLabel ? (
@@ -520,10 +521,11 @@ function LegendsContent() {
                         )}
                       </div>
                     </div>
-                    <div className="mt-0.5 pl-9">
-                      <TraitPills player={player} />
-                    </div>
                     <div className="mt-1 pl-9">
+                      <TraitPills player={player} mobile />
+                    </div>
+                    <div className="mt-1.5 pl-9 flex items-center gap-1">
+                      <span className="text-[10px] text-[var(--text-muted)] shrink-0">{"\u21B3"} Plays like:</span>
                       <SimilarActivePlayer personId={player.person_id} />
                     </div>
                   </div>

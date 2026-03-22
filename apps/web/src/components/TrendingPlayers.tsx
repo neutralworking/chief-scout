@@ -21,7 +21,7 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
   if (players.length === 0) return null;
 
   return (
-    <div className="glass rounded-xl p-2.5">
+    <div className="glass p-2.5">
       <div className="flex items-center justify-between mb-1.5">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
           Trending Players

@@ -62,7 +62,7 @@ export function CompoundMetrics({ attributeGrades }: CompoundMetricsProps) {
   const compounds = Object.entries(COMPOUND_MODELS);
 
   return (
-    <div className="glass rounded-xl p-5">
+    <div className="glass p-5">
       <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-4">
         Attributes
       </h3>

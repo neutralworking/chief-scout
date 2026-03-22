@@ -372,6 +372,7 @@ export default async function DashboardPage() {
 
       {/* Row 1: News (3col) + Fixtures (2col) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0">
+<<<<<<< HEAD
         {/* News — 3 cols, scrollable within */}
         <div className="lg:col-span-3 glass panel-accent-cyan p-2.5 flex flex-col min-h-0">
           <SectionHeader
@@ -384,6 +385,117 @@ export default async function DashboardPage() {
             }
           />
           <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-1.5">
+=======
+        {/* Featured Player — 3 cols */}
+        <div className="lg:col-span-3">
+          {featured ? (
+            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
+          ) : (
+            <div className="glass p-4">
+              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Right column — Fixtures (fills space) + League + Contracts */}
+        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
+          {/* Upcoming Fixtures — expands to fill available space */}
+          <div className="glass p-2.5 flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-1.5 shrink-0">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">Upcoming Fixtures</h3>
+              <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
+                All &rarr;
+              </Link>
+            </div>
+            {fixtures.length === 0 ? (
+              <p className="text-[10px] text-[var(--text-muted)] py-1 text-center">No upcoming fixtures.</p>
+            ) : (
+              <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1">
+                {fixtures.map((f) => (
+                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                    <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-5 shrink-0">
+                      {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
+                        <span className="text-[var(--text-muted)] text-[9px]">v</span>
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
+                      </div>
+                    </div>
+                    <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatFixtureDate(f.utc_date)}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* League + Contracts side by side */}
+          <div className="grid grid-cols-2 gap-2 shrink-0">
+            {/* League shortcuts */}
+            <div className="glass p-2.5">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1">League</h3>
+              <div className="space-y-0">
+                {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
+                  <Link
+                    key={league}
+                    href={`/clubs?league=${encodeURIComponent(league)}`}
+                    className="block px-1 py-0.5 rounded text-[10px] hover:bg-green-500/10 text-[var(--text-secondary)] transition-colors truncate"
+                  >
+                    {league}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Contract Watch */}
+            {contractPlayers.length > 0 ? (
+              <div className="glass p-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contracts</h3>
+                  <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
+                    &rarr;
+                  </Link>
+                </div>
+                <div className="space-y-0.5">
+                  {contractPlayers.map((p) => {
+                    const days = daysUntil(p.contract_expiry_date);
+                    const urgent = days <= 60;
+                    return (
+                      <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
+                        <span className={`text-[9px] font-mono shrink-0 ${urgent ? "text-[var(--color-sentiment-negative)] font-bold" : "text-[var(--text-muted)]"}`}>
+                          {formatExpiryDate(p.contract_expiry_date)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="glass p-2.5">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1">Contracts</h3>
+                <p className="text-[10px] text-[var(--text-muted)]">No expiring contracts</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: News + Rising Stars / Market Movers / Gaffer — fills remaining space */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
+        {/* News — 3 cols, scrollable within */}
+        <div className="lg:col-span-3 glass p-2.5 flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-1.5 shrink-0">
+            <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+              Latest News
+            </h2>
+            <Link href="/news" className="text-[10px] text-[var(--color-accent-personality)] hover:underline">
+              All stories &rarr;
+            </Link>
+          </div>
+          <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1">
+>>>>>>> main
             {news.length === 0 && (
               <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
             )}
@@ -433,6 +545,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Fixtures — 2 cols */}
         <div className="lg:col-span-2 glass panel-accent-tactical p-2.5 flex flex-col min-h-0">
           <SectionHeader
@@ -459,6 +572,31 @@ export default async function DashboardPage() {
                       <span className="text-[var(--text-muted)] text-[9px]">v</span>
                       <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
                     </div>
+=======
+        {/* Right column — Rising Stars + Market Movers side-by-side, Gaffer CTA at bottom */}
+        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
+          {/* Intelligence: Rising Stars + Market Movers */}
+          {(risingStars.length > 0 || marketMovers.length > 0) && (
+            <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
+              {/* Rising Stars */}
+              {risingStars.length > 0 && (
+                <div className="glass p-2.5">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-1.5">
+                    Rising Stars
+                  </h3>
+                  <div className="space-y-0.5">
+                    {risingStars.map((p) => (
+                      <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                        <span className="text-[var(--color-accent-tactical)] text-[9px] shrink-0">{"\u25B2"}</span>
+                        {p.position && (
+                          <span className={`text-[7px] font-bold tracking-wider px-1 py-0.5 rounded ${POSITION_COLORS[p.position] ?? "bg-zinc-700/60"} text-white`}>
+                            {p.position}
+                          </span>
+                        )}
+                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{p.name}</span>
+                      </Link>
+                    ))}
+>>>>>>> main
                   </div>
                   <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatFixtureDate(f.utc_date)}</span>
                 </Link>
@@ -468,6 +606,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Row 2: Featured Player (2col) + Market Movers / Trending / Gaffer (3col) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
         {/* Featured Player — 2 cols */}
@@ -500,6 +639,29 @@ export default async function DashboardPage() {
                   );
                 })}
               </div>
+=======
+              {/* Market Movers */}
+              {marketMovers.length > 0 && (
+                <div className="glass p-2.5">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1.5">
+                    Market Movers
+                  </h3>
+                  <div className="space-y-0.5">
+                    {marketMovers.map((p) => {
+                      const isOver = p.market_premium > 0;
+                      return (
+                        <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                          <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
+                          <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
+                            {isOver ? "+" : ""}{p.market_premium}%
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+>>>>>>> main
             </div>
           )}
 

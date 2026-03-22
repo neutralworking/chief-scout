@@ -60,7 +60,7 @@ export function FourPillarDashboard({ playerId, compact = false, storedBestRole,
 
   if (loading) {
     return (
-      <div className="glass rounded-xl p-3">
+      <div className="glass p-3">
         <div className="h-16 flex items-center justify-center">
           <p className="text-[10px] text-[var(--text-muted)]">Computing assessment...</p>
         </div>
@@ -77,7 +77,7 @@ export function FourPillarDashboard({ playerId, compact = false, storedBestRole,
   }
 
   return (
-    <div className="glass rounded-xl p-3 sm:p-4">
+    <div className="glass p-3 sm:p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           Assessment

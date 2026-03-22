@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kickoff Clash — Match Phase v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   KICKOFF CLASH — MATCH PHASE v2
+   "Three Zones" — Situation / Drama / Your Move
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --felt:           #0b1a10;
+  --felt-light:     #122118;
+  --leather:        #1a1510;
+  --leather-light:  #241e16;
+  --amber:          #e8621a;
+  --amber-glow:     rgba(232, 98, 26, 0.4);
+  --amber-soft:     #c4530f;
+  --gold:           #d4a035;
+  --gold-glow:      rgba(212, 160, 53, 0.35);
+  --pitch-green:    #2d8a4e;
+  --pitch-dark:     #1a5c33;
+  --pitch-light:    #3ba55d;
+  --danger:         #c0392b;
+  --cream:          #f5f0e0;
+  --cream-soft:     #d9d0b8;
+  --dust:           #9a8b73;
+  --ink:            #5c5040;
+  --radius:         10px;
+  --radius-sm:      6px;
+  --radius-lg:      14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--felt);
+  color: var(--cream);
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Felt texture — lightweight radial gradients only, no SVG filters */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(45, 138, 78, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(232, 98, 26, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   ZONE 1 — THE SITUATION (top ~12%)
+   Score + minute. Nothing else.
+   ═══════════════════════════════════════════════ */
+
+.situation {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  padding: 14px 20px 12px;
+  background: linear-gradient(180deg, rgba(26, 21, 16, 0.95) 0%, rgba(26, 21, 16, 0.7) 70%, transparent 100%);
+}
+
+.situation-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.situation-you {
+  flex: 1;
+  text-align: right;
+  padding-right: 16px;
+}
+
+.situation-them {
+  flex: 1;
+  text-align: left;
+  padding-left: 16px;
+}
+
+.team-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dust);
+  margin-bottom: 2px;
+}
+
+.team-label.opp { color: rgba(192, 57, 43, 0.6); }
+
+.team-name {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink);
+  margin-top: 1px;
+}
+
+.score-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.score-num {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 52px;
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+}
+
+.score-num.yours { color: var(--cream); }
+.score-num.theirs { color: rgba(192, 57, 43, 0.8); }
+
+.score-dash {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+/* Minute indicator — the clock */
+.minute-display {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.minute-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(232, 98, 26, 0.12);
+  border: 1px solid rgba(232, 98, 26, 0.25);
+}
+
+.minute-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: minutePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes minutePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--amber-glow); }
+  50% { opacity: 0.5; box-shadow: 0 0 8px var(--amber-glow); }
+}
+
+.minute-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+
+/* Round progress — tiny dots, not labels */
+.round-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.rdot {
+  width: 8px;
+  height: 4px;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.rdot.done { background: var(--pitch-dark); }
+.rdot.now { background: var(--amber); box-shadow: 0 0 6px var(--amber-glow); width: 20px; }
+.rdot.todo { background: rgba(90, 80, 64, 0.2); }
+
+/* ═══════════════════════════════════════════════
+   ZONE 2 — THE DRAMA (middle ~43%)
+   What just happened. Latest event BIG.
+   ═══════════════════════════════════════════════ */
+
+.drama {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Fade mask at top */
+.drama::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, var(--felt) 0%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.drama-scroll {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0;
+  padding-bottom: 8px;
+}
+
+/* Each commentary event */
+.event {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(90, 80, 64, 0.08);
+  animation: eventSlideUp 0.5s ease-out both;
+  position: relative;
+}
+
+.event:last-child { border-bottom: none; }
+
+/* Older events fade */
+.event.old {
+  opacity: 0.35;
+}
+.event.recent {
+  opacity: 0.6;
+}
+.event.latest {
+  opacity: 1;
+}
+
+.event-minute {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 10px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.event-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cream-soft);
+}
+
+/* ── GOAL EVENT — the star of the show ── */
+.event.goal-yours {
+  padding: 14px 0;
+  opacity: 1 !important;
+}
+
+.event.goal-yours .event-minute {
+  color: var(--amber);
+  font-size: 11px;
+}
+
+.event.goal-yours .event-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--amber);
+  text-shadow: 0 0 30px var(--amber-glow);
+  letter-spacing: 0.5px;
+}
+
+.event.goal-yours::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    rgba(232, 98, 26, 0.06) 0%,
+    rgba(232, 98, 26, 0.03) 50%,
+    transparent 100%
+  );
+  z-index: -1;
+}
+
+/* Goal celebration bar */
+.goal-bar {
+  margin-top: 6px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--gold), transparent);
+  animation: goalBarGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes goalBarGrow {
+  from { width: 0; opacity: 0; }
+  to { width: 100%; opacity: 1; }
+}
+
+/* Opponent goal */
+.event.goal-opponent .event-text {
+  color: rgba(192, 57, 43, 0.7);
+  font-style: italic;
+}
+.event.goal-opponent .event-minute {
+  color: rgba(192, 57, 43, 0.5);
+}
+
+/* Action event (card played) */
+.event.action .event-text {
+  font-size: 12px;
+  color: var(--dust);
+}
+
+.event.action .card-played {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(232, 98, 26, 0.1);
+  border: 1px solid rgba(232, 98, 26, 0.2);
+  color: var(--amber);
+  vertical-align: middle;
+}
+
+@keyframes eventSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── "Intel" drawer handle ── */
+.intel-handle {
+  text-align: center;
+  padding: 10px 0 2px;
+  position: relative;
+  z-index: 5;
+}
+
+.intel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(90, 80, 64, 0.2);
+  background: rgba(26, 21, 16, 0.6);
+  color: var(--dust);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.intel-btn:hover {
+  border-color: rgba(212, 160, 53, 0.3);
+  color: var(--cream-soft);
+}
+
+.intel-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--pitch-light);
+}
+
+/* ═══════════════════════════════════════════════
+   ZONE 3 — YOUR MOVE (bottom ~45%)
+   Cards + button. That's it.
+   ═══════════════════════════════════════════════ */
+
+.your-move {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
+  background: linear-gradient(180deg, transparent 0%, rgba(11, 26, 16, 0.8) 15%, var(--felt) 30%);
+  padding: 0 0 0;
+}
+
+/* Plays remaining */
+.move-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px 6px;
+}
+
+.move-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dust);
+}
+
+.plays-left {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+  background: rgba(232, 98, 26, 0.1);
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 98, 26, 0.2);
+}
+
+/* ── Card Fan ── */
+.card-fan {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 162px;
+  padding: 0 16px 4px;
+  perspective: 800px;
+}
+
+.ac {
+  width: 100px;
+  height: 138px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: bottom center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fan positions */
+.ac:nth-child(1) { transform: rotate(-10deg) translateY(10px); margin-right: -20px; z-index: 1; }
+.ac:nth-child(2) { transform: rotate(-4deg) translateY(3px);  margin-right: -20px; z-index: 2; }
+.ac:nth-child(3) { transform: rotate(0deg) translateY(0px);   margin-right: -20px; z-index: 3; }
+.ac:nth-child(4) { transform: rotate(4deg) translateY(3px);   margin-right: -20px; z-index: 4; }
+.ac:nth-child(5) { transform: rotate(10deg) translateY(10px); z-index: 5; }
+
+/* Hover — lift */
+.ac:hover:not(.selected) {
+  transform: translateY(-16px) scale(1.06) rotate(0deg) !important;
+  z-index: 40 !important;
+}
+
+/* Selected — BIG lift, glow */
+.ac.selected {
+  transform: translateY(-34px) scale(1.1) rotate(0deg) !important;
+  z-index: 50 !important;
+}
+
+/* ── Card Skin ── */
+.ac-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.5),
+    0 1px 3px rgba(0,0,0,0.4);
+  transition: box-shadow 0.3s;
+}
+
+.ac.selected .ac-inner {
+  box-shadow:
+    0 8px 30px rgba(0,0,0,0.6),
+    0 0 24px var(--amber-glow),
+    0 0 48px rgba(232, 98, 26, 0.12);
+}
+
+/* Card type skins */
+.ac.atk .ac-inner {
+  background: linear-gradient(170deg, #2a1212 0%, #180808 50%, #100404 100%);
+  border: 1.5px solid rgba(192, 57, 43, 0.45);
+}
+.ac.def .ac-inner {
+  background: linear-gradient(170deg, #101a2a 0%, #0a1220 50%, #060e18 100%);
+  border: 1.5px solid rgba(44, 111, 187, 0.45);
+}
+.ac.mom .ac-inner {
+  background: linear-gradient(170deg, #2a2010 0%, #1a1508 50%, #100c04 100%);
+  border: 1.5px solid rgba(212, 160, 53, 0.5);
+}
+.ac.mind .ac-inner {
+  background: linear-gradient(170deg, #0c2016 0%, #081810 50%, #04100a 100%);
+  border: 1.5px solid rgba(45, 138, 78, 0.45);
+}
+.ac.sub .ac-inner {
+  background: linear-gradient(170deg, #10251a 0%, #081a12 50%, #04120c 100%);
+  border: 1.5px solid rgba(59, 165, 93, 0.5);
+}
+
+.ac.selected .ac-inner {
+  border-color: var(--amber) !important;
+}
+
+/* Type badge */
+.ac-type {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 7px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+.ac.atk .ac-type { background: var(--danger); color: #fff; }
+.ac.def .ac-type { background: #2c6fbb; color: #fff; }
+.ac.mom .ac-type { background: var(--gold); color: #000; }
+.ac.mind .ac-type { background: var(--pitch-green); color: #fff; }
+.ac.sub .ac-type { background: var(--pitch-light); color: #000; }
+
+/* Fan impact */
+.ac-fans {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.ac-fans.pos { color: var(--pitch-light); }
+.ac-fans.neg { color: rgba(192,57,43,0.7); }
+
+/* Card body */
+.ac-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 8px 6px;
+  text-align: center;
+}
+
+.ac-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 11px;
+  color: var(--cream);
+  line-height: 1.2;
+  margin-bottom: 5px;
+}
+
+.ac-flavour {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 9px;
+  color: var(--dust);
+  line-height: 1.4;
+}
+
+/* Effect strip at bottom */
+.ac-effect {
+  padding: 5px 6px;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--cream-soft);
+  background: rgba(0,0,0,0.35);
+  border-top: 1px solid rgba(255,255,255,0.04);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── Advance Button ── */
+.advance-wrap {
+  padding: 8px 16px 0;
+}
+
+.advance-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-soft) 100%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow:
+    0 4px 16px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+.advance-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px var(--amber-glow), inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.advance-btn.pulsing {
+  animation: btnPulse 2s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 16px var(--amber-glow), 0 2px 4px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 4px 28px var(--amber-glow), 0 0 40px rgba(232, 98, 26, 0.12); }
+}
+
+/* Shine */
+.advance-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  animation: shine 4s ease-in-out infinite;
+}
+@keyframes shine {
+  0%, 100% { left: -100%; }
+  50% { left: 120%; }
+}
+
+/* ── Discard hint ── */
+.discard-row {
+  text-align: center;
+  padding: 6px 0;
+}
+
+.discard-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink);
+  background: rgba(90, 80, 64, 0.08);
+  border: 1px solid rgba(90, 80, 64, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.discard-pill:hover {
+  border-color: rgba(192, 57, 43, 0.2);
+  color: rgba(192, 57, 43, 0.6);
+}
+
+/* Safe area */
+.safe-pad {
+  height: 12px;
+  flex-shrink: 0;
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-pad { height: calc(12px + env(safe-area-inset-bottom)); }
+}
+
+/* ═══════════════════════════════════════════════
+   INTEL DRAWER (hidden by default, shown on tap)
+   ═══════════════════════════════════════════════ */
+
+.intel-drawer {
+  display: none; /* toggle with JS */
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  max-height: 70vh;
+  background: rgb(20, 16, 12);
+  border-top: 1px solid rgba(212, 160, 53, 0.15);
+  border-radius: 20px 20px 0 0;
+  z-index: 100;
+  overflow-y: auto;
+  padding: 16px 20px 30px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+  animation: drawerUp 0.3s ease-out;
+}
+
+@keyframes drawerUp {
+  from { transform: translateX(-50%) translateY(100%); }
+  to { transform: translateX(-50%) translateY(0); }
+}
+
+.intel-drawer .drawer-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  margin: 0 auto 16px;
+}
+
+.intel-section {
+  margin-bottom: 16px;
+}
+
+.intel-section-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+/* XI pills in drawer */
+.drawer-xi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.drawer-xi-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  background: var(--leather);
+  border: 1px solid rgba(90, 80, 64, 0.12);
+  border-radius: 16px;
+  font-size: 10px;
+}
+
+.drawer-xi-pos {
+  font-size: 7px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--pitch-dark);
+  color: var(--pitch-light);
+  text-transform: uppercase;
+}
+
+.drawer-xi-name {
+  font-weight: 700;
+  color: var(--cream-soft);
+}
+
+.drawer-xi-pwr {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+/* Synergy in drawer */
+.drawer-synergies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.drawer-syn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(45, 138, 78, 0.1);
+  border: 1px solid rgba(45, 138, 78, 0.2);
+  color: var(--pitch-light);
+}
+
+.drawer-syn-bonus {
+  font-family: 'Archivo Black', sans-serif;
+}
+
+/* Opponent in drawer */
+.drawer-opp {
+  padding: 10px 12px;
+  background: rgba(192, 57, 43, 0.06);
+  border: 1px solid rgba(192, 57, 43, 0.12);
+  border-radius: var(--radius);
+}
+
+.drawer-opp-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 12px;
+  color: rgba(192, 57, 43, 0.7);
+  margin-bottom: 4px;
+}
+
+.drawer-opp-detail {
+  font-size: 10px;
+  color: var(--dust);
+  line-height: 1.6;
+}
+
+.drawer-weakness {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(45, 138, 78, 0.1);
+  border: 1px solid rgba(45, 138, 78, 0.2);
+  color: var(--pitch-light);
+  margin-top: 4px;
+}
+
+/* Strength preview in drawer */
+.drawer-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--leather);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(90, 80, 64, 0.12);
+}
+
+.str-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dust);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.str-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(90, 80, 64, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.str-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--pitch-dark), var(--pitch-light));
+  transition: width 0.5s;
+}
+
+.str-val {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  color: var(--pitch-light);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ZONE 1 — THE SITUATION
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="situation">
+  <div class="situation-row">
+    <div class="situation-you">
+      <div class="team-label">You</div>
+    </div>
+    <div class="score-block">
+      <span class="score-num yours">2</span>
+      <span class="score-dash">&ndash;</span>
+      <span class="score-num theirs">1</span>
+    </div>
+    <div class="situation-them">
+      <div class="team-label opp">Opp</div>
+      <div class="team-name">Dynamo Midtable</div>
+    </div>
+  </div>
+
+  <div class="minute-display">
+    <span class="minute-badge">
+      <span class="minute-dot"></span>
+      <span class="minute-text">45&prime;</span>
+    </span>
+  </div>
+
+  <div class="round-dots">
+    <div class="rdot done"></div>
+    <div class="rdot done"></div>
+    <div class="rdot now"></div>
+    <div class="rdot todo"></div>
+    <div class="rdot todo"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ZONE 2 — THE DRAMA
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="drama">
+  <div class="drama-scroll">
+
+    <div class="event old">
+      <div class="event-minute">2&prime;</div>
+      <div class="event-text">Butcher wins the opening challenge. Sets the tone.</div>
+    </div>
+
+    <div class="event old">
+      <div class="event-minute">11&prime;</div>
+      <div class="event-text">Hurst sprays it wide to Kowalski&hellip; good move, nothing doing.</div>
+    </div>
+
+    <div class="event old action">
+      <div class="event-minute">18&prime;</div>
+      <div class="event-text">You played <span class="card-played">Through Ball</span> &mdash; N&rsquo;Dongo is through! ALMOST!</div>
+    </div>
+
+    <div class="event recent goal-yours">
+      <div class="event-minute">24&prime;</div>
+      <div class="event-text">GOAL!</div>
+      <div class="event-text" style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 14px; color: var(--cream-soft); margin-top: 2px;">
+        Screamer from thirty yards. The table erupts.
+      </div>
+      <div class="goal-bar"></div>
+    </div>
+
+    <div class="event recent action">
+      <div class="event-minute">31&prime;</div>
+      <div class="event-text">You played <span class="card-played">Wind Up</span> &mdash; their #8 loses his head. Yellow card.</div>
+    </div>
+
+    <div class="event recent goal-opponent">
+      <div class="event-minute">38&prime;</div>
+      <div class="event-text">They equalise. Scrappy set piece. 1-1.</div>
+    </div>
+
+    <div class="event latest goal-yours">
+      <div class="event-minute">44&prime;</div>
+      <div class="event-text">GOAL!</div>
+      <div class="event-text" style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 14px; color: var(--cream-soft); margin-top: 2px;">
+        Counter attack. Kowalski finishes. 2-1!
+      </div>
+      <div class="goal-bar"></div>
+    </div>
+
+  </div>
+
+  <!-- Intel drawer handle -->
+  <div class="intel-handle">
+    <button class="intel-btn" onclick="document.querySelector('.intel-drawer').style.display='block'">
+      <span class="intel-dot"></span>
+      XI &middot; Synergies &middot; Opponent
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ZONE 3 — YOUR MOVE
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="your-move">
+
+  <div class="move-header">
+    <span class="move-label">Your Hand</span>
+    <span class="plays-left">1 play left</span>
+  </div>
+
+  <div class="card-fan">
+
+    <!-- ATK -->
+    <div class="ac atk">
+      <div class="ac-inner">
+        <span class="ac-type">ATK</span>
+        <span class="ac-fans pos">+10</span>
+        <div class="ac-body">
+          <div class="ac-name">Press High</div>
+          <div class="ac-flavour">PRESS! PRESS! PRESS!</div>
+        </div>
+        <div class="ac-effect">+15% goal &middot; +10% opp</div>
+      </div>
+    </div>
+
+    <!-- DEF -->
+    <div class="ac def">
+      <div class="ac-inner">
+        <span class="ac-type">DEF</span>
+        <span class="ac-fans neg">&minus;10</span>
+        <div class="ac-body">
+          <div class="ac-name">Park The Bus</div>
+          <div class="ac-flavour">Two banks of four.</div>
+        </div>
+        <div class="ac-effect">&minus;20% opp &middot; &minus;10% you</div>
+      </div>
+    </div>
+
+    <!-- MOM — selected -->
+    <div class="ac mom selected">
+      <div class="ac-inner">
+        <span class="ac-type">MOM</span>
+        <span class="ac-fans pos">+20</span>
+        <div class="ac-body">
+          <div class="ac-name">Screamer</div>
+          <div class="ac-flavour">From THIRTY YARDS!</div>
+        </div>
+        <div class="ac-effect">+25% goal chance</div>
+      </div>
+    </div>
+
+    <!-- MIND -->
+    <div class="ac mind">
+      <div class="ac-inner">
+        <span class="ac-type">MIND</span>
+        <span class="ac-fans pos">+10</span>
+        <div class="ac-body">
+          <div class="ac-name">Wind Up</div>
+          <div class="ac-flavour">Did you just say that?</div>
+        </div>
+        <div class="ac-effect">&minus;10% opp &middot; 15% backfire</div>
+      </div>
+    </div>
+
+    <!-- SUB -->
+    <div class="ac sub">
+      <div class="ac-inner">
+        <span class="ac-type">SUB</span>
+        <div class="ac-body">
+          <div class="ac-name">Martinez</div>
+          <div class="ac-flavour">CM &middot; 78 &middot; Engine</div>
+        </div>
+        <div class="ac-effect">Replace weakest XI</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="discard-row">
+    <span class="discard-pill">&#x1F5D1; Long-press to discard</span>
+  </div>
+
+  <div class="advance-wrap">
+    <button class="advance-btn pulsing">&#x25B6;&ensp;45&prime; &rarr; 60&prime;</button>
+  </div>
+
+  <div class="safe-pad"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     INTEL DRAWER — swipe-up panel with all the detail
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="intel-drawer" onclick="if(event.target===this)this.style.display='none'">
+  <div class="drawer-handle"></div>
+
+  <!-- Your XI -->
+  <div class="intel-section">
+    <div class="intel-section-title">Your Starting XI</div>
+    <div class="drawer-xi">
+      <div class="drawer-xi-pill">
+        <span class="drawer-xi-pos">CD</span>
+        <span class="drawer-xi-name">Butcher</span>
+        <span class="drawer-xi-pwr">79</span>
+      </div>
+      <div class="drawer-xi-pill">
+        <span class="drawer-xi-pos">WD</span>
+        <span class="drawer-xi-name">Hopkinson</span>
+        <span class="drawer-xi-pwr">76</span>
+      </div>
+      <div class="drawer-xi-pill">
+        <span class="drawer-xi-pos">CM</span>
+        <span class="drawer-xi-name">Hurst</span>
+        <span class="drawer-xi-pwr">81</span>
+      </div>
+      <div class="drawer-xi-pill">
+        <span class="drawer-xi-pos">WF</span>
+        <span class="drawer-xi-name">Kowalski</span>
+        <span class="drawer-xi-pwr">84</span>
+      </div>
+      <div class="drawer-xi-pill">
+        <span class="drawer-xi-pos">CF</span>
+        <span class="drawer-xi-name">N&rsquo;Dongo</span>
+        <span class="drawer-xi-pwr">87</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Synergies -->
+  <div class="intel-section">
+    <div class="intel-section-title">Active Synergies</div>
+    <div class="drawer-synergies">
+      <div class="drawer-syn">&#x2713; Creative Spark <span class="drawer-syn-bonus">+42</span></div>
+      <div class="drawer-syn">&#x2713; The Pirlo-Barella <span class="drawer-syn-bonus">+38</span></div>
+    </div>
+  </div>
+
+  <!-- Strength -->
+  <div class="intel-section">
+    <div class="intel-section-title">Strength</div>
+    <div class="drawer-strength">
+      <span class="str-label">You</span>
+      <div class="str-track">
+        <div class="str-fill" style="width: 72%"></div>
+      </div>
+      <span class="str-val">247</span>
+    </div>
+  </div>
+
+  <!-- Opponent -->
+  <div class="intel-section">
+    <div class="intel-section-title">Opponent</div>
+    <div class="drawer-opp">
+      <div class="drawer-opp-name">Dynamo Midtable</div>
+      <div class="drawer-opp-detail">
+        4-4-2 &middot; Balanced &middot; Strength 55<br>
+        1 action per round
+      </div>
+      <div class="drawer-weakness">&#x26A1; Weak to Creator</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -21,6 +21,10 @@ import {
 import { findConnections } from './chemistry';
 import { transformAllCharacters, type KCCharacter } from './transform';
 import kcCharactersData from '../../public/data/kc_characters.json';
+import type { HandState } from './hand';
+import { rollXI } from './hand';
+import type { JokerCard } from './jokers';
+import { getExtraDiscards } from './jokers';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -32,8 +36,8 @@ export interface RunState {
   deck: Card[];
   lineup: SlottedCard[];
   bench: Card[];
-  actionDeck: ActionCard[];
-  hand: ActionCard[];
+  jokers: JokerCard[];           // active jokers (max 3)
+  handState: HandState | null;   // current match hand (from hand.ts)
   cash: number;
   stadiumTier: number;
   ticketPriceBonus: number;
@@ -41,8 +45,7 @@ export interface RunState {
   round: number;       // match number (1-5)
   wins: number;
   losses: number;
-  status: 'setup' | 'prematch' | 'playing' | 'postmatch' | 'shop' | 'won' | 'lost';
-  matchState: MatchState | null;
+  status: 'setup' | 'hand' | 'scoring' | 'postmatch' | 'shop' | 'won' | 'lost';
   matchHistory: MatchResult[];
   modifiers: unknown[];
   seed: number;
@@ -701,7 +704,6 @@ export function generateStarterActionDeck(seed: number): ActionCard[] {
 export function createRun(formation: string, style: string, seed?: number): RunState {
   const runSeed = seed ?? Math.floor(Math.random() * 1000000);
   const deck = generateStarterDeck(runSeed);
-  const actionDeck = generateStarterActionDeck(runSeed + 500);
 
   return {
     formation,
@@ -709,8 +711,8 @@ export function createRun(formation: string, style: string, seed?: number): RunS
     deck,
     lineup: [],
     bench: [...deck],
-    actionDeck,
-    hand: [],
+    jokers: [],
+    handState: null,
     cash: 10000,
     stadiumTier: 1,
     ticketPriceBonus: 0,
@@ -718,8 +720,7 @@ export function createRun(formation: string, style: string, seed?: number): RunS
     round: 1,
     wins: 0,
     losses: 0,
-    status: 'prematch',
-    matchState: null,
+    status: 'hand',
     matchHistory: [],
     modifiers: [],
     seed: runSeed,
@@ -727,36 +728,30 @@ export function createRun(formation: string, style: string, seed?: number): RunS
 }
 
 /**
- * Start a match: shuffle deck, select XI, create match state
+ * Start a match: roll XI from deck using hand-based system
  */
 export function startMatch(state: RunState): RunState {
   const matchSeed = state.seed + state.round * 1000;
-  const opponent = getOpponent(state.round);
 
-  // Shuffle and select XI
-  const { xi, bench } = shuffleAndSelectXI(state.deck, state.formation, matchSeed);
+  // Roll XI using hand-based system
+  const handState = rollXI(state.deck, state.formation, matchSeed);
 
-  // Shuffle action deck for this match
-  const shuffledActions = seededShuffle([...state.actionDeck], matchSeed + 77);
-
-  // Create match state
-  const matchState = createMatchState(
-    xi, bench, shuffledActions,
-    opponent.baseStrength, matchSeed,
-  );
+  // Apply joker bonus discards
+  const extraDiscards = getExtraDiscards(state.jokers);
+  const adjustedHandState: HandState = {
+    ...handState,
+    discardsRemaining: handState.discardsRemaining + extraDiscards,
+  };
 
   return {
     ...state,
-    lineup: xi,
-    bench,
-    matchState,
-    status: 'playing',
+    handState: adjustedHandState,
+    status: 'hand',
   };
 }
 
-/**
- * Play a round within the current match.
- */
+// @deprecated — replaced by hand evaluation system (evaluateHand + resolveMatch from hand.ts)
+/*
 export function playRound(
   state: RunState,
   playedCards: ActionCard[],
@@ -807,10 +802,10 @@ export function playRound(
     result,
   };
 }
+*/
 
-/**
- * Finalize match: compute revenue, run durability checks, update run state
- */
+// @deprecated — replaced by resolveMatch from hand.ts
+/*
 export function finalizeMatch(state: RunState, matchState: MatchState): {
   state: RunState;
   matchResult: MatchResult;
@@ -886,9 +881,10 @@ export function finalizeMatch(state: RunState, matchState: MatchState): {
     durabilityResult,
   };
 }
+*/
 
 /**
- * Advance to next match round
+ * Advance to next match round — reset handState for next match
  */
 export function advanceToNextMatch(state: RunState): RunState {
   return {
@@ -896,7 +892,8 @@ export function advanceToNextMatch(state: RunState): RunState {
     round: state.round + 1,
     lineup: [],
     bench: [...state.deck],
-    status: 'prematch',
+    handState: null,
+    status: 'hand',
   };
 }
 
@@ -1003,15 +1000,10 @@ export function removeCard(state: RunState, slot: string): RunState {
 }
 
 // ---------------------------------------------------------------------------
-// Substitution Cards (Fix 1: Subs in Hand)
+// Substitution Cards — @deprecated (no longer needed in hand-based system)
 // ---------------------------------------------------------------------------
 
-/**
- * Create substitution action cards from bench players.
- * Each bench player becomes a SUB card that can be played during the match.
- * When played, the bench player swaps into the XI for the weakest-fit player
- * in the same position group.
- */
+/*
 export function createSubCards(bench: Card[]): ActionCard[] {
   return bench
     .filter(c => !c.injured)
@@ -1023,15 +1015,10 @@ export function createSubCards(bench: Card[]): ActionCard[] {
       duration: 'round' as const,
       flavour: `Bring on ${c.name} (${c.position} ${c.power})`,
       fanImpact: 5,
-      // Store the bench card data for the swap
       _benchCard: c,
     }));
 }
 
-/**
- * Execute a substitution: swap bench player into XI for weakest-fit in position group.
- * Returns new XI and bench arrays.
- */
 export function executeSubstitution(
   xi: SlottedCard[],
   bench: Card[],
@@ -1039,14 +1026,12 @@ export function executeSubstitution(
 ): { xi: SlottedCard[]; bench: Card[] } {
   const eligiblePositions = SLOT_ELIGIBLE_POSITIONS[subCard.position] ?? [subCard.position];
 
-  // Find XI cards whose slot matches the sub's eligible positions
   const candidates = xi.filter(sc => {
     const slotPos = sc.slot.indexOf('_') === -1 ? sc.slot : sc.slot.substring(0, sc.slot.indexOf('_'));
     return eligiblePositions.includes(slotPos) || subCard.position === slotPos;
   });
 
   if (candidates.length === 0) {
-    // No position match — swap with lowest power XI card
     const sorted = [...xi].sort((a, b) => a.card.power - b.card.power);
     const weakest = sorted[0];
     const newXI = xi.map(sc =>
@@ -1057,7 +1042,6 @@ export function executeSubstitution(
     return { xi: newXI, bench: newBench };
   }
 
-  // Find weakest candidate
   const weakest = candidates.reduce((min, sc) =>
     sc.card.power < min.card.power ? sc : min
   );
@@ -1070,10 +1054,12 @@ export function executeSubstitution(
 
   return { xi: newXI, bench: newBench };
 }
+*/
 
 // Re-export commonly used types and constants
 export { PLAYING_STYLES, SHOP_ITEMS };
 export type { Card, SlottedCard, PlayingStyle, ShopItem, ActionCard, MatchState, RoundResult, Durability };
+export type { HandState, JokerCard };
 
 // ---------------------------------------------------------------------------
 // Backward Compatibility (v1 API shims)

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kickoff Clash — Title + Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --felt:           #0b1a10;
+  --felt-light:     #122118;
+  --felt-glow:      #1a3324;
+  --leather:        #1a1510;
+  --leather-light:  #241e16;
+  --leather-warm:   #2e2418;
+  --amber:          #e8621a;
+  --amber-glow:     rgba(232, 98, 26, 0.4);
+  --amber-soft:     #c4530f;
+  --gold:           #d4a035;
+  --gold-glow:      rgba(212, 160, 53, 0.35);
+  --pitch-green:    #2d8a4e;
+  --pitch-dark:     #1a5c33;
+  --pitch-light:    #3ba55d;
+  --danger:         #c0392b;
+  --cream:          #f5f0e0;
+  --cream-soft:     #d9d0b8;
+  --dust:           #9a8b73;
+  --ink:            #5c5040;
+  --radius:         10px;
+  --radius-sm:      6px;
+  --radius-lg:      14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--felt);
+  color: var(--cream);
+  min-height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Felt + vignette */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(45, 138, 78, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(232, 98, 26, 0.03) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════
+   TITLE SCREEN
+   ═══════════════════════════════════════════════ */
+
+.title-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  gap: 40px;
+}
+
+/* Decorative card scatter behind title */
+.card-scatter {
+  position: absolute;
+  width: 80px;
+  height: 110px;
+  border-radius: 8px;
+  opacity: 0.08;
+  border: 2px solid var(--gold);
+  z-index: -1;
+}
+.card-scatter:nth-child(1) { top: 12%; left: 8%; transform: rotate(-15deg); }
+.card-scatter:nth-child(2) { top: 18%; right: 5%; transform: rotate(12deg); }
+.card-scatter:nth-child(3) { bottom: 20%; left: 12%; transform: rotate(8deg); }
+.card-scatter:nth-child(4) { bottom: 15%; right: 10%; transform: rotate(-10deg); }
+
+.title-logo {
+  animation: titleFloat 6s ease-in-out infinite;
+}
+
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.title-main {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 42px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+}
+
+.title-kickoff {
+  display: block;
+  color: var(--amber);
+  text-shadow: 0 0 30px var(--amber-glow), 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.title-clash {
+  display: block;
+  color: var(--cream);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin-top: -4px;
+}
+
+.title-tagline {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--dust);
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+}
+
+.title-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 18px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-soft) 100%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow:
+    0 4px 16px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-primary:active { transform: translateY(1px); }
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: sweepShine 4s ease-in-out infinite;
+}
+
+@keyframes sweepShine {
+  0%, 100% { left: -100%; }
+  50% { left: 120%; }
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 14px 24px;
+  border: 1.5px solid rgba(212, 160, 53, 0.25);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  background: rgba(26, 21, 16, 0.6);
+  color: var(--dust);
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(212, 160, 53, 0.4);
+  color: var(--cream-soft);
+  background: rgba(26, 21, 16, 0.8);
+}
+
+/* ── Run History ── */
+.run-history {
+  width: 100%;
+  max-width: 280px;
+}
+
+.history-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.history-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(26, 21, 16, 0.5);
+  border: 1px solid rgba(90, 80, 64, 0.1);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+
+.history-result {
+  display: flex;
+  gap: 4px;
+}
+
+.history-pip {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+}
+.history-pip.w { background: rgba(45, 138, 78, 0.25); color: var(--pitch-light); }
+.history-pip.l { background: rgba(192, 57, 43, 0.25); color: var(--danger); }
+.history-pip.d { background: rgba(212, 160, 53, 0.2); color: var(--gold); }
+
+.history-stats {
+  font-size: 11px;
+  color: var(--dust);
+}
+.history-stats strong {
+  color: var(--gold);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 12px;
+}
+
+/* ═══════════════════════════════════════════════
+   SETUP PHASE (below fold / second "page")
+   ═══════════════════════════════════════════════ */
+
+.setup-screen {
+  min-height: 100dvh;
+  padding: 32px 20px 40px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.setup-header {
+  text-align: center;
+}
+
+.setup-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.setup-subtitle {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--dust);
+  margin-top: 4px;
+}
+
+/* ── Formation Picker ── */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.formation-grid {
+  display: flex;
+  gap: 10px;
+}
+
+.formation-card {
+  flex: 1;
+  padding: 16px 12px;
+  background: var(--leather);
+  border: 2px solid rgba(90, 80, 64, 0.15);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.formation-card:hover {
+  border-color: rgba(212, 160, 53, 0.3);
+  transform: translateY(-2px);
+}
+
+.formation-card.selected {
+  border-color: var(--amber);
+  background: linear-gradient(180deg, rgba(232, 98, 26, 0.1) 0%, var(--leather) 100%);
+  box-shadow: 0 0 20px rgba(232, 98, 26, 0.15);
+}
+
+.formation-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 20px;
+  color: var(--cream);
+  margin-bottom: 6px;
+}
+
+.formation-card.selected .formation-name { color: var(--amber); }
+
+.formation-desc {
+  font-size: 10px;
+  color: var(--dust);
+  line-height: 1.4;
+}
+
+/* Pitch diagram dots */
+.formation-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-height: 50px;
+}
+
+.dot-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pitch-dark);
+  border: 1px solid var(--pitch-light);
+}
+
+.formation-card.selected .dot {
+  background: var(--amber-soft);
+  border-color: var(--amber);
+  box-shadow: 0 0 6px var(--amber-glow);
+}
+
+/* ── Style Picker ── */
+.style-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.style-card {
+  padding: 14px 16px;
+  background: var(--leather);
+  border: 1.5px solid rgba(90, 80, 64, 0.12);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.style-card:hover {
+  border-color: rgba(212, 160, 53, 0.25);
+}
+
+.style-card.selected {
+  border-color: var(--amber);
+  background: linear-gradient(90deg, rgba(232, 98, 26, 0.08) 0%, var(--leather) 100%);
+}
+
+.style-info {
+  flex: 1;
+}
+
+.style-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 14px;
+  color: var(--cream);
+}
+
+.style-card.selected .style-name { color: var(--amber); }
+
+.style-bonus {
+  font-size: 10px;
+  color: var(--dust);
+  margin-top: 2px;
+}
+
+.style-archetypes {
+  display: flex;
+  gap: 4px;
+}
+
+.archetype-pill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: rgba(45, 138, 78, 0.1);
+  border: 1px solid rgba(45, 138, 78, 0.2);
+  color: var(--pitch-light);
+}
+
+.style-card.selected .archetype-pill {
+  background: rgba(232, 98, 26, 0.1);
+  border-color: rgba(232, 98, 26, 0.25);
+  color: var(--amber);
+}
+
+/* ── Kick Off Button ── */
+.kickoff-btn-wrapper {
+  padding: 0 20px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-kickoff {
+  width: 100%;
+  padding: 20px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-soft) 100%);
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow:
+    0 6px 24px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-kickoff:hover { transform: translateY(-2px); }
+.btn-kickoff:active { transform: translateY(1px); }
+
+.btn-kickoff::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: sweepShine 3.5s ease-in-out infinite;
+}
+
+.btn-kickoff.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     TITLE SCREEN
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="title-screen">
+
+  <!-- Decorative scattered cards -->
+  <div class="card-scatter"></div>
+  <div class="card-scatter"></div>
+  <div class="card-scatter"></div>
+  <div class="card-scatter"></div>
+
+  <div class="title-logo">
+    <div class="title-main">
+      <span class="title-kickoff">Kickoff</span>
+      <span class="title-clash">Clash</span>
+    </div>
+    <div class="title-tagline">Build your squad. Play your cards. Win the season.</div>
+  </div>
+
+  <div class="title-actions">
+    <button class="btn-primary">New Season</button>
+    <button class="btn-secondary">Continue Run</button>
+  </div>
+
+  <div class="run-history">
+    <div class="history-label">Last Season</div>
+    <div class="history-entry">
+      <div class="history-result">
+        <div class="history-pip w">W</div>
+        <div class="history-pip w">W</div>
+        <div class="history-pip l">L</div>
+        <div class="history-pip w">W</div>
+        <div class="history-pip d">D</div>
+      </div>
+      <div class="history-stats">
+        <strong>&pound;142k</strong> revenue
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SETUP SCREEN (scroll down to see)
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="setup-screen">
+
+  <div class="setup-header">
+    <div class="setup-title">New Season</div>
+    <div class="setup-subtitle">Choose your formation and playing style</div>
+  </div>
+
+  <!-- Formation -->
+  <div>
+    <div class="section-label">Formation</div>
+    <div class="formation-grid">
+
+      <div class="formation-card selected">
+        <div class="formation-dots">
+          <div class="dot-row"><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div><div class="dot"></div></div>
+        </div>
+        <div class="formation-name">4-3-3</div>
+        <div class="formation-desc">Wide &amp; attacking</div>
+      </div>
+
+      <div class="formation-card">
+        <div class="formation-dots">
+          <div class="dot-row"><div class="dot"></div><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div></div>
+        </div>
+        <div class="formation-name">4-4-2</div>
+        <div class="formation-desc">Classic &amp; balanced</div>
+      </div>
+
+      <div class="formation-card">
+        <div class="formation-dots">
+          <div class="dot-row"><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+          <div class="dot-row"><div class="dot"></div></div>
+        </div>
+        <div class="formation-name">3-5-2</div>
+        <div class="formation-desc">Midfield control</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Playing Style -->
+  <div>
+    <div class="section-label">Playing Style</div>
+    <div class="style-grid">
+
+      <div class="style-card selected">
+        <div class="style-info">
+          <div class="style-name">Tiki-Taka</div>
+          <div class="style-bonus">+15% per matching card</div>
+        </div>
+        <div class="style-archetypes">
+          <span class="archetype-pill">Passer</span>
+          <span class="archetype-pill">Controller</span>
+          <span class="archetype-pill">Creator</span>
+        </div>
+      </div>
+
+      <div class="style-card">
+        <div class="style-info">
+          <div class="style-name">Gegenpressing</div>
+          <div class="style-bonus">+15% per matching card</div>
+        </div>
+        <div class="style-archetypes">
+          <span class="archetype-pill">Engine</span>
+          <span class="archetype-pill">Destroyer</span>
+          <span class="archetype-pill">Sprinter</span>
+        </div>
+      </div>
+
+      <div class="style-card">
+        <div class="style-info">
+          <div class="style-name">Counter-Attack</div>
+          <div class="style-bonus">+15% per matching card</div>
+        </div>
+        <div class="style-archetypes">
+          <span class="archetype-pill">Cover</span>
+          <span class="archetype-pill">Sprinter</span>
+          <span class="archetype-pill">Striker</span>
+        </div>
+      </div>
+
+      <div class="style-card">
+        <div class="style-info">
+          <div class="style-name">Direct Play</div>
+          <div class="style-bonus">+15% per matching card</div>
+        </div>
+        <div class="style-archetypes">
+          <span class="archetype-pill">Target</span>
+          <span class="archetype-pill">Powerhouse</span>
+          <span class="archetype-pill">Passer</span>
+        </div>
+      </div>
+
+      <div class="style-card">
+        <div class="style-info">
+          <div class="style-name">Total Football</div>
+          <div class="style-bonus">+5% flat per card</div>
+        </div>
+        <div class="style-archetypes">
+          <span class="archetype-pill">All</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="kickoff-btn-wrapper">
+  <button class="btn-kickoff">Let&rsquo;s Go</button>
+</div>
+
+</body>
+</html>

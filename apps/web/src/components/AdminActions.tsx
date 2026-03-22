@@ -256,7 +256,7 @@ export function AdminActions() {
   return (
     <div className="space-y-4">
       {/* Admin Login */}
-      <div className="glass rounded-xl p-4">
+      <div className="glass p-4">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">
           Admin Access
         </h2>
@@ -287,7 +287,7 @@ export function AdminActions() {
 
       {/* ── Data Quality Alerts (always visible when logged in) ──────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4">
+        <div className="glass p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               Data Quality
@@ -315,7 +315,7 @@ export function AdminActions() {
 
       {/* ── Pipeline Health ──────────────────────────────────────────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4">
+        <div className="glass p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               Pipeline Health
@@ -357,7 +357,7 @@ export function AdminActions() {
 
       {/* ── Recent Changes ───────────────────────────────────────────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4">
+        <div className="glass p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               Recent Changes
@@ -393,7 +393,7 @@ export function AdminActions() {
 
       {/* ── Pipeline Actions (admin only) ────────────────────────────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4 ring-1 ring-[var(--color-accent-physical)]/20">
+        <div className="glass p-4 ring-1 ring-[var(--color-accent-physical)]/20">
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-3">
             Pipeline Actions
           </h2>
@@ -522,7 +522,7 @@ export function AdminActions() {
 
       {/* ── Club Analysis (admin only) ────────────────────────────────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4 ring-1 ring-[var(--color-accent-mental)]/20">
+        <div className="glass p-4 ring-1 ring-[var(--color-accent-mental)]/20">
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-mental)] mb-3">
             Club Analysis
           </h2>
@@ -617,7 +617,7 @@ export function AdminActions() {
 
       {/* ── SQL Console (admin only) ─────────────────────────────────────── */}
       {adminLoggedIn && (
-        <div className="glass rounded-xl p-4 ring-1 ring-[var(--color-sentiment-negative)]/20">
+        <div className="glass p-4 ring-1 ring-[var(--color-sentiment-negative)]/20">
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-sentiment-negative)] mb-3">
             SQL Console
           </h2>

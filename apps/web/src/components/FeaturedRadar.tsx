@@ -78,7 +78,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
 
   if (loading) {
     return (
-      <div className="glass rounded-xl p-5">
+      <div className="glass p-5">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Advanced Metrics</span>
         </div>
@@ -91,7 +91,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
 
   if (!data?.hasData) {
     return (
-      <div className="glass rounded-xl p-5">
+      <div className="glass p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Advanced Metrics</span>
         </div>
@@ -143,7 +143,7 @@ export function FeaturedRadar({ personId, name, position, club }: Props) {
   });
 
   return (
-    <div className="glass rounded-xl p-4">
+    <div className="glass p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div>

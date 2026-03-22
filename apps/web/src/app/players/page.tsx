@@ -321,9 +321,15 @@ function PlayersContent() {
         </div>
 
         {/* Compact controls */}
+<<<<<<< HEAD
         <div className="glass rounded p-1.5 mb-2 overflow-hidden">
           {/* Position pills + age + dropdowns */}
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+=======
+        <div className="glass p-1.5 mb-2 overflow-hidden">
+          {/* Row 1: Position pills + dropdowns */}
+          <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
+>>>>>>> main
             <div className="flex gap-0.5 shrink-0">
               <button onClick={() => updateParam("position", "")}
                 className={`text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
@@ -384,7 +390,11 @@ function PlayersContent() {
       {/* Content */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && players.length > 0 && (
+<<<<<<< HEAD
           <div className="glass panel-accent-cyan overflow-hidden flex-1 min-h-0 flex flex-col">
+=======
+          <div className="glass overflow-hidden flex-1 min-h-0 flex flex-col">
+>>>>>>> main
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
               <table className="w-full">

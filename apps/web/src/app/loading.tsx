@@ -3,12 +3,12 @@ export default function Loading() {
     <div className="space-y-4 animate-fadeIn">
       {/* Hero skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3 glass rounded-xl p-6 h-64">
+        <div className="lg:col-span-3 glass p-6 h-64">
           <div className="h-3 w-24 bg-[var(--bg-elevated)] rounded mb-4 animate-pulse" />
           <div className="h-6 w-48 bg-[var(--bg-elevated)] rounded mb-2 animate-pulse" />
           <div className="h-4 w-36 bg-[var(--bg-elevated)] rounded animate-pulse" />
         </div>
-        <div className="lg:col-span-2 glass rounded-xl p-6 h-64">
+        <div className="lg:col-span-2 glass p-6 h-64">
           <div className="h-3 w-16 bg-[var(--bg-elevated)] rounded mb-4 animate-pulse" />
           <div className="h-5 w-40 bg-[var(--bg-elevated)] rounded mb-2 animate-pulse" />
           <div className="h-4 w-56 bg-[var(--bg-elevated)] rounded animate-pulse" />
@@ -17,7 +17,7 @@ export default function Loading() {
 
       {/* Content skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3 glass rounded-xl p-5 space-y-3">
+        <div className="lg:col-span-3 glass p-5 space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-3">
               <div className="h-3 w-8 bg-[var(--bg-elevated)] rounded animate-pulse" />
@@ -29,8 +29,8 @@ export default function Loading() {
           ))}
         </div>
         <div className="lg:col-span-2 space-y-3">
-          <div className="glass rounded-xl p-4 h-32 animate-pulse" />
-          <div className="glass rounded-xl p-4 h-32 animate-pulse" />
+          <div className="glass p-4 h-32 animate-pulse" />
+          <div className="glass p-4 h-32 animate-pulse" />
         </div>
       </div>
     </div>

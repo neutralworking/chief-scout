@@ -23,6 +23,8 @@ import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
+import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
+import { SectionHeader } from "@/components/SectionHeader";
 
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
@@ -360,14 +362,14 @@ export default async function PlayerDetailPage({
         </div>
 
         {/* Identity bar — everything in one panel */}
-        <div className="glass rounded-xl p-2.5">
+        <div className="glass panel-accent-cyan p-2.5">
           {/* Row 1: Avatar + Name + Bio details + Role badge */}
           <div className="flex items-start gap-3">
             {/* Avatar */}
             {player.image_url ? (
-              <img src={player.image_url} alt={player.name} className="w-11 h-11 rounded-lg object-cover shrink-0" />
+              <img src={player.image_url} alt={player.name} className="w-11 h-11 object-cover shrink-0" />
             ) : (
-              <div className="w-11 h-11 rounded-lg bg-[var(--bg-elevated)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)] shrink-0">
+              <div className="w-11 h-11 bg-[var(--bg-elevated)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)] shrink-0">
                 {player.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
               </div>
             )}
@@ -376,11 +378,12 @@ export default async function PlayerDetailPage({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-base font-bold tracking-tight truncate">{player.name}</h1>
-                <Link href={`/players?position=${player.position ?? ""}`} className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
+                <Link href={`/players?position=${player.position ?? ""}`} className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
                   {player.position ?? "–"}{player.side && ["WF", "WD", "WM"].includes(player.position ?? "") ? ` · ${player.side}` : ""}
                 </Link>
+                {/* TODO: secondary positions when data available */}
                 {!player.active && (
-                  <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
+                  <span className="text-[9px] font-semibold px-1.5 py-0.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
@@ -433,7 +436,7 @@ export default async function PlayerDetailPage({
                   {player.earned_archetype ? "Archetype" : "Style"}
                 </span>
                 {player.earned_archetype ? (
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
                     {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
                   </span>
                 ) : (
@@ -460,7 +463,7 @@ export default async function PlayerDetailPage({
                 <span className="text-[11px] font-mono font-bold text-[var(--color-accent-tactical)]">
                   {formatVal(valuation.market_value_p50)}
                 </span>
-                <span className={`w-1.5 h-1.5 rounded-full ${
+                <span className={`w-1.5 h-1.5 ${
                   valuation.overall_confidence === "high" ? "bg-green-400" :
                   valuation.overall_confidence === "medium" ? "bg-amber-400" :
                   "bg-red-400"
@@ -497,14 +500,14 @@ export default async function PlayerDetailPage({
 
             {/* Tags inline */}
             {player.loan_status && (
-              <span className="text-[8px] font-semibold px-1 py-0.5 rounded border bg-amber-500/15 text-amber-400 border-amber-500/25">
+              <span className="text-[8px] font-semibold px-1 py-0.5 border bg-amber-500/15 text-amber-400 border-amber-500/25">
                 Loan: {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
               </span>
             )}
             {playerTags.slice(0, 5).map((t: { tag_name: string; category: string }, i: number) => (
               <span
                 key={i}
-                className={`text-[8px] font-semibold px-1 py-0.5 rounded border ${
+                className={`text-[8px] font-semibold px-1 py-0.5 border ${
                   t.category === "scouting" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/25" :
                   t.category === "style" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" :
                   t.category === "fitness" ? "bg-green-500/15 text-green-400 border-green-500/25" :
@@ -546,8 +549,8 @@ export default async function PlayerDetailPage({
           <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
 
           {(player.ei != null || player.personality_type) && (
-            <div className="glass rounded-xl p-2.5">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-1.5">Personality</h3>
+            <div className="glass panel-accent-personality p-2.5">
+              <SectionHeader label="Personality" color="personality" />
               <PersonalityBadge
                 personalityType={player.personality_type}
                 ei={player.ei}
@@ -559,6 +562,23 @@ export default async function PlayerDetailPage({
                 size="hero"
                 showDimensions={player.ei != null}
               />
+            </div>
+          )}
+
+          {player.best_role && (
+            <div className="glass panel-accent-tactical p-3">
+              <SectionHeader label="Best Roles" color="tactical" />
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[var(--text-secondary)] w-32 truncate">{player.best_role}</span>
+                  <div className="flex-1 h-1.5 bg-[var(--bg-pit)]">
+                    <div className="h-full bg-[var(--color-accent-tactical)]" style={{ width: `${player.best_role_score ?? 0}%` }} />
+                  </div>
+                  <span className="font-mono text-[12px] font-bold text-[var(--color-accent-tactical)] w-8 text-right">
+                    {player.best_role_score}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 

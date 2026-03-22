@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
+import { Topbar } from "@/components/Topbar";
 import { AuthProvider } from "@/components/AuthProvider";
 import { isProduction } from "@/lib/env";
 
@@ -60,7 +61,10 @@ export default function RootLayout({
             <Sidebar />
             <MobileBottomNav />
             <ServiceWorkerRegistration />
-            <main className="flex-1 min-w-0 p-4 pb-24 lg:pb-8 lg:pt-8 lg:ml-64 lg:p-8">{children}</main>
+            <div className="flex-1 min-w-0 flex flex-col lg:ml-64">
+              <Topbar />
+              <main className="flex-1 min-w-0 p-4 pb-24 lg:pb-8 lg:p-8">{children}</main>
+            </div>
           </div>
         </AuthProvider>
       </body>

@@ -71,7 +71,7 @@ export function RoleTooltip({ roleName, roleScore, position, variant = "card" }:
 function Popover({ role, onClose }: { role: { name: string; position: string; description: string; examples: string }; onClose: () => void }) {
   return (
     <div
-      className="absolute z-50 left-0 top-full mt-1 w-[260px] glass rounded-xl p-3 shadow-2xl border border-[var(--color-accent-tactical)]/30 text-left"
+      className="absolute z-50 left-0 top-full mt-1 w-[260px] glass p-3 shadow-2xl border border-[var(--color-accent-tactical)]/30 text-left"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-1.5">

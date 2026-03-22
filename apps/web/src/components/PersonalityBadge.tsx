@@ -184,7 +184,7 @@ export function PersonalityBadge({
 
   return (
     <div
-      className="rounded-lg p-4 border-l-4"
+      className="p-4 border-l-4"
       style={{ backgroundColor: bgTint, borderLeftColor: borderColor }}
     >
       {/* Header: icon + name + code */}

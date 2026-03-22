@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Chief Scout — Scout Pad (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --border-bright: #6fc3df;
+    --text-primary: #ffffff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --cyan: #6fc3df;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    width: 390px;
+    margin: 0 auto;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 390px;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 44px;
+    min-height: 44px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+  }
+  .topbar-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .topbar-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+  .topbar-env {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--personality);
+    background: rgba(232,197,71,0.1);
+    padding: 2px 6px;
+    border: 1px solid rgba(232,197,71,0.25);
+  }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .search-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: var(--pit);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    outline: none;
+    min-height: 44px;
+  }
+  .search-input::placeholder { color: var(--text-muted); }
+  .search-input:focus { border-color: var(--cyan); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 80px 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── PLAYER CARD ── */
+  .scout-card {
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: 2px solid var(--cyan);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .player-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cyan);
+    flex: 1;
+  }
+
+  .pos-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    border-top: 2px solid;
+    background: var(--elevated);
+    flex-shrink: 0;
+  }
+  .pos-gk { border-color: var(--mental); color: var(--mental); }
+  .pos-cd { border-color: var(--physical); color: var(--physical); }
+  .pos-wd { border-color: var(--physical); color: var(--physical); }
+  .pos-dm { border-color: var(--tactical); color: var(--tactical); }
+  .pos-cm { border-color: var(--tactical); color: var(--tactical); }
+  .pos-am { border-color: var(--technical); color: var(--technical); }
+  .pos-wm { border-color: var(--technical); color: var(--technical); }
+  .pos-wf { border-color: var(--personality); color: var(--personality); }
+  .pos-cf { border-color: #e74c3c; color: #e74c3c; }
+
+  .club-name {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .archetype-chip {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: 600;
+    background: rgba(232,197,71,0.12);
+    color: var(--personality);
+    border: 1px solid rgba(232,197,71,0.25);
+    flex-shrink: 0;
+  }
+
+  /* ── CARD META ── */
+  .card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .meta-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    width: 48px;
+    flex-shrink: 0;
+  }
+  .overall-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* ── EDITABLE FIELDS ── */
+  .edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .edit-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .editable-input {
+    width: 64px;
+    padding: 8px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--pit);
+    border: 1px dashed rgba(111,195,223,0.3);
+    color: var(--text-primary);
+    outline: none;
+    text-align: center;
+    min-height: 44px;
+  }
+  .editable-input:focus {
+    border-color: var(--cyan);
+    border-style: solid;
+    box-shadow: 0 0 4px rgba(111,195,223,0.15);
+  }
+  .editable-select {
+    flex: 1;
+    padding: 8px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    background: var(--pit);
+    border: 1px dashed rgba(111,195,223,0.3);
+    color: var(--text-primary);
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px;
+  }
+  .editable-select:focus {
+    border-color: var(--cyan);
+    border-style: solid;
+  }
+
+  /* ── SAVE BUTTON (per card) ── */
+  .card-save-btn {
+    width: 100%;
+    padding: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    cursor: pointer;
+    margin-top: 8px;
+    min-height: 44px;
+    transition: all 0.15s;
+  }
+  .card-save-btn:hover, .card-save-btn:active {
+    background: rgba(111,195,223,0.1);
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 56px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-item.active {
+    color: var(--cyan);
+  }
+  .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* ── SCROLL ── */
+  .content::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">CHIEF SCOUT</div>
+    <div class="topbar-title">Scout Pad</div>
+    <div class="topbar-env">STG</div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-bar">
+    <input class="search-input" type="text" placeholder="Search players..." />
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- Card 1 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-am">AM</span>
+        <span class="player-name">Jude Bellingham</span>
+        <span class="archetype-chip">Engine</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Real Madrid</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">87</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="91" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Advanced Playmaker</option>
+          <option>Box-to-Box</option>
+          <option>Mezzala</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-wf">WF</span>
+        <span class="player-name">Lamine Yamal</span>
+        <span class="archetype-chip">Maverick</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Barcelona</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">86</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="90" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Inside Forward</option>
+          <option>Inverted Winger</option>
+          <option>Wide Playmaker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-am">AM</span>
+        <span class="player-name">Florian Wirtz</span>
+        <span class="archetype-chip">Virtuoso</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">B. Leverkusen</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">86</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="89" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Trequartista</option>
+          <option>Advanced Playmaker</option>
+          <option>Shadow Striker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-am">AM</span>
+        <span class="player-name">Jamal Musiala</span>
+        <span class="archetype-chip">Maverick</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Bayern Munich</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">85</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="89" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Mezzala</option>
+          <option>Trequartista</option>
+          <option>Advanced Playmaker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-cd">CD</span>
+        <span class="player-name">William Saliba</span>
+        <span class="archetype-chip">Rock</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Arsenal</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">86</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="88" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Ball-Playing CB</option>
+          <option>Stopper</option>
+          <option>Libero</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-cm">CM</span>
+        <span class="player-name">Pedri</span>
+        <span class="archetype-chip">Maestro</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Barcelona</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">85</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="88" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Deep Playmaker</option>
+          <option>Mezzala</option>
+          <option>Regista</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-wf">WF</span>
+        <span class="player-name">Bukayo Saka</span>
+        <span class="archetype-chip">Engine</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Arsenal</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">87</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="89" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Inverted Winger</option>
+          <option>Inside Forward</option>
+          <option>Wide Playmaker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-wf">WF</span>
+        <span class="player-name">Alejandro Garnacho</span>
+        <span class="archetype-chip">Maverick</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Napoli</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">80</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="83" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Inside Forward</option>
+          <option>Inverted Winger</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-dm">DM</span>
+        <span class="player-name">Declan Rice</span>
+        <span class="archetype-chip">Engine</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Arsenal</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">86</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="88" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Box-to-Box</option>
+          <option>Ball-Winner</option>
+          <option>Deep Playmaker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+    <!-- Card 10 -->
+    <div class="scout-card">
+      <div class="card-header">
+        <span class="pos-badge pos-cm">CM</span>
+        <span class="player-name">Kobbie Mainoo</span>
+        <span class="archetype-chip">Maestro</span>
+      </div>
+      <div class="card-meta-row">
+        <span class="club-name">Man United</span>
+        <span style="margin-left: auto;"><span class="meta-label" style="width:auto; display:inline;">OVR</span> <span class="overall-display">79</span></span>
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Role Score</span>
+        <input class="editable-input" type="text" value="82" />
+      </div>
+      <div class="edit-row">
+        <span class="edit-label">Best Role</span>
+        <select class="editable-select">
+          <option selected>Mezzala</option>
+          <option>Box-to-Box</option>
+          <option>Advanced Playmaker</option>
+        </select>
+      </div>
+      <button class="card-save-btn">Save</button>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="nav-icon">&#9750;</span>
+      <span>Home</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9899;</span>
+      <span>Players</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9878;</span>
+      <span>Clubs</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#8644;</span>
+      <span>Compare</span>
+    </div>
+    <div class="nav-item active">
+      <span class="nav-icon">&#8943;</span>
+      <span>More</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

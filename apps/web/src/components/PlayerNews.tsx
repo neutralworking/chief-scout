@@ -41,7 +41,7 @@ export function PlayerNews({ news }: PlayerNewsProps) {
   if (news.length === 0) return null;
 
   return (
-    <div className="glass rounded-xl p-5">
+    <div className="glass p-5">
       <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-4">
         News <span className="font-mono ml-1">{news.length}</span>
       </h3>

@@ -819,6 +819,7 @@ function resolveActionEffects(
 // Main Functions
 // ---------------------------------------------------------------------------
 
+/** @deprecated */
 /**
  * Resolve a single round of the match.
  * Returns the round result and does NOT mutate the MatchState.
@@ -932,6 +933,7 @@ export function resolveRound(
   };
 }
 
+/** @deprecated */
 /**
  * Create an initial MatchState for a new match.
  */
@@ -967,6 +969,7 @@ export function createMatchState(
   };
 }
 
+/** @deprecated */
 /**
  * Advance the match state after a round is resolved.
  * Draws new cards, advances round counter, updates goals.
@@ -1039,6 +1042,7 @@ export interface RoundPreview {
   strengthDelta: number; // vs baseline (no cards played)
 }
 
+/** @deprecated */
 export function previewRound(
   state: MatchState,
   playedCards: ActionCard[],

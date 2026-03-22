@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Leagues</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --border-bright: #6fc3df;
+    --text-primary: #ffffff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --cyan: #6fc3df;
+    --row-hover: rgba(111,195,223,0.06);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 44px;
+    min-height: 44px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    border-radius: 50%;
+  }
+
+  /* ── TOP 5 PINNED ── */
+  .top5-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .top5-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+  }
+  .top5-card:hover {
+    background: var(--row-hover);
+    border-color: var(--cyan);
+  }
+  .top5-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 14px;
+    width: 3px;
+    height: 3px;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    border-radius: 50%;
+  }
+
+  .top5-flag {
+    font-size: 24px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .top5-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .top5-country {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  .top5-stats {
+    display: flex;
+    gap: 16px;
+  }
+  .top5-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .top5-stat-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .top5-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .top5-stat-value.purple { color: var(--tactical); }
+
+  /* ── ALL LEAGUES LIST ── */
+  .leagues-list {
+    margin-top: 8px;
+  }
+
+  .league-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: background 0.12s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .league-row:hover {
+    background: var(--row-hover);
+  }
+  .league-row:nth-child(even) {
+    background: rgba(255,255,255,0.015);
+  }
+  .league-row:nth-child(even):hover {
+    background: var(--row-hover);
+  }
+
+  .league-row-flag {
+    font-size: 16px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .league-row-info {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+  }
+  .league-row-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .league-row-country {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .league-row-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .league-row-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .league-row-stat-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .league-row-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .league-row-stat-value.purple { color: var(--tactical); }
+
+  .league-row-chevron {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">CHIEF SCOUT</div>
+    <div class="topbar-title">Leagues</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- TOP 5 PINNED -->
+    <div class="section-label">Top 5 Leagues</div>
+    <div class="top5-grid">
+
+      <a class="top5-card" href="/clubs?league=premier-league">
+        <span class="top5-flag">&#127468;&#127463;</span>
+        <div class="top5-name">Premier League</div>
+        <div class="top5-country">England</div>
+        <div class="top5-stats">
+          <div class="top5-stat">
+            <span class="top5-stat-label">Clubs</span>
+            <span class="top5-stat-value mono">20</span>
+          </div>
+          <div class="top5-stat">
+            <span class="top5-stat-label">Avg RS</span>
+            <span class="top5-stat-value mono purple">83.4</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="top5-card" href="/clubs?league=la-liga">
+        <span class="top5-flag">&#127466;&#127480;</span>
+        <div class="top5-name">La Liga</div>
+        <div class="top5-country">Spain</div>
+        <div class="top5-stats">
+          <div class="top5-stat">
+            <span class="top5-stat-label">Clubs</span>
+            <span class="top5-stat-value mono">20</span>
+          </div>
+          <div class="top5-stat">
+            <span class="top5-stat-label">Avg RS</span>
+            <span class="top5-stat-value mono purple">81.7</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="top5-card" href="/clubs?league=serie-a">
+        <span class="top5-flag">&#127470;&#127481;</span>
+        <div class="top5-name">Serie A</div>
+        <div class="top5-country">Italy</div>
+        <div class="top5-stats">
+          <div class="top5-stat">
+            <span class="top5-stat-label">Clubs</span>
+            <span class="top5-stat-value mono">20</span>
+          </div>
+          <div class="top5-stat">
+            <span class="top5-stat-label">Avg RS</span>
+            <span class="top5-stat-value mono purple">81.2</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="top5-card" href="/clubs?league=bundesliga">
+        <span class="top5-flag">&#127465;&#127466;</span>
+        <div class="top5-name">Bundesliga</div>
+        <div class="top5-country">Germany</div>
+        <div class="top5-stats">
+          <div class="top5-stat">
+            <span class="top5-stat-label">Clubs</span>
+            <span class="top5-stat-value mono">18</span>
+          </div>
+          <div class="top5-stat">
+            <span class="top5-stat-label">Avg RS</span>
+            <span class="top5-stat-value mono purple">80.9</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="top5-card" href="/clubs?league=ligue-1">
+        <span class="top5-flag">&#127467;&#127479;</span>
+        <div class="top5-name">Ligue 1</div>
+        <div class="top5-country">France</div>
+        <div class="top5-stats">
+          <div class="top5-stat">
+            <span class="top5-stat-label">Clubs</span>
+            <span class="top5-stat-value mono">18</span>
+          </div>
+          <div class="top5-stat">
+            <span class="top5-stat-label">Avg RS</span>
+            <span class="top5-stat-value mono purple">79.8</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ALL LEAGUES A-Z -->
+    <div class="section-label">All Leagues</div>
+    <div class="leagues-list">
+
+      <a class="league-row" href="/clubs?league=championship">
+        <span class="league-row-flag">&#127468;&#127463;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Championship</div>
+          <div class="league-row-country">England</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">24</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">76.3</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=eredivisie">
+        <span class="league-row-flag">&#127475;&#127473;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Eredivisie</div>
+          <div class="league-row-country">Netherlands</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">18</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">78.1</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=liga-mx">
+        <span class="league-row-flag">&#127474;&#127485;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Liga MX</div>
+          <div class="league-row-country">Mexico</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">18</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">75.4</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=mls">
+        <span class="league-row-flag">&#127482;&#127480;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">MLS</div>
+          <div class="league-row-country">United States</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">29</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">74.8</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=primeira-liga">
+        <span class="league-row-flag">&#127477;&#127481;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Primeira Liga</div>
+          <div class="league-row-country">Portugal</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">18</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">78.6</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=scottish-premiership">
+        <span class="league-row-flag">&#127988;&#917607;&#917602;&#917619;&#917603;&#917620;&#917631;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Scottish Premiership</div>
+          <div class="league-row-country">Scotland</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">12</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">74.2</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=serie-b">
+        <span class="league-row-flag">&#127470;&#127481;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Serie B</div>
+          <div class="league-row-country">Italy</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">20</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">73.5</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+      <a class="league-row" href="/clubs?league=super-lig">
+        <span class="league-row-flag">&#127481;&#127479;</span>
+        <div class="league-row-info">
+          <div class="league-row-name">Super Lig</div>
+          <div class="league-row-country">Turkey</div>
+        </div>
+        <div class="league-row-stats">
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Clubs</span>
+            <span class="league-row-stat-value mono">19</span>
+          </div>
+          <div class="league-row-stat">
+            <span class="league-row-stat-label">Avg RS</span>
+            <span class="league-row-stat-value mono purple">76.9</span>
+          </div>
+        </div>
+        <span class="league-row-chevron">&#8250;</span>
+      </a>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

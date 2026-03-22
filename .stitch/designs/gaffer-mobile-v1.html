@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaffer — Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+  }
+  body {
+    width: 390px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* --- Screen container --- */
+  .screen {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* --- Top branding --- */
+  .top-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #e8c547;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 16px 0 12px;
+    flex-shrink: 0;
+  }
+
+  /* --- Card area --- */
+  .card-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    overflow: hidden;
+  }
+
+  /* --- Category badge --- */
+  .category-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    color: #e8c547;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 12px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .category-badge::before,
+  .category-badge::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 1px;
+    background: rgba(232,197,71,0.3);
+  }
+
+  /* --- Question --- */
+  .question-area {
+    padding: 8px 4px 24px;
+    flex-shrink: 0;
+  }
+  .question-text {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: #fff;
+    text-align: center;
+  }
+
+  /* --- Options --- */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .option {
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 20px 20px 16px;
+    min-height: 80px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .option:active,
+  .option.pressed {
+    border-color: #e8c547;
+    box-shadow: 0 0 20px rgba(232,197,71,0.12), inset 0 0 16px rgba(232,197,71,0.04);
+  }
+  .option-text {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: #c8c8c8;
+    margin-bottom: 8px;
+  }
+  .option:active .option-text,
+  .option.pressed .option-text { color: #fff; }
+  .personality-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #e8c547;
+    opacity: 0.5;
+    letter-spacing: 1px;
+  }
+  .option:active .personality-hint,
+  .option.pressed .personality-hint { opacity: 1; }
+
+  /* --- Progress dots --- */
+  .progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 28px 0 24px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    margin-top: auto;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.15);
+  }
+  .dot.filled {
+    background: #e8c547;
+    border-color: #e8c547;
+  }
+  .dot.current {
+    border-color: #e8c547;
+    box-shadow: 0 0 6px rgba(232,197,71,0.4);
+  }
+
+  /* --- Identity overlay (swipe-up sheet) --- */
+  .identity-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10,10,10,0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 2px solid #e8c547;
+    padding: 24px 24px 40px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 10;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+  .identity-overlay.visible {
+    transform: translateY(0);
+  }
+
+  /* --- Swipe handle --- */
+  .swipe-handle {
+    width: 36px;
+    height: 4px;
+    background: #6a6a6a;
+    margin: 0 auto 20px;
+  }
+
+  /* --- Pull-up hint --- */
+  .pull-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 12px 0 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .pull-hint-arrow {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 2px;
+    animation: bob 1.5s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* --- Identity content --- */
+  .identity-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .identity-label {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e8c547;
+    margin-bottom: 8px;
+  }
+  .identity-desc {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #c8c8c8;
+    margin-bottom: 24px;
+  }
+
+  /* --- Trait bars --- */
+  .trait-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .trait-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .trait-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+  }
+  .trait-track {
+    height: 4px;
+    background: #0a0a0a;
+    position: relative;
+    border: 1px solid rgba(111,195,223,0.1);
+  }
+  .trait-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(232,197,71,0.3), #e8c547);
+  }
+  .trait-marker {
+    position: absolute;
+    top: -3px;
+    width: 3px;
+    height: 10px;
+    background: #e8c547;
+    transform: translateX(-50%);
+  }
+
+  /* --- Continue button --- */
+  .continue-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid #e8c547;
+    color: #e8c547;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+  .continue-btn:active {
+    background: rgba(232,197,71,0.1);
+  }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <!-- Top branding -->
+  <div class="top-brand">Gaffer</div>
+
+  <!-- Card area -->
+  <div class="card-area">
+    <!-- Category -->
+    <div class="category-badge">The Dugout</div>
+
+    <!-- Question -->
+    <div class="question-area">
+      <div class="question-text">Your star striker has publicly criticised your tactics in a post-match interview. What do you do?</div>
+    </div>
+
+    <!-- Options -->
+    <div class="options">
+      <div class="option" id="optA" onclick="selectOption(this)">
+        <div class="option-text">Drop him for the next match. No player is bigger than the team.</div>
+        <div class="personality-hint">Disciplinarian</div>
+      </div>
+      <div class="option" id="optB" onclick="selectOption(this)">
+        <div class="option-text">Have a private conversation. Understand his frustration, then move on.</div>
+        <div class="personality-hint">Man-Manager</div>
+      </div>
+    </div>
+
+    <!-- Progress dots -->
+    <div class="progress-dots">
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot filled"></div>
+      <div class="dot current"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <!-- Pull-up hint -->
+  <div class="pull-hint" onclick="toggleIdentity()">
+    <span class="pull-hint-arrow">^</span>
+    Your identity
+  </div>
+
+  <!-- Identity overlay -->
+  <div class="identity-overlay" id="identitySheet">
+    <div class="swipe-handle"></div>
+    <div class="identity-header">Your Identity</div>
+    <div class="identity-label">The Professor</div>
+    <div class="identity-desc">You favour tactical discipline and long-term planning over short-term fixes.</div>
+
+    <div class="trait-bars">
+      <div class="trait-row">
+        <div class="trait-labels">
+          <span>Pragmatic</span>
+          <span>Idealist</span>
+        </div>
+        <div class="trait-track">
+          <div class="trait-fill" style="width: 65%"></div>
+          <div class="trait-marker" style="left: 65%"></div>
+        </div>
+      </div>
+      <div class="trait-row">
+        <div class="trait-labels">
+          <span>Youth</span>
+          <span>Experience</span>
+        </div>
+        <div class="trait-track">
+          <div class="trait-fill" style="width: 35%"></div>
+          <div class="trait-marker" style="left: 35%"></div>
+        </div>
+      </div>
+      <div class="trait-row">
+        <div class="trait-labels">
+          <span>Attack</span>
+          <span>Defence</span>
+        </div>
+        <div class="trait-track">
+          <div class="trait-fill" style="width: 50%"></div>
+          <div class="trait-marker" style="left: 50%"></div>
+        </div>
+      </div>
+      <div class="trait-row">
+        <div class="trait-labels">
+          <span>Heart</span>
+          <span>Head</span>
+        </div>
+        <div class="trait-track">
+          <div class="trait-fill" style="width: 72%"></div>
+          <div class="trait-marker" style="left: 72%"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="continue-btn" onclick="toggleIdentity()">Continue</button>
+  </div>
+</div>
+
+<script>
+  let sheetOpen = false;
+
+  function selectOption(el) {
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('pressed'));
+    el.classList.add('pressed');
+    // After a short delay, show the identity sheet
+    setTimeout(() => toggleIdentity(true), 400);
+  }
+
+  function toggleIdentity(forceOpen) {
+    const sheet = document.getElementById('identitySheet');
+    if (forceOpen === true) {
+      sheetOpen = true;
+    } else {
+      sheetOpen = !sheetOpen;
+    }
+    sheet.classList.toggle('visible', sheetOpen);
+  }
+
+  // Swipe-down to close
+  let startY = 0;
+  const sheet = document.getElementById('identitySheet');
+  sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+  sheet.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientY - startY;
+    if (diff > 60) { sheetOpen = false; sheet.classList.remove('visible'); }
+  });
+</script>
+
+</body>
+</html>

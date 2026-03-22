@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaffer — Desktop</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- Topbar --- */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+    flex-shrink: 0;
+  }
+  .topbar-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+  }
+  .topbar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #e8c547;
+    text-transform: uppercase;
+  }
+
+  /* --- Main layout --- */
+  .main {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* --- Center: Decision Card --- */
+  .center {
+    flex: 0 0 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .decision-card {
+    width: 100%;
+    max-width: 640px;
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(111,195,223,0.2);
+    padding: 48px 40px 40px;
+  }
+  .category-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    color: #e8c547;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .category-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #e8c547;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: #fff;
+    margin-bottom: 36px;
+  }
+
+  /* --- Options --- */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .option {
+    background: rgba(10,10,10,0.9);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 24px 28px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .option:hover {
+    border-color: rgba(232,197,71,0.6);
+    box-shadow: 0 0 20px rgba(232,197,71,0.08), inset 0 0 20px rgba(232,197,71,0.03);
+  }
+  .option:active {
+    border-color: #e8c547;
+    box-shadow: 0 0 24px rgba(232,197,71,0.15);
+  }
+  .option-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .option-text {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: #c8c8c8;
+    margin-bottom: 12px;
+  }
+  .option:hover .option-text { color: #fff; }
+  .personality-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #e8c547;
+    opacity: 0.6;
+    letter-spacing: 1px;
+  }
+  .option:hover .personality-hint { opacity: 1; }
+
+  /* --- Progress --- */
+  .progress-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6a6a6a;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  /* --- Sidebar --- */
+  .sidebar {
+    flex: 0 0 40%;
+    border-left: 1px solid rgba(111,195,223,0.1);
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    overflow-y: auto;
+    background: rgba(10,10,10,0.4);
+  }
+
+  /* --- Identity Panel --- */
+  .identity-panel {
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(111,195,223,0.15);
+    border-top: 2px solid #e8c547;
+    padding: 28px 24px;
+  }
+  .identity-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .identity-label {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e8c547;
+    margin-bottom: 10px;
+  }
+  .identity-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c8c8c8;
+    margin-bottom: 28px;
+  }
+
+  /* --- Trait bars --- */
+  .trait-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .trait-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .trait-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+  }
+  .trait-track {
+    height: 4px;
+    background: #0a0a0a;
+    position: relative;
+    border: 1px solid rgba(111,195,223,0.1);
+  }
+  .trait-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(232,197,71,0.3), #e8c547);
+  }
+  .trait-marker {
+    position: absolute;
+    top: -4px;
+    width: 3px;
+    height: 12px;
+    background: #e8c547;
+    transform: translateX(-50%);
+  }
+
+  /* --- Progress Panel --- */
+  .progress-panel {
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 24px;
+  }
+  .progress-panel-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .progress-bar-track {
+    height: 6px;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.1);
+    margin-bottom: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: #e8c547;
+    width: 35%;
+  }
+  .progress-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    letter-spacing: 1px;
+  }
+
+  /* --- Category Breakdown --- */
+  .category-panel {
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 24px;
+  }
+  .category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .category-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #c8c8c8;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.1);
+    padding: 6px 12px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip-count {
+    color: #e8c547;
+    font-weight: 600;
+  }
+  .category-chip.active {
+    border-color: rgba(232,197,71,0.3);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-brand">Chief Scout</div>
+  <div class="topbar-title">Gaffer</div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <!-- Center: Decision Card -->
+  <div class="center">
+    <div class="decision-card">
+      <div class="category-badge">The Dugout</div>
+      <div class="question-text">Your star striker has publicly criticised your tactics in a post-match interview. What do you do?</div>
+
+      <div class="options">
+        <div class="option">
+          <div class="option-label">Option A</div>
+          <div class="option-text">Drop him for the next match. No player is bigger than the team.</div>
+          <div class="personality-hint">Disciplinarian</div>
+        </div>
+        <div class="option">
+          <div class="option-label">Option B</div>
+          <div class="option-text">Have a private conversation. Understand his frustration, then move on.</div>
+          <div class="personality-hint">Man-Manager</div>
+        </div>
+      </div>
+
+      <div class="progress-line">Question 7 of 20</div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Identity Panel -->
+    <div class="identity-panel">
+      <div class="identity-header">Your Identity</div>
+      <div class="identity-label">The Professor</div>
+      <div class="identity-desc">You favour tactical discipline and long-term planning over short-term fixes.</div>
+
+      <div class="trait-bars">
+        <div class="trait-row">
+          <div class="trait-labels">
+            <span>Pragmatic</span>
+            <span>Idealist</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="width: 65%"></div>
+            <div class="trait-marker" style="left: 65%"></div>
+          </div>
+        </div>
+        <div class="trait-row">
+          <div class="trait-labels">
+            <span>Youth</span>
+            <span>Experience</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="width: 35%"></div>
+            <div class="trait-marker" style="left: 35%"></div>
+          </div>
+        </div>
+        <div class="trait-row">
+          <div class="trait-labels">
+            <span>Attack</span>
+            <span>Defence</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="width: 50%"></div>
+            <div class="trait-marker" style="left: 50%"></div>
+          </div>
+        </div>
+        <div class="trait-row">
+          <div class="trait-labels">
+            <span>Heart</span>
+            <span>Head</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="width: 72%"></div>
+            <div class="trait-marker" style="left: 72%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Panel -->
+    <div class="progress-panel">
+      <div class="progress-panel-header">Questions Answered</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill"></div>
+      </div>
+      <div class="progress-bar-label">7 / 20</div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="category-panel">
+      <div class="progress-panel-header">Category Breakdown</div>
+      <div class="category-chips">
+        <div class="category-chip active"><span class="chip-count">2</span> Dugout</div>
+        <div class="category-chip"><span class="chip-count">1</span> Transfer</div>
+        <div class="category-chip"><span class="chip-count">2</span> Pub</div>
+        <div class="category-chip"><span class="chip-count">1</span> Academy</div>
+        <div class="category-chip"><span class="chip-count">1</span> Scouting</div>
+        <div class="category-chip"><span class="chip-count">0</span> Dressing Room</div>
+        <div class="category-chip"><span class="chip-count">0</span> Press</div>
+        <div class="category-chip"><span class="chip-count">0</span> Dream XI</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Leagues - Chief Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    padding: 0 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+  }
+  .top-bar .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #6fc3df;
+  }
+  .top-bar h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  /* ── Sticky Controls ── */
+  .sticky-controls {
+    position: sticky;
+    top: 40px;
+    z-index: 90;
+    background: #000;
+  }
+  .search-bar {
+    padding: 8px 16px;
+  }
+  .search-bar input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.35);
+    border-radius: 0;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .search-bar input::placeholder { color: #6a6a6a; }
+  .search-bar input:focus { border-color: #6fc3df; }
+
+  /* ── Section Label ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #6fc3df;
+    padding: 10px 16px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    background: #6fc3df;
+    box-shadow: 0 0 6px #6fc3df;
+    border-radius: 50%;
+  }
+
+  /* ── Top 5 Horizontal Scroll ── */
+  .top5-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .top5-scroll::-webkit-scrollbar { display: none; }
+
+  .top5-card {
+    flex-shrink: 0;
+    width: 150px;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.35);
+    border-top: 2px solid #6fc3df;
+    padding: 14px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+  }
+  .top5-card:active {
+    background: rgba(111,195,223,0.06);
+  }
+  .top5-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 10px;
+    width: 3px;
+    height: 3px;
+    background: #6fc3df;
+    box-shadow: 0 0 6px #6fc3df;
+    border-radius: 50%;
+  }
+
+  .top5-flag {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .top5-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+  .top5-country {
+    font-size: 9px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+  .top5-stats {
+    display: flex;
+    gap: 12px;
+  }
+  .top5-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .top5-stat-label {
+    font-size: 8px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .top5-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .top5-stat-value.purple { color: #9b59b6; }
+
+  /* ── League List ── */
+  .league-list {
+    padding-bottom: 72px;
+  }
+
+  .league-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    min-height: 44px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  .league-row:active {
+    background: rgba(111,195,223,0.06);
+  }
+
+  .league-row-flag {
+    font-size: 18px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+  }
+
+  .league-row-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .league-row-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+  }
+  .league-row-country {
+    font-size: 10px;
+    color: #6a6a6a;
+    margin-top: 1px;
+  }
+
+  .league-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+  .league-row-clubs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #c8c8c8;
+  }
+  .league-row-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9b59b6;
+  }
+  .league-row-chevron {
+    color: #6a6a6a;
+    font-size: 12px;
+    margin-left: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    height: 56px;
+    background: #141414;
+    border-top: 1px solid rgba(111,195,223,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 200;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .nav-item svg {
+    width: 20px;
+    height: 20px;
+    fill: #6a6a6a;
+  }
+  .nav-item span {
+    font-size: 9px;
+    color: #6a6a6a;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .nav-item.active svg { fill: #6fc3df; }
+  .nav-item.active span { color: #6fc3df; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <span class="brand">CHIEF SCOUT</span>
+  <h1>Leagues</h1>
+</div>
+
+<!-- Sticky Controls -->
+<div class="sticky-controls">
+  <div class="search-bar">
+    <input type="text" placeholder="Search leagues...">
+  </div>
+</div>
+
+<!-- Top 5 Section -->
+<div class="section-label">Top 5 Leagues</div>
+<div class="top5-scroll">
+
+  <a class="top5-card" href="/clubs?league=premier-league">
+    <span class="top5-flag">&#127468;&#127463;</span>
+    <div class="top5-name">Premier League</div>
+    <div class="top5-country">England</div>
+    <div class="top5-stats">
+      <div class="top5-stat">
+        <span class="top5-stat-label">Clubs</span>
+        <span class="top5-stat-value">20</span>
+      </div>
+      <div class="top5-stat">
+        <span class="top5-stat-label">Avg RS</span>
+        <span class="top5-stat-value purple">83.4</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="top5-card" href="/clubs?league=la-liga">
+    <span class="top5-flag">&#127466;&#127480;</span>
+    <div class="top5-name">La Liga</div>
+    <div class="top5-country">Spain</div>
+    <div class="top5-stats">
+      <div class="top5-stat">
+        <span class="top5-stat-label">Clubs</span>
+        <span class="top5-stat-value">20</span>
+      </div>
+      <div class="top5-stat">
+        <span class="top5-stat-label">Avg RS</span>
+        <span class="top5-stat-value purple">81.7</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="top5-card" href="/clubs?league=serie-a">
+    <span class="top5-flag">&#127470;&#127481;</span>
+    <div class="top5-name">Serie A</div>
+    <div class="top5-country">Italy</div>
+    <div class="top5-stats">
+      <div class="top5-stat">
+        <span class="top5-stat-label">Clubs</span>
+        <span class="top5-stat-value">20</span>
+      </div>
+      <div class="top5-stat">
+        <span class="top5-stat-label">Avg RS</span>
+        <span class="top5-stat-value purple">81.2</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="top5-card" href="/clubs?league=bundesliga">
+    <span class="top5-flag">&#127465;&#127466;</span>
+    <div class="top5-name">Bundesliga</div>
+    <div class="top5-country">Germany</div>
+    <div class="top5-stats">
+      <div class="top5-stat">
+        <span class="top5-stat-label">Clubs</span>
+        <span class="top5-stat-value">18</span>
+      </div>
+      <div class="top5-stat">
+        <span class="top5-stat-label">Avg RS</span>
+        <span class="top5-stat-value purple">80.9</span>
+      </div>
+    </div>
+  </a>
+
+  <a class="top5-card" href="/clubs?league=ligue-1">
+    <span class="top5-flag">&#127467;&#127479;</span>
+    <div class="top5-name">Ligue 1</div>
+    <div class="top5-country">France</div>
+    <div class="top5-stats">
+      <div class="top5-stat">
+        <span class="top5-stat-label">Clubs</span>
+        <span class="top5-stat-value">18</span>
+      </div>
+      <div class="top5-stat">
+        <span class="top5-stat-label">Avg RS</span>
+        <span class="top5-stat-value purple">79.8</span>
+      </div>
+    </div>
+  </a>
+
+</div>
+
+<!-- All Leagues Section -->
+<div class="section-label">All Leagues</div>
+<div class="league-list">
+
+  <a class="league-row" href="/clubs?league=championship">
+    <span class="league-row-flag">&#127468;&#127463;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Championship</div>
+      <div class="league-row-country">England</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">24</span>
+      <span class="league-row-rs">76.3</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=eredivisie">
+    <span class="league-row-flag">&#127475;&#127473;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Eredivisie</div>
+      <div class="league-row-country">Netherlands</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">18</span>
+      <span class="league-row-rs">78.1</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=liga-mx">
+    <span class="league-row-flag">&#127474;&#127485;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Liga MX</div>
+      <div class="league-row-country">Mexico</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">18</span>
+      <span class="league-row-rs">75.4</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=mls">
+    <span class="league-row-flag">&#127482;&#127480;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">MLS</div>
+      <div class="league-row-country">United States</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">29</span>
+      <span class="league-row-rs">74.8</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=primeira-liga">
+    <span class="league-row-flag">&#127477;&#127481;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Primeira Liga</div>
+      <div class="league-row-country">Portugal</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">18</span>
+      <span class="league-row-rs">78.6</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=scottish-premiership">
+    <span class="league-row-flag">&#127988;&#917607;&#917602;&#917619;&#917603;&#917620;&#917631;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Scottish Premiership</div>
+      <div class="league-row-country">Scotland</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">12</span>
+      <span class="league-row-rs">74.2</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=serie-b">
+    <span class="league-row-flag">&#127470;&#127481;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Serie B</div>
+      <div class="league-row-country">Italy</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">20</span>
+      <span class="league-row-rs">73.5</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+  <a class="league-row" href="/clubs?league=super-lig">
+    <span class="league-row-flag">&#127481;&#127479;</span>
+    <div class="league-row-info">
+      <div class="league-row-name">Super Lig</div>
+      <div class="league-row-country">Turkey</div>
+    </div>
+    <div class="league-row-meta">
+      <span class="league-row-clubs">19</span>
+      <span class="league-row-rs">76.9</span>
+    </div>
+    <span class="league-row-chevron">&#8250;</span>
+  </a>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Home</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+    <span>Players</span>
+  </div>
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+    <span>Clubs</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24"><path d="M9.01 14H2v2h7.01v3L13 15l-3.99-4v3zm5.98-1v-3H22V8h-7.01V5L11 9l3.99 4z"/></svg>
+    <span>Compare</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    <span>More</span>
+  </div>
+</div>
+
+</body>
+</html>

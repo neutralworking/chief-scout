@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Clubs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --border-bright: #6fc3df;
+    --text-primary: #ffffff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --cyan: #6fc3df;
+    --row-hover: rgba(111,195,223,0.06);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 44px;
+    min-height: 44px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .topbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    position: sticky;
+    top: 44px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+  }
+  .search-input {
+    flex: 1;
+    height: 34px;
+    padding: 0 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    outline: none;
+  }
+  .search-input::placeholder { color: var(--text-muted); }
+  .search-input:focus { border-color: var(--cyan); }
+
+  .filter-select {
+    height: 34px;
+    padding: 0 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+    min-width: 140px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a6a6a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  .filter-select:focus { border-color: var(--cyan); }
+
+  .results-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .results-count span { color: var(--cyan); }
+
+  /* ── CLUB GRID ── */
+  .content {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+  }
+
+  .club-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .club-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .club-card:hover {
+    background: var(--row-hover);
+    border-color: var(--cyan);
+  }
+  .club-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 12px;
+    width: 3px;
+    height: 3px;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    border-radius: 50%;
+  }
+
+  .club-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .club-flag {
+    font-size: 16px;
+    line-height: 1;
+  }
+  .club-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .club-league {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .club-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .club-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .club-stat-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .club-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .club-stat-value.purple { color: var(--tactical); }
+
+  .club-manager {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">CHIEF SCOUT</div>
+    <div class="topbar-title">Clubs</div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <input class="search-input" type="text" placeholder="Search clubs...">
+    <select class="filter-select">
+      <option>All Leagues</option>
+      <option>Premier League</option>
+      <option>La Liga</option>
+      <option>Serie A</option>
+      <option>Bundesliga</option>
+      <option>Ligue 1</option>
+    </select>
+    <select class="filter-select">
+      <option>All Countries</option>
+      <option>England</option>
+      <option>Spain</option>
+      <option>Italy</option>
+      <option>Germany</option>
+      <option>France</option>
+    </select>
+    <div class="results-count"><span>16</span> clubs</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="club-grid">
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Arsenal</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">27</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">84.2</span>
+          </div>
+        </div>
+        <div class="club-manager">Mikel Arteta</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127466;&#127480;</span>
+          <span class="club-name">Barcelona</span>
+        </div>
+        <div class="club-league">La Liga</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">25</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">85.1</span>
+          </div>
+        </div>
+        <div class="club-manager">Hansi Flick</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127465;&#127466;</span>
+          <span class="club-name">Bayern Munich</span>
+        </div>
+        <div class="club-league">Bundesliga</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">26</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">85.4</span>
+          </div>
+        </div>
+        <div class="club-manager">Vincent Kompany</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Chelsea</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">31</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">82.7</span>
+          </div>
+        </div>
+        <div class="club-manager">Enzo Maresca</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127465;&#127466;</span>
+          <span class="club-name">Dortmund</span>
+        </div>
+        <div class="club-league">Bundesliga</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">28</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">81.9</span>
+          </div>
+        </div>
+        <div class="club-manager">Nuri Sahin</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127470;&#127481;</span>
+          <span class="club-name">Inter Milan</span>
+        </div>
+        <div class="club-league">Serie A</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">25</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">84.6</span>
+          </div>
+        </div>
+        <div class="club-manager">Simone Inzaghi</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127470;&#127481;</span>
+          <span class="club-name">Juventus</span>
+        </div>
+        <div class="club-league">Serie A</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">26</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">82.3</span>
+          </div>
+        </div>
+        <div class="club-manager">Thiago Motta</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Liverpool</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">24</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">85.0</span>
+          </div>
+        </div>
+        <div class="club-manager">Arne Slot</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Man City</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">25</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">86.1</span>
+          </div>
+        </div>
+        <div class="club-manager">Pep Guardiola</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Man United</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">28</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">81.5</span>
+          </div>
+        </div>
+        <div class="club-manager">Ruben Amorim</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127470;&#127481;</span>
+          <span class="club-name">Napoli</span>
+        </div>
+        <div class="club-league">Serie A</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">24</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">83.4</span>
+          </div>
+        </div>
+        <div class="club-manager">Antonio Conte</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Newcastle</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">26</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">82.8</span>
+          </div>
+        </div>
+        <div class="club-manager">Eddie Howe</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127467;&#127479;</span>
+          <span class="club-name">PSG</span>
+        </div>
+        <div class="club-league">Ligue 1</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">27</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">84.3</span>
+          </div>
+        </div>
+        <div class="club-manager">Luis Enrique</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127466;&#127480;</span>
+          <span class="club-name">Real Madrid</span>
+        </div>
+        <div class="club-league">La Liga</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">24</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">86.8</span>
+          </div>
+        </div>
+        <div class="club-manager">Carlo Ancelotti</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127470;&#127481;</span>
+          <span class="club-name">Roma</span>
+        </div>
+        <div class="club-league">Serie A</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">25</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">80.6</span>
+          </div>
+        </div>
+        <div class="club-manager">Claudio Ranieri</div>
+      </div>
+
+      <div class="club-card">
+        <div class="club-header">
+          <span class="club-flag">&#127468;&#127463;</span>
+          <span class="club-name">Tottenham</span>
+        </div>
+        <div class="club-league">Premier League</div>
+        <div class="club-stats">
+          <div class="club-stat">
+            <span class="club-stat-label">Squad</span>
+            <span class="club-stat-value mono">27</span>
+          </div>
+          <div class="club-stat">
+            <span class="club-stat-label">Avg RS</span>
+            <span class="club-stat-value mono purple">82.1</span>
+          </div>
+        </div>
+        <div class="club-manager">Ange Postecoglou</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

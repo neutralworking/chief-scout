@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Formations (Mobile)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --bright: #6fc3df;
+    --text: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --cyan: #6fc3df;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 72px;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* --- TOP BAR --- */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 32px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+  .top-bar-left {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .top-bar-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* --- FORMATION TABS (sticky horizontal scroll) --- */
+  .formation-tabs {
+    position: sticky;
+    top: 32px;
+    z-index: 99;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 8px;
+  }
+  .formation-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 6px 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .tab-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-item:active { opacity: 0.7; }
+  .tab-item.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+
+  /* --- PITCH --- */
+  .pitch-container {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pitch {
+    width: 340px;
+    height: 520px;
+    background: linear-gradient(180deg, #0d3d0d 0%, #0a2e0a 30%, #072407 60%, #0a2e0a 100%);
+    border: 2px solid rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* Pitch markings */
+  .pitch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+  }
+  .pitch-center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .pitch-center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .pitch-box-top {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 15%;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-top: none;
+  }
+  .pitch-box-top-small {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 6%;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-top: none;
+  }
+  .pitch-box-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 15%;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-bottom: none;
+  }
+  .pitch-box-bottom-small {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 6%;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-bottom: none;
+  }
+  .pitch-stripe {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10%;
+    background: rgba(255,255,255,0.015);
+  }
+  .pitch-stripe:nth-child(1) { top: 10%; }
+  .pitch-stripe:nth-child(2) { top: 30%; }
+  .pitch-stripe:nth-child(3) { top: 50%; }
+  .pitch-stripe:nth-child(4) { top: 70%; }
+  .pitch-stripe:nth-child(5) { top: 90%; }
+
+  /* Connection lines */
+  .connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .connections line {
+    stroke: rgba(111,195,223,0.08);
+    stroke-width: 1;
+  }
+
+  /* Slots */
+  .slot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+  }
+  .slot-node {
+    width: 32px;
+    height: 32px;
+    background: var(--panel);
+    border: 2px solid var(--cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 0 8px rgba(111,195,223,0.2);
+  }
+  .slot-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+  }
+  .slot-role {
+    font-size: 7px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  /* --- FORMATION INFO (below pitch) --- */
+  .formation-info {
+    padding: 16px 16px 0;
+  }
+  .formation-info-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .formation-info-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+  .formation-info-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  /* --- SECTIONS --- */
+  .section {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(111,195,223,0.1);
+  }
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  /* Role list */
+  .role-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    min-height: 44px;
+  }
+  .role-row:last-child { border-bottom: none; }
+
+  .role-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--cyan);
+    background: rgba(111,195,223,0.1);
+    padding: 2px 6px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    border-top: 2px solid var(--cyan);
+  }
+  .role-info { flex: 1; min-width: 0; }
+  .role-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .role-archetype {
+    font-size: 10px;
+    color: var(--personality);
+    margin-left: 6px;
+  }
+  .role-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* Archetype chips */
+  .archetype-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .archetype-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 6px 12px;
+    background: var(--pit);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-top: 2px solid var(--tactical);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Managers */
+  .manager-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .manager-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--pit);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 8px 14px;
+    min-height: 44px;
+  }
+  .manager-pip {
+    width: 3px;
+    height: 3px;
+    background: var(--mental);
+    box-shadow: 0 0 6px var(--mental);
+  }
+
+  /* --- BOTTOM NAV --- */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    height: 64px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 200;
+    padding-bottom: 8px;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text-muted);
+  }
+  .nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+  .nav-item.active .nav-icon,
+  .nav-item.active .nav-label {
+    color: var(--cyan);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-left">CHIEF SCOUT</div>
+  <div class="top-bar-right">FORMATIONS</div>
+</div>
+
+<!-- FORMATION TABS (sticky horizontal scroll) -->
+<div class="formation-tabs">
+  <div class="tab-group-label">4:</div>
+  <div class="tab-item active">4-3-3</div>
+  <div class="tab-item">4-4-2</div>
+  <div class="tab-item">4-2-3-1</div>
+  <div class="tab-item">4-1-4-1</div>
+  <div class="tab-item">4-3-2-1</div>
+  <div class="tab-group-label">3:</div>
+  <div class="tab-item">3-5-2</div>
+  <div class="tab-item">3-4-3</div>
+  <div class="tab-item">3-4-2-1</div>
+</div>
+
+<!-- PITCH -->
+<div class="pitch-container">
+  <div class="pitch">
+    <!-- Grass stripes -->
+    <div class="pitch-stripe"></div>
+    <div class="pitch-stripe"></div>
+    <div class="pitch-stripe"></div>
+    <div class="pitch-stripe"></div>
+    <div class="pitch-stripe"></div>
+
+    <!-- Markings -->
+    <div class="pitch-center-circle"></div>
+    <div class="pitch-center-dot"></div>
+    <div class="pitch-box-top"></div>
+    <div class="pitch-box-top-small"></div>
+    <div class="pitch-box-bottom"></div>
+    <div class="pitch-box-bottom-small"></div>
+
+    <!-- Connection lines -->
+    <svg class="connections" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line x1="50" y1="91" x2="15" y2="76"/>
+      <line x1="50" y1="91" x2="38" y2="76"/>
+      <line x1="50" y1="91" x2="62" y2="76"/>
+      <line x1="50" y1="91" x2="85" y2="76"/>
+      <line x1="15" y1="76" x2="25" y2="55"/>
+      <line x1="38" y1="76" x2="50" y2="55"/>
+      <line x1="62" y1="76" x2="50" y2="55"/>
+      <line x1="85" y1="76" x2="75" y2="55"/>
+      <line x1="38" y1="76" x2="25" y2="55"/>
+      <line x1="62" y1="76" x2="75" y2="55"/>
+      <line x1="25" y1="55" x2="15" y2="25"/>
+      <line x1="50" y1="55" x2="50" y2="18"/>
+      <line x1="75" y1="55" x2="85" y2="25"/>
+      <line x1="25" y1="55" x2="50" y2="18"/>
+      <line x1="75" y1="55" x2="50" y2="18"/>
+    </svg>
+
+    <!-- GK -->
+    <div class="slot" style="left:50%; top:91%;">
+      <div class="slot-node"><span class="slot-pos">GK</span></div>
+      <div class="slot-role">Shot-Stopper</div>
+    </div>
+    <!-- LB -->
+    <div class="slot" style="left:15%; top:76%;">
+      <div class="slot-node"><span class="slot-pos">LB</span></div>
+      <div class="slot-role">Inverted FB</div>
+    </div>
+    <!-- LCB -->
+    <div class="slot" style="left:38%; top:76%;">
+      <div class="slot-node"><span class="slot-pos">CB</span></div>
+      <div class="slot-role">Ball-Playing</div>
+    </div>
+    <!-- RCB -->
+    <div class="slot" style="left:62%; top:76%;">
+      <div class="slot-node"><span class="slot-pos">CB</span></div>
+      <div class="slot-role">Stopper</div>
+    </div>
+    <!-- RB -->
+    <div class="slot" style="left:85%; top:76%;">
+      <div class="slot-node"><span class="slot-pos">RB</span></div>
+      <div class="slot-role">Overlapping</div>
+    </div>
+    <!-- LCM -->
+    <div class="slot" style="left:25%; top:55%;">
+      <div class="slot-node"><span class="slot-pos">CM</span></div>
+      <div class="slot-role">Box-to-Box</div>
+    </div>
+    <!-- CM -->
+    <div class="slot" style="left:50%; top:55%;">
+      <div class="slot-node"><span class="slot-pos">CM</span></div>
+      <div class="slot-role">Regista</div>
+    </div>
+    <!-- RCM -->
+    <div class="slot" style="left:75%; top:55%;">
+      <div class="slot-node"><span class="slot-pos">CM</span></div>
+      <div class="slot-role">Mezzala</div>
+    </div>
+    <!-- LW -->
+    <div class="slot" style="left:15%; top:25%;">
+      <div class="slot-node"><span class="slot-pos">LW</span></div>
+      <div class="slot-role">Inside Fwd</div>
+    </div>
+    <!-- ST -->
+    <div class="slot" style="left:50%; top:18%;">
+      <div class="slot-node"><span class="slot-pos">ST</span></div>
+      <div class="slot-role">Complete Fwd</div>
+    </div>
+    <!-- RW -->
+    <div class="slot" style="left:85%; top:25%;">
+      <div class="slot-node"><span class="slot-pos">RW</span></div>
+      <div class="slot-role">Inverted Wgr</div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMATION INFO -->
+<div class="formation-info">
+  <div class="formation-info-header">
+    <div class="formation-info-name">4-3-3</div>
+  </div>
+  <div class="formation-info-desc">
+    The modern attacking formation favored by Pep Guardiola and his disciples. Three forwards stretch the pitch horizontally while a midfield triangle provides control.
+  </div>
+</div>
+
+<!-- TACTICAL ROLES -->
+<div class="section">
+  <div class="section-title">Tactical Roles</div>
+
+  <div class="role-row">
+    <div class="role-badge">GK</div>
+    <div class="role-info">
+      <div><span class="role-name">Shot-Stopper</span><span class="role-archetype">Rock / Wall</span></div>
+      <div class="role-desc">Traditional keeper focused on positioning and reflexes</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">LB</div>
+    <div class="role-info">
+      <div><span class="role-name">Inverted Full-Back</span><span class="role-archetype">Maestro / Engine</span></div>
+      <div class="role-desc">Tucks inside to form a midfield diamond in possession</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">CB</div>
+    <div class="role-info">
+      <div><span class="role-name">Ball-Playing CB</span><span class="role-archetype">Architect / Marshal</span></div>
+      <div class="role-desc">Progressive passing from the back, comfortable under press</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">CB</div>
+    <div class="role-info">
+      <div><span class="role-name">Stopper</span><span class="role-archetype">Rock / Destroyer</span></div>
+      <div class="role-desc">Aggressive defender who steps up to win duels</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">RB</div>
+    <div class="role-info">
+      <div><span class="role-name">Overlapping Full-Back</span><span class="role-archetype">Engine / Outlet</span></div>
+      <div class="role-desc">Bombs forward to deliver crosses and stretch the opposition</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">CM</div>
+    <div class="role-info">
+      <div><span class="role-name">Box-to-Box</span><span class="role-archetype">Engine / Catalyst</span></div>
+      <div class="role-desc">Covers every blade of grass, contributes in both phases</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">CM</div>
+    <div class="role-info">
+      <div><span class="role-name">Regista</span><span class="role-archetype">Maestro / Architect</span></div>
+      <div class="role-desc">Deep-lying playmaker who dictates tempo from the base</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">CM</div>
+    <div class="role-info">
+      <div><span class="role-name">Mezzala</span><span class="role-archetype">Virtuoso / Engine</span></div>
+      <div class="role-desc">Half-space operator who drives forward between the lines</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">LW</div>
+    <div class="role-info">
+      <div><span class="role-name">Inside Forward</span><span class="role-archetype">Hitman / Spark</span></div>
+      <div class="role-desc">Cuts in from the left onto stronger foot to shoot or combine</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">ST</div>
+    <div class="role-info">
+      <div><span class="role-name">Complete Forward</span><span class="role-archetype">Hitman / Virtuoso</span></div>
+      <div class="role-desc">Links play, holds up, runs channels, and finishes chances</div>
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="role-badge">RW</div>
+    <div class="role-info">
+      <div><span class="role-name">Inverted Winger</span><span class="role-archetype">Spark / Maestro</span></div>
+      <div class="role-desc">Drifts inside to create and shoot from half-space positions</div>
+    </div>
+  </div>
+</div>
+
+<!-- BEST SUITED ARCHETYPES -->
+<div class="section">
+  <div class="section-title">Best Suited Archetypes</div>
+  <div class="archetype-grid">
+    <div class="archetype-chip">Maestro</div>
+    <div class="archetype-chip">Engine</div>
+    <div class="archetype-chip">Hitman</div>
+    <div class="archetype-chip">Spark</div>
+    <div class="archetype-chip">Virtuoso</div>
+    <div class="archetype-chip">Architect</div>
+    <div class="archetype-chip">Rock</div>
+    <div class="archetype-chip">Catalyst</div>
+  </div>
+</div>
+
+<!-- MANAGERS -->
+<div class="section">
+  <div class="section-title">Managers Who Use It</div>
+  <div class="manager-list">
+    <div class="manager-tag">
+      <div class="manager-pip"></div>
+      Pep Guardiola
+    </div>
+    <div class="manager-tag">
+      <div class="manager-pip"></div>
+      Mikel Arteta
+    </div>
+    <div class="manager-tag">
+      <div class="manager-pip"></div>
+      Xavi Hernandez
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <div class="nav-icon">&#9750;</div>
+    <div class="nav-label">Home</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#9899;</div>
+    <div class="nav-label">Players</div>
+  </div>
+  <div class="nav-item active">
+    <div class="nav-icon">&#9878;</div>
+    <div class="nav-label">Formations</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#9733;</div>
+    <div class="nav-label">Legends</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#8943;</div>
+    <div class="nav-label">More</div>
+  </div>
+</div>
+
+</body>
+</html>

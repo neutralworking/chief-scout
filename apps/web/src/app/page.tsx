@@ -62,7 +62,7 @@ function dailySeed(): number {
 
 type FeaturedReason = "dof_pick" | "news_trending" | "discovery";
 
-const FEATURED_COLS = "person_id, name, position, club, nation, level, overall, archetype, earned_archetype, best_role, best_role_score, personality_type, market_value_tier, dob, blueprint, scouting_notes" as const;
+const FEATURED_COLS = "person_id, name, position, club, nation, nation_code, level, overall, archetype, earned_archetype, best_role, best_role_score, personality_type, market_value_tier, dob, blueprint, scouting_notes, technical_score, tactical_score, mental_score, physical_score, overall_pillar_score, market_value_eur, director_valuation_meur" as const;
 
 async function getDashboardData() {
   if (!supabaseServer) return null;
@@ -134,12 +134,16 @@ async function getDashboardData() {
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
     person_id: number; name: string; position: string | null; club: string | null;
-    nation: string | null; level: number | null; overall: number | null;
+    nation: string | null; nation_code: string | null; level: number | null; overall: number | null;
     archetype: string | null; earned_archetype: string | null;
     best_role: string | null; best_role_score: number | null;
     personality_type: string | null;
     market_value_tier: string | null; dob: string | null; blueprint: string | null;
     scouting_notes: string | null;
+    technical_score: number | null; tactical_score: number | null;
+    mental_score: number | null; physical_score: number | null;
+    overall_pillar_score: number | null;
+    market_value_eur: number | null; director_valuation_meur: number | null;
   };
 
   let featured: FeaturedProfile | null = null;
@@ -632,18 +636,31 @@ export default async function DashboardPage() {
             <TrendingPlayers players={trendingPlayers} />
           )}
 
-          {/* Gaffer — slim CTA */}
-          <Link href="/choices" className="glass rounded-xl px-3 py-2 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
-              <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-personality)] transition-colors">
-                Make the calls. Build your identity.
+          {/* Game CTAs — slim row */}
+          <div className="flex gap-2 shrink-0">
+            <Link href="/choices" className="glass rounded-xl px-3 py-2 flex-1 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
+                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-personality)] transition-colors hidden sm:inline">
+                  Make the calls.
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold text-[var(--color-accent-personality)] group-hover:translate-x-0.5 transition-transform">
+                Play &rarr;
               </span>
-            </div>
-            <span className="text-[10px] font-semibold text-[var(--color-accent-personality)] group-hover:translate-x-0.5 transition-transform">
-              Play &rarr;
-            </span>
-          </Link>
+            </Link>
+            <Link href="/kickoff-clash" className="glass rounded-xl px-3 py-2 flex-1 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#e74c3c]">Kickoff Clash</span>
+                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[#e74c3c] transition-colors hidden sm:inline">
+                  Card battler.
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold text-[#e74c3c] group-hover:translate-x-0.5 transition-transform">
+                Play &rarr;
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

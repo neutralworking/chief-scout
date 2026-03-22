@@ -1,41 +1,42 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: var(--color-bg-base);
-  --color-foreground: var(--color-text-primary);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --felt: #0b1a10;
+  --felt-light: #122118;
+  --leather: #1a1510;
+  --leather-light: #241e16;
+  --amber: #e8621a;
+  --amber-glow: rgba(232, 98, 26, 0.4);
+  --amber-soft: #c4530f;
+  --gold: #d4a035;
+  --gold-glow: rgba(212, 160, 53, 0.35);
+  --pitch-green: #2d8a4e;
+  --pitch-dark: #1a5c33;
+  --pitch-light: #3ba55d;
+  --danger: #c0392b;
+  --cream: #f5f0e0;
+  --cream-soft: #d9d0b8;
+  --dust: #9a8b73;
+  --ink: #5c5040;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
 
-  /* Dark game-like theme */
-  --color-bg-base: #0a0a0f;
-  --color-bg-surface: #12121a;
-  --color-bg-elevated: #1a1a2e;
-  --color-bg-card: #16213e;
-  --color-border-subtle: #2a2a4a;
-  --color-border-glow: #6fc3df;
-
-  /* Accent colors */
-  --color-accent-primary: #e74c3c;
-  --color-accent-secondary: #6fc3df;
-  --color-accent-gold: #f1c40f;
-  --color-accent-green: #2ecc71;
-
-  /* Text */
-  --color-text-primary: #f0f0f5;
-  --color-text-secondary: #8888aa;
-  --color-text-muted: #555570;
+  --font-display: 'Archivo Black', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-flavour: 'Playfair Display', serif;
 }
 
 body {
-  background: var(--color-bg-base);
-  color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  background: var(--felt);
+  color: var(--cream);
+  font-family: var(--font-body);
 }
 
-/* Fix 5: Phase Visual Differentiation */
+/* Phase Visual Differentiation */
 
 .phase-setup {
-  background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 30%, #0a0a0f 60%, #111122 100%);
+  background: linear-gradient(135deg, #0b1a10 0%, #0f1e14 30%, #0b1a10 60%, #111d15 100%);
   background-size: 400% 400%;
   animation: setupGradient 12s ease infinite;
 }
@@ -47,39 +48,39 @@ body {
 }
 
 .phase-match {
-  background: linear-gradient(180deg, rgba(20,60,30,0.25) 0%, transparent 30%, var(--color-bg-base) 100%);
+  background: linear-gradient(180deg, rgba(45,138,78,0.18) 0%, transparent 30%, var(--felt) 100%);
 }
 
 .phase-match .commentary-feed {
-  background: rgba(10,10,15,0.8);
-  border-left: 3px solid var(--color-accent-green);
+  background: rgba(11,26,16,0.8);
+  border-left: 3px solid var(--pitch-green);
 }
 
 .phase-shop {
-  background: linear-gradient(180deg, rgba(80,60,20,0.15) 0%, transparent 25%, var(--color-bg-base) 100%);
+  background: linear-gradient(180deg, rgba(212,160,53,0.12) 0%, transparent 25%, var(--felt) 100%);
 }
 
 .phase-postmatch {
-  background: radial-gradient(ellipse at center top, rgba(255,255,255,0.06) 0%, transparent 50%, var(--color-bg-base) 100%);
+  background: radial-gradient(ellipse at center top, rgba(232,98,26,0.08) 0%, transparent 50%, var(--felt) 100%);
 }
 
-/* Fix 4: Goal commentary styling */
+/* Goal commentary styling */
 .commentary-goal-yours {
-  color: var(--color-accent-green) !important;
+  color: var(--pitch-light) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
 }
 
 .commentary-goal-opponent {
-  color: var(--color-accent-primary) !important;
+  color: var(--danger) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
 }
 
-/* Fix 3: Card fan animation */
+/* Card fan animation */
 @keyframes pulseButton {
-  0%, 100% { box-shadow: 0 0 10px rgba(231,76,60,0.3); }
-  50% { box-shadow: 0 0 25px rgba(231,76,60,0.6), 0 0 50px rgba(231,76,60,0.2); }
+  0%, 100% { box-shadow: 0 0 10px var(--amber-glow); }
+  50% { box-shadow: 0 0 25px var(--amber-glow), 0 0 50px rgba(232,98,26,0.2); }
 }
 
 .advance-btn-pulse {
@@ -88,6 +89,6 @@ body {
 
 /* Sub card styling */
 .sub-card {
-  background: linear-gradient(135deg, rgba(46,204,113,0.15) 0%, rgba(46,204,113,0.05) 100%) !important;
-  border-color: #2ecc71 !important;
+  background: linear-gradient(135deg, rgba(45,138,78,0.15) 0%, rgba(45,138,78,0.05) 100%) !important;
+  border-color: var(--pitch-green) !important;
 }

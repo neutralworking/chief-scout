@@ -291,7 +291,7 @@ function PlayersContent() {
         </div>
 
         {/* Compact controls */}
-        <div className="glass rounded-lg p-1.5 mb-2 overflow-hidden">
+        <div className="glass p-1.5 mb-2 overflow-hidden">
           {/* Row 1: Position pills + dropdowns */}
           <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-0.5 shrink-0">
@@ -366,7 +366,7 @@ function PlayersContent() {
       {/* Content */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && players.length > 0 && (
-          <div className="glass rounded-xl overflow-hidden flex-1 min-h-0 flex flex-col">
+          <div className="glass overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
               <table className="w-full">
@@ -603,17 +603,17 @@ function PlayersContent() {
         )}
 
         {loading && !loadingMore && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="glass py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading players...</p>
           </div>
         )}
         {error && (
-          <div className="glass rounded-xl p-4">
+          <div className="glass p-4">
             <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
           </div>
         )}
         {!loading && !error && players.length === 0 && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="glass py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">
               {hasFilters ? "No players match the current filters." : "No player data found."}
             </p>

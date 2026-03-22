@@ -112,7 +112,7 @@ export function PlayerRadar({ playerId, position, compact = false, storedBestRol
   const radarSize = compact ? 190 : 200;
 
   return (
-    <div className="glass rounded-xl p-3 sm:p-4">
+    <div className="glass p-3 sm:p-4">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Position & Role Fit</h3>
         <select

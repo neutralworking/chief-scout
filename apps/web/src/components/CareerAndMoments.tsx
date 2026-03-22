@@ -198,7 +198,7 @@ export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] 
   if (hasXp) tabs.push({ key: "xp", label: `Lv${xpLevel} ${xpTitle}` });
 
   return (
-    <div className="glass rounded-xl p-3">
+    <div className="glass p-3">
       {/* Tab bar */}
       {tabs.length > 1 ? (
         <div className="flex gap-3 mb-2.5 border-b border-[var(--border-subtle)] -mx-3 px-3" role="tablist">

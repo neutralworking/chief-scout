@@ -124,7 +124,7 @@ export function RoleScoreEditor({ personId, bestRole, bestRoleScore, position }:
   return (
     <div ref={panelRef} className="relative shrink-0 z-20">
       {/* Editing panel — overlays below the badge area */}
-      <div className="absolute right-0 top-0 w-[280px] sm:w-[320px] glass rounded-xl p-3 shadow-2xl border border-[var(--color-accent-tactical)]/30">
+      <div className="absolute right-0 top-0 w-[280px] sm:w-[320px] glass p-3 shadow-2xl border border-[var(--color-accent-tactical)]/30">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">
             Edit Role

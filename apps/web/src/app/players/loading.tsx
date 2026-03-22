@@ -12,7 +12,7 @@ export default function PlayersLoading() {
       </div>
       <div className="space-y-2">
         {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="glass rounded-lg p-4 flex items-center gap-4">
+          <div key={i} className="glass p-4 flex items-center gap-4">
             <div className="h-4 w-32 bg-[var(--bg-elevated)] rounded animate-pulse" />
             <div className="h-3 w-20 bg-[var(--bg-elevated)] rounded animate-pulse" />
             <div className="h-3 w-16 bg-[var(--bg-elevated)] rounded animate-pulse" />

@@ -427,7 +427,7 @@ export default async function DashboardPage() {
           {featured ? (
             <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
           ) : (
-            <div className="glass rounded-xl p-4">
+            <div className="glass p-4">
               <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
             </div>
           )}
@@ -436,7 +436,7 @@ export default async function DashboardPage() {
         {/* Right column — Fixtures (fills space) + League + Contracts */}
         <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
           {/* Upcoming Fixtures — expands to fill available space */}
-          <div className="glass rounded-xl p-2.5 flex flex-col flex-1 min-h-0">
+          <div className="glass p-2.5 flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-1.5 shrink-0">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">Upcoming Fixtures</h3>
               <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
@@ -469,7 +469,7 @@ export default async function DashboardPage() {
           {/* League + Contracts side by side */}
           <div className="grid grid-cols-2 gap-2 shrink-0">
             {/* League shortcuts */}
-            <div className="glass rounded-xl p-2.5">
+            <div className="glass p-2.5">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1">League</h3>
               <div className="space-y-0">
                 {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
@@ -486,7 +486,7 @@ export default async function DashboardPage() {
 
             {/* Contract Watch */}
             {contractPlayers.length > 0 ? (
-              <div className="glass rounded-xl p-2.5">
+              <div className="glass p-2.5">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contracts</h3>
                   <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
@@ -509,7 +509,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="glass rounded-xl p-2.5">
+              <div className="glass p-2.5">
                 <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1">Contracts</h3>
                 <p className="text-[10px] text-[var(--text-muted)]">No expiring contracts</p>
               </div>
@@ -521,7 +521,7 @@ export default async function DashboardPage() {
       {/* Row 2: News + Rising Stars / Market Movers / Gaffer — fills remaining space */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
         {/* News — 3 cols, scrollable within */}
-        <div className="lg:col-span-3 glass rounded-xl p-2.5 flex flex-col min-h-0">
+        <div className="lg:col-span-3 glass p-2.5 flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-1.5 shrink-0">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
               Latest News
@@ -587,7 +587,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
               {/* Rising Stars */}
               {risingStars.length > 0 && (
-                <div className="glass rounded-xl p-2.5">
+                <div className="glass p-2.5">
                   <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-1.5">
                     Rising Stars
                   </h3>
@@ -609,7 +609,7 @@ export default async function DashboardPage() {
 
               {/* Market Movers */}
               {marketMovers.length > 0 && (
-                <div className="glass rounded-xl p-2.5">
+                <div className="glass p-2.5">
                   <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1.5">
                     Market Movers
                   </h3>
@@ -638,7 +638,7 @@ export default async function DashboardPage() {
 
           {/* Game CTAs — slim row */}
           <div className="flex flex-wrap gap-2 shrink-0">
-            <Link href="/choices" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+            <Link href="/choices" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
                 <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-personality)] transition-colors hidden sm:inline">
@@ -649,7 +649,7 @@ export default async function DashboardPage() {
                 Play &rarr;
               </span>
             </Link>
-            <Link href="/kickoff-clash" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+            <Link href="/kickoff-clash" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#e74c3c]">Kickoff Clash</span>
                 <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[#e74c3c] transition-colors hidden sm:inline">
@@ -660,7 +660,7 @@ export default async function DashboardPage() {
                 Play &rarr;
               </span>
             </Link>
-            <Link href="/on-the-plane" className="glass rounded-xl px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
+            <Link href="/on-the-plane" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">On The Plane</span>
                 <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-physical)] transition-colors hidden sm:inline">

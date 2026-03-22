@@ -263,6 +263,15 @@ Use `--color-accent-*` prefix for accent colors (not `--accent-*`):
 - `--color-accent-mental` (green), `--color-accent-physical` (blue)
 - `--color-accent-personality` (yellow)
 
+## Multi-Window Workflow
+When running multiple Claude Code sessions in parallel, follow `docs/MULTI_WINDOW_WORKFLOW.md`:
+- **Window A** = Frontend (`apps/web/src/app/`, `apps/web/src/components/`)
+- **Window B** = Backend/API (`apps/web/src/lib/`, `apps/web/src/app/api/`)
+- **Window C** = Pipeline (`pipeline/`, `data/`, `migrations/`)
+- **Window D** = Docs/Config (`docs/`, `.claude/`, config files)
+- Pull before push, commit with `[zone]` prefix, never force push
+- Shared files (`package.json`, `WORKING.md`) → Window D only
+
 ## Conventions
 - Player IDs = `people.id` (same as old `players.id`)
 - All feature tables use `person_id` as FK to `people(id)`

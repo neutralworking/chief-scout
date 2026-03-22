@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kickoff Clash — XI Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --felt:           #0b1a10;
+  --leather:        #1a1510;
+  --leather-light:  #241e16;
+  --amber:          #e8621a;
+  --amber-glow:     rgba(232, 98, 26, 0.4);
+  --amber-soft:     #c4530f;
+  --gold:           #d4a035;
+  --gold-glow:      rgba(212, 160, 53, 0.35);
+  --pitch-green:    #2d8a4e;
+  --pitch-dark:     #1a5c33;
+  --pitch-light:    #3ba55d;
+  --danger:         #c0392b;
+  --cream:          #f5f0e0;
+  --cream-soft:     #d9d0b8;
+  --dust:           #9a8b73;
+  --ink:            #5c5040;
+  --radius:         10px;
+  --radius-sm:      6px;
+  --radius-lg:      14px;
+
+  --rare-blue:      #4a9eff;
+  --epic-purple:    #a855f7;
+  --legendary-amber: #f59e0b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--felt);
+  color: var(--cream);
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(45, 138, 78, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(232, 98, 26, 0.03) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER — Match info + XI Strength
+   ═══════════════════════════════════════════════ */
+
+.builder-header {
+  flex-shrink: 0;
+  padding: 14px 16px 10px;
+  background: linear-gradient(180deg, rgba(26, 21, 16, 0.9) 0%, transparent 100%);
+  position: relative;
+  z-index: 10;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.match-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.match-opponent {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 16px;
+  color: var(--cream);
+  margin-top: 1px;
+}
+
+.match-detail {
+  font-size: 10px;
+  color: var(--dust);
+  margin-top: 2px;
+}
+
+.match-detail .weakness {
+  color: var(--pitch-light);
+  font-weight: 700;
+}
+
+/* XI Strength counter */
+.strength-counter {
+  text-align: right;
+}
+
+.strength-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.strength-value {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--pitch-light);
+  text-shadow: 0 0 16px rgba(59, 165, 93, 0.3);
+  transition: all 0.3s;
+}
+
+.strength-value.boosted {
+  color: var(--amber);
+  text-shadow: 0 0 16px var(--amber-glow);
+}
+
+.strength-breakdown {
+  font-size: 9px;
+  color: var(--dust);
+  margin-top: 2px;
+}
+
+.strength-breakdown .chem {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════
+   FORMATION VIEW — The Pitch
+   ═══════════════════════════════════════════════ */
+
+.formation-zone {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+  padding: 8px 16px;
+  height: 280px;
+}
+
+/* Pitch background */
+.pitch {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg,
+      rgba(26, 92, 51, 0.15) 0%,
+      rgba(26, 92, 51, 0.08) 50%,
+      rgba(26, 92, 51, 0.15) 100%
+    );
+  border: 1px solid rgba(45, 138, 78, 0.12);
+  overflow: hidden;
+}
+
+/* Pitch lines */
+.pitch::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: rgba(45, 138, 78, 0.1);
+}
+
+.pitch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid rgba(45, 138, 78, 0.08);
+}
+
+/* Formation slots */
+.slot {
+  position: absolute;
+  width: 58px;
+  height: 76px;
+  border-radius: var(--radius);
+  border: 2px dashed rgba(212, 160, 53, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.slot:hover, .slot.drop-target {
+  border-color: rgba(212, 160, 53, 0.5);
+  background: rgba(212, 160, 53, 0.06);
+  transform: scale(1.05);
+}
+
+.slot.drop-target {
+  border-style: solid;
+  box-shadow: 0 0 16px rgba(212, 160, 53, 0.15);
+}
+
+/* Empty slot */
+.slot-label {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(212, 160, 53, 0.35);
+}
+
+.slot-type {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 12px;
+  color: rgba(212, 160, 53, 0.25);
+  margin-top: 2px;
+}
+
+/* Filled slot */
+.slot.filled {
+  border: none;
+  background: none;
+}
+
+.slot-card {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Rarity borders */
+.slot-card.common { border: 1.5px solid rgba(113,113,122,0.4); }
+.slot-card.rare { border: 1.5px solid rgba(74,158,255,0.5); box-shadow: 0 0 8px rgba(74,158,255,0.15); }
+.slot-card.epic { border: 1.5px solid rgba(168,85,247,0.5); box-shadow: 0 0 8px rgba(168,85,247,0.15); }
+.slot-card.legendary { border: 1.5px solid rgba(245,158,11,0.6); box-shadow: 0 0 12px rgba(245,158,11,0.2), 0 0 24px rgba(245,158,11,0.08); }
+
+.slot-card-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+/* Theme backgrounds */
+.slot-card.theme-general .slot-card-bg { background: linear-gradient(160deg, #1a1a2e, #101020); }
+.slot-card.theme-catalyst .slot-card-bg { background: linear-gradient(160deg, #2d1b35, #1a0f1f); }
+.slot-card.theme-maestro .slot-card-bg { background: linear-gradient(160deg, #2a2517, #1a180f); }
+.slot-card.theme-captain .slot-card-bg { background: linear-gradient(160deg, #2d1520, #1a0c12); }
+.slot-card.theme-professor .slot-card-bg { background: linear-gradient(160deg, #151f2e, #0c1420); }
+
+.slot-card-pos {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  font-size: 7px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--pitch-dark);
+  color: var(--pitch-light);
+  text-transform: uppercase;
+}
+
+.slot-card-power {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 14px;
+}
+
+.slot-card-power.common { color: #71717a; }
+.slot-card-power.rare { color: var(--rare-blue); }
+.slot-card-power.epic { color: var(--epic-purple); }
+.slot-card-power.legendary { color: var(--legendary-amber); text-shadow: 0 0 6px rgba(245,158,11,0.4); }
+
+.slot-card-name {
+  margin-top: auto;
+  padding: 0 4px 3px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--cream);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-card-archetype {
+  padding: 2px 4px 4px;
+  font-size: 7px;
+  color: var(--dust);
+  text-align: center;
+}
+
+/* Durability indicator */
+.slot-card-dur {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  font-size: 8px;
+}
+
+/* 4-3-3 slot positions */
+.slot.pos-gk   { left: 50%; top: 85%; transform: translateX(-50%); }
+.slot.pos-def-l { left: 18%; top: 65%; }
+.slot.pos-def-r { left: 62%; top: 65%; }
+.slot.pos-mid   { left: 50%; top: 42%; transform: translateX(-50%); }
+.slot.pos-wide  { left: 10%; top: 25%; }
+.slot.pos-fwd   { left: 50%; top: 8%; transform: translateX(-50%); }
+
+/* ═══════════════════════════════════════════════
+   SYNERGY FLASH — fires when chemistry connects
+   ═══════════════════════════════════════════════ */
+
+.synergy-flash {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.synergy-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(26, 21, 16, 0.9);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 20px var(--gold-glow);
+  animation: synergyPop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  white-space: nowrap;
+}
+
+.synergy-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 11px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.synergy-bonus-pop {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  color: var(--pitch-light);
+  text-shadow: 0 0 8px rgba(59, 165, 93, 0.4);
+}
+
+@keyframes synergyPop {
+  0% { opacity: 0; transform: scale(0.7) translateY(8px); }
+  60% { opacity: 1; transform: scale(1.05) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Connection line between synergy cards */
+.synergy-line {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  animation: lineGlow 0.8s ease-out 0.2s both;
+  z-index: 15;
+  pointer-events: none;
+}
+
+@keyframes lineGlow {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* ── Active synergies bar ── */
+.active-synergies {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 4px 16px;
+  min-height: 24px;
+}
+
+.active-syn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  animation: synFadeIn 0.4s ease-out both;
+}
+
+.active-syn.t1 {
+  background: rgba(113, 113, 122, 0.12);
+  border: 1px solid rgba(113, 113, 122, 0.2);
+  color: #a1a1aa;
+}
+.active-syn.t2 {
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  color: var(--rare-blue);
+}
+.active-syn.t3 {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  color: var(--epic-purple);
+}
+.active-syn.t4 {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--legendary-amber);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.1);
+}
+
+.syn-bonus {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 9px;
+}
+
+@keyframes synFadeIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Near-miss hint ── */
+.near-miss {
+  text-align: center;
+  padding: 2px 16px 4px;
+}
+
+.near-miss-text {
+  font-size: 10px;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.near-miss-text .highlight {
+  color: var(--gold);
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* ═══════════════════════════════════════════════
+   YOUR DECK — Card selection area
+   ═══════════════════════════════════════════════ */
+
+.deck-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(180deg, transparent 0%, rgba(26, 21, 16, 0.6) 15%, rgba(26, 21, 16, 0.85) 100%);
+}
+
+.deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 6px;
+}
+
+.deck-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dust);
+}
+
+.deck-count {
+  font-size: 10px;
+  color: var(--ink);
+}
+
+.deck-count .filled-count {
+  font-weight: 700;
+  color: var(--pitch-light);
+}
+
+/* Position group tabs */
+.pos-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 16px;
+  margin-bottom: 6px;
+}
+
+.pos-tab {
+  flex: 1;
+  padding: 5px 0;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pos-tab:hover { color: var(--dust); }
+
+.pos-tab.active {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+.pos-tab .tab-count {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 8px;
+  margin-left: 2px;
+  opacity: 0.5;
+}
+
+/* Card scroll row */
+.deck-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 16px 8px;
+  display: flex;
+  gap: 8px;
+  scrollbar-width: none;
+  align-items: flex-start;
+}
+.deck-scroll::-webkit-scrollbar { display: none; }
+
+/* Deck card */
+.deck-card {
+  flex-shrink: 0;
+  width: 72px;
+  height: 98px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.deck-card:hover {
+  transform: translateY(-6px) scale(1.05);
+}
+
+.deck-card:active {
+  transform: scale(0.95);
+}
+
+.deck-card.used {
+  opacity: 0.25;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
+/* Rarity borders */
+.deck-card.common { border: 1.5px solid rgba(113,113,122,0.3); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.deck-card.rare { border: 1.5px solid rgba(74,158,255,0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 6px rgba(74,158,255,0.1); }
+.deck-card.epic { border: 1.5px solid rgba(168,85,247,0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 6px rgba(168,85,247,0.1); }
+.deck-card.legendary { border: 1.5px solid rgba(245,158,11,0.5); box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 10px rgba(245,158,11,0.15); }
+
+/* Card inner content */
+.deck-card-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.deck-card.theme-general .deck-card-inner { background: linear-gradient(160deg, #1a1a2e, #101020); }
+.deck-card.theme-catalyst .deck-card-inner { background: linear-gradient(160deg, #2d1b35, #1a0f1f); }
+.deck-card.theme-maestro .deck-card-inner { background: linear-gradient(160deg, #2a2517, #1a180f); }
+.deck-card.theme-captain .deck-card-inner { background: linear-gradient(160deg, #2d1520, #1a0c12); }
+.deck-card.theme-professor .deck-card-inner { background: linear-gradient(160deg, #151f2e, #0c1420); }
+
+.dc-pos {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  font-size: 7px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--pitch-dark);
+  color: var(--pitch-light);
+  text-transform: uppercase;
+}
+
+.dc-power {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+}
+
+.dc-power.common { color: #71717a; }
+.dc-power.rare { color: var(--rare-blue); }
+.dc-power.epic { color: var(--epic-purple); }
+.dc-power.legendary { color: var(--legendary-amber); text-shadow: 0 0 4px rgba(245,158,11,0.3); }
+
+.dc-body {
+  margin-top: auto;
+  padding: 0 4px 2px;
+  text-align: center;
+}
+
+.dc-name {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--cream);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dc-archetype {
+  font-size: 7px;
+  color: var(--dust);
+  margin-top: 1px;
+}
+
+.dc-role {
+  font-size: 7px;
+  color: var(--ink);
+}
+
+.dc-dur {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  font-size: 7px;
+}
+
+/* ═══════════════════════════════════════════════
+   LOCK IN BUTTON
+   ═══════════════════════════════════════════════ */
+
+.lockin-section {
+  flex-shrink: 0;
+  padding: 6px 16px 12px;
+  position: relative;
+  z-index: 10;
+}
+
+.lockin-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.lockin-btn.ready {
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-soft) 100%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow:
+    0 4px 16px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  animation: btnPulse 2s ease-in-out infinite;
+}
+
+.lockin-btn.not-ready {
+  background: var(--leather);
+  color: var(--ink);
+  border: 1px solid rgba(90, 80, 64, 0.15);
+  cursor: not-allowed;
+}
+
+.lockin-btn.ready:active {
+  transform: scale(0.98);
+}
+
+.lockin-btn.ready::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  animation: shine 4s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 16px var(--amber-glow), 0 2px 4px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 4px 28px var(--amber-glow), 0 0 40px rgba(232, 98, 26, 0.12); }
+}
+
+@keyframes shine {
+  0%, 100% { left: -100%; }
+  50% { left: 120%; }
+}
+
+/* Safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .lockin-section { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="builder-header">
+  <div class="header-row">
+    <div class="match-info">
+      <div class="match-label">Match 2 of 5</div>
+      <div class="match-opponent">Dynamo Midtable</div>
+      <div class="match-detail">
+        4-4-2 Balanced &middot; Str 220 &middot; <span class="weakness">Weak to Creator</span>
+      </div>
+    </div>
+    <div class="strength-counter">
+      <div class="strength-label">XI Strength</div>
+      <div class="strength-value boosted">285</div>
+      <div class="strength-breakdown">
+        247 base + <span class="chem">+38 chem</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FORMATION VIEW — 4-3-3
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="formation-zone">
+  <div class="pitch">
+
+    <!-- GK — filled -->
+    <div class="slot pos-gk filled">
+      <div class="slot-card common theme-general">
+        <div class="slot-card-bg"></div>
+        <span class="slot-card-pos">GK</span>
+        <span class="slot-card-power common">76</span>
+        <div class="slot-card-name">Alderton</div>
+        <div class="slot-card-archetype">GK &middot; Wall</div>
+        <span class="slot-card-dur">&#x1F6E1;&#xFE0F;</span>
+      </div>
+    </div>
+
+    <!-- DEF Left — filled -->
+    <div class="slot pos-def-l filled">
+      <div class="slot-card rare theme-captain">
+        <div class="slot-card-bg"></div>
+        <span class="slot-card-pos">CD</span>
+        <span class="slot-card-power rare">80</span>
+        <div class="slot-card-name">Phillip</div>
+        <div class="slot-card-archetype">Commander</div>
+        <span class="slot-card-dur">&#x2699;&#xFE0F;</span>
+      </div>
+    </div>
+
+    <!-- DEF Right — empty -->
+    <div class="slot pos-def-r">
+      <div class="slot-label">Defender</div>
+      <div class="slot-type">DEF</div>
+    </div>
+
+    <!-- MID — filled (synergy source) -->
+    <div class="slot pos-mid filled">
+      <div class="slot-card rare theme-general">
+        <div class="slot-card-bg"></div>
+        <span class="slot-card-pos">CM</span>
+        <span class="slot-card-power rare">81</span>
+        <div class="slot-card-name">Hurst</div>
+        <div class="slot-card-archetype">Controller</div>
+        <span class="slot-card-dur">&#x1F6E1;&#xFE0F;</span>
+      </div>
+    </div>
+
+    <!-- WIDE — filled -->
+    <div class="slot pos-wide filled">
+      <div class="slot-card epic theme-catalyst">
+        <div class="slot-card-bg"></div>
+        <span class="slot-card-pos">WF</span>
+        <span class="slot-card-power epic">84</span>
+        <div class="slot-card-name">Kowalski</div>
+        <div class="slot-card-archetype">Creator</div>
+        <span class="slot-card-dur">&#x1F525;</span>
+      </div>
+    </div>
+
+    <!-- FWD — filled (synergy partner) -->
+    <div class="slot pos-fwd filled">
+      <div class="slot-card legendary theme-maestro">
+        <div class="slot-card-bg"></div>
+        <span class="slot-card-pos">CF</span>
+        <span class="slot-card-power legendary">87</span>
+        <div class="slot-card-name">N&rsquo;Dongo</div>
+        <div class="slot-card-archetype">Striker</div>
+        <span class="slot-card-dur">&#x1F52E;</span>
+      </div>
+    </div>
+
+    <!-- Synergy flash (positioned between Hurst and N'Dongo) -->
+    <div class="synergy-flash" style="top: 28%; left: 50%; transform: translateX(-50%);">
+      <div class="synergy-banner">
+        <span class="synergy-name">The Pirlo-Barella</span>
+        <span class="synergy-bonus-pop">+38</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Active synergies -->
+<div class="active-synergies">
+  <div class="active-syn t1">&#x2713; Creative Spark <span class="syn-bonus">+42</span></div>
+  <div class="active-syn t2">&#x2713; The Pirlo-Barella <span class="syn-bonus">+38</span></div>
+</div>
+
+<!-- Near-miss hint -->
+<div class="near-miss">
+  <div class="near-miss-text">
+    One more <span class="highlight">Creator</span> unlocks <span class="highlight">Skill Show</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     YOUR DECK
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="deck-section">
+
+  <div class="deck-header">
+    <span class="deck-label">Your Deck</span>
+    <span class="deck-count"><span class="filled-count">5</span>/6 slots filled</span>
+  </div>
+
+  <!-- Position tabs -->
+  <div class="pos-tabs">
+    <div class="pos-tab active">All <span class="tab-count">8</span></div>
+    <div class="pos-tab">DEF <span class="tab-count">3</span></div>
+    <div class="pos-tab">MID <span class="tab-count">2</span></div>
+    <div class="pos-tab">FWD <span class="tab-count">2</span></div>
+    <div class="pos-tab">GK <span class="tab-count">1</span></div>
+  </div>
+
+  <!-- Card scroll -->
+  <div class="deck-scroll">
+
+    <!-- Used cards (already in XI) — greyed out -->
+    <div class="deck-card common theme-general used">
+      <div class="deck-card-inner">
+        <span class="dc-pos">GK</span>
+        <span class="dc-power common">76</span>
+        <div class="dc-body">
+          <div class="dc-name">Alderton</div>
+          <div class="dc-archetype">GK</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck-card rare theme-captain used">
+      <div class="deck-card-inner">
+        <span class="dc-pos">CD</span>
+        <span class="dc-power rare">80</span>
+        <div class="dc-body">
+          <div class="dc-name">Phillip</div>
+          <div class="dc-archetype">Commander</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available card — Butcher (can fill the empty DEF slot) -->
+    <div class="deck-card common theme-professor">
+      <div class="deck-card-inner">
+        <span class="dc-pos">CM</span>
+        <span class="dc-power common">79</span>
+        <div class="dc-body">
+          <div class="dc-name">Butcher</div>
+          <div class="dc-archetype">Destroyer</div>
+          <div class="dc-role">Engine</div>
+        </div>
+        <span class="dc-dur">&#x2699;&#xFE0F;</span>
+      </div>
+    </div>
+
+    <!-- Available — Hopkinson (WD, can fill DEF) -->
+    <div class="deck-card common theme-captain">
+      <div class="deck-card-inner">
+        <span class="dc-pos">WD</span>
+        <span class="dc-power common">76</span>
+        <div class="dc-body">
+          <div class="dc-name">Hopkinson</div>
+          <div class="dc-archetype">Engine</div>
+          <div class="dc-role">Cover</div>
+        </div>
+        <span class="dc-dur">&#x1F6E1;&#xFE0F;</span>
+      </div>
+    </div>
+
+    <!-- Available — Vasquez (CD, can fill DEF, would create Commander Duo!) -->
+    <div class="deck-card rare theme-general">
+      <div class="deck-card-inner">
+        <span class="dc-pos">CD</span>
+        <span class="dc-power rare">78</span>
+        <div class="dc-body">
+          <div class="dc-name">Vasquez</div>
+          <div class="dc-archetype">Commander</div>
+          <div class="dc-role">Stopper</div>
+        </div>
+        <span class="dc-dur">&#x1F525;</span>
+      </div>
+    </div>
+
+    <!-- Used cards continue... -->
+    <div class="deck-card rare theme-general used">
+      <div class="deck-card-inner">
+        <span class="dc-pos">CM</span>
+        <span class="dc-power rare">81</span>
+        <div class="dc-body">
+          <div class="dc-name">Hurst</div>
+          <div class="dc-archetype">Controller</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck-card epic theme-catalyst used">
+      <div class="deck-card-inner">
+        <span class="dc-pos">WF</span>
+        <span class="dc-power epic">84</span>
+        <div class="dc-body">
+          <div class="dc-name">Kowalski</div>
+          <div class="dc-archetype">Creator</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck-card legendary theme-maestro used">
+      <div class="deck-card-inner">
+        <span class="dc-pos">CF</span>
+        <span class="dc-power legendary">87</span>
+        <div class="dc-body">
+          <div class="dc-name">N&rsquo;Dongo</div>
+          <div class="dc-archetype">Striker</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LOCK IN
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="lockin-section">
+  <button class="lockin-btn not-ready">1 Slot Remaining</button>
+</div>
+
+</body>
+</html>

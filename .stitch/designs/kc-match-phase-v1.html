@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kickoff Clash — Match Phase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   KICKOFF CLASH — "THE FELT TABLE"
+   Visual Identity v1
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── The Table ── */
+  --felt:           #0b1a10;
+  --felt-light:     #122118;
+  --felt-glow:      #1a3324;
+
+  /* ── The Wood / Leather ── */
+  --leather:        #1a1510;
+  --leather-light:  #241e16;
+  --leather-warm:   #2e2418;
+
+  /* ── The Flame ── */
+  --amber:          #e8621a;
+  --amber-glow:     rgba(232, 98, 26, 0.4);
+  --amber-soft:     #c4530f;
+  --gold:           #d4a035;
+  --gold-glow:      rgba(212, 160, 53, 0.35);
+
+  /* ── The Pitch ── */
+  --pitch-green:    #2d8a4e;
+  --pitch-dark:     #1a5c33;
+  --pitch-light:    #3ba55d;
+
+  /* ── Danger ── */
+  --danger:         #c0392b;
+  --danger-soft:    rgba(192, 57, 43, 0.25);
+
+  /* ── Paper & Ink ── */
+  --cream:          #f5f0e0;
+  --cream-soft:     #d9d0b8;
+  --dust:           #9a8b73;
+  --ink:            #5c5040;
+
+  /* ── Rarity ── */
+  --rare-blue:      #4a9eff;
+  --epic-purple:    #a855f7;
+  --legendary-amber: #f59e0b;
+
+  /* ── Card Types ── */
+  --card-atk:       #c0392b;
+  --card-def:       #2c6fbb;
+  --card-mom:       #d4a035;
+  --card-mind:      #2d8a4e;
+  --card-sub:       #3ba55d;
+
+  /* ── Sizes ── */
+  --radius:         10px;
+  --radius-sm:      6px;
+  --radius-lg:      14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--felt);
+  color: var(--cream);
+  min-height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Felt Texture Overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(45, 138, 78, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(232, 98, 26, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════
+   1. SCOREBOARD
+   ═══════════════════════════════════════════════ */
+
+.scoreboard {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(180deg, var(--leather) 0%, rgba(26, 21, 16, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid rgba(212, 160, 53, 0.15);
+  padding: 12px 16px 10px;
+}
+
+.scoreboard-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.score-side {
+  text-align: center;
+  flex: 1;
+}
+
+.score-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dust);
+  margin-bottom: 2px;
+}
+
+.score-label.opponent { color: rgba(192, 57, 43, 0.7); }
+
+.score-number {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--cream);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.score-number.yours { color: var(--cream); }
+.score-number.theirs { color: rgba(192, 57, 43, 0.85); }
+
+.score-separator {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 28px;
+  color: var(--ink);
+  margin-top: 6px;
+}
+
+.opponent-name {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--dust);
+  margin-top: 2px;
+}
+
+/* ── Round Pips ── */
+.round-pips {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pip {
+  width: 36px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.pip.played {
+  background: var(--pitch-dark);
+  color: var(--pitch-light);
+  border: 1px solid rgba(45, 138, 78, 0.3);
+}
+
+.pip.current {
+  background: var(--amber);
+  color: #fff;
+  border: 1px solid var(--amber);
+  box-shadow: 0 0 12px var(--amber-glow), 0 0 24px rgba(232, 98, 26, 0.15);
+  animation: pipPulse 2s ease-in-out infinite;
+}
+
+.pip.upcoming {
+  background: rgba(90, 80, 64, 0.2);
+  color: var(--ink);
+  border: 1px solid rgba(90, 80, 64, 0.15);
+}
+
+@keyframes pipPulse {
+  0%, 100% { box-shadow: 0 0 12px var(--amber-glow), 0 0 24px rgba(232, 98, 26, 0.15); }
+  50% { box-shadow: 0 0 18px var(--amber-glow), 0 0 36px rgba(232, 98, 26, 0.25); }
+}
+
+/* ═══════════════════════════════════════════════
+   2. YOUR XI
+   ═══════════════════════════════════════════════ */
+
+.xi-section {
+  padding: 10px 12px 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.xi-scroll {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none;
+  justify-content: center;
+}
+.xi-scroll::-webkit-scrollbar { display: none; }
+
+.xi-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, var(--leather) 0%, var(--leather-light) 100%);
+  border: 1px solid rgba(212, 160, 53, 0.12);
+  border-radius: 20px;
+  margin-left: -6px;
+  position: relative;
+  transition: transform 0.2s;
+}
+.xi-pill:first-child { margin-left: 0; }
+.xi-pill:hover { transform: translateY(-2px); }
+
+.xi-pos {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--pitch-dark);
+  color: var(--pitch-light);
+}
+
+.xi-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cream-soft);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xi-power {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 14px;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(212, 160, 53, 0.3);
+}
+
+/* ── Synergies ── */
+.synergy-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.synergy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.synergy-badge.t1 {
+  background: rgba(45, 138, 78, 0.15);
+  border: 1px solid rgba(45, 138, 78, 0.3);
+  color: var(--pitch-light);
+}
+.synergy-badge.t2 {
+  background: rgba(74, 158, 255, 0.12);
+  border: 1px solid rgba(74, 158, 255, 0.25);
+  color: var(--rare-blue);
+}
+
+.synergy-bonus {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 10px;
+}
+
+/* ═══════════════════════════════════════════════
+   3. COMMENTARY ZONE — "The Programme"
+   ═══════════════════════════════════════════════ */
+
+.commentary-zone {
+  margin: 8px 12px;
+  background:
+    linear-gradient(180deg, rgba(26, 21, 16, 0.9) 0%, rgba(18, 14, 10, 0.95) 100%);
+  border: 1px solid rgba(212, 160, 53, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  min-height: 220px;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+  position: relative;
+  z-index: 1;
+}
+
+/* Programme texture */
+.commentary-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.commentary-line {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(90, 80, 64, 0.1);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cream-soft);
+  position: relative;
+  animation: lineAppear 0.4s ease-out both;
+}
+
+.commentary-line:last-child { border-bottom: none; }
+
+.commentary-line .minute {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 11px;
+  color: var(--dust);
+  margin-right: 6px;
+}
+
+/* ── Goal Lines ── */
+.commentary-line.goal-yours {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--amber);
+  padding: 10px 0;
+  text-shadow: 0 0 20px var(--amber-glow);
+  border-bottom: 1px solid rgba(232, 98, 26, 0.15);
+}
+
+.commentary-line.goal-yours .minute {
+  color: var(--amber);
+}
+
+.commentary-line.goal-yours::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  right: -16px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(232, 98, 26, 0.08) 0%, rgba(232, 98, 26, 0.04) 50%, transparent 100%);
+  border-radius: 4px;
+  z-index: -1;
+}
+
+.commentary-line.goal-opponent {
+  color: rgba(192, 57, 43, 0.75);
+  font-style: italic;
+}
+.commentary-line.goal-opponent .minute {
+  color: rgba(192, 57, 43, 0.6);
+}
+
+.commentary-line.action {
+  color: var(--dust);
+  font-size: 12px;
+}
+
+@keyframes lineAppear {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════
+   4. STRENGTH PREVIEW
+   ═══════════════════════════════════════════════ */
+
+.strength-preview {
+  margin: 0 12px 6px;
+  padding: 10px 14px;
+  background: var(--leather);
+  border: 1px solid rgba(212, 160, 53, 0.12);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.strength-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--dust);
+  white-space: nowrap;
+}
+
+.strength-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(90, 80, 64, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.strength-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--pitch-dark) 0%, var(--pitch-light) 100%);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+.strength-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15));
+  border-radius: 0 4px 4px 0;
+}
+
+.strength-bar-fill.boosted {
+  background: linear-gradient(90deg, var(--amber-soft) 0%, var(--amber) 100%);
+}
+
+.strength-value {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 14px;
+  color: var(--pitch-light);
+  min-width: 36px;
+  text-align: right;
+}
+
+.strength-value.boosted { color: var(--amber); }
+
+.strength-delta {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+/* ═══════════════════════════════════════════════
+   5. YOUR HAND — The cards you're holding
+   ═══════════════════════════════════════════════ */
+
+.hand-section {
+  padding: 8px 12px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.hand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.hand-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dust);
+}
+
+.hand-plays {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  background: rgba(232, 98, 26, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 98, 26, 0.2);
+}
+
+.hand-fan {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 150px;
+  padding: 0 10px 6px;
+  perspective: 600px;
+}
+
+.action-card {
+  width: 105px;
+  height: 140px;
+  border-radius: var(--radius);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: bottom center;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.4),
+    0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Fan layout via nth-child */
+.action-card:nth-child(1) { transform: rotate(-9deg) translateY(8px); margin-right: -18px; z-index: 1; }
+.action-card:nth-child(2) { transform: rotate(-3deg) translateY(2px); margin-right: -18px; z-index: 2; }
+.action-card:nth-child(3) { transform: rotate(0deg) translateY(0px); margin-right: -18px; z-index: 3; }
+.action-card:nth-child(4) { transform: rotate(3deg) translateY(2px); margin-right: -18px; z-index: 4; }
+.action-card:nth-child(5) { transform: rotate(9deg) translateY(8px); z-index: 5; }
+
+/* Selected state */
+.action-card.selected {
+  transform: rotate(0deg) translateY(-28px) scale(1.08) !important;
+  z-index: 50 !important;
+  box-shadow:
+    0 8px 30px rgba(0,0,0,0.5),
+    0 0 20px var(--amber-glow),
+    0 0 40px rgba(232, 98, 26, 0.15);
+}
+
+.action-card:hover:not(.selected) {
+  transform: translateY(-12px) scale(1.04) !important;
+  z-index: 30 !important;
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.5),
+    0 0 12px rgba(212, 160, 53, 0.2);
+}
+
+/* ── Card Innards ── */
+.action-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Card type backgrounds */
+.action-card.type-atk .action-card-inner {
+  background: linear-gradient(160deg, #2a1010 0%, #1a0808 40%, #120505 100%);
+  border: 1.5px solid rgba(192, 57, 43, 0.4);
+}
+.action-card.type-def .action-card-inner {
+  background: linear-gradient(160deg, #0e1a2a 0%, #081220 40%, #050d18 100%);
+  border: 1.5px solid rgba(44, 111, 187, 0.4);
+}
+.action-card.type-mom .action-card-inner {
+  background: linear-gradient(160deg, #2a2010 0%, #1a1508 40%, #120e05 100%);
+  border: 1.5px solid rgba(212, 160, 53, 0.4);
+}
+.action-card.type-mind .action-card-inner {
+  background: linear-gradient(160deg, #0a2015 0%, #06180e 40%, #041008 100%);
+  border: 1.5px solid rgba(45, 138, 78, 0.4);
+}
+.action-card.type-sub .action-card-inner {
+  background: linear-gradient(160deg, #0f2518 0%, #081a10 40%, #05120a 100%);
+  border: 1.5px solid rgba(59, 165, 93, 0.5);
+}
+
+.action-card.selected .action-card-inner {
+  border-color: var(--amber) !important;
+}
+
+.card-type-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #000;
+}
+
+.card-type-badge.atk { background: var(--card-atk); color: #fff; }
+.card-type-badge.def { background: var(--card-def); color: #fff; }
+.card-type-badge.mom { background: var(--card-mom); color: #000; }
+.card-type-badge.mind { background: var(--card-mind); color: #fff; }
+.card-type-badge.sub { background: var(--card-sub); color: #000; }
+
+.card-fan-impact {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.card-fan-impact.positive { color: var(--pitch-light); }
+.card-fan-impact.negative { color: var(--danger); }
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px 10px 8px;
+  text-align: center;
+}
+
+.card-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 12px;
+  color: var(--cream);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.card-flavour {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 10px;
+  color: var(--dust);
+  line-height: 1.4;
+}
+
+.card-effect {
+  padding: 6px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--cream-soft);
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════
+   6. ADVANCE BUTTON
+   ═══════════════════════════════════════════════ */
+
+.advance-section {
+  padding: 6px 12px 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.advance-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-soft) 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 16px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.advance-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 24px var(--amber-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+.advance-btn:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 2px 8px var(--amber-glow),
+    0 1px 2px rgba(0,0,0,0.3),
+    inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.advance-btn.has-selection {
+  animation: btnPulse 2s ease-in-out infinite;
+}
+
+.advance-btn.final-whistle {
+  background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+  box-shadow:
+    0 4px 16px var(--gold-glow),
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  color: #000;
+  text-shadow: none;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4px 16px var(--amber-glow), 0 2px 4px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 4px 28px var(--amber-glow), 0 2px 4px rgba(0,0,0,0.3), 0 0 40px rgba(232, 98, 26, 0.15); }
+}
+
+/* Shine sweep */
+.advance-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: sweepShine 4s ease-in-out infinite;
+}
+
+@keyframes sweepShine {
+  0%, 100% { left: -100%; }
+  50% { left: 120%; }
+}
+
+/* ═══════════════════════════════════════════════
+   OPPONENT PANEL (collapsible)
+   ═══════════════════════════════════════════════ */
+
+.opponent-toggle {
+  margin: 0 12px 4px;
+  padding: 8px 12px;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.15);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.opponent-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(192, 57, 43, 0.7);
+}
+
+.opponent-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weakness-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--pitch-light);
+  background: rgba(45, 138, 78, 0.12);
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 138, 78, 0.2);
+}
+
+.chevron {
+  font-size: 8px;
+  color: rgba(192, 57, 43, 0.5);
+}
+
+/* ═══════════════════════════════════════════════
+   ANIMATIONS — Staggered entry
+   ═══════════════════════════════════════════════ */
+
+.commentary-line:nth-child(1) { animation-delay: 0s; }
+.commentary-line:nth-child(2) { animation-delay: 0.1s; }
+.commentary-line:nth-child(3) { animation-delay: 0.2s; }
+.commentary-line:nth-child(4) { animation-delay: 0.3s; }
+.commentary-line:nth-child(5) { animation-delay: 0.4s; }
+.commentary-line:nth-child(6) { animation-delay: 0.5s; }
+.commentary-line:nth-child(7) { animation-delay: 0.6s; }
+
+/* ═══════════════════════════════════════════════
+   DISCARD INDICATOR
+   ═══════════════════════════════════════════════ */
+
+.discard-hint {
+  text-align: center;
+  font-size: 9px;
+  color: var(--ink);
+  margin-top: 4px;
+  padding-bottom: 2px;
+}
+
+.discard-hint span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.1);
+  color: rgba(192, 57, 43, 0.5);
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════
+   SAFE AREA (iOS)
+   ═══════════════════════════════════════════════ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .advance-section {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     1. SCOREBOARD
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="scoreboard">
+  <div class="scoreboard-inner">
+    <div class="score-side">
+      <div class="score-label">You</div>
+      <div class="score-number yours">2</div>
+    </div>
+    <div class="score-separator">&ndash;</div>
+    <div class="score-side">
+      <div class="score-label opponent">Match 2</div>
+      <div class="score-number theirs">1</div>
+      <div class="opponent-name">Dynamo Midtable</div>
+    </div>
+  </div>
+  <div class="round-pips">
+    <div class="pip played">15&prime;</div>
+    <div class="pip played">30&prime;</div>
+    <div class="pip current">45&prime;</div>
+    <div class="pip upcoming">60&prime;</div>
+    <div class="pip upcoming">75&prime;</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OPPONENT TOGGLE
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="opponent-toggle">
+  <div class="opponent-toggle-left">
+    <span>&#x1F4CB;</span>
+    <span>Dynamo Midtable &middot; 4-4-2</span>
+  </div>
+  <div class="opponent-toggle-right">
+    <span class="weakness-tag">&#x26A1; Weak to Creator</span>
+    <span class="chevron">&#x25BC;</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     2. YOUR XI
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="xi-section">
+  <div class="xi-scroll">
+    <div class="xi-pill">
+      <span class="xi-pos">CD</span>
+      <span class="xi-name">Butcher</span>
+      <span class="xi-power">79</span>
+    </div>
+    <div class="xi-pill">
+      <span class="xi-pos">WD</span>
+      <span class="xi-name">Hopkinson</span>
+      <span class="xi-power">76</span>
+    </div>
+    <div class="xi-pill">
+      <span class="xi-pos">CM</span>
+      <span class="xi-name">Hurst</span>
+      <span class="xi-power">81</span>
+    </div>
+    <div class="xi-pill">
+      <span class="xi-pos">WF</span>
+      <span class="xi-name">Kowalski</span>
+      <span class="xi-power">84</span>
+    </div>
+    <div class="xi-pill">
+      <span class="xi-pos">CF</span>
+      <span class="xi-name">N&rsquo;Dongo</span>
+      <span class="xi-power">87</span>
+    </div>
+  </div>
+
+  <div class="synergy-row">
+    <div class="synergy-badge t1">
+      &#x2713; Creative Spark
+      <span class="synergy-bonus">+42</span>
+    </div>
+    <div class="synergy-badge t2">
+      &#x2713; The Pirlo-Barella
+      <span class="synergy-bonus">+38</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     3. COMMENTARY ZONE
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="commentary-zone">
+  <div class="commentary-line action">
+    <span class="minute">2&prime;</span>
+    Butcher wins the opening challenge. Sets the tone.
+  </div>
+  <div class="commentary-line">
+    <span class="minute">11&prime;</span>
+    Hurst sprays a gorgeous ball out wide to Kowalski&hellip;
+  </div>
+  <div class="commentary-line">
+    <span class="minute">18&prime;</span>
+    Through ball from Hurst &mdash; N&rsquo;Dongo is through! ALMOST!
+  </div>
+  <div class="commentary-line goal-yours">
+    <span class="minute">24&prime;</span>
+    GOAL! &#x1F525; Screamer from THIRTY YARDS! The table goes wild!
+  </div>
+  <div class="commentary-line action">
+    <span class="minute">31&prime;</span>
+    Wind Up played &mdash; their #8 loses his head. Yellow card.
+  </div>
+  <div class="commentary-line goal-opponent">
+    <span class="minute">38&prime;</span>
+    Opponent equalises&hellip; scrappy goal from a set piece. 1-1.
+  </div>
+  <div class="commentary-line goal-yours">
+    <span class="minute">44&prime;</span>
+    GOAL! Counter attack worked perfectly! Kowalski with the finish! 2-1!
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     4. STRENGTH PREVIEW
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="strength-preview">
+  <span class="strength-label">Attack</span>
+  <div class="strength-bar-track">
+    <div class="strength-bar-fill boosted" style="width: 72%"></div>
+  </div>
+  <span class="strength-value boosted">72%</span>
+  <span class="strength-delta">+15%</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     5. YOUR HAND
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="hand-section">
+  <div class="hand-header">
+    <span class="hand-label">Your Hand</span>
+    <span class="hand-plays">1 play left</span>
+  </div>
+
+  <div class="hand-fan">
+
+    <!-- Card 1: ATK -->
+    <div class="action-card type-atk">
+      <div class="action-card-inner">
+        <span class="card-type-badge atk">ATK</span>
+        <span class="card-fan-impact positive">+10</span>
+        <div class="card-body">
+          <div class="card-name">Press High</div>
+          <div class="card-flavour">PRESS! PRESS! PRESS!</div>
+        </div>
+        <div class="card-effect">+15% goal, +10% opp</div>
+      </div>
+    </div>
+
+    <!-- Card 2: DEF -->
+    <div class="action-card type-def">
+      <div class="action-card-inner">
+        <span class="card-type-badge def">DEF</span>
+        <span class="card-fan-impact negative">&minus;10</span>
+        <div class="card-body">
+          <div class="card-name">Park The Bus</div>
+          <div class="card-flavour">Two banks of four.</div>
+        </div>
+        <div class="card-effect">&minus;20% opp, &minus;10% you</div>
+      </div>
+    </div>
+
+    <!-- Card 3: MOM (selected) -->
+    <div class="action-card type-mom selected">
+      <div class="action-card-inner">
+        <span class="card-type-badge mom">MOM</span>
+        <span class="card-fan-impact positive">+20</span>
+        <div class="card-body">
+          <div class="card-name">Screamer</div>
+          <div class="card-flavour">From THIRTY YARDS!</div>
+        </div>
+        <div class="card-effect">+25% goal chance</div>
+      </div>
+    </div>
+
+    <!-- Card 4: MIND -->
+    <div class="action-card type-mind">
+      <div class="action-card-inner">
+        <span class="card-type-badge mind">MIND</span>
+        <span class="card-fan-impact positive">+10</span>
+        <div class="card-body">
+          <div class="card-name">Wind Up</div>
+          <div class="card-flavour">Did you just say that?</div>
+        </div>
+        <div class="card-effect">&minus;10% opp (15% backfire)</div>
+      </div>
+    </div>
+
+    <!-- Card 5: SUB -->
+    <div class="action-card type-sub">
+      <div class="action-card-inner">
+        <span class="card-type-badge sub">SUB</span>
+        <div class="card-body">
+          <div class="card-name">Martinez</div>
+          <div class="card-flavour">CM &middot; 78 &middot; Engine</div>
+        </div>
+        <div class="card-effect">Replace weakest XI</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="discard-hint">
+    <span>&#x1F5D1; Long-press to discard</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     6. ADVANCE BUTTON
+     ══════════════════════════════════════════════════════════════ -->
+
+<div class="advance-section">
+  <button class="advance-btn has-selection">
+    &#x25B6; 45&prime; &rarr; 60&prime;
+  </button>
+</div>
+
+</body>
+</html>

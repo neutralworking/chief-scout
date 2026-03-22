@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, forwardRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS } from "@/lib/types";
 import { EditableCell } from "@/components/EditableCell";
 import { getArchetypeBadgeClasses } from "@/lib/archetype-styles";
+import { SectionHeader } from "@/components/SectionHeader";
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
@@ -71,27 +72,30 @@ function nationFlag(nationCode: string | null | undefined, nationName: string | 
 }
 
 // ── Debounced search input ───────────────────────────────────────────────────
-function SearchInput({ value, onChange, onSearch }: { value: string; onChange: (v: string) => void; onSearch: (v: string) => void }) {
-  const timer = useRef<ReturnType<typeof setTimeout>>(null);
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value;
-    onChange(val);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      if (val.length === 0 || val.length >= 2) onSearch(val);
-    }, 350);
+const SearchInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: string) => void; onSearch: (v: string) => void }>(
+  function SearchInput({ value, onChange, onSearch }, ref) {
+    const timer = useRef<ReturnType<typeof setTimeout>>(null);
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const val = e.target.value;
+      onChange(val);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        if (val.length === 0 || val.length >= 2) onSearch(val);
+      }, 350);
+    }
+    useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+    return (
+      <input
+        ref={ref}
+        type="text"
+        value={value}
+        onChange={handleChange}
+        placeholder="Search players..."
+        className="w-full px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
+      />
+    );
   }
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={handleChange}
-      placeholder="Search players..."
-      className="flex-1 px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent-personality)]"
-    />
-  );
-}
+);
 
 function PlayersContent() {
   const searchParams = useSearchParams();
@@ -114,7 +118,6 @@ function PlayersContent() {
   const position = searchParams.get("position") ?? "";
   const q = searchParams.get("q") ?? "";
   const sort = searchParams.get("sort") ?? "level_raw";
-  const tier = searchParams.get("tier") ?? "";
   const league = searchParams.get("league") ?? "";
   const maxAge = searchParams.get("max_age") ?? "";
 
@@ -142,17 +145,16 @@ function PlayersContent() {
     if (position) params.set("position", position);
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
-    if (tier) params.set("tier", tier);
     if (league) params.set("league", league);
     if (maxAge) params.set("max_age", maxAge);
     params.set("limit", String(pageSize));
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, q, sort, tier, league, maxAge, pageSize]);
+  }, [position, q, sort, league, maxAge, pageSize]);
 
   // Reset page when filters or page size change
-  useEffect(() => { setPage(0); }, [position, q, sort, tier, league, maxAge, pageSize]);
+  useEffect(() => { setPage(0); }, [position, q, sort, league, maxAge, pageSize]);
 
   // Sync page to URL (for back-button retention)
   useEffect(() => {
@@ -217,18 +219,46 @@ function PlayersContent() {
     );
   }
 
-  const hasFilters = !!(position || q || tier || league || maxAge);
+  const hasFilters = !!(position || q || league || maxAge);
+
+  const [searchOpen, setSearchOpen] = useState(!!q);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (searchOpen && searchRef.current) searchRef.current.focus();
+  }, [searchOpen]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
-      {/* Header + Filters */}
-      <div className="shrink-0">
+      {/* Header: Title + Search + Admin + Pagination */}
+      <div className="sticky top-0 z-30 bg-[var(--bg-base)] pb-2">
         <div className="flex items-center gap-2 mb-1.5">
-          <h1 className="text-lg font-bold tracking-tight">Players</h1>
+          <SectionHeader label="Players" color="cyan" />
+          {/* Always-visible search toggle/bar */}
+          {searchOpen ? (
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              <SearchInput ref={searchRef} value={searchInput} onChange={setSearchInput} onSearch={(val) => updateParam("q", val)} />
+              <button onClick={() => { setSearchOpen(false); if (q) { setSearchInput(""); updateParam("q", ""); } }}
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0 p-0.5">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setSearchOpen(true)}
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-0.5"
+              title="Search players">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          )}
           {!isAdmin ? (
             <button
               onClick={() => setShowLogin(!showLogin)}
-              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0"
               title="Admin login"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +266,7 @@ function PlayersContent() {
               </svg>
             </button>
           ) : (
-            <span className="text-[10px] text-[var(--color-accent-tactical)]" title="Editing enabled">
+            <span className="text-[10px] text-[var(--color-accent-tactical)] shrink-0" title="Editing enabled">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -340,25 +370,13 @@ function PlayersContent() {
                 <option value="">League</option>
                 {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
-              <select value={tier} onChange={(e) => updateParam("tier", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
-                <option value="">Tier</option>
-                <option value="1">T1</option>
-                <option value="2">T2</option>
-              </select>
+              {hasFilters && (
+                <button onClick={() => { setSearchInput(""); setSearchOpen(false); router.push("/players"); }}
+                  className="px-1.5 py-0.5 rounded text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
+                  Clear
+                </button>
+              )}
             </div>
-          </div>
-          {/* Row 2: Search + clear */}
-          <div className="flex gap-1">
-            <div className="flex-1">
-              <SearchInput value={searchInput} onChange={setSearchInput} onSearch={(val) => updateParam("q", val)} />
-            </div>
-            {hasFilters && (
-              <button onClick={() => { setSearchInput(""); router.push("/players"); }}
-                className="px-1.5 py-0.5 rounded text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
-                Clear
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -366,7 +384,7 @@ function PlayersContent() {
       {/* Content */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && players.length > 0 && (
-          <div className="glass overflow-hidden flex-1 min-h-0 flex flex-col">
+          <div className="glass panel-accent-cyan overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
               <table className="w-full">
@@ -618,6 +636,11 @@ function PlayersContent() {
               {hasFilters ? "No players match the current filters." : "No player data found."}
             </p>
           </div>
+        )}
+        {!loading && !error && players.length > 0 && (
+          <span className="text-[10px] text-[var(--text-muted)] font-mono mt-1">
+            {players.length} scouted players
+          </span>
         )}
       </div>
 

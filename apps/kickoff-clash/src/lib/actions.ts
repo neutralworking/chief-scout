@@ -1,4 +1,9 @@
 /**
+ * @deprecated v2 action cards — replaced by joker system in v3.
+ * Kept for reference. No longer imported by any component.
+ */
+
+/**
  * Kickoff Clash — Action Card Definitions
  *
  * Action cards are played from hand during match rounds.

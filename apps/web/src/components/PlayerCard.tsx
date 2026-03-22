@@ -93,6 +93,11 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           {(player.earned_archetype || player.archetype) && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype) }}>{player.earned_archetype ?? player.archetype}</span></>
           )}
+          {player.model_id && (
+            <span className="font-mono text-[10px] text-[var(--text-muted)] ml-auto">
+              {player.model_id}
+            </span>
+          )}
         </div>
 
         {/* Row 3: Pillar scores + Role + Value */}

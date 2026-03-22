@@ -310,7 +310,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       style={{
         maxWidth: 430,
         margin: '0 auto',
-        minHeight: '100dvh',
+        height: '100dvh',
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--felt, #1a3a1a)',
@@ -324,12 +324,12 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       <div
         style={{
           display: 'flex',
-          gap: 6,
-          padding: '6px 10px',
+          gap: 4,
+          padding: '3px 10px',
           background: 'rgba(0,0,0,0.25)',
-          minHeight: 40,
           alignItems: 'center',
           overflowX: 'auto',
+          flexShrink: 0,
         }}
       >
         {runState.jokers.length === 0 && (
@@ -348,16 +348,17 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '8px 12px',
+          padding: '4px 12px',
           background: 'linear-gradient(135deg, var(--leather, #3d2b1f), #2a1e15)',
           borderBottom: '1px solid rgba(245,158,11,0.2)',
+          flexShrink: 0,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span
             style={{
               fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 36,
+              fontSize: 28,
               color: 'var(--cream, #f5f0e8)',
               lineHeight: 1,
             }}
@@ -376,7 +377,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           <span
             style={{
               fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 36,
+              fontSize: 28,
               color: 'var(--cream, #f5f0e8)',
               lineHeight: 1,
             }}
@@ -400,20 +401,25 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
             {nextMinute}&apos;
           </span>
         </div>
-        <span style={{ fontSize: 11, color: 'var(--dust, #8a7560)', marginTop: 2 }}>
-          vs {opponentName} &middot; Round {runState.round}/5
-        </span>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 2 }}>
+          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
+            vs {opponentName} &middot; Str {opponentStrength}
+          </span>
+          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
+            Round {runState.round}/5
+          </span>
+        </div>
       </div>
 
       {/* ---- Tactic slots ---- */}
       <div
         style={{
           display: 'flex',
-          gap: 6,
-          padding: '6px 10px',
+          gap: 4,
+          padding: '3px 10px',
           justifyContent: 'center',
-          minHeight: 50,
           alignItems: 'center',
+          flexShrink: 0,
         }}
       >
         {handState.tacticSlots.slots.map((slot, i) => (
@@ -530,9 +536,9 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          gap: 6,
-          padding: '6px 4px',
-          minHeight: 200,
+          gap: 3,
+          padding: '2px 4px',
+          minHeight: 0,
         }}
       >
         {formationRows.map((row, ri) => (
@@ -548,7 +554,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
               <div key={card.id} style={{ position: 'relative' }}>
                 <PlayerCard
                   card={card}
-                  size="mini"
+                  size="pill"
                   onClick={() => handleXiTap(card.id)}
                   selected={selectedXiId === card.id}
                   dimmed={!!card.injured}
@@ -582,11 +588,13 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       {(subPhase === 'resolving' || cascadeLines.length > 0) && currentEvent && (
         <div
           style={{
-            padding: '8px 12px',
+            padding: '6px 10px',
             background: 'rgba(0,0,0,0.35)',
             borderRadius: 8,
             margin: '0 10px',
-            minHeight: 100,
+            maxHeight: 90,
+            overflowY: 'auto',
+            flexShrink: 0,
           }}
         >
           {cascadeLines.map((line, i) => (
@@ -658,8 +666,9 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       {/* ---- Bench ---- */}
       <div
         style={{
-          padding: '6px 10px',
+          padding: '4px 10px',
           borderTop: '1px solid rgba(245,158,11,0.15)',
+          flexShrink: 0,
         }}
       >
         <div
@@ -686,7 +695,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
             <div key={card.id} style={{ position: 'relative', flexShrink: 0 }}>
               <PlayerCard
                 card={card}
-                size="mini"
+                size="pill"
                 onClick={() => handleBenchTap(card.id)}
                 selected={selectedBenchId === card.id}
               />
@@ -724,12 +733,13 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       {/* ---- Action bar ---- */}
       <div
         style={{
-          padding: '8px 12px 12px',
+          padding: '4px 12px 8px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 4,
+          gap: 2,
           background: 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)',
+          flexShrink: 0,
         }}
       >
         {subPhase === 'planning' && (
@@ -751,6 +761,13 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           >
             Advance to {nextMinute}&apos;
           </button>
+        )}
+        {subPhase === 'planning' && (
+          <div style={{ display: 'flex', gap: 16, fontSize: 10, color: 'var(--dust, #8a7560)' }}>
+            <span>Subs: {handState.subsRemaining}/5</span>
+            <span>Bench: {handState.bench.length}</span>
+            <span>Deck: {handState.remainingDeck.length}</span>
+          </div>
         )}
 
         {subPhase === 'resolving' && (

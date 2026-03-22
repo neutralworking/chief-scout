@@ -5,6 +5,8 @@ import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { getArchetypeColor } from "@/lib/archetype-styles";
 import { scorePlayerForRole, getRoleReference, getFormationBlueprint, getSlotBlueprint, ROLE_INTELLIGENCE, type SlotBlueprint } from "@/lib/formation-intelligence";
+import { getRoleIcon, type RoleIcon } from "@/lib/role-icons";
+import { RoleIconCard, RoleIconBadge } from "@/components/RoleIconCard";
 
 interface FormationSlot {
   formation_id: number;
@@ -169,6 +171,7 @@ export function FormationDetail({
   rolesByPosition = {},
 }: FormationDetailProps) {
   const [expanded, setExpanded] = useState(false);
+  const [activeRoleIcon, setActiveRoleIcon] = useState<RoleIcon | null>(null);
 
   const formationBlueprint = getFormationBlueprint(formation.name);
   const expandedSlots = expandSlots(slots, rolesMap, rolesByPosition, formation.name);
@@ -310,11 +313,18 @@ export function FormationDetail({
                     <span className="text-[7px] font-medium text-[var(--text-secondary)] mt-0.5 whitespace-nowrap max-w-[60px] truncate text-center">
                       {player ? player.name.split(" ").pop() : "–"}
                     </span>
-                    {slot.role && (
-                      <span className="text-[6px] text-[var(--text-muted)] whitespace-nowrap">
-                        {slot.role.name}
-                      </span>
-                    )}
+                    {slot.role && (() => {
+                      const icon = getRoleIcon(slot.role!.name);
+                      return (
+                        <span
+                          className={`text-[6px] whitespace-nowrap ${icon ? "text-[var(--color-accent-tactical)] cursor-pointer hover:underline" : "text-[var(--text-muted)]"}`}
+                          onClick={icon ? (e) => { e.stopPropagation(); setActiveRoleIcon(icon); } : undefined}
+                        >
+                          {slot.role!.name}
+                          {icon && <span className="ml-0.5 opacity-70">&#9733;</span>}
+                        </span>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -345,11 +355,26 @@ export function FormationDetail({
                           return (
                             <div key={i} className={`border-l-2 pl-3 py-0.5 ${bp ? "border-[var(--color-accent-tactical)]/40" : "border-[var(--border-subtle)]"}`}>
                               {/* Role */}
-                              <div className="text-[10px] text-[var(--text-muted)]">
-                                {bp ? bp.role : (slot.role ? slot.role.name : `${pos} #${slot.index + 1}`)}
+                              <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1.5 flex-wrap">
+                                <span>
+                                  {bp ? bp.role : (slot.role ? slot.role.name : `${pos} #${slot.index + 1}`)}
+                                </span>
                                 {!bp && slot.role?.description && (
-                                  <span className="ml-1 text-[var(--text-muted)]/60">— {slot.role.description}</span>
+                                  <span className="text-[var(--text-muted)]/60">— {slot.role.description}</span>
                                 )}
+                                {(() => {
+                                  const roleName = bp ? bp.role : slot.role?.name;
+                                  const icon = roleName ? getRoleIcon(roleName) : null;
+                                  if (!icon) return null;
+                                  return (
+                                    <RoleIconBadge
+                                      roleName={icon.role}
+                                      iconPlayer={icon.iconPlayer}
+                                      peakScore={icon.peakScore}
+                                      onClick={() => setActiveRoleIcon(icon)}
+                                    />
+                                  );
+                                })()}
                               </div>
                               {/* Blueprint: archetype player + demand */}
                               {bp && (
@@ -420,6 +445,14 @@ export function FormationDetail({
             </details>
           )}
         </div>
+      )}
+
+      {/* Role Icon Modal */}
+      {activeRoleIcon && (
+        <RoleIconCard
+          icon={activeRoleIcon}
+          onClose={() => setActiveRoleIcon(null)}
+        />
       )}
     </div>
   );

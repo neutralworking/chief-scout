@@ -16,20 +16,10 @@ import {
 } from './scoring';
 import { findConnections, type Connection } from './chemistry';
 import { getFormationSlots } from './run';
+import type { JokerCard } from './jokers';
 
-// ---------------------------------------------------------------------------
-// Joker type — defined inline since jokers.ts doesn't exist yet
-// TODO: Import from './jokers' once Task 3 is complete
-// ---------------------------------------------------------------------------
-
-export interface JokerCard {
-  id: number;
-  name: string;
-  effect: string;
-  flavour: string;
-  rarity: string;
-  compute: (xi: Card[], connections: Connection[]) => number;
-}
+// Re-export JokerCard from the canonical jokers module
+export type { JokerCard } from './jokers';
 
 // ---------------------------------------------------------------------------
 // Types

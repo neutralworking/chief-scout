@@ -57,8 +57,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Batch-fetch traits for returned legends
+  const playerIds = (data ?? []).map((p: { person_id: number }) => p.person_id);
+  const traitMap: Record<number, { trait: string; category: string; severity: number }[]> = {};
+
+  if (playerIds.length > 0) {
+    const { data: traitData } = await supabase
+      .from("player_trait_scores")
+      .select("player_id, trait, category, severity, source")
+      .in("player_id", playerIds);
+
+    // Deduplicate: prefer editor over scout/inferred for same trait
+    for (const t of traitData ?? []) {
+      const arr = (traitMap[t.player_id] ??= []);
+      const existing = arr.find((e: { trait: string }) => e.trait === t.trait);
+      if (!existing) {
+        arr.push({ trait: t.trait, category: t.category, severity: t.severity });
+      } else if (t.source === "editor") {
+        existing.severity = t.severity;
+      }
+    }
+  }
+
+  const players = (data ?? []).map((p: { person_id: number }) => ({
+    ...p,
+    traits: traitMap[p.person_id] ?? [],
+  }));
+
   return NextResponse.json({
-    players: data ?? [],
+    players,
     hasMore: (data ?? []).length === limit,
   });
 }

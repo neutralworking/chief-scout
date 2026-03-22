@@ -345,31 +345,31 @@ def compute_best_role(model_scores, position):
 
     best_role = None
     best_score = -1
+    best_max_score = 1
     for primary, secondary, name in roles:
         p_raw = model_scores.get(primary)
         s_raw = model_scores.get(secondary)
         # Skip roles where the primary model has no data at all
         if p_raw is None:
             continue
-        # Apply position weights: models not listed default to 0.2
-        p_score = p_raw * pos_weights.get(primary, 0.2)
-        s_score = s_raw * pos_weights.get(secondary, 0.2) if s_raw is not None else None
-        # If secondary is missing, score based on primary alone
-        if s_score is None:
-            score = p_score * 0.85  # slight penalty for incomplete role fit
+        p_weight = pos_weights.get(primary, 0.2)
+        s_weight = pos_weights.get(secondary, 0.2)
+        if s_raw is None:
+            score = p_raw * p_weight * 0.85
+            max_possible = 99 * p_weight * 0.85
         else:
-            score = p_score * 0.6 + s_score * 0.4
+            score = p_raw * p_weight * 0.6 + s_raw * s_weight * 0.4
+            max_possible = 99 * p_weight * 0.6 + 99 * s_weight * 0.4
         if score > best_score:
             best_score = score
             best_role = name
+            best_max_score = max_possible
 
     if best_role is None:
         return None, 0
-    # Rescale: scores are now weighted down by position weights (max ~1.0),
-    # so normalise back to 0-100 range using the max possible weight for this position
-    max_weight = max(pos_weights.values()) if pos_weights else 1.0
-    normalised = best_score / max_weight if max_weight > 0 else best_score
-    return best_role, round(min(normalised, 99))
+    # Normalize to 0-99: a player with all-99 model scores gets role score 99
+    normalised = (best_score / best_max_score) * 99 if best_max_score > 0 else best_score
+    return best_role, round(min(max(normalised, 0), 99))
 
 
 def has_differentiated_data(model_scores):
@@ -698,8 +698,9 @@ def main():
 
         # Clear stale data for players that were skipped (flat/no data)
         # These keep old inflated scores from previous runs
+        # Skip when processing a single player or subset — only clear on full runs
         processed_ids = [r["person_id"] for r in results]
-        if processed_ids:
+        if processed_ids and not args.player and not args.limit:
             cur.execute("""
                 UPDATE player_profiles
                 SET best_role_score = NULL, best_role = NULL,

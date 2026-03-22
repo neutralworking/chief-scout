@@ -50,7 +50,7 @@ def estimate_ability(
 
     for _ in range(n_samples):
         perturbed = _perturb_profile(profile)
-        ability, domains = _compute_ability_from_profile(perturbed, profile.position)
+        ability, domains = _compute_ability_from_profile(perturbed, profile.position, profile)
         samples.append(ability)
         for domain, score in domains.items():
             domain_samples[domain].append(score)
@@ -103,6 +103,7 @@ def _perturb_profile(profile: PlayerProfile) -> dict[str, float]:
 def _compute_ability_from_profile(
     archetype_scores: dict[str, float],
     position: str | None,
+    profile: "PlayerProfile | None" = None,
 ) -> tuple[float, dict[str, float]]:
     """
     Rule-based ability estimation from archetype scores.
@@ -134,13 +135,20 @@ def _compute_ability_from_profile(
     ability = weighted_sum / weight_total if weight_total > 0 else 50.0
 
     # Domain breakdown
-    domains = _compute_domain_scores(archetype_scores)
+    domains = _compute_domain_scores(archetype_scores, profile)
 
     return ability, domains
 
 
-def _compute_domain_scores(archetype_scores: dict[str, float]) -> dict[str, float]:
-    """Break down ability into tactical domains."""
+def _compute_domain_scores(
+    archetype_scores: dict[str, float],
+    profile: "PlayerProfile | None" = None,
+) -> dict[str, float]:
+    """Break down ability into tactical domains.
+
+    When pillar scores are available, blend them with archetype-derived
+    domain scores (70% archetype, 30% pillar) for more stable estimates.
+    """
     # Attacking: Striker, Creator, Dribbler, Sprinter
     attacking_models = ["Striker", "Creator", "Dribbler", "Sprinter"]
     attacking = np.mean([archetype_scores.get(m, 0) for m in attacking_models])
@@ -157,9 +165,24 @@ def _compute_domain_scores(archetype_scores: dict[str, float]) -> dict[str, floa
     transition_models = ["Sprinter", "Engine", "Dribbler", "Striker"]
     transition = np.mean([archetype_scores.get(m, 0) for m in transition_models])
 
-    return {
+    domains = {
         "attacking": float(attacking),
         "defensive": float(defensive),
         "possession": float(possession),
         "transition": float(transition),
     }
+
+    # Blend with pillar scores when available (pillars map to domains)
+    if profile is not None:
+        pillar_map = {
+            "attacking": profile.technical_score,   # Technical → attacking quality
+            "defensive": profile.tactical_score,     # Tactical → defensive reads
+            "possession": profile.mental_score,      # Mental → possession composure
+            "transition": profile.physical_score,    # Physical → transition pace
+        }
+        for domain, pillar in pillar_map.items():
+            if pillar is not None:
+                # Blend: 70% archetype-derived, 30% pillar
+                domains[domain] = domains[domain] * 0.7 + pillar * 0.3
+
+    return domains

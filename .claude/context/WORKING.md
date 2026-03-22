@@ -1,48 +1,58 @@
 # Working Context — Chief Scout
-> Auto-updated at session start/end. Last updated: 2026-03-21
+> Auto-updated at session start/end. Last updated: 2026-03-22
 
 ## Current Sprint
-1. **Data Density** — DONE. 119k grades, 9,471 players graded, 8,723 fingerprints
-2. **Four-Pillar QA** — DONE. All 5 issues fixed. Pillar scores precomputed for 15k players.
-3. **Scale to 200+ Tier 1** — NOT STARTED. LLM profiling button in admin. Needs automated batch generation.
+1. **Archetype System v2** — COMPLETE. 29 archetypes, 8,181 classified (93%).
+2. **Valuation Engine Fix** — COMPLETE. v1.1-pillars, 16,813 revalued with chunking.
+3. **Pipeline Chain** — COMPLETE. 110k grades → 12.7k ratings → fingerprints → archetypes.
 
 ## Resume Tasks (next session)
-- Valuation integration: feed four-pillar scores into valuation engine
-- SEO: per-player OG images, JSON-LD structured data
-- MiniRadar expansion: shortlist detail, club detail, trending players
+- Legends page polish: user said "can improve" — review trait pill sizing, column widths, mobile layout
+- Expand trait seeds to peak 88-91 legends (~30 more)
+- Consider trait inference for active players from editorial traits
 
 ## Active Decisions
+- Pulse (1,037) and Outlet (1,041) still the largest archetypes — may need further splitting
+- Foden position manually changed WM→AM — may revert on next pipeline run
 - Women's players: decide long-term approach (separate pipeline? same tables?)
 
 ## Blockers
-- Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator
+- ~8,000 players lack AF data — archetype system can't classify without stats
 - FBRef CSV data only has basic columns — advanced stats need manual HTML paste
 
-## What Shipped (session 17, 2026-03-20/21)
-- Mobile bottom nav: top pills → bottom tab bar (Home/Players/Admin/More) + grouped sheet
-- Precomputed four-pillar scores: cron endpoint + daily GitHub Actions (15k players, 57s)
-- Migration 039 applied (tactical_score, mental_score, overall_pillar_score, pillar_updated_at)
-- player_intelligence_card view updated with all pillar + earned archetype columns
-- Compact PlayerCard: 7-row → 3-row with flags, inline pillar scores, value
-- Free agents mobile cards switched to shared PlayerCard component
-- Featured player: active-only filter + LLM-quality bio gate (80+ chars)
-- FourPillarDashboard: stored best_role preferred over live-computed
-- Nation flags on player detail page
-- KC link fix (/kc-preview), Gaffer confirmed working
-- Tasks.md fully audited (16+ stale items cleared)
-- 292 tests passing (13 new for MobileBottomNav)
+## What Shipped (session 19b, 2026-03-22)
+
+### Legends page overhaul
+- Removed Last Club + Score columns
+- Added editable Primary/Secondary skillset dropdowns (admin)
+- Added auto-derived Model label (from MODEL_LABELS map)
+- Added Similar active player column (IntersectionObserver lazy loading)
+- MODEL_LABELS (130 compound entries) ported to TypeScript
+
+### Legend-aware similar player scoring
+- Two scoring paths: scoreLegendToActive (skillset-first) vs scoreActiveToActive (balanced)
+- Adjacent position search (CF→AM/WF, CD→DM, etc.)
+- Quality floor: level >= peak - 9 (min 80)
+
+### Playing style traits
+- 16 editorial traits (12 new + 4 reused from SACROSANCT)
+- Pipeline 04d seeded 152 traits across 65 legends (peak >= 92)
+- Trait pills: colored by category (style=amber, tactical=purple, physical=blue, behavioral=green)
+- Admin add/remove via dropdown + POST /api/admin/trait-update
+- Source deduplication: editor wins over scout
 
 ## Key Metrics
 | Table | Count | Last Updated |
 |-------|-------|-------------|
 | people | 21,683+ | 2026-03-19 |
-| attribute_grades | 500k+ | 2026-03-19 |
-| players with pillar scores | 15,057 | 2026-03-21 |
-| Tier 1 on prod | 276 | 2026-03-16 |
-| Tests passing | 292 | 2026-03-21 |
+| AF grades | 110,047 | 2026-03-21 |
+| earned_archetype assigned | 8,181 | 2026-03-21 |
+| player_valuations | 16,813 | 2026-03-22 |
+| editorial traits seeded | 152 (65 legends) | 2026-03-22 |
+| Tests passing | 292 | 2026-03-22 |
 
 ## Infrastructure Notes
 - `assessments-cron.yml` — daily 3:30am UTC, computes all pillar scores
-- `MobileBottomNav.tsx` replaces `MobileTopNav.tsx` (bottom tab bar)
-- `lib/pillar-colors.ts` — centralised pillar color definitions
-- Pillar color scheme: technical=gold, tactical=purple, mental=green, physical=blue
+- `MODEL_LABELS` in `apps/web/src/lib/models.ts` — mirrors `pipeline/lib/models.py`
+- `TRAIT_DEFINITIONS` in `trait-role-impact.ts` — canonical trait registry (30 traits total)
+- `POST /api/admin/trait-update` — editorial trait add/remove with ALLOWED_TRAITS validation

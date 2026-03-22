@@ -188,61 +188,83 @@ def main():
                   f"€{r['p10']/1e6:>7.1f}m €{r['central']/1e6:>7.1f}m "
                   f"€{r['p90']/1e6:>7.1f}m {r['confidence']:>6} {fit_str:>5}")
 
-    # Write to database
+    # Write to database in chunks to avoid connection drops
     if not args.dry_run and results:
         written = 0
         now_iso = datetime.now(timezone.utc).isoformat()
+        CHUNK_SIZE = 500
 
-        for r in results:
-            resp = r["response"]
-            mv = resp.market_value
-            uv = resp.use_value
+        for chunk_start in range(0, len(results), CHUNK_SIZE):
+            chunk = results[chunk_start:chunk_start + CHUNK_SIZE]
+            chunk_ids = [r["person_id"] for r in chunk]
 
-            row_data = {
-                "person_id": r["person_id"],
-                "market_value_p10": mv.p10,
-                "market_value_p25": mv.p25,
-                "market_value_p50": mv.central,
-                "market_value_p75": mv.p75,
-                "market_value_p90": mv.p90,
-                "use_value_central": uv.central if uv else None,
-                "contextual_fit_score": uv.contextual_fit_score if uv else None,
-                "system_archetype_fit": uv.contextual_fit_breakdown.system_archetype_fit if uv else None,
-                "system_threshold_fit": uv.contextual_fit_breakdown.system_threshold_fit if uv else None,
-                "system_personality_fit": uv.contextual_fit_breakdown.system_personality_fit if uv else None,
-                "system_tag_compatibility": uv.contextual_fit_breakdown.system_tag_compatibility if uv else None,
-                "squad_gap_fill": uv.contextual_fit_breakdown.squad_gap_fill if uv else None,
-                "scout_profile_pct": resp.decomposition.scout_profile_contribution,
-                "performance_data_pct": resp.decomposition.performance_data_contribution,
-                "contract_age_pct": resp.decomposition.contract_age_contribution,
-                "market_context_pct": resp.decomposition.market_context_contribution,
-                "personality_adj_pct": resp.decomposition.personality_adjustment,
-                "style_fit_adj_pct": resp.decomposition.playing_style_fit_adjustment,
-                "profile_confidence": resp.confidence.profile_confidence,
-                "data_coverage": resp.confidence.data_coverage,
-                "overall_confidence": resp.confidence.overall_confidence,
-                "band_width_ratio": resp.confidence.band_width_ratio,
-                "disagreement_flag": resp.disagreement_flag,
-                "stale_profile": resp.stale_profile,
-                "low_data_warning": resp.low_data_warning,
-                "personality_risk_flags": resp.personality_risk_flags or [],
-                "style_risk_flags": resp.style_risk_flags or [],
-                "mode": args.mode,
-                "target_position": r["position"],
-                "target_system": args.system,
-                "model_version": "v1.0",
-                "narrative": resp.narrative,
-                "evaluated_at": now_iso,
-            }
+            # Delete existing valuations for this chunk (when --force)
+            if args.force:
+                try:
+                    sb.table("player_valuations") \
+                        .delete() \
+                        .in_("person_id", chunk_ids) \
+                        .eq("mode", args.mode) \
+                        .execute()
+                except Exception as e:
+                    print(f"  Warning: chunk delete failed: {e}")
 
-            if resp.disagreement:
-                row_data["scout_anchored_value"] = resp.disagreement.scout_anchored_value
-                row_data["data_implied_value"] = resp.disagreement.data_implied_value
-                row_data["divergent_features"] = resp.disagreement.divergent_features
-                row_data["disagreement_narrative"] = resp.disagreement.narrative
+            for r in chunk:
+                resp = r["response"]
+                mv = resp.market_value
+                uv = resp.use_value
 
-            sb.table("player_valuations").insert(row_data).execute()
-            written += 1
+                row_data = {
+                    "person_id": r["person_id"],
+                    "market_value_p10": mv.p10,
+                    "market_value_p25": mv.p25,
+                    "market_value_p50": mv.central,
+                    "market_value_p75": mv.p75,
+                    "market_value_p90": mv.p90,
+                    "use_value_central": uv.central if uv else None,
+                    "contextual_fit_score": uv.contextual_fit_score if uv else None,
+                    "system_archetype_fit": uv.contextual_fit_breakdown.system_archetype_fit if uv else None,
+                    "system_threshold_fit": uv.contextual_fit_breakdown.system_threshold_fit if uv else None,
+                    "system_personality_fit": uv.contextual_fit_breakdown.system_personality_fit if uv else None,
+                    "system_tag_compatibility": uv.contextual_fit_breakdown.system_tag_compatibility if uv else None,
+                    "squad_gap_fill": uv.contextual_fit_breakdown.squad_gap_fill if uv else None,
+                    "scout_profile_pct": resp.decomposition.scout_profile_contribution,
+                    "performance_data_pct": resp.decomposition.performance_data_contribution,
+                    "contract_age_pct": resp.decomposition.contract_age_contribution,
+                    "market_context_pct": resp.decomposition.market_context_contribution,
+                    "personality_adj_pct": resp.decomposition.personality_adjustment,
+                    "style_fit_adj_pct": resp.decomposition.playing_style_fit_adjustment,
+                    "profile_confidence": resp.confidence.profile_confidence,
+                    "data_coverage": resp.confidence.data_coverage,
+                    "overall_confidence": resp.confidence.overall_confidence,
+                    "band_width_ratio": resp.confidence.band_width_ratio,
+                    "disagreement_flag": resp.disagreement_flag,
+                    "stale_profile": resp.stale_profile,
+                    "low_data_warning": resp.low_data_warning,
+                    "personality_risk_flags": resp.personality_risk_flags or [],
+                    "style_risk_flags": resp.style_risk_flags or [],
+                    "mode": args.mode,
+                    "target_position": r["position"],
+                    "target_system": args.system,
+                    "model_version": "v1.1-pillars",
+                    "narrative": resp.narrative,
+                    "evaluated_at": now_iso,
+                }
+
+                if resp.disagreement:
+                    row_data["scout_anchored_value"] = resp.disagreement.scout_anchored_value
+                    row_data["data_implied_value"] = resp.disagreement.data_implied_value
+                    row_data["divergent_features"] = resp.disagreement.divergent_features
+                    row_data["disagreement_narrative"] = resp.disagreement.narrative
+
+                try:
+                    sb.table("player_valuations").insert(row_data).execute()
+                    written += 1
+                except Exception as e:
+                    print(f"  ERROR writing {r['name']} (#{r['person_id']}): {e}")
+
+            print(f"  Chunk {chunk_start // CHUNK_SIZE + 1}: wrote {len(chunk)} "
+                  f"({written}/{len(results)} total)")
 
         print(f"\n  Wrote {written} valuations to player_valuations")
     elif args.dry_run:

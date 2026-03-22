@@ -8,9 +8,9 @@
 
 ### Four-Pillar & Scoring
 - [x] ~~Precompute pillar scores~~ — cron endpoint + GitHub Actions daily. 15k scored. View update SQL in `pipeline/sql/039_pillar_scores.sql`
-- [ ] **Valuation integration** — feed four-pillar scores into valuation engine (Phase 5)
+- [x] ~~Valuation integration~~ — pillar scores feed into effective score (45/25/30 blend) + ability domain scoring (30% pillar blend). Model v1.1-pillars.
 - [x] ~~Valuation GK model fix~~ — min 2 attrs per model in `valuation_core/data_loader.py`. 12,632 revalued. Kane €123m→€81m.
-- [ ] **Re-run valuation with --force** — ~4,200 players still have stale pre-fix valuations
+- [x] ~~Re-run valuation with --force~~ — 16,813 players revalued with pillar-integrated formula. Chunking fix (500/batch) solved connection drops.
 
 ### Product & UX
 - [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
@@ -25,7 +25,7 @@
 - [x] ~~Attribute grade backfill~~ — pipelines 66 (API-Football), 56 (EAFC), 30 (Understat) rerun. Top 250 avg grades 16→28.8. GKs in top 250 dropped 138→85.
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables for meaningful grades
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling (low priority since role score is primary)
-- [ ] **Position audit** — Joe Worrall listed as CM lvl 86 (real-life CB). Likely more wrong positions in DB
+- [x] ~~Position audit (level 80+)~~ — 18 fixes applied (Worrall→CD, Alisson→GK, Militao→CD, Griezmann→CF, etc.). 6 got secondary positions. Ratings recomputed.
 - [ ] **Scouting notes gap** — 46 of top 250 missing. Run LLM profiling (pipeline 72) targeted at top 250
 - [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler) with confidence scores
 - [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`
@@ -42,14 +42,17 @@
 - [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
 - [ ] Add MiniRadar to TrendingPlayers component (homepage)
 - [ ] **Formations seed** — populate from research data
-- [ ] **Product polish** — glass consistency, archetype styling (29 new archetype names need UI update)
+- [x] ~~Archetype styling~~ — 15 UI files updated, centralized `lib/archetype-styles.ts`, category-based colors. Build passes.
+- [ ] **Product polish** — glass consistency
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15% (was 7%)
 - [ ] **Free agent grader** — ranked shortlists
 - [ ] **Scouting radar** — statistical alert system
 - [ ] **News-driven alerts** on player list
+- [x] ~~Playing style traits taxonomy~~ — 16 traits, pipeline 04d seeds 65 legends, trait pills on legends page with admin editing
 
 ### Infrastructure
-- [ ] Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator — needs chunking or timeout increase
+- [x] ~~Valuation engine (40) timeout in orchestrator~~ — chunking added (500/batch with delete-before-insert). 16,813 players processed without drops.
+- [x] ~~StatsBomb grades (31)~~ — scoped to tournaments (Euro/Copa/WC), 5,742 grades for 522 players
 - [ ] **Migrate remaining understat scripts** — scripts 13, 22, 44, 10 still reference `understat_player_match_stats` (only 2022+ data remains)
 
 ## Low Priority
@@ -72,6 +75,38 @@
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo, fixture feed from CS pipeline 61
 
 ---
+
+## Completed (2026-03-22, session 19b — legends traits)
+- [x] Legends page overhaul: editable Primary/Secondary, auto-derived Model label, Similar active player column
+- [x] MODEL_LABELS (130 compounds) ported to TypeScript
+- [x] Legend-aware similar player scoring: skillset-first + adjacent positions + quality floor (peak-9)
+- [x] Playing style traits: 16 editorial traits, pipeline 04d seeds 152 traits for 65 legends
+- [x] Trait pills UI: colored by category, admin add/remove dropdown
+- [x] trait-update API endpoint with ALLOWED_TRAITS validation
+
+## Completed (2026-03-22, session 20)
+- [x] Valuation pillar integration — overall_pillar_score as 3rd signal (45% role / 25% pillar / 30% level), individual pillars blend into ability domains
+- [x] Full revaluation — 16,813 players valued with v1.1-pillars model
+- [x] Valuation engine chunking — 500/batch with delete-before-insert, fixes Supabase connection drops at >10k
+- [x] Position audit — 18 corrections (level 80+), cross-referenced FBRef+Kaggle, secondary positions for versatile players
+- [x] Pipeline 27 --player bug fix — stale clearing now skipped on single-player/limited runs
+- [x] Full ratings recompute — 13,235 ratings restored after --player bug
+
+## Completed (2026-03-22, session 19)
+- [x] Legends page overhaul: editable Primary/Secondary, auto-derived Model label, Similar active player column
+- [x] Removed Last Club + Score columns from legends
+- [x] MODEL_LABELS (130 compound labels) ported to TypeScript (`apps/web/src/lib/models.ts`)
+- [x] Legend-aware similar player scoring: skillset-first path, adjacent position search
+- [x] Quality floor for legend similar players: `level >= peak - 9` (min 80)
+- [x] Playing style traits scoped but deferred — needs taxonomy from /categorist + /dof
+
+## Completed (2026-03-21, session 18)
+- [x] FeaturedPlayer card fix: earned_archetype display, position-specific radar axes, stored best_role preference
+- [x] Legend skillsets: 195 legends seeded with curated Primary-Secondary, tactical roles, playing styles (pipeline 04c)
+- [x] 3 duplicate legends merged (Sivori, Kocsis, Savicevic)
+- [x] "Plays Like" legend comparison: similar-players API + SimilarPlayers component
+- [x] Legends page "Archetype" column renamed to "Skillset"
+- [x] Airtable skillset pipeline built (04b) — tested but rejected (grade scale too coarse)
 
 ## Completed (2026-03-21, session 16 continued)
 - [x] Grade backfill — pipelines 66, 56, 30 rerun. Top 250 avg grades 16→28.8

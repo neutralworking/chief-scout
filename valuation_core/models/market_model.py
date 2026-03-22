@@ -268,36 +268,54 @@ def _compute_effective_score(profile: PlayerProfile) -> int | None:
     """
     Compute the effective score that drives valuation.
 
-    Priority:
+    Signals (in priority order):
       1. best_role_score (data-derived, from archetype fit to best tactical role)
-      2. level (editorial ceiling)
+      2. overall_pillar_score (precomputed Technical+Tactical+Mental+Physical avg)
+      3. level (editorial ceiling)
 
-    When both exist, we blend them rather than hard-min, because role scores
-    are systematically lower than levels due to incomplete attribute data.
-    Level is the ceiling — role_score cannot exceed it — but level also
-    provides signal about the player's true quality.
+    When multiple signals exist, we blend them:
+      - role_score + pillar + level: 45% role, 25% pillar, 30% level
+      - role_score + level (no pillar): 60% role, 40% level
+      - role_score + pillar (no level): 65% role, 35% pillar
+      - pillar + level (no role): 40% pillar, 60% level
+      - single signal: use directly
 
-    Blend: 60% role_score + 40% level, capped at level.
-    This means a player with role_score=74 and level=95 gets ~82,
-    not 74 (which would be a 21-point penalty for sparse data).
+    Level is always the ceiling — blended score cannot exceed it.
 
     Condition modifiers reduce score below ceiling:
       - Trajectory: declining players score lower
       - Profile tier: skeleton profiles get penalised
     """
     role_score = profile.best_role_score
+    pillar = profile.overall_pillar_score
     level = profile.level
 
-    if role_score is None and level is None:
+    if role_score is None and pillar is None and level is None:
         return None
 
-    if role_score is not None and level is not None:
-        # Blend: role score is primary signal, level provides context
-        # Cap at level (ceiling)
+    # Count available signals
+    signals = sum(1 for s in (role_score, pillar, level) if s is not None)
+
+    if signals == 3:
+        # All three: role is primary, pillar validates, level caps
+        blended = role_score * 0.45 + pillar * 0.25 + level * 0.30
+        effective = int(min(blended, level))
+    elif role_score is not None and level is not None:
+        # No pillar data — original blend
         blended = role_score * 0.6 + level * 0.4
+        effective = int(min(blended, level))
+    elif role_score is not None and pillar is not None:
+        # No level — pillar provides quality context
+        blended = role_score * 0.65 + pillar * 0.35
+        effective = int(blended)
+    elif pillar is not None and level is not None:
+        # No role score — pillar is a data-derived stand-in
+        blended = pillar * 0.40 + level * 0.60
         effective = int(min(blended, level))
     elif role_score is not None:
         effective = role_score
+    elif pillar is not None:
+        effective = pillar
     else:
         effective = level
 
@@ -305,7 +323,7 @@ def _compute_effective_score(profile: PlayerProfile) -> int | None:
     if profile.trajectory == "declining":
         effective = max(effective - 5, 40)
 
-    if role_score is None and profile.profile_tier == 3:
+    if role_score is None and pillar is None and profile.profile_tier == 3:
         effective = max(effective - 3, 40)
 
     # XP modifier (career experience)

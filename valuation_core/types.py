@@ -101,6 +101,13 @@ class PlayerProfile:
     xp_level: Optional[int] = None              # 1-12, BG3-style XP level
     legacy_score: Optional[int] = None           # 0-99, combined career legacy
 
+    # Four-pillar scores (0-100, precomputed from attribute grades)
+    technical_score: Optional[int] = None
+    tactical_score: Optional[int] = None
+    mental_score: Optional[int] = None
+    physical_score: Optional[int] = None
+    overall_pillar_score: Optional[int] = None
+
     # Performance metrics (per-90, from FBref/StatsBomb)
     performance: dict[str, float] = field(default_factory=dict)
 

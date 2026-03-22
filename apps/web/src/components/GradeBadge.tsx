@@ -1,29 +1,28 @@
-/** Grade scale: numeric score → letter grade */
-export function scoreToGrade(score: number | null): string {
-  if (score === null) return "—";
-  if (score >= 90) return "A+";
-  if (score >= 80) return "A";
-  if (score >= 70) return "B+";
-  if (score >= 60) return "B";
-  if (score >= 50) return "C";
-  if (score >= 40) return "D";
-  return "F";
+export type Grade = "A" | "B" | "C" | "D";
+
+const GRADE_STYLES: Record<Grade, string> = {
+  A: "bg-[var(--color-accent-mental)]/15 text-[var(--color-accent-mental)] border-[var(--color-accent-mental)]/30",
+  B: "bg-[var(--border-bright)]/15 text-[var(--border-bright)] border-[var(--border-bright)]/30",
+  C: "bg-[var(--color-accent-personality)]/15 text-[var(--color-accent-personality)] border-[var(--color-accent-personality)]/30",
+  D: "bg-[var(--color-sentiment-negative)]/15 text-[var(--color-sentiment-negative)] border-[var(--color-sentiment-negative)]/30",
+};
+
+interface GradeBadgeProps {
+  grade: Grade;
 }
 
-export function GradeBadge({ score, size = "sm" }: { score: number | null; size?: "sm" | "md" }) {
-  const grade = scoreToGrade(score);
-  const color =
-    (score ?? 0) >= 80 ? "var(--color-accent-technical)" :
-    (score ?? 0) >= 60 ? "var(--color-accent-mental)" :
-    (score ?? 0) >= 40 ? "var(--color-accent-physical)" :
-    "var(--text-muted)";
-
+export function GradeBadge({ grade }: GradeBadgeProps) {
   return (
-    <span
-      className={`font-mono font-bold ${size === "md" ? "text-sm" : "text-xs"}`}
-      style={{ color }}
-    >
+    <span className={`font-mono text-[10px] font-bold px-1.5 py-0.5 border ${GRADE_STYLES[grade]}`}>
       {grade}
     </span>
   );
+}
+
+export function scoreToGrade(score: number | null | undefined): Grade {
+  if (score == null) return "D";
+  if (score >= 80) return "A";
+  if (score >= 65) return "B";
+  if (score >= 50) return "C";
+  return "D";
 }

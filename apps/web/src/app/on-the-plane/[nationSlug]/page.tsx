@@ -1,9 +1,40 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
+
+// Error boundary to catch and display the actual error message
+class OTPErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 20, color: "#ff6b6b", background: "#1e1e1e", margin: 16, borderRadius: 8, fontFamily: "monospace", fontSize: 12 }}>
+          <div style={{ fontWeight: "bold", marginBottom: 8 }}>OTP Error</div>
+          <div>{this.state.error.message}</div>
+          <pre style={{ marginTop: 8, fontSize: 10, color: "#808080", whiteSpace: "pre-wrap" }}>
+            {this.state.error.stack}
+          </pre>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 12, padding: "4px 12px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: 4, cursor: "pointer" }}>
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,7 +111,15 @@ const FORMATION_SLOTS: Record<string, string[]> = {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export default function SquadBuilderPage() {
+export default function SquadBuilderPageWrapper() {
+  return (
+    <OTPErrorBoundary>
+      <SquadBuilderPage />
+    </OTPErrorBoundary>
+  );
+}
+
+function SquadBuilderPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.nationSlug as string;

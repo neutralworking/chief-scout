@@ -1,8 +1,8 @@
 /**
- * Kickoff Clash — Run State Manager (v2)
+ * Kickoff Clash — Run State Manager (v4)
  *
  * Manages the entire roguelike run state, client-side only.
- * v2: Deck shuffle with weighted random, durability system, action cards, academy.
+ * v4: 11-card XI, formations, tactics deck, training, scaled opponents.
  */
 
 import {
@@ -25,6 +25,9 @@ import type { HandState } from './hand';
 import { rollXI } from './hand';
 import type { JokerCard } from './jokers';
 import { getExtraDiscards } from './jokers';
+import type { PackContents } from './packs';
+import { ALL_TACTICS, type TacticCard } from './tactics';
+import { getFormation } from './formations';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,10 +37,12 @@ export interface RunState {
   formation: string;
   playingStyle: string;
   deck: Card[];
-  lineup: SlottedCard[];
   bench: Card[];
   jokers: JokerCard[];           // active jokers (max 3)
-  handState: HandState | null;   // current match hand (from hand.ts)
+  ownedFormations: string[];     // formation IDs the player owns
+  tacticsDeck: TacticCard[];     // tactic cards in collection
+  activeFormation: string;       // currently selected formation ID
+  trainingApplied: Record<number, number>; // cardId → total power added (max +20)
   cash: number;
   stadiumTier: number;
   ticketPriceBonus: number;
@@ -45,7 +50,7 @@ export interface RunState {
   round: number;       // match number (1-5)
   wins: number;
   losses: number;
-  status: 'setup' | 'hand' | 'scoring' | 'postmatch' | 'shop' | 'won' | 'lost';
+  status: 'title' | 'packSelect' | 'setup' | 'match' | 'postmatch' | 'shop' | 'won' | 'lost';
   matchHistory: MatchResult[];
   modifiers: unknown[];
   seed: number;
@@ -190,11 +195,11 @@ const SLOT_ELIGIBLE_POSITIONS: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 
 const OPPONENTS: Opponent[] = [
-  { name: 'FC Warm-Up',       baseStrength: 40,  actionsPerRound: 0, style: 'Passive' },
-  { name: 'Dynamo Midtable',  baseStrength: 55,  actionsPerRound: 1, style: 'Balanced' },
-  { name: 'Real Ambition',    baseStrength: 70,  actionsPerRound: 1, style: 'Attacking' },
-  { name: 'AC Nightmare',     baseStrength: 80,  actionsPerRound: 2, style: 'Counter-attacking' },
-  { name: 'The Invincibles',  baseStrength: 95,  actionsPerRound: 2, style: 'Adaptive' },
+  { name: 'FC Warm-Up',       baseStrength: 500,  actionsPerRound: 0, style: 'Passive' },
+  { name: 'Dynamo Midtable',  baseStrength: 650,  actionsPerRound: 1, style: 'Balanced' },
+  { name: 'Real Ambition',    baseStrength: 800,  actionsPerRound: 1, style: 'Attacking' },
+  { name: 'AC Nightmare',     baseStrength: 950,  actionsPerRound: 2, style: 'Counter' },
+  { name: 'The Invincibles',  baseStrength: 1100, actionsPerRound: 2, style: 'Adaptive' },
 ];
 
 export function getOpponent(round: number): Opponent {
@@ -210,7 +215,7 @@ const OPPONENT_BUILDS: OpponentBuild[] = [
     name: 'FC Warm-Up',
     formation: '4-4-2',
     style: 'Direct Play',
-    baseStrength: 40,
+    baseStrength: 500,
     actionsPerRound: 0,
     xi: [
       { name: 'The Donkey', position: 'CF', archetype: 'Target', power: 35, personalityTheme: 'General' },
@@ -229,7 +234,7 @@ const OPPONENT_BUILDS: OpponentBuild[] = [
     name: 'Dynamo Midtable',
     formation: '4-3-3',
     style: 'Balanced',
-    baseStrength: 55,
+    baseStrength: 650,
     actionsPerRound: 1,
     xi: [
       { name: 'Mr. Consistent', position: 'CM', archetype: 'Controller', power: 55, personalityTheme: 'General' },
@@ -248,7 +253,7 @@ const OPPONENT_BUILDS: OpponentBuild[] = [
     name: 'Real Ambition',
     formation: '3-5-2',
     style: 'Tiki-Taka',
-    baseStrength: 70,
+    baseStrength: 800,
     actionsPerRound: 1,
     xi: [
       { name: 'El Maestro', position: 'AM', archetype: 'Creator', power: 70, personalityTheme: 'Maestro' },
@@ -267,7 +272,7 @@ const OPPONENT_BUILDS: OpponentBuild[] = [
     name: 'AC Nightmare',
     formation: '5-3-2',
     style: 'Counter-Attack',
-    baseStrength: 80,
+    baseStrength: 950,
     actionsPerRound: 2,
     xi: [
       { name: 'The Wall', position: 'CD', archetype: 'Destroyer', power: 80, personalityTheme: 'Captain' },
@@ -286,7 +291,7 @@ const OPPONENT_BUILDS: OpponentBuild[] = [
     name: 'The Invincibles',
     formation: '4-3-3',
     style: 'Gegenpressing',
-    baseStrength: 95,
+    baseStrength: 1100,
     actionsPerRound: 2,
     xi: [
       { name: 'The Machine', position: 'CM', archetype: 'Engine', power: 90, personalityTheme: 'Captain' },
@@ -699,28 +704,30 @@ export function generateStarterActionDeck(seed: number): ActionCard[] {
 }
 
 /**
- * Initialize a new run
+ * Initialize a new run from pack contents (v4)
  */
-export function createRun(formation: string, style: string, seed?: number): RunState {
+export function createRun(packContents: PackContents, style: string, seed?: number): RunState {
   const runSeed = seed ?? Math.floor(Math.random() * 1000000);
-  const deck = generateStarterDeck(runSeed);
+  const ownedFormations = packContents.formations.map(f => f.id);
 
   return {
-    formation,
+    formation: ownedFormations[0] ?? '4-3-3',
     playingStyle: style,
-    deck,
-    lineup: [],
-    bench: [...deck],
-    jokers: [],
-    handState: null,
-    cash: 10000,
+    deck: packContents.players,
+    bench: [...packContents.players],
+    jokers: packContents.managers,
+    ownedFormations,
+    tacticsDeck: packContents.tactics,
+    activeFormation: ownedFormations[0] ?? '4-3-3',
+    trainingApplied: {},
+    cash: 0,
     stadiumTier: 1,
     ticketPriceBonus: 0,
     academyTier: 1,
     round: 1,
     wins: 0,
     losses: 0,
-    status: 'hand',
+    status: 'match',
     matchHistory: [],
     modifiers: [],
     seed: runSeed,
@@ -728,25 +735,26 @@ export function createRun(formation: string, style: string, seed?: number): RunS
 }
 
 /**
- * Start a match: roll XI from deck using hand-based system
+ * Start a match: roll XI from deck using hand-based system.
+ * Returns the HandState separately — it is managed by MatchPhase locally, not persisted in RunState.
  */
-export function startMatch(state: RunState): RunState {
+export function startMatch(state: RunState): { state: RunState; handState: HandState } {
   const matchSeed = state.seed + state.round * 1000;
 
   // Roll XI using hand-based system
-  const handState = rollXI(state.deck, state.formation, matchSeed);
+  const formation = getFormation(state.activeFormation);
+  const handState = rollXI(state.deck, formation, matchSeed);
 
-  // Apply joker bonus discards
-  const extraDiscards = getExtraDiscards(state.jokers);
+  // Apply joker bonus subs (Scout's Eye gives +1 sub per copy)
+  const extraSubs = getExtraDiscards(state.jokers);
   const adjustedHandState: HandState = {
     ...handState,
-    discardsRemaining: handState.discardsRemaining + extraDiscards,
+    subsRemaining: handState.subsRemaining + extraSubs,
   };
 
   return {
-    ...state,
+    state: { ...state, status: 'match' },
     handState: adjustedHandState,
-    status: 'hand',
   };
 }
 
@@ -884,16 +892,14 @@ export function finalizeMatch(state: RunState, matchState: MatchState): {
 */
 
 /**
- * Advance to next match round — reset handState for next match
+ * Advance to next match round
  */
 export function advanceToNextMatch(state: RunState): RunState {
   return {
     ...state,
     round: state.round + 1,
-    lineup: [],
     bench: [...state.deck],
-    handState: null,
-    status: 'hand',
+    status: 'match',
   };
 }
 
@@ -972,32 +978,11 @@ export function buyAcademyPlayer(state: RunState, card: Card): RunState | null {
   };
 }
 
-/**
- * Place a card from bench into a formation slot (manual override for arranging)
- */
-export function placeCard(state: RunState, card: Card, slot: string): RunState {
-  const bench = state.bench.filter(c => c.id !== card.id);
-  const existing = state.lineup.find(sc => sc.slot === slot);
-  if (existing) bench.push(existing.card);
-  const lineup = [
-    ...state.lineup.filter(sc => sc.slot !== slot),
-    { card, slot },
-  ];
-  return { ...state, bench, lineup };
-}
-
-/**
- * Remove a card from a slot back to bench
- */
-export function removeCard(state: RunState, slot: string): RunState {
-  const existing = state.lineup.find(sc => sc.slot === slot);
-  if (!existing) return state;
-  return {
-    ...state,
-    lineup: state.lineup.filter(sc => sc.slot !== slot),
-    bench: [...state.bench, existing.card],
-  };
-}
+// @deprecated — lineup is now managed locally in MatchPhase, not persisted in RunState
+/*
+export function placeCard(state: RunState, card: Card, slot: string): RunState { ... }
+export function removeCard(state: RunState, slot: string): RunState { ... }
+*/
 
 // ---------------------------------------------------------------------------
 // Substitution Cards — @deprecated (no longer needed in hand-based system)
@@ -1056,10 +1041,77 @@ export function executeSubstitution(
 }
 */
 
+// ---------------------------------------------------------------------------
+// Training, Formation Purchase, Tactic Pack Purchase (v4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply training to a card (+5 power per application, max +20 total, costs 8000)
+ */
+export function applyTraining(state: RunState, cardId: number): RunState | null {
+  const TRAINING_COST = 8000;
+  const MAX_TRAINING = 20;
+
+  if (state.cash < TRAINING_COST) return null;
+
+  const current = state.trainingApplied[cardId] ?? 0;
+  if (current >= MAX_TRAINING) return null;
+
+  const card = state.deck.find(c => c.id === cardId);
+  if (!card) return null;
+
+  return {
+    ...state,
+    cash: state.cash - TRAINING_COST,
+    deck: state.deck.map(c => c.id === cardId ? { ...c, power: c.power + 5 } : c),
+    trainingApplied: { ...state.trainingApplied, [cardId]: current + 5 },
+  };
+}
+
+/**
+ * Buy a new formation (costs 20000)
+ */
+export function buyFormation(state: RunState, formationId: string): RunState | null {
+  const FORMATION_COST = 20000;
+  if (state.cash < FORMATION_COST) return null;
+  if (state.ownedFormations.includes(formationId)) return null;
+
+  return {
+    ...state,
+    cash: state.cash - FORMATION_COST,
+    ownedFormations: [...state.ownedFormations, formationId],
+  };
+}
+
+/**
+ * Buy a tactic pack (2 random tactics for 10000)
+ */
+export function buyTacticPack(state: RunState, seed: number): RunState | null {
+  const TACTIC_PACK_COST = 10000;
+  if (state.cash < TACTIC_PACK_COST) return null;
+
+  // Pick 2 random tactics not already owned
+  const available = ALL_TACTICS.filter(t => !state.tacticsDeck.some(td => td.id === t.id));
+  if (available.length === 0) return null;
+
+  const newTactics: TacticCard[] = [];
+  const pool = [...available];
+  for (let i = 0; i < 2 && pool.length > 0; i++) {
+    const idx = Math.floor(seededRandom(seed + i * 13) * pool.length);
+    newTactics.push(pool.splice(idx, 1)[0]);
+  }
+
+  return {
+    ...state,
+    cash: state.cash - TACTIC_PACK_COST,
+    tacticsDeck: [...state.tacticsDeck, ...newTactics],
+  };
+}
+
 // Re-export commonly used types and constants
 export { PLAYING_STYLES, SHOP_ITEMS };
 export type { Card, SlottedCard, PlayingStyle, ShopItem, ActionCard, MatchState, RoundResult, Durability };
-export type { HandState, JokerCard };
+export type { HandState, JokerCard, TacticCard };
 
 // ---------------------------------------------------------------------------
 // Backward Compatibility (v1 API shims)
@@ -1068,67 +1120,9 @@ export type { HandState, JokerCard };
 import { evaluateLineup, type ScoringResult } from './scoring';
 export { evaluateLineup, type ScoringResult };
 
-/**
- * @deprecated Use startMatch() + playRound() for v2.
- * Check if all 5 slots are filled.
- */
-export function canBlowWhistle(state: RunState): boolean {
-  const slots = getFormationSlots(state.formation);
-  return slots.every(slot => state.lineup.some(sc => sc.slot === slot));
-}
-
-/**
- * @deprecated Use startMatch() + playRound() + finalizeMatch() for v2.
- * Play a match using the v1 "single Whistle" evaluation.
- */
-export function playMatch(state: RunState): { state: RunState; result: MatchResult } {
-  const opponent = getOpponent(state.round);
-  const style = PLAYING_STYLES[state.playingStyle];
-
-  const scoringResult = evaluateLineup(state.lineup, style, opponent.baseStrength, state.round);
-  const playerScore = scoringResult.finalScore;
-  const opponentScore = opponent.baseStrength * 5; // rough v1 compat
-
-  const resultType: 'win' | 'draw' | 'loss' =
-    playerScore > opponentScore ? 'win' :
-    playerScore === opponentScore ? 'draw' : 'loss';
-
-  const newWins = state.wins + (resultType === 'win' ? 1 : 0);
-  const newLosses = state.losses + (resultType === 'loss' ? 1 : 0);
-
-  const matchResult: MatchResult = {
-    round: state.round,
-    opponentName: opponent.name,
-    yourGoals: resultType === 'win' ? 2 : resultType === 'draw' ? 1 : 0,
-    opponentGoals: resultType === 'loss' ? 2 : resultType === 'draw' ? 1 : 0,
-    attendance: 200,
-    revenue: 2000,
-    result: resultType,
-    synergiesTriggered: scoringResult.connections.map(c => c.name),
-    shattered: [],
-    injured: [],
-    promoted: [],
-  };
-
-  return {
-    state: {
-      ...state,
-      wins: newWins,
-      losses: newLosses,
-      cash: state.cash + matchResult.revenue,
-      matchHistory: [...state.matchHistory, matchResult],
-      status: 'postmatch',
-    },
-    result: matchResult,
-  };
-}
-
-/**
- * @deprecated Use finalizeMatch() for v2.
- */
-export function advanceToShop(state: RunState): RunState {
-  if (state.losses >= 3) return { ...state, status: 'lost' };
-  if (state.round >= 5 && state.wins >= 5) return { ...state, status: 'won' };
-  if (state.round >= 5) return { ...state, status: 'lost' };
-  return { ...state, status: 'shop' };
-}
+// @deprecated — v1/v2 backward-compat functions removed in v4 (lineup no longer in RunState)
+/*
+export function canBlowWhistle(state: RunState): boolean { ... }
+export function playMatch(state: RunState): { state: RunState; result: MatchResult } { ... }
+export function advanceToShop(state: RunState): RunState { ... }
+*/

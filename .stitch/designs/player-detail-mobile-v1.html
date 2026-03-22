@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Player Detail — Bellingham</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .secondary { color: #c8c8c8; }
+  .muted { color: #6a6a6a; }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 44px;
+    background: #141414;
+    border-bottom: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+  .top-bar-back {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #6fc3df;
+    cursor: pointer;
+  }
+  .top-bar-name {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  .pursuit-badge {
+    background: rgba(212,160,53,0.15);
+    border: 1px solid rgba(212,160,53,0.5);
+    color: #d4a035;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    text-transform: uppercase;
+  }
+
+  /* ── Panels ── */
+  .panel {
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.35);
+    margin: 12px 12px 0 12px;
+    padding: 16px;
+  }
+  .panel-elevated {
+    background: #252526;
+  }
+
+  /* ── Hero ── */
+  .hero { text-align: center; padding: 20px 16px; }
+  .hero-position {
+    display: inline-block;
+    background: rgba(155,89,182,0.2);
+    border: 1px solid rgba(155,89,182,0.5);
+    color: #9b59b6;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    margin-bottom: 8px;
+  }
+  .hero-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .chip {
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.2);
+    color: #c8c8c8;
+    font-size: 11px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+  .role-score-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #9b59b6;
+    line-height: 1;
+  }
+  .role-score-label {
+    color: #c8c8c8;
+    font-size: 13px;
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+  .archetype-tag {
+    display: inline-block;
+    background: rgba(232,197,71,0.12);
+    border: 1px solid rgba(232,197,71,0.4);
+    color: #e8c547;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 4px 14px;
+  }
+
+  /* ── Pillar Scores ── */
+  .pillar-section { padding: 14px 16px; }
+  .pillar-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .pillar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .pillar-row:last-child { margin-bottom: 0; }
+  .pillar-label {
+    width: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .pillar-bar-bg {
+    flex: 1;
+    height: 22px;
+    background: #0a0a0a;
+    margin: 0 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pillar-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+  .pillar-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .pillar-tech { color: #d4a035; }
+  .pillar-tact { color: #9b59b6; }
+  .pillar-ment { color: #3dba6f; }
+  .pillar-phys { color: #4a90d9; }
+
+  /* ── Radar ── */
+  .radar-section { text-align: center; padding: 16px; }
+  .radar-svg { max-width: 280px; margin: 0 auto; display: block; }
+  .plays-like-chip {
+    display: inline-block;
+    background: #0a0a0a;
+    border: 1px solid rgba(155,89,182,0.3);
+    color: #c8c8c8;
+    font-size: 12px;
+    padding: 6px 14px;
+    margin-top: 14px;
+  }
+  .plays-like-chip span { color: #9b59b6; font-weight: 600; }
+
+  /* ── Personality ── */
+  .personality-card {
+    border-top: 2px solid #e8c547;
+    padding: 14px 16px;
+  }
+  .personality-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .personality-type {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8c547;
+  }
+  .personality-mbti {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #c8c8c8;
+    background: rgba(232,197,71,0.1);
+    padding: 2px 8px;
+  }
+  .trait-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .trait-chip {
+    background: rgba(232,197,71,0.08);
+    border: 1px solid rgba(232,197,71,0.25);
+    color: #c8c8c8;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  /* ── Season Stats ── */
+  .stats-section { padding: 14px 16px; }
+  .stats-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-box {
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6a6a6a;
+  }
+
+  /* ── Scouting Notes ── */
+  .scouting-notes {
+    background: #0a0a0a;
+    border-left: 3px solid #6fc3df;
+    margin: 12px;
+    padding: 14px 16px;
+  }
+  .scouting-notes h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6fc3df;
+    margin-bottom: 8px;
+  }
+  .scouting-notes p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c8c8c8;
+  }
+
+  /* ── Attributes ── */
+  .attr-section { margin: 12px 12px 0; }
+  .attr-group {
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.35);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .attr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    min-height: 44px;
+    border-top: 2px solid transparent;
+  }
+  .attr-header-tech { border-top-color: #d4a035; }
+  .attr-header-tact { border-top-color: #9b59b6; }
+  .attr-header-ment { border-top-color: #3dba6f; }
+  .attr-header-phys { border-top-color: #4a90d9; }
+  .attr-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .attr-header-chevron {
+    font-size: 14px;
+    color: #6a6a6a;
+    transition: transform 0.2s;
+  }
+  .attr-group.open .attr-header-chevron { transform: rotate(180deg); }
+  .attr-body { display: none; padding: 0 16px 12px; }
+  .attr-group.open .attr-body { display: block; }
+  .attr-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .attr-row:last-child { border-bottom: none; }
+  .attr-name {
+    flex: 1;
+    font-size: 13px;
+    color: #c8c8c8;
+  }
+  .attr-grade {
+    width: 28px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 12px;
+  }
+  .grade-a { background: rgba(61,186,111,0.2); color: #3dba6f; border: 1px solid rgba(61,186,111,0.4); }
+  .grade-b { background: rgba(212,160,53,0.2); color: #d4a035; border: 1px solid rgba(212,160,53,0.4); }
+  .grade-c { background: rgba(74,144,217,0.2); color: #4a90d9; border: 1px solid rgba(74,144,217,0.4); }
+  .attr-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    width: 24px;
+    text-align: right;
+  }
+
+  /* ── Market Intelligence ── */
+  .market-section { padding: 14px 16px; }
+  .market-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .market-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .market-row:last-child { border-bottom: none; }
+  .market-label { font-size: 13px; color: #c8c8c8; }
+  .market-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .market-premium { color: #e74c3c; }
+  .market-scarcity { color: #6fc3df; }
+
+  /* ── Similar Players ── */
+  .similar-section { padding: 14px 16px; }
+  .similar-section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6a6a6a;
+    margin-bottom: 12px;
+  }
+  .similar-cards {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .similar-cards::-webkit-scrollbar { display: none; }
+  .similar-card {
+    flex-shrink: 0;
+    width: 112px;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.2);
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .similar-name {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .similar-pos {
+    font-size: 10px;
+    color: #6a6a6a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .similar-rs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #9b59b6;
+    margin-bottom: 2px;
+  }
+  .similar-club {
+    font-size: 10px;
+    color: #6a6a6a;
+  }
+
+  /* ── Bottom Nav ── */
+  .bottom-spacer { height: 68px; }
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    height: 56px;
+    background: #141414;
+    border-top: 1px solid rgba(111,195,223,0.35);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    cursor: pointer;
+    color: #6a6a6a;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    gap: 3px;
+    transition: color 0.15s;
+  }
+  .nav-item.active { color: #6fc3df; }
+  .nav-icon { font-size: 18px; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="top-bar-back">&larr;</div>
+  <div class="top-bar-name">Bellingham</div>
+  <div class="pursuit-badge">Interested</div>
+</div>
+
+<!-- Hero -->
+<div class="panel hero">
+  <div class="hero-position">AM</div>
+  <div class="hero-name">Jude Bellingham</div>
+  <div class="hero-chips">
+    <div class="chip">Real Madrid</div>
+    <div class="chip">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631; England</div>
+    <div class="chip">Age 22</div>
+    <div class="chip">185cm</div>
+    <div class="chip">Right foot</div>
+  </div>
+  <div class="role-score-value">94</div>
+  <div class="role-score-label">Box-to-Box</div>
+  <div class="archetype-tag">Maestro</div>
+</div>
+
+<!-- Pillar Scores -->
+<div class="panel pillar-section">
+  <h3>Pillar Scores</h3>
+  <div class="pillar-row">
+    <div class="pillar-label pillar-tech">Tech</div>
+    <div class="pillar-bar-bg">
+      <div class="pillar-bar-fill" style="width:88%;background:rgba(212,160,53,0.3);"></div>
+    </div>
+    <div class="pillar-score pillar-tech mono">88</div>
+  </div>
+  <div class="pillar-row">
+    <div class="pillar-label pillar-tact">Tact</div>
+    <div class="pillar-bar-bg">
+      <div class="pillar-bar-fill" style="width:91%;background:rgba(155,89,182,0.3);"></div>
+    </div>
+    <div class="pillar-score pillar-tact mono">91</div>
+  </div>
+  <div class="pillar-row">
+    <div class="pillar-label pillar-ment">Ment</div>
+    <div class="pillar-bar-bg">
+      <div class="pillar-bar-fill" style="width:85%;background:rgba(61,186,111,0.3);"></div>
+    </div>
+    <div class="pillar-score pillar-ment mono">85</div>
+  </div>
+  <div class="pillar-row">
+    <div class="pillar-label pillar-phys">Phys</div>
+    <div class="pillar-bar-bg">
+      <div class="pillar-bar-fill" style="width:87%;background:rgba(74,144,217,0.3);"></div>
+    </div>
+    <div class="pillar-score pillar-phys mono">87</div>
+  </div>
+</div>
+
+<!-- Radar -->
+<div class="panel radar-section">
+  <svg class="radar-svg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Grid rings -->
+    <g transform="translate(150,135)">
+      <!-- Outer hexagon (100%) -->
+      <polygon points="0,-120 103.9,-60 103.9,60 0,120 -103.9,60 -103.9,-60"
+        fill="none" stroke="rgba(111,195,223,0.15)" stroke-width="1"/>
+      <!-- 75% -->
+      <polygon points="0,-90 77.9,-45 77.9,45 0,90 -77.9,45 -77.9,-45"
+        fill="none" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <!-- 50% -->
+      <polygon points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30"
+        fill="none" stroke="rgba(111,195,223,0.08)" stroke-width="1"/>
+      <!-- 25% -->
+      <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15"
+        fill="none" stroke="rgba(111,195,223,0.06)" stroke-width="1"/>
+      <!-- Axes -->
+      <line x1="0" y1="0" x2="0" y2="-120" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <line x1="0" y1="0" x2="103.9" y2="-60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <line x1="0" y1="0" x2="103.9" y2="60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <line x1="0" y1="0" x2="0" y2="120" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <line x1="0" y1="0" x2="-103.9" y2="60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <line x1="0" y1="0" x2="-103.9" y2="-60" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+      <!-- Data polygon: Passing 92, Vision 90, Decision 85, Power 87, Dribbling 88, Finishing 86 -->
+      <polygon
+        points="0,-110.4 93.5,-54 88.1,62.4 -2.4,104.4 -91.5,52.8 -96.7,-50.4"
+        fill="rgba(155,89,182,0.2)" stroke="#9b59b6" stroke-width="2"/>
+      <!-- Data points (glowing pips) -->
+      <circle cx="0" cy="-110.4" r="3.5" fill="#9b59b6"/>
+      <circle cx="93.5" cy="-54" r="3.5" fill="#9b59b6"/>
+      <circle cx="88.1" cy="62.4" r="3.5" fill="#9b59b6"/>
+      <circle cx="-2.4" cy="104.4" r="3.5" fill="#9b59b6"/>
+      <circle cx="-91.5" cy="52.8" r="3.5" fill="#9b59b6"/>
+      <circle cx="-96.7" cy="-50.4" r="3.5" fill="#9b59b6"/>
+      <!-- Pip glow -->
+      <circle cx="0" cy="-110.4" r="6" fill="rgba(155,89,182,0.3)"/>
+      <circle cx="93.5" cy="-54" r="6" fill="rgba(155,89,182,0.3)"/>
+      <circle cx="88.1" cy="62.4" r="6" fill="rgba(155,89,182,0.3)"/>
+      <circle cx="-2.4" cy="104.4" r="6" fill="rgba(155,89,182,0.3)"/>
+      <circle cx="-91.5" cy="52.8" r="6" fill="rgba(155,89,182,0.3)"/>
+      <circle cx="-96.7" cy="-50.4" r="6" fill="rgba(155,89,182,0.3)"/>
+    </g>
+    <!-- Labels -->
+    <text x="150" y="14" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Passing</text>
+    <text x="268" y="72" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Vision</text>
+    <text x="268" y="206" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Decision</text>
+    <text x="150" y="274" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Power</text>
+    <text x="32" y="206" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Dribbling</text>
+    <text x="32" y="72" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="11" font-weight="500">Finishing</text>
+  </svg>
+  <div class="plays-like-chip">Plays Like: <span>Frank Lampard</span></div>
+</div>
+
+<!-- Personality -->
+<div class="panel personality-card">
+  <div class="personality-header">
+    <div class="personality-type">Mamba</div>
+    <div class="personality-mbti">ENTJ</div>
+  </div>
+  <div class="trait-chips">
+    <div class="trait-chip">Competitive</div>
+    <div class="trait-chip">Coachable</div>
+    <div class="trait-chip">Leader</div>
+  </div>
+</div>
+
+<!-- Season Stats -->
+<div class="panel stats-section">
+  <h3>Season 2025/26</h3>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-value mono">32</div>
+      <div class="stat-label">Apps</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value mono">14</div>
+      <div class="stat-label">Goals</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value mono">8</div>
+      <div class="stat-label">Assists</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value mono">7.82</div>
+      <div class="stat-label">Rating</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value mono">2,847</div>
+      <div class="stat-label">Minutes</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value mono">3</div>
+      <div class="stat-label">Clean Sheets</div>
+    </div>
+  </div>
+</div>
+
+<!-- Scouting Notes -->
+<div class="scouting-notes">
+  <h3>Scouting Notes</h3>
+  <p>Complete midfielder with elite box-to-box capability. Exceptional at arriving late in the penalty area with devastating timing. Combines technical quality on the ball with genuine physical presence — rare combination at this level. Leadership qualities evident from teenage years at Dortmund. Immediate impact at Real Madrid suggests elite mentality and adaptability. Primary concern is workload management given his all-action style.</p>
+</div>
+
+<!-- Attributes -->
+<div class="attr-section">
+  <!-- Technical -->
+  <div class="attr-group open">
+    <div class="attr-header attr-header-tech" onclick="this.parentElement.classList.toggle('open')">
+      <div class="attr-header-title pillar-tech">Technical</div>
+      <div class="attr-header-chevron">&#9660;</div>
+    </div>
+    <div class="attr-body">
+      <div class="attr-row">
+        <div class="attr-name">Passing</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">92</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Dribbling</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">88</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">First Touch</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">89</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Finishing</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">86</div>
+      </div>
+    </div>
+  </div>
+  <!-- Tactical -->
+  <div class="attr-group">
+    <div class="attr-header attr-header-tact" onclick="this.parentElement.classList.toggle('open')">
+      <div class="attr-header-title pillar-tact">Tactical</div>
+      <div class="attr-header-chevron">&#9660;</div>
+    </div>
+    <div class="attr-body">
+      <div class="attr-row">
+        <div class="attr-name">Vision</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">90</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Positioning</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">91</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Off the Ball</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">93</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Work Rate</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">90</div>
+      </div>
+    </div>
+  </div>
+  <!-- Mental -->
+  <div class="attr-group">
+    <div class="attr-header attr-header-ment" onclick="this.parentElement.classList.toggle('open')">
+      <div class="attr-header-title pillar-ment">Mental</div>
+      <div class="attr-header-chevron">&#9660;</div>
+    </div>
+    <div class="attr-body">
+      <div class="attr-row">
+        <div class="attr-name">Decision Making</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">85</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Composure</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">86</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Leadership</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">88</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Concentration</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">83</div>
+      </div>
+    </div>
+  </div>
+  <!-- Physical -->
+  <div class="attr-group">
+    <div class="attr-header attr-header-phys" onclick="this.parentElement.classList.toggle('open')">
+      <div class="attr-header-title pillar-phys">Physical</div>
+      <div class="attr-header-chevron">&#9660;</div>
+    </div>
+    <div class="attr-body">
+      <div class="attr-row">
+        <div class="attr-name">Pace</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">84</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Strength</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">87</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Stamina</div>
+        <div class="attr-grade grade-a">A</div>
+        <div class="attr-score mono">90</div>
+      </div>
+      <div class="attr-row">
+        <div class="attr-name">Aerial</div>
+        <div class="attr-grade grade-b">B</div>
+        <div class="attr-score mono">85</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Market Intelligence -->
+<div class="panel market-section">
+  <h3>Market Intelligence</h3>
+  <div class="market-row">
+    <div class="market-label">Market Value</div>
+    <div class="market-value">&euro;120M</div>
+  </div>
+  <div class="market-row">
+    <div class="market-label">DoF Valuation</div>
+    <div class="market-value">&euro;135M</div>
+  </div>
+  <div class="market-row">
+    <div class="market-label">Premium</div>
+    <div class="market-value market-premium">+12.5%</div>
+  </div>
+  <div class="market-row">
+    <div class="market-label">Scarcity</div>
+    <div class="market-value market-scarcity">92</div>
+  </div>
+  <div class="market-row">
+    <div class="market-label">Contract</div>
+    <div class="market-value secondary">Jun 2029</div>
+  </div>
+</div>
+
+<!-- Similar Players -->
+<div class="panel similar-section">
+  <h3>Similar Players</h3>
+  <div class="similar-cards">
+    <div class="similar-card">
+      <div class="similar-name">Pedri</div>
+      <div class="similar-pos">CM &middot; Barcelona</div>
+      <div class="similar-rs mono">91</div>
+      <div class="similar-club">Box-to-Box</div>
+    </div>
+    <div class="similar-card">
+      <div class="similar-name">Florian Wirtz</div>
+      <div class="similar-pos">AM &middot; Leverkusen</div>
+      <div class="similar-rs mono">93</div>
+      <div class="similar-club">Playmaker</div>
+    </div>
+    <div class="similar-card">
+      <div class="similar-name">Jamal Musiala</div>
+      <div class="similar-pos">AM &middot; Bayern</div>
+      <div class="similar-rs mono">92</div>
+      <div class="similar-club">Virtuoso</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Spacer -->
+<div class="bottom-spacer"></div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <div class="nav-item">
+    <div class="nav-icon">&#9750;</div>
+    <div>Home</div>
+  </div>
+  <div class="nav-item active">
+    <div class="nav-icon">&#9899;</div>
+    <div>Players</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#9878;</div>
+    <div>Clubs</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&#8700;</div>
+    <div>Compare</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">&hellip;</div>
+    <div>More</div>
+  </div>
+</nav>
+
+</body>
+</html>

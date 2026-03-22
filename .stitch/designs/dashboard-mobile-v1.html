@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Mobile Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --bright: #6fc3df;
+    --text: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --cyan: #6fc3df;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 72px;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* TOP BAR */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 32px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+  .top-bar-left {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: #3dba6f;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* SECTION */
+  .section {
+    padding: 12px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .section-pip {
+    width: 3px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .section-pip.cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .section-pip.gold { background: var(--technical); box-shadow: 0 0 6px var(--technical); }
+  .section-pip.purple { background: var(--tactical); box-shadow: 0 0 6px var(--tactical); }
+  .section-pip.green { background: var(--mental); box-shadow: 0 0 6px var(--mental); }
+  .section-pip.blue { background: var(--physical); box-shadow: 0 0 6px var(--physical); }
+  .section-pip.yellow { background: var(--personality); box-shadow: 0 0 6px var(--personality); }
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .section-link {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--cyan);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  /* PANEL */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .panel-top-border {
+    border-top: 2px solid var(--cyan);
+  }
+
+  /* FEATURED PLAYER */
+  .featured {
+    position: relative;
+    padding: 14px;
+  }
+  .featured .dof-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--personality);
+    color: #000;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    text-transform: uppercase;
+  }
+  .featured-row1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .pos-badge {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 6px;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+  }
+  .player-name {
+    font-size: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  .role-score {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--tactical);
+    line-height: 1;
+  }
+  .featured-row2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .archetype-chip {
+    background: rgba(232, 197, 71, 0.15);
+    border: 1px solid rgba(232, 197, 71, 0.4);
+    color: var(--personality);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    letter-spacing: 0.5px;
+  }
+  .featured-row3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .pillar-score {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .pillar-score .label {
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.7;
+    margin-right: 1px;
+  }
+  .pillar-score.tech { color: var(--technical); }
+  .pillar-score.tact { color: var(--tactical); }
+  .pillar-score.ment { color: var(--mental); }
+  .pillar-score.phys { color: var(--physical); }
+
+  .featured-row4 {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .featured-row4 .stat-sep { color: #333; }
+  .featured-row4 .value-tag { color: var(--mental); font-weight: 600; }
+
+  .swipe-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .swipe-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .swipe-dot.active { background: var(--cyan); }
+
+  /* FIXTURES */
+  .fixture-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    min-height: 44px;
+    gap: 10px;
+  }
+  .fixture-row:last-child { border-bottom: none; }
+  .fixture-comp {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+    width: 28px;
+    flex-shrink: 0;
+  }
+  .fixture-teams {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .fixture-date {
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  /* NEWS / INTELLIGENCE */
+  .news-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    min-height: 44px;
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .story-badge {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    background: var(--elevated);
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .story-badge.transfer { color: var(--mental); border-color: rgba(61,186,111,0.3); }
+  .story-badge.injury { color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+  .story-badge.form { color: var(--technical); border-color: rgba(212,160,53,0.3); }
+  .story-badge.contract { color: var(--personality); border-color: rgba(232,197,71,0.3); }
+  .news-headline {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .news-summary {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .news-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .news-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .sentiment-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+  .sentiment-dot.positive { background: var(--mental); }
+  .sentiment-dot.negative { background: #e74c3c; }
+  .sentiment-dot.neutral { background: var(--text-muted); }
+
+  /* INTEL GRID */
+  .intel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+  .intel-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px;
+    min-height: 100px;
+  }
+  .intel-card-header {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .intel-pip {
+    width: 3px;
+    height: 10px;
+    flex-shrink: 0;
+  }
+  .intel-card .intel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 11px;
+    min-height: 28px;
+  }
+  .intel-row .name {
+    color: var(--text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    margin-right: 6px;
+  }
+  .intel-row .meta {
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .meta.up { color: var(--mental); }
+  .meta.down { color: #e74c3c; }
+  .meta.expiry { color: var(--personality); }
+  .meta.stories { color: var(--cyan); }
+
+  /* GAFFER CTA */
+  .gaffer-cta {
+    margin: 0 12px 12px;
+    background: var(--panel);
+    border: 1px solid rgba(232,197,71,0.35);
+    border-top: 2px solid var(--personality);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    cursor: pointer;
+  }
+  .gaffer-cta-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gaffer-cta-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--personality);
+  }
+  .gaffer-cta-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .gaffer-cta-arrow {
+    font-size: 18px;
+    color: var(--personality);
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    height: 56px;
+    background: var(--pit);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 56px;
+    min-height: 44px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .nav-label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .nav-tab.active .nav-label { color: var(--cyan); }
+  .nav-tab.active .nav-icon { filter: drop-shadow(0 0 4px var(--cyan)); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-left">TACTICAL COMMAND</div>
+  <div class="top-bar-right">
+    <div class="live-dot"></div>
+    <span class="mono">276 T1</span>
+  </div>
+</div>
+
+<!-- FEATURED PLAYER -->
+<div class="section">
+  <div class="panel panel-top-border">
+    <div class="featured">
+      <div class="dof-badge">DOF PICK</div>
+      <div class="featured-row1">
+        <span class="pos-badge mono">AM</span>
+        <span class="player-name">Jude Bellingham</span>
+        <span class="role-score mono">94</span>
+      </div>
+      <div class="featured-row2">
+        <span>Real Madrid</span>
+        <span>&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+        <span class="archetype-chip">Maestro</span>
+      </div>
+      <div class="featured-row3">
+        <span class="pillar-score tech"><span class="label">T</span><span class="mono">88</span></span>
+        <span class="pillar-score tact"><span class="label">T</span><span class="mono">91</span></span>
+        <span class="pillar-score ment"><span class="label">M</span><span class="mono">85</span></span>
+        <span class="pillar-score phys"><span class="label">P</span><span class="mono">87</span></span>
+      </div>
+      <div class="featured-row4">
+        <span>32 apps</span><span class="stat-sep">&middot;</span>
+        <span>14 goals</span><span class="stat-sep">&middot;</span>
+        <span>8 assists</span><span class="stat-sep">&middot;</span>
+        <span class="value-tag">&euro;120M</span>
+      </div>
+      <div class="swipe-dots">
+        <div class="swipe-dot active"></div>
+        <div class="swipe-dot"></div>
+        <div class="swipe-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIXTURES -->
+<div class="section" style="padding-top:0;">
+  <div class="section-header">
+    <div class="section-pip cyan"></div>
+    <span class="section-title">Fixtures</span>
+    <a href="#" class="section-link">See all &rarr;</a>
+  </div>
+  <div class="panel">
+    <div class="fixture-row">
+      <span class="fixture-comp mono">PL</span>
+      <span class="fixture-teams">Arsenal vs Liverpool</span>
+      <span class="fixture-date">Mar 23</span>
+    </div>
+    <div class="fixture-row">
+      <span class="fixture-comp mono">UCL</span>
+      <span class="fixture-teams">Barcelona vs PSG</span>
+      <span class="fixture-date">Mar 25</span>
+    </div>
+    <div class="fixture-row">
+      <span class="fixture-comp mono">BL</span>
+      <span class="fixture-teams">Bayern vs Dortmund</span>
+      <span class="fixture-date">Mar 26</span>
+    </div>
+  </div>
+</div>
+
+<!-- LATEST INTELLIGENCE -->
+<div class="section" style="padding-top:0;">
+  <div class="section-header">
+    <div class="section-pip green"></div>
+    <span class="section-title">Latest Intelligence</span>
+    <a href="#" class="section-link">All &rarr;</a>
+  </div>
+  <div class="panel">
+    <div class="news-item">
+      <div class="news-top">
+        <span class="story-badge transfer">Transfer</span>
+        <span class="news-headline">Arsenal close in on Florian Wirtz as Leverkusen set asking price</span>
+      </div>
+      <div class="news-summary">Bayer Leverkusen reportedly willing to negotiate at &euro;130M amid strong interest from Premier League clubs.</div>
+      <div class="news-tags">
+        <span class="news-tag"><span class="sentiment-dot positive"></span> Wirtz</span>
+        <span class="news-tag"><span class="sentiment-dot neutral"></span> Arsenal</span>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-top">
+        <span class="story-badge injury">Injury</span>
+        <span class="news-headline">Gavi expected back in full training by late April</span>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-top">
+        <span class="story-badge form">Form</span>
+        <span class="news-headline">Saka continues electric form with 3 assists in 2 matches</span>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-top">
+        <span class="story-badge contract">Contract</span>
+        <span class="news-headline">Salah contract talks stall as Liverpool weigh summer options</span>
+      </div>
+    </div>
+    <div class="news-item">
+      <div class="news-top">
+        <span class="story-badge">Scouting</span>
+        <span class="news-headline">Kobbie Mainoo impresses in U21 qualifier against Italy</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTEL GRID -->
+<div class="section" style="padding-top:0; padding-bottom: 0;">
+  <div class="section-header">
+    <div class="section-pip purple"></div>
+    <span class="section-title">Intel Grid</span>
+  </div>
+</div>
+<div class="intel-grid">
+  <!-- Rising Stars -->
+  <div class="intel-card" style="border-top: 2px solid var(--mental);">
+    <div class="intel-card-header">
+      <div class="intel-pip" style="background:var(--mental);box-shadow:0 0 4px var(--mental);"></div>
+      <span style="color:var(--mental);">Rising Stars</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">L. Yamal</span>
+      <span class="meta up mono">RS 91</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">K. Mainoo</span>
+      <span class="meta up mono">RS 84</span>
+    </div>
+  </div>
+
+  <!-- Market Movers -->
+  <div class="intel-card" style="border-top: 2px solid var(--technical);">
+    <div class="intel-card-header">
+      <div class="intel-pip" style="background:var(--technical);box-shadow:0 0 4px var(--technical);"></div>
+      <span style="color:var(--technical);">Market Movers</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">F. Wirtz</span>
+      <span class="meta up mono">+18%</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">M. Salah</span>
+      <span class="meta down mono">-12%</span>
+    </div>
+  </div>
+
+  <!-- Contracts -->
+  <div class="intel-card" style="border-top: 2px solid var(--personality);">
+    <div class="intel-card-header">
+      <div class="intel-pip" style="background:var(--personality);box-shadow:0 0 4px var(--personality);"></div>
+      <span style="color:var(--personality);">Contracts</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">M. Salah</span>
+      <span class="meta expiry">Jun 26</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">V. van Dijk</span>
+      <span class="meta expiry">Jun 26</span>
+    </div>
+  </div>
+
+  <!-- Trending -->
+  <div class="intel-card" style="border-top: 2px solid var(--cyan);">
+    <div class="intel-card-header">
+      <div class="intel-pip" style="background:var(--cyan);box-shadow:0 0 4px var(--cyan);"></div>
+      <span style="color:var(--cyan);">Trending</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">B. Saka</span>
+      <span class="meta stories mono">7 stories</span>
+    </div>
+    <div class="intel-row">
+      <span class="name">J. Bellingham</span>
+      <span class="meta stories mono">5 stories</span>
+    </div>
+  </div>
+</div>
+
+<!-- GAFFER CTA -->
+<div class="gaffer-cta">
+  <div class="gaffer-cta-left">
+    <span class="gaffer-cta-title">Play Gaffer</span>
+    <span class="gaffer-cta-sub">Make the call. Build your manager identity.</span>
+  </div>
+  <span class="gaffer-cta-arrow">&rarr;</span>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a class="nav-tab active" href="#">
+    <span class="nav-icon">&#9679;</span>
+    <span class="nav-label">Home</span>
+  </a>
+  <a class="nav-tab" href="#">
+    <span class="nav-icon">&#9874;</span>
+    <span class="nav-label">Players</span>
+  </a>
+  <a class="nav-tab" href="#">
+    <span class="nav-icon">&#9917;</span>
+    <span class="nav-label">Clubs</span>
+  </a>
+  <a class="nav-tab" href="#">
+    <span class="nav-icon">&#8860;</span>
+    <span class="nav-label">Compare</span>
+  </a>
+  <a class="nav-tab" href="#">
+    <span class="nav-icon">&hellip;</span>
+    <span class="nav-label">More</span>
+  </a>
+</nav>
+
+</body>
+</html>

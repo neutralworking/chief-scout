@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Compare</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --cyan: #6fc3df;
+    --text-primary: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --font-ui: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    overflow-x: hidden;
+  }
+
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    height: 40px;
+    min-height: 40px;
+    background: var(--pit);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .topbar-right {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── HEADER ROW ── */
+  .header-row {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    gap: 0;
+    background: var(--pit);
+    border-bottom: 1px solid var(--border);
+    min-height: 80px;
+  }
+  .player-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .player-header.right {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .position-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+  .player-info {}
+  .player-name {
+    font-size: 22px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+  .player-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .player-header.right .player-meta {
+    justify-content: flex-end;
+  }
+  .player-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .player-header.right .player-tags {
+    justify-content: flex-end;
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid;
+  }
+  .tag-archetype { border-color: var(--tactical); color: var(--tactical); }
+  .tag-personality { border-color: var(--personality); color: var(--personality); }
+  .vs-divider {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 0 32px;
+    opacity: 0.4;
+    user-select: none;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* ── ROW 1: SCORES ── */
+  .scores-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 12px;
+    min-height: 180px;
+    height: 25%;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel[data-accent="technical"] { border-top: 2px solid var(--technical); }
+  .panel[data-accent="tactical"] { border-top: 2px solid var(--tactical); }
+  .panel[data-accent="mental"] { border-top: 2px solid var(--mental); }
+  .panel[data-accent="physical"] { border-top: 2px solid var(--physical); }
+  .panel[data-accent="cyan"] { border-top: 2px solid var(--cyan); }
+  .panel[data-accent="personality"] { border-top: 2px solid var(--personality); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px 6px;
+  }
+  .section-pip {
+    width: 3px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  .section-pip.cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .section-pip.technical { background: var(--technical); box-shadow: 0 0 6px var(--technical); }
+  .section-pip.tactical { background: var(--tactical); box-shadow: 0 0 6px var(--tactical); }
+  .section-pip.mental { background: var(--mental); box-shadow: 0 0 6px var(--mental); }
+  .section-pip.physical { background: var(--physical); box-shadow: 0 0 6px var(--physical); }
+  .section-pip.personality { background: var(--personality); box-shadow: 0 0 6px var(--personality); }
+  .section-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+  }
+
+  /* Score card */
+  .score-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100% - 36px);
+    padding: 8px 14px;
+  }
+  .score-big {
+    font-family: var(--font-mono);
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+  .score-role {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-top: 6px;
+  }
+  .score-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Four-pillar pyramid */
+  .pyramid {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 24px;
+    height: calc(100% - 36px);
+  }
+  .pyramid-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 40px 1fr 40px;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+  }
+  .pyramid-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pyramid-val.left { text-align: right; }
+  .pyramid-val.right { text-align: left; }
+  .pyramid-val.winner { color: var(--text-primary); }
+  .pyramid-val.loser { color: var(--text-muted); }
+  .pyramid-bar-wrap {
+    height: 18px;
+    position: relative;
+  }
+  .pyramid-bar-wrap.left {
+    direction: rtl;
+  }
+  .pyramid-bar {
+    height: 100%;
+    transition: width 0.3s;
+  }
+  .pyramid-bar.technical { background: var(--technical); }
+  .pyramid-bar.tactical { background: var(--tactical); }
+  .pyramid-bar.mental { background: var(--mental); }
+  .pyramid-bar.physical { background: var(--physical); }
+  .pyramid-bar.dimmed { opacity: 0.35; }
+  .pyramid-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* ── ROW 2: DETAIL ── */
+  .detail-row {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 12px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Radar */
+  .radar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .radar-svg-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    min-height: 0;
+  }
+  .radar-svg-wrap svg {
+    width: 100%;
+    height: 100%;
+    max-width: 340px;
+    max-height: 340px;
+  }
+  .radar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 8px 14px 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+  }
+  .legend-swatch.p1 { background: rgba(155,89,182,0.6); border: 1px solid #9b59b6; }
+  .legend-swatch.p2 { background: rgba(111,195,223,0.6); border: 1px solid #6fc3df; }
+
+  /* Attribute table */
+  .attr-table-wrap {
+    overflow-y: auto;
+    height: calc(100% - 36px);
+    padding: 0 2px;
+  }
+  .attr-table-wrap::-webkit-scrollbar { width: 4px; }
+  .attr-table-wrap::-webkit-scrollbar-track { background: var(--pit); }
+  .attr-table-wrap::-webkit-scrollbar-thumb { background: rgba(111,195,223,0.3); }
+
+  .attr-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 4px;
+  }
+  .attr-group-line {
+    flex: 1;
+    height: 1px;
+  }
+  .attr-group-line.technical { background: var(--technical); opacity: 0.4; }
+  .attr-group-line.tactical { background: var(--tactical); opacity: 0.4; }
+  .attr-group-line.mental { background: var(--mental); opacity: 0.4; }
+  .attr-group-line.physical { background: var(--physical); opacity: 0.4; }
+  .attr-group-label {
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+  .attr-group-label.technical { color: var(--technical); }
+  .attr-group-label.tactical { color: var(--tactical); }
+  .attr-group-label.mental { color: var(--mental); }
+  .attr-group-label.physical { color: var(--physical); }
+
+  .attr-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 40px;
+    align-items: center;
+    padding: 4px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .attr-row:hover { background: rgba(111,195,223,0.04); }
+  .attr-val {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .attr-val.left { text-align: right; }
+  .attr-val.right { text-align: left; }
+  .attr-val.winner { color: var(--text-primary); }
+  .attr-val.loser { color: var(--text-muted); }
+  .attr-val.draw { color: var(--text-secondary); }
+  .attr-name {
+    text-align: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+  }
+
+  /* Right column stacked */
+  .right-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .right-stack::-webkit-scrollbar { width: 4px; }
+  .right-stack::-webkit-scrollbar-track { background: var(--pit); }
+  .right-stack::-webkit-scrollbar-thumb { background: rgba(111,195,223,0.3); }
+
+  .mini-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+  }
+
+  .compare-table {
+    width: 100%;
+  }
+  .compare-table th {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .compare-table th:first-child { text-align: left; }
+  .compare-table td {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 5px 10px;
+    text-align: center;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .compare-table td:first-child {
+    text-align: left;
+    font-family: var(--font-ui);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+  .compare-table td.winner { color: var(--text-primary); font-weight: 600; }
+
+  /* Verdict */
+  .verdict-panel {
+    background: var(--pit);
+    border: 1px solid var(--cyan);
+    padding: 14px;
+  }
+  .verdict-text {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Tactical Command</div>
+    <div class="topbar-right">Compare</div>
+  </div>
+
+  <!-- HEADER ROW -->
+  <div class="header-row">
+    <div class="player-header left">
+      <div class="position-badge">AM</div>
+      <div class="player-info">
+        <div class="player-name">Jude Bellingham</div>
+        <div class="player-meta">
+          <span>Real Madrid</span>
+          <span style="color:var(--text-muted);">&middot;</span>
+          <span>&#x1F3F4;&#xE0067;&#xE0062;&#xE0065;&#xE006E;&#xE0067;&#xE007F; England</span>
+        </div>
+        <div class="player-tags">
+          <span class="tag tag-archetype">Virtuoso</span>
+          <span class="tag tag-personality">ENTJ &middot; Commander</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vs-divider">VS</div>
+
+    <div class="player-header right">
+      <div class="position-badge">AM</div>
+      <div class="player-info">
+        <div class="player-name">Florian Wirtz</div>
+        <div class="player-meta">
+          <span>&#x1F1E9;&#x1F1EA; Germany</span>
+          <span style="color:var(--text-muted);">&middot;</span>
+          <span>Bayer Leverkusen</span>
+        </div>
+        <div class="player-tags">
+          <span class="tag tag-archetype">Maestro</span>
+          <span class="tag tag-personality">INTP &middot; Spark</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ROW 1: SCORES -->
+    <div class="scores-row">
+
+      <!-- LEFT: Bellingham Score -->
+      <div class="panel" data-accent="cyan">
+        <div class="section-header">
+          <div class="section-pip cyan"></div>
+          <div class="section-label">Bellingham</div>
+        </div>
+        <div class="score-card">
+          <div class="score-big">94</div>
+          <div class="score-role">Box-to-Box</div>
+          <div class="score-label">Best Role Score</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Four-Pillar Pyramid -->
+      <div class="panel" data-accent="cyan">
+        <div class="section-header">
+          <div class="section-pip cyan"></div>
+          <div class="section-label">Four-Pillar Comparison</div>
+        </div>
+        <div class="pyramid">
+          <!-- Technical -->
+          <div class="pyramid-row">
+            <div class="pyramid-val left loser">88</div>
+            <div class="pyramid-bar-wrap left">
+              <div class="pyramid-bar technical dimmed" style="width:88%;"></div>
+            </div>
+            <div class="pyramid-label">TEC</div>
+            <div class="pyramid-bar-wrap">
+              <div class="pyramid-bar technical" style="width:91%;"></div>
+            </div>
+            <div class="pyramid-val right winner">91</div>
+          </div>
+          <!-- Tactical -->
+          <div class="pyramid-row">
+            <div class="pyramid-val left winner">91</div>
+            <div class="pyramid-bar-wrap left">
+              <div class="pyramid-bar tactical" style="width:91%;"></div>
+            </div>
+            <div class="pyramid-label">TAC</div>
+            <div class="pyramid-bar-wrap">
+              <div class="pyramid-bar tactical dimmed" style="width:89%;"></div>
+            </div>
+            <div class="pyramid-val right loser">89</div>
+          </div>
+          <!-- Mental -->
+          <div class="pyramid-row">
+            <div class="pyramid-val left winner">85</div>
+            <div class="pyramid-bar-wrap left">
+              <div class="pyramid-bar mental" style="width:85%;"></div>
+            </div>
+            <div class="pyramid-label">MEN</div>
+            <div class="pyramid-bar-wrap">
+              <div class="pyramid-bar mental dimmed" style="width:84%;"></div>
+            </div>
+            <div class="pyramid-val right loser">84</div>
+          </div>
+          <!-- Physical -->
+          <div class="pyramid-row">
+            <div class="pyramid-val left winner">87</div>
+            <div class="pyramid-bar-wrap left">
+              <div class="pyramid-bar physical" style="width:87%;"></div>
+            </div>
+            <div class="pyramid-label">PHY</div>
+            <div class="pyramid-bar-wrap">
+              <div class="pyramid-bar physical dimmed" style="width:80%;"></div>
+            </div>
+            <div class="pyramid-val right loser">80</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Wirtz Score -->
+      <div class="panel" data-accent="cyan">
+        <div class="section-header">
+          <div class="section-pip cyan"></div>
+          <div class="section-label">Wirtz</div>
+        </div>
+        <div class="score-card">
+          <div class="score-big">92</div>
+          <div class="score-role">Playmaker</div>
+          <div class="score-label">Best Role Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: DETAIL -->
+    <div class="detail-row">
+
+      <!-- LEFT: Radar Overlay -->
+      <div class="panel radar-container" data-accent="tactical">
+        <div class="section-header">
+          <div class="section-pip tactical"></div>
+          <div class="section-label">Radar Overlay</div>
+        </div>
+        <div class="radar-svg-wrap">
+          <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            <!-- Grid rings -->
+            <g opacity="0.15" stroke="#6fc3df" fill="none">
+              <polygon points="150,30 253.9,90 253.9,210 150,270 46.1,210 46.1,90" />
+              <polygon points="150,60 223.9,105 223.9,195 150,240 76.1,195 76.1,105" />
+              <polygon points="150,90 193.9,120 193.9,180 150,210 106.1,180 106.1,120" />
+              <polygon points="150,120 163.9,135 163.9,165 150,180 136.1,165 136.1,135" />
+            </g>
+            <!-- Axes -->
+            <g stroke="rgba(111,195,223,0.12)" stroke-width="1">
+              <line x1="150" y1="30" x2="150" y2="270" />
+              <line x1="46.1" y1="90" x2="253.9" y2="210" />
+              <line x1="253.9" y1="90" x2="46.1" y2="210" />
+            </g>
+            <!-- Axis labels -->
+            <text x="150" y="20" text-anchor="middle" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1" text-transform="uppercase">PASSING</text>
+            <text x="264" y="86" text-anchor="start" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1">VISION</text>
+            <text x="264" y="216" text-anchor="start" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1">DECISION</text>
+            <text x="150" y="290" text-anchor="middle" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1">POWER</text>
+            <text x="36" y="216" text-anchor="end" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1">DRIBBLING</text>
+            <text x="36" y="86" text-anchor="end" fill="#c8c8c8" font-family="'JetBrains Mono'" font-size="9" letter-spacing="1">FINISHING</text>
+
+            <!-- Bellingham polygon (purple) -->
+            <!-- Passing:85, Vision:83, Decision:88, Power:90, Dribbling:82, Finishing:87 -->
+            <!-- Scale: 0=center(150,150), 100=edge. r = val/100 * 120 -->
+            <!-- Passing (top):        x=150, y=150-r*1 -->
+            <!-- Vision (top-right):   x=150+r*sin60, y=150-r*cos60 -->
+            <!-- Decision (bot-right): x=150+r*sin60, y=150+r*cos60 -->
+            <!-- Power (bottom):       x=150, y=150+r -->
+            <!-- Dribbling (bot-left): x=150-r*sin60, y=150+r*cos60 -->
+            <!-- Finishing (top-left):  x=150-r*sin60, y=150-r*cos60 -->
+            <polygon
+              points="150,48 238.2,99 236.6,213.6 150,42 51.8,201.6 59.6,97.8"
+              fill="none" stroke="none" />
+            <!-- Bellingham: P85 V83 D88 Pw90 Dr82 F87 -->
+            <polygon
+              points="
+                150,48
+                236.3,100.2
+                234.5,213.6
+                150,42
+                64.7,199.2
+                59.6,97.8
+              "
+              fill="rgba(155,89,182,0.25)" stroke="#9b59b6" stroke-width="1.5" />
+            <!-- recalc properly -->
+            <!-- Using center 150,150. Max radius = 120 (to edge at 100%) -->
+            <!-- For value v: r = v/100 * 120 -->
+            <!-- Axis angles: 0=top(-90deg), then +60deg each clockwise -->
+            <!-- Passing(top,-90): x=150+r*cos(-90)=150, y=150+r*sin(-90)=150-r -->
+            <!-- Vision(top-right,-30): x=150+r*cos(-30)=150+r*0.866, y=150+r*sin(-30)=150-r*0.5 -->
+            <!-- Decision(bot-right,30): x=150+r*cos(30)=150+r*0.866, y=150+r*sin(30)=150+r*0.5 -->
+            <!-- Power(bottom,90): x=150, y=150+r -->
+            <!-- Dribbling(bot-left,150): x=150+r*cos(150)=150-r*0.866, y=150+r*sin(150)=150+r*0.5 -->
+            <!-- Finishing(top-left,210): x=150+r*cos(210)=150-r*0.866, y=150+r*sin(210)=150-r*0.5 -->
+            <!-- Overwrite with correct polygons -->
+            <polygon points="150,48 236.3,100.2 234.5,213.6 150,42 64.7,199.2 59.6,97.8"
+              fill="none" stroke="none" opacity="0" />
+
+            <!-- Clear and redraw properly -->
+            <!-- Bellingham: Passing=85, Vision=83, Decision=88, Power=90, Dribbling=82, Finishing=87 -->
+            <polygon
+              points="
+                150,48
+                236.2,100.2
+                241.4,202.8
+                150,42
+                64.8,199.2
+                59.6,97.6
+              "
+              fill="none" stroke="none" opacity="0" />
+
+            <!-- Let me just hardcode the correct values -->
+            <!-- Bellingham radar (purple) -->
+            <polygon id="bell-radar"
+              fill="rgba(155,89,182,0.25)" stroke="#9b59b6" stroke-width="2" stroke-linejoin="round" />
+            <!-- Wirtz radar (cyan) -->
+            <polygon id="wirtz-radar"
+              fill="rgba(111,195,223,0.2)" stroke="#6fc3df" stroke-width="2" stroke-linejoin="round" />
+
+            <script>
+              // Radar point calculator
+              function radarPoint(centerX, centerY, maxR, value, axisIndex) {
+                const angle = -90 + axisIndex * 60;
+                const rad = angle * Math.PI / 180;
+                const r = (value / 100) * maxR;
+                return [centerX + r * Math.cos(rad), centerY + r * Math.sin(rad)];
+              }
+              const cx = 150, cy = 150, maxR = 120;
+              // Bellingham: Passing=85, Vision=83, Decision=88, Power=90, Dribbling=82, Finishing=87
+              const bell = [85, 83, 88, 90, 82, 87];
+              // Wirtz: Passing=92, Vision=90, Decision=84, Power=72, Dribbling=93, Finishing=83
+              const wirtz = [92, 90, 84, 72, 93, 83];
+
+              function makePoints(vals) {
+                return vals.map((v, i) => radarPoint(cx, cy, maxR, v, i).join(',')).join(' ');
+              }
+              document.getElementById('bell-radar').setAttribute('points', makePoints(bell));
+              document.getElementById('wirtz-radar').setAttribute('points', makePoints(wirtz));
+            </script>
+          </svg>
+        </div>
+        <div class="radar-legend">
+          <div class="legend-item"><div class="legend-swatch p1"></div>Bellingham</div>
+          <div class="legend-item"><div class="legend-swatch p2"></div>Wirtz</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Attribute Table -->
+      <div class="panel" data-accent="cyan">
+        <div class="section-header">
+          <div class="section-pip cyan"></div>
+          <div class="section-label">Attribute Comparison</div>
+        </div>
+        <div class="attr-table-wrap">
+          <!-- TECHNICAL -->
+          <div class="attr-group-header">
+            <div class="attr-group-line technical"></div>
+            <span class="attr-group-label technical">Technical</span>
+            <div class="attr-group-line technical"></div>
+          </div>
+          <div class="attr-row"><div class="attr-val left loser">84</div><div class="attr-name">First Touch</div><div class="attr-val right winner">92</div></div>
+          <div class="attr-row"><div class="attr-val left loser">85</div><div class="attr-name">Passing</div><div class="attr-val right winner">92</div></div>
+          <div class="attr-row"><div class="attr-val left loser">82</div><div class="attr-name">Dribbling</div><div class="attr-val right winner">93</div></div>
+          <div class="attr-row"><div class="attr-val left winner">87</div><div class="attr-name">Finishing</div><div class="attr-val right loser">83</div></div>
+
+          <!-- TACTICAL -->
+          <div class="attr-group-header">
+            <div class="attr-group-line tactical"></div>
+            <span class="attr-group-label tactical">Tactical</span>
+            <div class="attr-group-line tactical"></div>
+          </div>
+          <div class="attr-row"><div class="attr-val left loser">83</div><div class="attr-name">Vision</div><div class="attr-val right winner">90</div></div>
+          <div class="attr-row"><div class="attr-val left winner">88</div><div class="attr-name">Decision Making</div><div class="attr-val right loser">84</div></div>
+          <div class="attr-row"><div class="attr-val left winner">86</div><div class="attr-name">Positioning</div><div class="attr-val right loser">82</div></div>
+          <div class="attr-row"><div class="attr-val left winner">84</div><div class="attr-name">Off the Ball</div><div class="attr-val right loser">78</div></div>
+
+          <!-- MENTAL -->
+          <div class="attr-group-header">
+            <div class="attr-group-line mental"></div>
+            <span class="attr-group-label mental">Mental</span>
+            <div class="attr-group-line mental"></div>
+          </div>
+          <div class="attr-row"><div class="attr-val left winner">90</div><div class="attr-name">Determination</div><div class="attr-val right loser">82</div></div>
+          <div class="attr-row"><div class="attr-val left winner">86</div><div class="attr-name">Leadership</div><div class="attr-val right loser">74</div></div>
+          <div class="attr-row"><div class="attr-val left winner">84</div><div class="attr-name">Composure</div><div class="attr-val right loser">83</div></div>
+          <div class="attr-row"><div class="attr-val left draw">82</div><div class="attr-name">Concentration</div><div class="attr-val right draw">82</div></div>
+
+          <!-- PHYSICAL -->
+          <div class="attr-group-header">
+            <div class="attr-group-line physical"></div>
+            <span class="attr-group-label physical">Physical</span>
+            <div class="attr-group-line physical"></div>
+          </div>
+          <div class="attr-row"><div class="attr-val left winner">88</div><div class="attr-name">Pace</div><div class="attr-val right loser">82</div></div>
+          <div class="attr-row"><div class="attr-val left winner">90</div><div class="attr-name">Strength</div><div class="attr-val right loser">71</div></div>
+          <div class="attr-row"><div class="attr-val left winner">86</div><div class="attr-name">Stamina</div><div class="attr-val right loser">80</div></div>
+          <div class="attr-row"><div class="attr-val left loser">79</div><div class="attr-name">Agility</div><div class="attr-val right winner">88</div></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Stacked Panels -->
+      <div class="right-stack">
+
+        <!-- Season Stats -->
+        <div class="mini-panel" style="border-top: 2px solid var(--cyan);">
+          <div class="section-header">
+            <div class="section-pip cyan"></div>
+            <div class="section-label">Season Stats 25/26</div>
+          </div>
+          <table class="compare-table">
+            <thead><tr><th></th><th>BEL</th><th>WIR</th></tr></thead>
+            <tbody>
+              <tr><td>Appearances</td><td class="winner">38</td><td>34</td></tr>
+              <tr><td>Goals</td><td class="winner">18</td><td>14</td></tr>
+              <tr><td>Assists</td><td>9</td><td class="winner">16</td></tr>
+              <tr><td>Rating</td><td class="winner">7.64</td><td>7.51</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Market -->
+        <div class="mini-panel" style="border-top: 2px solid var(--personality);">
+          <div class="section-header">
+            <div class="section-pip personality"></div>
+            <div class="section-label">Market Valuation</div>
+          </div>
+          <table class="compare-table">
+            <thead><tr><th></th><th>BEL</th><th>WIR</th></tr></thead>
+            <tbody>
+              <tr><td>Market Value</td><td class="winner">&euro;150M</td><td>&euro;130M</td></tr>
+              <tr><td>CS Value</td><td class="winner">&euro;162M</td><td>&euro;148M</td></tr>
+              <tr><td>Premium</td><td>+8%</td><td class="winner">+14%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Profile -->
+        <div class="mini-panel" style="border-top: 2px solid var(--tactical);">
+          <div class="section-header">
+            <div class="section-pip tactical"></div>
+            <div class="section-label">Profile</div>
+          </div>
+          <table class="compare-table">
+            <thead><tr><th></th><th>BEL</th><th>WIR</th></tr></thead>
+            <tbody>
+              <tr><td>Age</td><td>22</td><td class="winner">19</td></tr>
+              <tr><td>Height</td><td>186cm</td><td>176cm</td></tr>
+              <tr><td>Foot</td><td>Right</td><td>Right</td></tr>
+              <tr><td>Side</td><td>C / R</td><td>C / L</td></tr>
+              <tr><td>Personality</td><td>ENTJ</td><td>INTP</td></tr>
+              <tr><td>Contract</td><td>2029</td><td>2027</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Verdict -->
+        <div class="verdict-panel">
+          <div class="section-header" style="padding-left:0;">
+            <div class="section-pip cyan"></div>
+            <div class="section-label">AI Verdict</div>
+          </div>
+          <p class="verdict-text" style="margin-top:6px;">
+            Bellingham is the more complete player with superior tactical intelligence and physical presence. Wirtz offers a higher technical ceiling and is 3 years younger. Bellingham dominates in big-game moments; Wirtz unlocks defences with creativity few can match. For a title push now, Bellingham. For a long-term project, Wirtz.
+          </p>
+        </div>
+
+      </div><!-- /right-stack -->
+    </div><!-- /detail-row -->
+  </div><!-- /content -->
+</div><!-- /page -->
+</body>
+</html>

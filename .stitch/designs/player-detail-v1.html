@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TACTICAL COMMAND — Jude Bellingham</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --panel: #141414;
+    --elevated: #252526;
+    --pit: #0a0a0a;
+    --border: rgba(111,195,223,0.35);
+    --cyan: #6fc3df;
+    --text: #fff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --technical: #d4a035;
+    --tactical: #9b59b6;
+    --mental: #3dba6f;
+    --physical: #4a90d9;
+    --personality: #e8c547;
+    --font-ui: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 38px;
+    min-height: 38px;
+    background: var(--pit);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .topbar-left { color: var(--cyan); font-weight: 600; }
+  .topbar-right { color: var(--text-muted); }
+  .topbar-right span { color: var(--text-secondary); }
+
+  /* ── ROWS ── */
+  .row-top {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+    height: 40%;
+    min-height: 0;
+  }
+  .row-bottom {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr 1fr;
+    gap: 12px;
+    padding: 0 16px 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.4);
+    padding: 14px 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel-technical { border-top: 2px solid var(--technical); }
+  .panel-tactical  { border-top: 2px solid var(--tactical); }
+  .panel-mental    { border-top: 2px solid var(--mental); }
+  .panel-physical  { border-top: 2px solid var(--physical); }
+  .panel-cyan      { border-top: 2px solid var(--cyan); }
+  .panel-personality { border-top: 2px solid var(--personality); }
+  .panel-gold      { border-top: 2px solid var(--technical); }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .section-header::before {
+    content: '';
+    width: 3px;
+    height: 10px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .section-header.h-cyan::before    { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+  .section-header.h-gold::before    { background: var(--technical); box-shadow: 0 0 6px var(--technical); }
+  .section-header.h-purple::before  { background: var(--tactical); box-shadow: 0 0 6px var(--tactical); }
+  .section-header.h-green::before   { background: var(--mental); box-shadow: 0 0 6px var(--mental); }
+  .section-header.h-blue::before    { background: var(--physical); box-shadow: 0 0 6px var(--physical); }
+  .section-header.h-yellow::before  { background: var(--personality); box-shadow: 0 0 6px var(--personality); }
+
+  /* ── IDENTITY PANEL ── */
+  .position-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--tactical);
+    border: 1px solid var(--tactical);
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+  .player-name {
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .chip {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    background: var(--elevated);
+    border: 1px solid rgba(111,195,223,0.15);
+    padding: 3px 8px;
+    letter-spacing: 0.5px;
+  }
+  .personality-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .personality-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--personality);
+    text-shadow: 0 0 8px rgba(232,197,71,0.3);
+  }
+  .blueprint-quote {
+    font-style: italic;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-left: 2px solid rgba(111,195,223,0.2);
+    padding-left: 10px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .pursuit-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #000;
+    background: var(--technical);
+    padding: 3px 10px;
+    box-shadow: 0 0 8px rgba(212,160,53,0.3);
+  }
+
+  /* ── SCORES PANEL ── */
+  .score-hero {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .role-score {
+    font-family: var(--font-mono);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text);
+    text-shadow: 0 0 20px rgba(111,195,223,0.3);
+    line-height: 1;
+  }
+  .role-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .best-role {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  .archetype-label {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--personality);
+    margin-bottom: 14px;
+    text-shadow: 0 0 6px rgba(232,197,71,0.25);
+  }
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .pillar-card {
+    background: var(--pit);
+    border: 1px solid rgba(111,195,223,0.1);
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pillar-card-technical { border-bottom: 2px solid var(--technical); }
+  .pillar-card-tactical  { border-bottom: 2px solid var(--tactical); }
+  .pillar-card-mental    { border-bottom: 2px solid var(--mental); }
+  .pillar-card-physical  { border-bottom: 2px solid var(--physical); }
+  .pillar-name {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+  .pillar-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .pillar-value-technical { color: var(--technical); text-shadow: 0 0 8px rgba(212,160,53,0.3); }
+  .pillar-value-tactical  { color: var(--tactical); text-shadow: 0 0 8px rgba(155,89,182,0.3); }
+  .pillar-value-mental    { color: var(--mental); text-shadow: 0 0 8px rgba(61,186,111,0.3); }
+  .pillar-value-physical  { color: var(--physical); text-shadow: 0 0 8px rgba(74,144,217,0.3); }
+  .overall-bar {
+    text-align: center;
+    padding: 6px;
+    background: var(--pit);
+    border: 1px solid var(--border);
+  }
+  .overall-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+  .overall-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cyan);
+    text-shadow: 0 0 10px rgba(111,195,223,0.3);
+  }
+
+  /* ── RADAR PANEL ── */
+  .radar-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  .radar-svg {
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+  }
+  .plays-like {
+    margin-top: 10px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .plays-like-name {
+    font-family: var(--font-mono);
+    color: var(--cyan);
+    font-weight: 600;
+    border: 1px solid rgba(111,195,223,0.25);
+    padding: 2px 8px;
+    margin-left: 4px;
+    font-size: 10px;
+  }
+
+  /* ── ATTRIBUTE TABLE ── */
+  .attr-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .attr-scroll::-webkit-scrollbar { width: 4px; }
+  .attr-scroll::-webkit-scrollbar-track { background: var(--pit); }
+  .attr-scroll::-webkit-scrollbar-thumb { background: rgba(111,195,223,0.3); }
+
+  .attr-group-label {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 5px 8px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .attr-group-technical .attr-group-label { color: var(--technical); }
+  .attr-group-tactical  .attr-group-label { color: var(--tactical); }
+  .attr-group-mental    .attr-group-label { color: var(--mental); }
+  .attr-group-physical  .attr-group-label { color: var(--physical); }
+
+  .attr-row {
+    display: grid;
+    grid-template-columns: 1fr 36px 50px;
+    align-items: center;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-left: 2px solid transparent;
+  }
+  .attr-row:nth-child(even) { background: rgba(255,255,255,0.015); }
+  .attr-group-technical .attr-row { border-left-color: var(--technical); }
+  .attr-group-tactical  .attr-row { border-left-color: var(--tactical); }
+  .attr-group-mental    .attr-row { border-left-color: var(--mental); }
+  .attr-group-physical  .attr-row { border-left-color: var(--physical); }
+
+  .attr-name { color: var(--text-secondary); }
+  .attr-grade {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-align: center;
+    font-size: 11px;
+  }
+  .grade-a { color: var(--mental); }
+  .grade-b { color: var(--cyan); }
+  .grade-c { color: var(--personality); }
+  .grade-d { color: #e74c3c; }
+  .attr-stat {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: right;
+    color: var(--text-secondary);
+  }
+
+  /* ── SEASON STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .stat-cell {
+    background: var(--pit);
+    border: 1px solid rgba(111,195,223,0.08);
+    padding: 8px 4px;
+    text-align: center;
+  }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stat-label {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── CAREER TIMELINE ── */
+  .timeline {
+    flex: 1;
+    padding-left: 14px;
+    border-left: 1px solid rgba(111,195,223,0.2);
+    margin-left: 6px;
+    margin-top: 6px;
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 14px;
+    padding-left: 14px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: 4px;
+    width: 7px;
+    height: 7px;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+  .timeline-club {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .timeline-years {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  /* ── SCOUTING NOTES ── */
+  .scouting-notes {
+    background: var(--pit);
+    border-left: 2px solid var(--cyan);
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* ── MARKET INTELLIGENCE ── */
+  .market-rows { margin-top: 4px; }
+  .market-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .market-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .market-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .market-value.positive { color: var(--mental); }
+  .market-value.negative { color: #e74c3c; }
+
+  /* ── SIMILAR PLAYERS ── */
+  .similar-cards {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .similar-card {
+    flex: 1;
+    background: var(--pit);
+    border: 1px solid rgba(111,195,223,0.12);
+    padding: 8px;
+  }
+  .similar-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .similar-meta {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .similar-rs {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    float: right;
+    margin-top: -16px;
+    text-shadow: 0 0 6px rgba(111,195,223,0.3);
+  }
+
+  /* ── STACKED PANELS ── */
+  .stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+  .stacked > .panel { flex: 1; min-height: 0; }
+  .stacked > .panel-grow { flex: 1.4; }
+  .stacked > .panel-shrink { flex: 0.6; }
+
+  /* ── RIGHT COL BOTTOM ── */
+  .right-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+  .right-stack > .panel { min-height: 0; }
+  .right-stack > .panel:first-child { flex: 0.7; }
+  .right-stack > .panel:nth-child(2) { flex: 0.9; }
+  .right-stack > .panel:last-child { flex: 0.5; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══════ TOPBAR ══════ -->
+  <div class="topbar">
+    <div class="topbar-left">TACTICAL COMMAND</div>
+    <div class="topbar-right">Players / <span>Jude Bellingham</span></div>
+  </div>
+
+  <!-- ══════ ROW 1 — TOP 40% ══════ -->
+  <div class="row-top">
+
+    <!-- IDENTITY -->
+    <div class="panel panel-personality">
+      <div class="section-header h-yellow">Player Identity</div>
+      <div class="position-badge">AM</div>
+      <div class="player-name">Jude Bellingham</div>
+      <div class="chip-row">
+        <span class="chip">Real Madrid</span>
+        <span class="chip">England</span>
+        <span class="chip">Age 22</span>
+        <span class="chip">185 cm</span>
+        <span class="chip">Right Foot</span>
+      </div>
+      <div class="personality-line">
+        <span class="personality-tag">Mamba (ENTJ)</span>
+      </div>
+      <div class="blueprint-quote">"A box-to-box generational talent who commands the midfield with authority, vision, and an insatiable appetite for decisive moments."</div>
+      <div class="pursuit-badge">INTERESTED</div>
+    </div>
+
+    <!-- SCORES -->
+    <div class="panel panel-cyan">
+      <div class="section-header h-cyan">Composite Scores</div>
+      <div class="score-hero">
+        <div class="role-score">94</div>
+        <div class="role-label">Role Score</div>
+      </div>
+      <div class="best-role">Box-to-Box</div>
+      <div class="archetype-label">Maestro</div>
+      <div class="pillar-grid">
+        <div class="pillar-card pillar-card-technical">
+          <span class="pillar-name">Technical</span>
+          <span class="pillar-value pillar-value-technical">88</span>
+        </div>
+        <div class="pillar-card pillar-card-tactical">
+          <span class="pillar-name">Tactical</span>
+          <span class="pillar-value pillar-value-tactical">91</span>
+        </div>
+        <div class="pillar-card pillar-card-mental">
+          <span class="pillar-name">Mental</span>
+          <span class="pillar-value pillar-value-mental">85</span>
+        </div>
+        <div class="pillar-card pillar-card-physical">
+          <span class="pillar-name">Physical</span>
+          <span class="pillar-value pillar-value-physical">87</span>
+        </div>
+      </div>
+      <div class="overall-bar">
+        <div class="overall-label">Overall</div>
+        <div class="overall-value">87.8</div>
+      </div>
+    </div>
+
+    <!-- RADAR -->
+    <div class="panel panel-tactical">
+      <div class="section-header h-purple">Tactical Fingerprint</div>
+      <div class="radar-container">
+        <svg class="radar-svg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Grid hexagons -->
+          <g transform="translate(150,130)">
+            <!-- Axis lines -->
+            <line x1="0" y1="0" x2="0" y2="-110" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="95.3" y2="-55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="95.3" y2="55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="0" y2="110" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="-95.3" y2="55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+            <line x1="0" y1="0" x2="-95.3" y2="-55" stroke="rgba(111,195,223,0.12)" stroke-width="1"/>
+
+            <!-- Outer hex -->
+            <polygon points="0,-110 95.3,-55 95.3,55 0,110 -95.3,55 -95.3,-55" fill="none" stroke="rgba(111,195,223,0.15)" stroke-width="1"/>
+            <!-- Mid hex -->
+            <polygon points="0,-73.3 63.5,-36.7 63.5,36.7 0,73.3 -63.5,36.7 -63.5,-36.7" fill="none" stroke="rgba(111,195,223,0.1)" stroke-width="1"/>
+            <!-- Inner hex -->
+            <polygon points="0,-36.7 31.8,-18.3 31.8,18.3 0,36.7 -31.8,18.3 -31.8,-18.3" fill="none" stroke="rgba(111,195,223,0.07)" stroke-width="1"/>
+
+            <!-- Data polygon: Passing 92, Vision 90, Decision 88, Power 85, Dribbling 89, Finishing 86 -->
+            <!-- Normalized to 110 max: 92=92, 90=90, 88=88, 85=85, 89=89, 86=86 / scale to % of 110 -->
+            <polygon
+              points="0,-101.2  82.5,-49.5  84.7,46.8  0,94.6  -77.6,48.9  -83.1,-45.1"
+              fill="rgba(155,89,182,0.18)"
+              stroke="rgba(155,89,182,0.7)"
+              stroke-width="1.5"
+            />
+
+            <!-- Vertex dots -->
+            <circle cx="0" cy="-101.2" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
+            <circle cx="82.5" cy="-49.5" r="4" fill="#9b59b6" style="filter: drop-shadow(0 0 4px #9b59b6);"/>
+            <circle cx="84.7" cy="46.8" r="4" fill="#9b59b6" style="filter: drop-shadow(0 0 4px #9b59b6);"/>
+            <circle cx="0" cy="94.6" r="4" fill="#4a90d9" style="filter: drop-shadow(0 0 4px #4a90d9);"/>
+            <circle cx="-77.6" cy="48.9" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
+            <circle cx="-83.1" cy="-45.1" r="4" fill="#d4a035" style="filter: drop-shadow(0 0 4px #d4a035);"/>
+          </g>
+
+          <!-- Labels -->
+          <text x="150" y="14" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1" text-transform="uppercase">PASSING</text>
+          <text x="264" y="72" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">VISION</text>
+          <text x="264" y="198" text-anchor="start" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">DECISION</text>
+          <text x="150" y="258" text-anchor="middle" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">POWER</text>
+          <text x="36" y="198" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">DRIBBLING</text>
+          <text x="36" y="72" text-anchor="end" fill="#c8c8c8" font-family="Inter" font-size="9" letter-spacing="1">FINISHING</text>
+        </svg>
+      </div>
+      <div class="plays-like">Plays Like <span class="plays-like-name">Frank Lampard</span></div>
+    </div>
+
+  </div>
+
+  <!-- ══════ ROW 2 — BOTTOM 60% ══════ -->
+  <div class="row-bottom">
+
+    <!-- ATTRIBUTES -->
+    <div class="panel panel-gold">
+      <div class="section-header h-gold">Attribute Grades</div>
+      <div style="display:grid;grid-template-columns:1fr 36px 50px;padding:0 8px 4px;font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">
+        <span>Attribute</span><span style="text-align:center">Grade</span><span style="text-align:right">Score</span>
+      </div>
+      <div class="attr-scroll">
+        <!-- Technical -->
+        <div class="attr-group-technical">
+          <div class="attr-group-label">Technical</div>
+          <div class="attr-row"><span class="attr-name">Passing</span><span class="attr-grade grade-a">A</span><span class="attr-stat">92</span></div>
+          <div class="attr-row"><span class="attr-name">First Touch</span><span class="attr-grade grade-a">A</span><span class="attr-stat">89</span></div>
+          <div class="attr-row"><span class="attr-name">Dribbling</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">87</span></div>
+          <div class="attr-row"><span class="attr-name">Crossing</span><span class="attr-grade grade-b">B</span><span class="attr-stat">78</span></div>
+          <div class="attr-row"><span class="attr-name">Shooting</span><span class="attr-grade grade-a">A</span><span class="attr-stat">88</span></div>
+          <div class="attr-row"><span class="attr-name">Finishing</span><span class="attr-grade grade-a">A-</span><span class="attr-stat">86</span></div>
+        </div>
+        <!-- Tactical -->
+        <div class="attr-group-tactical">
+          <div class="attr-group-label">Tactical</div>
+          <div class="attr-row"><span class="attr-name">Positioning</span><span class="attr-grade grade-a">A</span><span class="attr-stat">91</span></div>
+          <div class="attr-row"><span class="attr-name">Movement</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
+          <div class="attr-row"><span class="attr-name">Vision</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
+          <div class="attr-row"><span class="attr-name">Decision Making</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">88</span></div>
+        </div>
+        <!-- Mental -->
+        <div class="attr-group-mental">
+          <div class="attr-group-label">Mental</div>
+          <div class="attr-row"><span class="attr-name">Composure</span><span class="attr-grade grade-a">A</span><span class="attr-stat">89</span></div>
+          <div class="attr-row"><span class="attr-name">Leadership</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">84</span></div>
+          <div class="attr-row"><span class="attr-name">Work Rate</span><span class="attr-grade grade-a">A</span><span class="attr-stat">91</span></div>
+          <div class="attr-row"><span class="attr-name">Concentration</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">83</span></div>
+        </div>
+        <!-- Physical -->
+        <div class="attr-group-physical">
+          <div class="attr-group-label">Physical</div>
+          <div class="attr-row"><span class="attr-name">Pace</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">84</span></div>
+          <div class="attr-row"><span class="attr-name">Stamina</span><span class="attr-grade grade-a">A</span><span class="attr-stat">90</span></div>
+          <div class="attr-row"><span class="attr-name">Strength</span><span class="attr-grade grade-b">B+</span><span class="attr-stat">85</span></div>
+          <div class="attr-row"><span class="attr-name">Aerial</span><span class="attr-grade grade-b">B</span><span class="attr-stat">82</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: SEASON STATS + CAREER TIMELINE -->
+    <div class="stacked">
+
+      <div class="panel panel-cyan panel-shrink">
+        <div class="section-header h-cyan">Season Stats 2025-26</div>
+        <div class="stats-grid">
+          <div class="stat-cell">
+            <div class="stat-value">34</div>
+            <div class="stat-label">Apps</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value">18</div>
+            <div class="stat-label">Goals</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value">11</div>
+            <div class="stat-label">Assists</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value">7.8</div>
+            <div class="stat-label">Rating</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value">2,810</div>
+            <div class="stat-label">Mins</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-cyan panel-grow">
+        <div class="section-header h-cyan">Career Timeline</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-club">Birmingham City</div>
+            <div class="timeline-years">2019 - 2020</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-club">Borussia Dortmund</div>
+            <div class="timeline-years">2020 - 2023</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-club">Real Madrid</div>
+            <div class="timeline-years">2023 - Present</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: SCOUTING + MARKET + SIMILAR -->
+    <div class="right-stack">
+
+      <div class="panel panel-cyan">
+        <div class="section-header h-cyan">Scouting Notes</div>
+        <div class="scouting-notes">
+          Bellingham has established himself as one of the most complete midfielders in world football. His ability to arrive late in the box, combined with elite passing range and tactical intelligence, makes him a unique profile. Defensively willing, physically imposing for his position, and mentally composed under pressure. Equally effective as an 8 or a 10, he adapts to system demands without losing individual identity. Leadership qualities emerging despite young age.
+        </div>
+      </div>
+
+      <div class="panel panel-gold">
+        <div class="section-header h-gold">Market Intelligence</div>
+        <div class="market-rows">
+          <div class="market-row">
+            <span class="market-label">Market Value</span>
+            <span class="market-value">&euro;120M</span>
+          </div>
+          <div class="market-row">
+            <span class="market-label">DoF Valuation</span>
+            <span class="market-value">&euro;135M</span>
+          </div>
+          <div class="market-row">
+            <span class="market-label">Market Premium</span>
+            <span class="market-value positive">+12.5%</span>
+          </div>
+          <div class="market-row">
+            <span class="market-label">Scarcity Score</span>
+            <span class="market-value">92</span>
+          </div>
+          <div class="market-row">
+            <span class="market-label">Contract Expiry</span>
+            <span class="market-value">Jun 2029</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-cyan">
+        <div class="section-header h-cyan">Similar Players</div>
+        <div class="similar-cards">
+          <div class="similar-card">
+            <div class="similar-name">F. Valverde</div>
+            <div class="similar-meta">CM / Box-to-Box</div>
+            <div class="similar-rs">91</div>
+          </div>
+          <div class="similar-card">
+            <div class="similar-name">P. Foden</div>
+            <div class="similar-meta">AM / Virtuoso</div>
+            <div class="similar-rs">90</div>
+          </div>
+          <div class="similar-card">
+            <div class="similar-name">J. Musiala</div>
+            <div class="similar-meta">AM / Maestro</div>
+            <div class="similar-rs">89</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

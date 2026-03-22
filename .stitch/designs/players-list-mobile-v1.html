@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Players - Chief Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    padding: 0 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(111,195,223,0.15);
+  }
+  .top-bar h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .top-bar .count-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6fc3df;
+    background: rgba(111,195,223,0.1);
+    border: 1px solid rgba(111,195,223,0.35);
+    padding: 2px 8px;
+    border-radius: 0;
+  }
+
+  /* ── Search ── */
+  .search-bar {
+    padding: 8px 16px;
+    background: #000;
+  }
+  .search-bar input {
+    width: 100%;
+    height: 44px;
+    background: #0a0a0a;
+    border: 1px solid rgba(111,195,223,0.15);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 0 14px;
+    outline: none;
+    border-radius: 0;
+    transition: border-color 0.15s;
+  }
+  .search-bar input::placeholder { color: #6a6a6a; }
+  .search-bar input:focus { border-color: #6fc3df; }
+
+  /* ── Filter Row ── */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    padding: 6px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: #000;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    height: 36px;
+    min-width: 44px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #c8c8c8;
+    background: #141414;
+    border: 1px solid rgba(111,195,223,0.15);
+    cursor: pointer;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+  .filter-chip.active {
+    color: #fff;
+    background: #6fc3df;
+    border-color: #6fc3df;
+  }
+  .filter-chip[data-pos="GK"].active { background: #4a90d9; border-color: #4a90d9; }
+  .filter-chip[data-pos="WD"].active,
+  .filter-chip[data-pos="CD"].active { background: #3dba6f; border-color: #3dba6f; }
+  .filter-chip[data-pos="DM"].active,
+  .filter-chip[data-pos="CM"].active,
+  .filter-chip[data-pos="WM"].active { background: #9b59b6; border-color: #9b59b6; }
+  .filter-chip[data-pos="AM"].active { background: #d4a035; border-color: #d4a035; }
+  .filter-chip[data-pos="WF"].active,
+  .filter-chip[data-pos="CF"].active { background: #e74c3c; border-color: #e74c3c; }
+
+  /* ── Sort Strip ── */
+  .sort-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    padding: 0 16px;
+    background: #000;
+    border-bottom: 1px solid rgba(111,195,223,0.1);
+  }
+  .sort-label {
+    font-size: 11px;
+    color: #6a6a6a;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .sort-label span { color: #c8c8c8; cursor: pointer; }
+  .tier-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #c8c8c8;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+  }
+  .tier-toggle .toggle-track {
+    width: 28px;
+    height: 14px;
+    background: #6fc3df;
+    position: relative;
+    border-radius: 0;
+  }
+  .tier-toggle .toggle-knob {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    border-radius: 0;
+  }
+
+  /* ── Player Cards ── */
+  .player-list {
+    padding: 0 0 80px 0;
+  }
+  .player-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    min-height: 72px;
+    padding: 10px 14px 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-left: 2px solid transparent;
+    background: #141414;
+    margin: 0;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .player-card:active { background: #1a1a1a; }
+
+  /* Pillar-dominant left border colors */
+  .player-card[data-dominant="technical"] { border-left-color: #d4a035; }
+  .player-card[data-dominant="tactical"]  { border-left-color: #9b59b6; }
+  .player-card[data-dominant="mental"]    { border-left-color: #3dba6f; }
+  .player-card[data-dominant="physical"]  { border-left-color: #4a90d9; }
+
+  /* Row 1 */
+  .card-row1 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+  .pos-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 5px;
+    color: #fff;
+    line-height: 1;
+  }
+  .pos-badge.pos-am { background: rgba(212,160,53,0.3); color: #d4a035; border-top: 2px solid #d4a035; }
+  .pos-badge.pos-wf { background: rgba(231,76,60,0.3); color: #e74c3c; border-top: 2px solid #e74c3c; }
+  .pos-badge.pos-cm { background: rgba(155,89,182,0.3); color: #9b59b6; border-top: 2px solid #9b59b6; }
+  .pos-badge.pos-cf { background: rgba(231,76,60,0.3); color: #e74c3c; border-top: 2px solid #e74c3c; }
+  .pos-badge.pos-cd { background: rgba(61,186,111,0.3); color: #3dba6f; border-top: 2px solid #3dba6f; }
+
+  .player-name {
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .role-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #9b59b6;
+    flex-shrink: 0;
+  }
+
+  /* Row 2 */
+  .card-row2 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .club-name {
+    font-size: 11px;
+    color: #6a6a6a;
+  }
+  .nation-flag { font-size: 12px; }
+  .player-age {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6a6a6a;
+  }
+  .archetype-chip {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1px 6px;
+    background: rgba(232,197,71,0.15);
+    color: #e8c547;
+    border: 1px solid rgba(232,197,71,0.3);
+    margin-left: auto;
+  }
+
+  /* Row 3 */
+  .card-row3 {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .pillar-scores {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+  .pillar-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+  }
+  .pillar-score .label { opacity: 0.6; }
+  .pillar-score.tech { color: #d4a035; }
+  .pillar-score.tact { color: #9b59b6; }
+  .pillar-score.ment { color: #3dba6f; }
+  .pillar-score.phys { color: #4a90d9; }
+
+  .market-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6a6a6a;
+    flex-shrink: 0;
+  }
+
+  /* ── Load More ── */
+  .load-more {
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+  .load-more button {
+    width: 100%;
+    height: 44px;
+    background: transparent;
+    border: 1px solid rgba(111,195,223,0.35);
+    color: #6fc3df;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.15s;
+  }
+  .load-more button:active { background: rgba(111,195,223,0.1); }
+
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    height: 56px;
+    background: #0a0a0a;
+    border-top: 1px solid rgba(111,195,223,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    color: #6a6a6a;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .nav-item.active { color: #6fc3df; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item.active svg { filter: drop-shadow(0 0 4px rgba(111,195,223,0.4)); }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <h1>Players</h1>
+  <span class="count-badge">276</span>
+</div>
+
+<!-- Search -->
+<div class="search-bar">
+  <input type="text" placeholder="Search players...">
+</div>
+
+<!-- Filter Row -->
+<div class="filter-row">
+  <div class="filter-chip active">ALL</div>
+  <div class="filter-chip" data-pos="GK">GK</div>
+  <div class="filter-chip" data-pos="WD">WD</div>
+  <div class="filter-chip" data-pos="CD">CD</div>
+  <div class="filter-chip" data-pos="DM">DM</div>
+  <div class="filter-chip" data-pos="CM">CM</div>
+  <div class="filter-chip" data-pos="WM">WM</div>
+  <div class="filter-chip" data-pos="AM">AM</div>
+  <div class="filter-chip" data-pos="WF">WF</div>
+  <div class="filter-chip" data-pos="CF">CF</div>
+</div>
+
+<!-- Sort Strip -->
+<div class="sort-strip">
+  <div class="sort-label">Sort: <span>Role Score &#9660;</span></div>
+  <div class="tier-toggle">
+    Tier 1
+    <div class="toggle-track"><div class="toggle-knob"></div></div>
+  </div>
+</div>
+
+<!-- Player Cards -->
+<div class="player-list">
+
+  <!-- 1. Bellingham -->
+  <a class="player-card" data-dominant="tactical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-am">AM</span>
+      <span class="player-name">Jude Bellingham</span>
+      <span class="role-score">94</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Real Madrid</span>
+      <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+      <span class="player-age">22</span>
+      <span class="archetype-chip">Maestro</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>88</span>
+        <span class="pillar-score tact"><span class="label">T</span>91</span>
+        <span class="pillar-score ment"><span class="label">M</span>85</span>
+        <span class="pillar-score phys"><span class="label">P</span>87</span>
+      </div>
+      <span class="market-value">&euro;120M</span>
+    </div>
+  </a>
+
+  <!-- 2. Yamal -->
+  <a class="player-card" data-dominant="technical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-wf">WF</span>
+      <span class="player-name">Lamine Yamal</span>
+      <span class="role-score">89</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Barcelona</span>
+      <span class="nation-flag">&#127466;&#127480;</span>
+      <span class="player-age">18</span>
+      <span class="archetype-chip">Prodigy</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>90</span>
+        <span class="pillar-score tact"><span class="label">T</span>82</span>
+        <span class="pillar-score ment"><span class="label">M</span>78</span>
+        <span class="pillar-score phys"><span class="label">P</span>85</span>
+      </div>
+      <span class="market-value">&euro;150M</span>
+    </div>
+  </a>
+
+  <!-- 3. Wirtz -->
+  <a class="player-card" data-dominant="technical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-am">AM</span>
+      <span class="player-name">Florian Wirtz</span>
+      <span class="role-score">92</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Leverkusen</span>
+      <span class="nation-flag">&#127465;&#127466;</span>
+      <span class="player-age">22</span>
+      <span class="archetype-chip">Virtuoso</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>91</span>
+        <span class="pillar-score tact"><span class="label">T</span>89</span>
+        <span class="pillar-score ment"><span class="label">M</span>84</span>
+        <span class="pillar-score phys"><span class="label">P</span>80</span>
+      </div>
+      <span class="market-value">&euro;130M</span>
+    </div>
+  </a>
+
+  <!-- 4. Mainoo -->
+  <a class="player-card" data-dominant="mental" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-cm">CM</span>
+      <span class="player-name">Kobbie Mainoo</span>
+      <span class="role-score">82</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Man United</span>
+      <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+      <span class="player-age">19</span>
+      <span class="archetype-chip">Engine</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>78</span>
+        <span class="pillar-score tact"><span class="label">T</span>80</span>
+        <span class="pillar-score ment"><span class="label">M</span>82</span>
+        <span class="pillar-score phys"><span class="label">P</span>79</span>
+      </div>
+      <span class="market-value">&euro;45M</span>
+    </div>
+  </a>
+
+  <!-- 5. Pedri -->
+  <a class="player-card" data-dominant="tactical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-cm">CM</span>
+      <span class="player-name">Pedri</span>
+      <span class="role-score">91</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Barcelona</span>
+      <span class="nation-flag">&#127466;&#127480;</span>
+      <span class="player-age">23</span>
+      <span class="archetype-chip">Maestro</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>89</span>
+        <span class="pillar-score tact"><span class="label">T</span>92</span>
+        <span class="pillar-score ment"><span class="label">M</span>86</span>
+        <span class="pillar-score phys"><span class="label">P</span>76</span>
+      </div>
+      <span class="market-value">&euro;100M</span>
+    </div>
+  </a>
+
+  <!-- 6. Saka -->
+  <a class="player-card" data-dominant="technical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-wf">WF</span>
+      <span class="player-name">Bukayo Saka</span>
+      <span class="role-score">90</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Arsenal</span>
+      <span class="nation-flag">&#127988;&#917607;&#917602;&#917605;&#917614;&#917607;&#917631;</span>
+      <span class="player-age">24</span>
+      <span class="archetype-chip">Virtuoso</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>88</span>
+        <span class="pillar-score tact"><span class="label">T</span>85</span>
+        <span class="pillar-score ment"><span class="label">M</span>83</span>
+        <span class="pillar-score phys"><span class="label">P</span>84</span>
+      </div>
+      <span class="market-value">&euro;120M</span>
+    </div>
+  </a>
+
+  <!-- 7. Vinicius Jr -->
+  <a class="player-card" data-dominant="physical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-wf">WF</span>
+      <span class="player-name">Vin&iacute;cius Jr</span>
+      <span class="role-score">91</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Real Madrid</span>
+      <span class="nation-flag">&#127463;&#127479;</span>
+      <span class="player-age">25</span>
+      <span class="archetype-chip">Maverick</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>92</span>
+        <span class="pillar-score tact"><span class="label">T</span>80</span>
+        <span class="pillar-score ment"><span class="label">M</span>76</span>
+        <span class="pillar-score phys"><span class="label">P</span>90</span>
+      </div>
+      <span class="market-value">&euro;150M</span>
+    </div>
+  </a>
+
+  <!-- 8. Haaland -->
+  <a class="player-card" data-dominant="physical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-cf">CF</span>
+      <span class="player-name">Erling Haaland</span>
+      <span class="role-score">93</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Man City</span>
+      <span class="nation-flag">&#127475;&#127476;</span>
+      <span class="player-age">25</span>
+      <span class="archetype-chip">Hitman</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>82</span>
+        <span class="pillar-score tact"><span class="label">T</span>78</span>
+        <span class="pillar-score ment"><span class="label">M</span>80</span>
+        <span class="pillar-score phys"><span class="label">P</span>92</span>
+      </div>
+      <span class="market-value">&euro;180M</span>
+    </div>
+  </a>
+
+  <!-- 9. Saliba -->
+  <a class="player-card" data-dominant="physical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-cd">CD</span>
+      <span class="player-name">William Saliba</span>
+      <span class="role-score">88</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Arsenal</span>
+      <span class="nation-flag">&#127467;&#127479;</span>
+      <span class="player-age">24</span>
+      <span class="archetype-chip">Rock</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>72</span>
+        <span class="pillar-score tact"><span class="label">T</span>85</span>
+        <span class="pillar-score ment"><span class="label">M</span>86</span>
+        <span class="pillar-score phys"><span class="label">P</span>89</span>
+      </div>
+      <span class="market-value">&euro;90M</span>
+    </div>
+  </a>
+
+  <!-- 10. Musiala -->
+  <a class="player-card" data-dominant="technical" href="#">
+    <div class="card-row1">
+      <span class="pos-badge pos-am">AM</span>
+      <span class="player-name">Jamal Musiala</span>
+      <span class="role-score">90</span>
+    </div>
+    <div class="card-row2">
+      <span class="club-name">Bayern</span>
+      <span class="nation-flag">&#127465;&#127466;</span>
+      <span class="player-age">22</span>
+      <span class="archetype-chip">Virtuoso</span>
+    </div>
+    <div class="card-row3">
+      <div class="pillar-scores">
+        <span class="pillar-score tech"><span class="label">T</span>91</span>
+        <span class="pillar-score tact"><span class="label">T</span>86</span>
+        <span class="pillar-score ment"><span class="label">M</span>82</span>
+        <span class="pillar-score phys"><span class="label">P</span>79</span>
+      </div>
+      <span class="market-value">&euro;120M</span>
+    </div>
+  </a>
+
+  <!-- Load More -->
+  <div class="load-more">
+    <button>Load more players</button>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <a class="nav-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="nav-item active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Players</span>
+  </a>
+  <a class="nav-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Clubs</span>
+  </a>
+  <a class="nav-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Compare</span>
+  </a>
+  <a class="nav-item" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    <span>More</span>
+  </a>
+</nav>
+
+</body>
+</html>

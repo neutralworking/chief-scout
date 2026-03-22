@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chief Scout — Tactical Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-base: #000000;
+    --bg-pit: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-elevated: #252526;
+    --border-subtle: rgba(111,195,223,0.35);
+    --border-bright: #6fc3df;
+    --text-primary: #ffffff;
+    --text-secondary: #c8c8c8;
+    --text-muted: #6a6a6a;
+    --accent-technical: #d4a035;
+    --accent-tactical: #9b59b6;
+    --accent-mental: #3dba6f;
+    --accent-physical: #4a90d9;
+    --accent-personality: #e8c547;
+    --accent-cyan: #6fc3df;
+    --sentiment-positive: #3dba6f;
+    --sentiment-negative: #e74c3c;
+    --sentiment-neutral: #6a6a7a;
+  }
+
+  body {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ─── HEADER BAR ─── */
+  .topbar {
+    height: 34px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+  }
+
+  .topbar-right {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .topbar-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-mental);
+    display: inline-block;
+    box-shadow: 0 0 6px var(--accent-mental);
+  }
+
+  /* ─── GLASS PANELS ─── */
+  .glass {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 1px 0 rgba(111,195,223,0.06), 0 0 12px rgba(111,195,223,0.04);
+    pointer-events: none;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .dashboard {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 6px;
+    flex: 1;
+    padding: 6px;
+    min-height: 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 6px;
+    min-height: 0;
+  }
+
+  /* ─── SECTION HEADERS ─── */
+  .section-header {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-header::before {
+    content: '';
+    width: 3px;
+    height: 10px;
+    border-radius: 1px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .sh-tactical::before { background: var(--accent-tactical); box-shadow: 0 0 6px var(--accent-tactical); }
+  .sh-mental::before { background: var(--accent-mental); box-shadow: 0 0 6px var(--accent-mental); }
+  .sh-physical::before { background: var(--accent-physical); box-shadow: 0 0 6px var(--accent-physical); }
+  .sh-personality::before { background: var(--accent-personality); box-shadow: 0 0 6px var(--accent-personality); }
+  .sh-neutral::before { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
+
+  .link-arrow {
+    font-size: 9px;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .link-arrow:hover { filter: brightness(1.3); }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel-header .section-header { margin-bottom: 0; }
+
+  .panel { padding: 12px 14px; }
+
+  /* ═══════════════════════════════════
+     FEATURED PLAYER — 2-column layout
+     ═══════════════════════════════════ */
+  .featured {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 8px 24px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--bg-surface) 0%, #0f1218 50%, var(--bg-surface) 100%);
+    border-left: 2px solid var(--accent-tactical);
+  }
+
+  .featured::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(155,89,182,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .featured::after {
+    box-shadow: inset 0 1px 0 rgba(155,89,182,0.1), 0 0 20px rgba(155,89,182,0.05) !important;
+  }
+
+  /* Row 1: top bar spans full width */
+  .featured-top {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .featured-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    background: rgba(231,76,60,0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231,76,60,0.25);
+    box-shadow: 0 0 8px rgba(231,76,60,0.1);
+  }
+
+  .featured-position {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    background: rgba(155,89,182,0.15);
+    color: var(--accent-tactical);
+    border: 1px solid rgba(155,89,182,0.25);
+    letter-spacing: 2px;
+  }
+
+  .featured-club-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Row 2 left: name + archetype */
+  .featured-identity {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .featured-name {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .featured-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .archetype-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-personality);
+    padding: 3px 10px;
+    border: 1px solid rgba(232,197,71,0.25);
+    background: rgba(232,197,71,0.06);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 0 8px rgba(232,197,71,0.08);
+  }
+
+  .blueprint-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Row 2 right: role score + radar */
+  .featured-data {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+  }
+
+  .role-score-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(155,89,182,0.06);
+    border: 1px solid rgba(155,89,182,0.2);
+    width: 100%;
+  }
+
+  .role-score-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--accent-tactical);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(155,89,182,0.3);
+  }
+
+  .role-score-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  /* Mini radar — SVG hexagon */
+  .radar-container {
+    width: 160px;
+    height: 140px;
+    position: relative;
+  }
+
+  .radar-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Pillar badges */
+  .pillar-row-h {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .pillar-mini {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+  }
+
+  .pillar-mini .p-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.6;
+  }
+
+  .pillar-mini .p-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .pm-tech { background: rgba(212,160,53,0.06); border: 1px solid rgba(212,160,53,0.2); color: var(--accent-technical); box-shadow: inset 0 -2px 0 var(--accent-technical); }
+  .pm-tact { background: rgba(155,89,182,0.06); border: 1px solid rgba(155,89,182,0.2); color: var(--accent-tactical); box-shadow: inset 0 -2px 0 var(--accent-tactical); }
+  .pm-ment { background: rgba(61,186,111,0.06); border: 1px solid rgba(61,186,111,0.2); color: var(--accent-mental); box-shadow: inset 0 -2px 0 var(--accent-mental); }
+  .pm-phys { background: rgba(74,144,217,0.06); border: 1px solid rgba(74,144,217,0.2); color: var(--accent-physical); box-shadow: inset 0 -2px 0 var(--accent-physical); }
+
+  /* Row 3 left: bio — stretches to fill */
+  .featured-bio {
+    grid-column: 1;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    background: var(--bg-pit);
+    border-left: 2px solid rgba(111,195,223,0.2);
+    align-self: stretch;
+  }
+
+  /* Row 4: intel strip */
+  .featured-intel {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .intel-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--bg-pit);
+    border: 1px solid rgba(111,195,223,0.08);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .intel-chip .chip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.5;
+  }
+
+  .intel-chip .chip-value {
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .intel-chip .chip-accent {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+  }
+
+  /* Row 5: bottom bar spans full width */
+  .featured-bottom {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(111,195,223,0.08);
+  }
+
+  .featured-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .featured-stats .stat-value {
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .featured-values {
+    display: flex;
+    gap: 20px;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .featured-values .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .cycle-arrows { display: flex; gap: 3px; }
+
+  .cycle-btn {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-pit);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .cycle-btn:hover { border-color: var(--border-bright); color: var(--accent-cyan); box-shadow: 0 0 8px rgba(111,195,223,0.15); }
+
+  /* ═══════════════════════════════════
+     RIGHT COLUMN — ROW 1
+     ═══════════════════════════════════ */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+  }
+
+  .fixtures-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: 2px solid var(--accent-tactical);
+  }
+
+  .fixtures-list { overflow-y: auto; flex: 1; margin-top: 4px; }
+
+  .fixture-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .fixture-row:nth-child(odd) { background: rgba(255,255,255,0.015); }
+  .fixture-row:hover { background: rgba(111,195,223,0.04); }
+
+  .fixture-comp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--accent-tactical);
+    width: 18px;
+    flex-shrink: 0;
+  }
+
+  .fixture-teams {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fixture-teams .v {
+    color: var(--text-muted);
+    font-size: 9px;
+    margin: 0 5px;
+    font-weight: 400;
+  }
+
+  .fixture-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .league-panel { border-top: 2px solid var(--accent-mental); }
+  .contract-panel { border-top: 2px solid var(--accent-physical); }
+
+  .league-link {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 3px 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .league-link:hover { background: rgba(61,186,111,0.06); color: var(--accent-mental); }
+
+  .contract-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .contract-row:last-child { border-bottom: none; }
+
+  .contract-name { font-size: 11px; font-weight: 500; color: var(--text-primary); }
+
+  .contract-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .contract-urgent {
+    color: var(--sentiment-negative);
+    text-shadow: 0 0 8px rgba(231,76,60,0.3);
+  }
+
+  /* ═══════════════════════════════════
+     NEWS — ROW 2
+     ═══════════════════════════════════ */
+  .news-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 12px 14px;
+    border-top: 2px solid var(--accent-cyan);
+  }
+
+  .news-list {
+    overflow-y: auto;
+    flex: 1;
+    margin-top: 4px;
+  }
+
+  .news-item {
+    display: flex;
+    gap: 10px;
+    padding: 7px 6px;
+    transition: background 0.15s;
+  }
+  .news-item:nth-child(odd) { background: rgba(255,255,255,0.01); }
+  .news-item:hover { background: rgba(111,195,223,0.03); }
+
+  .news-item:first-child {
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(111,195,223,0.1);
+    background: rgba(111,195,223,0.02);
+  }
+
+  .news-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    width: 28px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .news-content { flex: 1; min-width: 0; }
+
+  .news-type {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 2px 7px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .news-type-transfer { background: rgba(155,89,182,0.12); color: var(--accent-tactical); border: 1px solid rgba(155,89,182,0.2); }
+  .news-type-injury { background: rgba(231,76,60,0.1); color: var(--sentiment-negative); border: 1px solid rgba(231,76,60,0.2); }
+  .news-type-contract { background: rgba(61,186,111,0.1); color: var(--accent-mental); border: 1px solid rgba(61,186,111,0.2); }
+  .news-type-tactical { background: rgba(74,144,217,0.1); color: var(--accent-physical); border: 1px solid rgba(74,144,217,0.2); }
+  .news-type-scouting { background: rgba(232,197,71,0.1); color: var(--accent-personality); border: 1px solid rgba(232,197,71,0.2); }
+  .news-type-analysis { background: rgba(111,195,223,0.08); color: var(--accent-cyan); border: 1px solid rgba(111,195,223,0.15); }
+
+  .news-headline {
+    font-size: 12px;
+    color: var(--text-primary);
+    line-height: 1.4;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .news-headline:hover { color: var(--accent-cyan); }
+  .news-headline.lead { font-size: 13px; font-weight: 600; }
+
+  .news-summary {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .news-tags {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+  }
+
+  .news-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: var(--bg-pit);
+    border: 1px solid rgba(111,195,223,0.08);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .news-tag:hover { border-color: var(--border-subtle); color: var(--text-primary); }
+
+  .sentiment-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-positive { background: var(--sentiment-positive); box-shadow: 0 0 4px var(--sentiment-positive); }
+  .dot-negative { background: var(--sentiment-negative); box-shadow: 0 0 4px var(--sentiment-negative); }
+  .dot-neutral { background: var(--sentiment-neutral); }
+
+  /* ═══════════════════════════════════
+     INTEL PANELS — ROW 2 RIGHT
+     ═══════════════════════════════════ */
+  .intel-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+  }
+
+  .rising-panel { border-top: 2px solid var(--accent-tactical); }
+  .market-panel { border-top: 2px solid var(--accent-physical); }
+
+  .rising-row, .market-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .rising-row:hover, .market-row:hover { background: rgba(255,255,255,0.02); }
+
+  .rising-arrow {
+    font-size: 9px;
+    color: var(--accent-tactical);
+    text-shadow: 0 0 6px var(--accent-tactical);
+  }
+
+  .pos-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 700;
+    padding: 2px 5px;
+    letter-spacing: 1px;
+  }
+  .pos-wf { background: rgba(212,160,53,0.12); color: var(--accent-technical); border: 1px solid rgba(212,160,53,0.2); }
+  .pos-cm { background: rgba(155,89,182,0.12); color: var(--accent-tactical); border: 1px solid rgba(155,89,182,0.2); }
+  .pos-am { background: rgba(61,186,111,0.12); color: var(--accent-mental); border: 1px solid rgba(61,186,111,0.2); }
+  .pos-cd { background: rgba(74,144,217,0.12); color: var(--accent-physical); border: 1px solid rgba(74,144,217,0.2); }
+
+  .rising-name, .market-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.15s;
+  }
+
+  .market-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: auto;
+  }
+
+  .pct-over { color: var(--sentiment-negative); text-shadow: 0 0 6px rgba(231,76,60,0.2); }
+  .pct-under { color: var(--sentiment-positive); text-shadow: 0 0 6px rgba(61,186,111,0.2); }
+
+  /* Trending */
+  .trending-panel { flex-shrink: 0; border-top: 2px solid var(--accent-personality); }
+
+  .trending-strip {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding: 2px 0;
+  }
+
+  .trending-card {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    background: var(--bg-pit);
+    border: 1px solid rgba(111,195,223,0.08);
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 105px;
+  }
+  .trending-card:hover {
+    border-color: var(--accent-personality);
+    box-shadow: 0 0 10px rgba(232,197,71,0.08);
+  }
+
+  .trending-name { font-size: 11px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+
+  .trending-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    white-space: nowrap;
+  }
+
+  .trending-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--accent-personality);
+    margin-top: 4px;
+    text-shadow: 0 0 6px rgba(232,197,71,0.2);
+  }
+
+  /* Gaffer CTA */
+  .gaffer-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    text-decoration: none;
+    border-top: 2px solid var(--accent-personality);
+    background: linear-gradient(90deg, var(--bg-surface) 0%, rgba(232,197,71,0.03) 100%);
+  }
+  .gaffer-cta:hover {
+    background: linear-gradient(90deg, var(--bg-surface) 0%, rgba(232,197,71,0.06) 100%);
+    box-shadow: 0 0 12px rgba(232,197,71,0.06);
+  }
+
+  .gaffer-left { display: flex; align-items: center; gap: 12px; }
+
+  .gaffer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent-personality);
+    text-shadow: 0 0 8px rgba(232,197,71,0.3);
+  }
+
+  .gaffer-tagline { font-size: 11px; color: var(--text-muted); }
+
+  .gaffer-play {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent-personality);
+    letter-spacing: 1px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(111,195,223,0.15); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(111,195,223,0.3); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <span class="topbar-title">Tactical Command</span>
+    <div class="topbar-right">
+      <span><span class="topbar-dot"></span> LIVE</span>
+      <span>21,683 Players</span>
+      <span>276 Tier 1</span>
+    </div>
+  </div>
+
+  <div class="dashboard">
+    <!-- ═══ ROW 1: Featured + Sidebar (shrinks to fit) ═══ -->
+    <div class="row">
+      <!-- Featured Player — 2-column internal layout -->
+      <div class="featured glass">
+        <div class="featured-top">
+          <div>
+            <span class="featured-position">AM</span>
+            <span class="featured-club-info">Real Madrid · 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</span>
+          </div>
+          <span class="featured-badge">◆ DOF Pick</span>
+        </div>
+
+        <!-- Left: identity + bio -->
+        <div class="featured-identity">
+          <div class="featured-name">Jude Bellingham</div>
+          <div class="featured-subtitle">
+            <span class="archetype-tag">Maestro</span>
+            <span class="blueprint-tag">"The complete midfielder who dominates both boxes"</span>
+          </div>
+        </div>
+
+        <!-- Right: data column (role score + radar + pillars) -->
+        <div class="featured-data">
+          <div class="role-score-block">
+            <span class="role-score-number">94</span>
+            <span class="role-score-label">Role Score</span>
+          </div>
+
+          <!-- Mini radar -->
+          <div class="radar-container">
+            <svg viewBox="0 0 160 140" width="160" height="140">
+              <!-- Grid rings -->
+              <polygon points="80,10 140,40 140,100 80,130 20,100 20,40" fill="none" stroke="rgba(111,195,223,0.08)" stroke-width="1"/>
+              <polygon points="80,30 120,50 120,90 80,110 40,90 40,50" fill="none" stroke="rgba(111,195,223,0.06)" stroke-width="1"/>
+              <polygon points="80,50 100,60 100,80 80,90 60,80 60,60" fill="none" stroke="rgba(111,195,223,0.04)" stroke-width="1"/>
+              <!-- Axes -->
+              <line x1="80" y1="10" x2="80" y2="130" stroke="rgba(111,195,223,0.06)" stroke-width="1"/>
+              <line x1="20" y1="40" x2="140" y2="100" stroke="rgba(111,195,223,0.06)" stroke-width="1"/>
+              <line x1="140" y1="40" x2="20" y2="100" stroke="rgba(111,195,223,0.06)" stroke-width="1"/>
+              <!-- Data shape — high across the board -->
+              <polygon points="80,16 135,43 132,97 80,118 28,95 30,45"
+                fill="rgba(155,89,182,0.12)" stroke="var(--accent-tactical)" stroke-width="1.5"/>
+              <!-- Data dots -->
+              <circle cx="80" cy="16" r="2.5" fill="var(--accent-technical)"/>
+              <circle cx="135" cy="43" r="2.5" fill="var(--accent-tactical)"/>
+              <circle cx="132" cy="97" r="2.5" fill="var(--accent-mental)"/>
+              <circle cx="80" cy="118" r="2.5" fill="var(--accent-physical)"/>
+              <circle cx="28" cy="95" r="2.5" fill="var(--accent-tactical)"/>
+              <circle cx="30" cy="45" r="2.5" fill="var(--accent-technical)"/>
+              <!-- Labels -->
+              <text x="80" y="6" text-anchor="middle" fill="var(--accent-technical)" font-family="JetBrains Mono" font-size="7" font-weight="600">PASS</text>
+              <text x="148" y="42" text-anchor="start" fill="var(--accent-tactical)" font-family="JetBrains Mono" font-size="7" font-weight="600">VIS</text>
+              <text x="148" y="102" text-anchor="start" fill="var(--accent-mental)" font-family="JetBrains Mono" font-size="7" font-weight="600">DEC</text>
+              <text x="80" y="138" text-anchor="middle" fill="var(--accent-physical)" font-family="JetBrains Mono" font-size="7" font-weight="600">PWR</text>
+              <text x="12" y="102" text-anchor="end" fill="var(--accent-tactical)" font-family="JetBrains Mono" font-size="7" font-weight="600">DRI</text>
+              <text x="12" y="42" text-anchor="end" fill="var(--accent-technical)" font-family="JetBrains Mono" font-size="7" font-weight="600">FIN</text>
+            </svg>
+          </div>
+
+          <!-- Pillar badges 2x2 -->
+          <div class="pillar-row-h">
+            <div class="pillar-mini pm-tech"><span class="p-label">Tech</span><span class="p-value">88</span></div>
+            <div class="pillar-mini pm-tact"><span class="p-label">Tact</span><span class="p-value">91</span></div>
+            <div class="pillar-mini pm-ment"><span class="p-label">Ment</span><span class="p-value">85</span></div>
+            <div class="pillar-mini pm-phys"><span class="p-label">Phys</span><span class="p-value">87</span></div>
+          </div>
+        </div>
+
+        <!-- Bio text -->
+        <div class="featured-bio">
+          A generational talent who combines technical brilliance with tactical intelligence. Bellingham's ability to arrive in the box and score crucial goals makes him one of the most complete midfielders in world football.
+        </div>
+
+        <!-- Intel strip: personality, similar, best role -->
+        <div class="featured-intel">
+          <div class="intel-chip">
+            <span class="chip-label">Personality</span>
+            <span class="chip-value">Mamba</span>
+            <span style="font-size:9px;">ENTJ</span>
+          </div>
+          <div class="intel-chip">
+            <span class="chip-label">Best Role</span>
+            <span class="chip-accent" style="color:var(--accent-tactical);">Box-to-Box</span>
+          </div>
+          <div class="intel-chip">
+            <span class="chip-label">Plays Like</span>
+            <span class="chip-value">Frank Lampard</span>
+          </div>
+          <div class="intel-chip">
+            <span class="chip-label">Side</span>
+            <span class="chip-value">C/R</span>
+          </div>
+          <div class="intel-chip">
+            <span class="chip-label">Foot</span>
+            <span class="chip-value">Right</span>
+          </div>
+          <div class="intel-chip">
+            <span class="chip-label">Age</span>
+            <span class="chip-accent mono" style="color:var(--text-primary);">22</span>
+          </div>
+        </div>
+
+        <!-- Bottom bar: stats + values + cycle -->
+        <div class="featured-bottom">
+          <div class="featured-stats">
+            <span><span class="stat-value mono">32</span> apps</span>
+            <span><span class="stat-value mono">14</span> goals</span>
+            <span><span class="stat-value mono">8</span> assists</span>
+            <span><span class="stat-value mono">7.82</span> rating</span>
+          </div>
+          <div class="featured-values">
+            <span>Market <span class="val mono">€120M</span></span>
+            <span>DoF <span class="val mono">€135M</span></span>
+          </div>
+          <div class="cycle-arrows">
+            <button class="cycle-btn">‹</button>
+            <button class="cycle-btn">›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Fixtures + League/Contracts -->
+      <div class="right-col">
+        <div class="glass panel fixtures-panel">
+          <div class="panel-header">
+            <span class="section-header sh-tactical">Upcoming Fixtures</span>
+            <a class="link-arrow" style="color:var(--accent-tactical);">All →</a>
+          </div>
+          <div class="fixtures-list">
+            <div class="fixture-row"><span class="fixture-comp">PL</span><span class="fixture-teams">Arsenal <span class="v">v</span> Chelsea</span><span class="fixture-date">Sat 22 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">LL</span><span class="fixture-teams">Barcelona <span class="v">v</span> Atletico Madrid</span><span class="fixture-date">Sun 23 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">SA</span><span class="fixture-teams">Inter <span class="v">v</span> Juventus</span><span class="fixture-date">Sun 23 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">BL</span><span class="fixture-teams">Bayern <span class="v">v</span> Dortmund</span><span class="fixture-date">Sat 29 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">L1</span><span class="fixture-teams">PSG <span class="v">v</span> Lyon</span><span class="fixture-date">Sun 30 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">PL</span><span class="fixture-teams">Liverpool <span class="v">v</span> Man City</span><span class="fixture-date">Sun 30 Mar</span></div>
+            <div class="fixture-row"><span class="fixture-comp">LL</span><span class="fixture-teams">Real Madrid <span class="v">v</span> Sevilla</span><span class="fixture-date">Sat 5 Apr</span></div>
+          </div>
+        </div>
+
+        <div class="split-row">
+          <div class="glass panel league-panel">
+            <span class="section-header sh-mental">Leagues</span>
+            <a class="league-link">Premier League</a>
+            <a class="league-link">La Liga</a>
+            <a class="league-link">Serie A</a>
+            <a class="league-link">Bundesliga</a>
+            <a class="league-link">Ligue 1</a>
+            <a class="league-link">Eredivisie</a>
+            <a class="league-link">Primeira Liga</a>
+            <a class="league-link">Süper Lig</a>
+          </div>
+
+          <div class="glass panel contract-panel">
+            <div class="panel-header">
+              <span class="section-header sh-physical">Contracts</span>
+              <a class="link-arrow" style="color:var(--accent-physical);">→</a>
+            </div>
+            <div class="contract-row"><span class="contract-name">Alphonso Davies</span><span class="contract-date contract-urgent">Jun 26</span></div>
+            <div class="contract-row"><span class="contract-name">Mohamed Salah</span><span class="contract-date contract-urgent">Jun 26</span></div>
+            <div class="contract-row"><span class="contract-name">Alexander-Arnold</span><span class="contract-date contract-urgent">Jun 26</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ROW 2: News + Intel (expands to fill) ═══ -->
+    <div class="row">
+      <div class="news-panel glass">
+        <div class="panel-header">
+          <span class="section-header sh-neutral">Latest Intelligence</span>
+          <a class="link-arrow" style="color:var(--accent-personality);">All stories →</a>
+        </div>
+        <div class="news-list">
+          <div class="news-item">
+            <span class="news-time">2h</span>
+            <div class="news-content">
+              <span class="news-type news-type-transfer">Transfer</span>
+              <span class="news-headline lead">Arsenal target €80M move for Florian Wirtz as Leverkusen brace for summer bids</span>
+              <p class="news-summary">Multiple sources confirm Arsenal have made initial contact with Bayer Leverkusen over a potential summer move for the German international.</p>
+              <div class="news-tags">
+                <span class="news-tag"><span class="sentiment-dot dot-positive"></span> Florian Wirtz</span>
+                <span class="news-tag"><span class="sentiment-dot dot-neutral"></span> Martin Ødegaard</span>
+              </div>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">4h</span>
+            <div class="news-content">
+              <span class="news-type news-type-injury">Injury</span>
+              <span class="news-headline">Mbappé ruled out for two weeks with hamstring strain ahead of Champions League</span>
+              <div class="news-tags"><span class="news-tag"><span class="sentiment-dot dot-negative"></span> Kylian Mbappé</span></div>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">5h</span>
+            <div class="news-content">
+              <span class="news-type news-type-contract">Contract</span>
+              <span class="news-headline">Barcelona academy graduate Yamal signs new deal until 2030 with €1B release clause</span>
+              <div class="news-tags"><span class="news-tag"><span class="sentiment-dot dot-positive"></span> Lamine Yamal</span></div>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">7h</span>
+            <div class="news-content">
+              <span class="news-type news-type-tactical">Tactical</span>
+              <span class="news-headline">How Slot's 4-2-3-1 is transforming Liverpool's pressing structure this season</span>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">9h</span>
+            <div class="news-content">
+              <span class="news-type news-type-transfer">Transfer</span>
+              <span class="news-headline">Chelsea preparing €45M offer for Crystal Palace's Marc Guéhi</span>
+              <div class="news-tags"><span class="news-tag"><span class="sentiment-dot dot-positive"></span> Marc Guéhi</span></div>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">12h</span>
+            <div class="news-content">
+              <span class="news-type news-type-scouting">Scouting</span>
+              <span class="news-headline">Mainoo's emergence: statistical breakdown of United's midfield revelation</span>
+              <div class="news-tags"><span class="news-tag"><span class="sentiment-dot dot-positive"></span> Kobbie Mainoo</span></div>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">1d</span>
+            <div class="news-content">
+              <span class="news-type news-type-transfer">Transfer</span>
+              <span class="news-headline">Napoli demand €100M for Kvaratskhelia amid PSG interest</span>
+            </div>
+          </div>
+          <div class="news-item">
+            <span class="news-time">1d</span>
+            <div class="news-content">
+              <span class="news-type news-type-analysis">Analysis</span>
+              <span class="news-headline">The quiet brilliance of Rodri: why Man City's metronome is the Ballon d'Or favourite</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intel Column -->
+      <div class="intel-col">
+        <div class="split-row" style="flex:1; min-height:0;">
+          <div class="glass panel rising-panel">
+            <span class="section-header sh-tactical">Rising Stars</span>
+            <div class="rising-row"><span class="rising-arrow">▲</span><span class="pos-badge pos-wf">WF</span><span class="rising-name">Lamine Yamal</span></div>
+            <div class="rising-row"><span class="rising-arrow">▲</span><span class="pos-badge pos-cm">CM</span><span class="rising-name">Kobbie Mainoo</span></div>
+            <div class="rising-row"><span class="rising-arrow">▲</span><span class="pos-badge pos-cm">CM</span><span class="rising-name">Zaïre-Emery</span></div>
+            <div class="rising-row"><span class="rising-arrow">▲</span><span class="pos-badge pos-am">AM</span><span class="rising-name">João Neves</span></div>
+          </div>
+          <div class="glass panel market-panel">
+            <span class="section-header sh-physical">Market Movers</span>
+            <div class="market-row"><span class="market-name">Marcus Rashford</span><span class="market-pct pct-over">+23%</span></div>
+            <div class="market-row"><span class="market-name">Kolo Muani</span><span class="market-pct pct-under">−31%</span></div>
+            <div class="market-row"><span class="market-name">João Félix</span><span class="market-pct pct-over">+18%</span></div>
+            <div class="market-row"><span class="market-name">Nico Williams</span><span class="market-pct pct-under">−14%</span></div>
+          </div>
+        </div>
+
+        <div class="glass panel trending-panel">
+          <span class="section-header sh-personality">Trending</span>
+          <div class="trending-strip">
+            <div class="trending-card"><div class="trending-name">Florian Wirtz</div><div class="trending-meta">AM · Leverkusen</div><div class="trending-count">7 stories</div></div>
+            <div class="trending-card"><div class="trending-name">Kylian Mbappé</div><div class="trending-meta">CF · Real Madrid</div><div class="trending-count">5 stories</div></div>
+            <div class="trending-card"><div class="trending-name">Lamine Yamal</div><div class="trending-meta">WF · Barcelona</div><div class="trending-count">4 stories</div></div>
+            <div class="trending-card"><div class="trending-name">Kobbie Mainoo</div><div class="trending-meta">CM · Man United</div><div class="trending-count">3 stories</div></div>
+            <div class="trending-card"><div class="trending-name">Marc Guéhi</div><div class="trending-meta">CD · Crystal Palace</div><div class="trending-count">3 stories</div></div>
+          </div>
+        </div>
+
+        <a class="gaffer-cta glass" href="#">
+          <div class="gaffer-left">
+            <span class="gaffer-label">Gaffer</span>
+            <span class="gaffer-tagline">Make the calls. Build your identity.</span>
+          </div>
+          <span class="gaffer-play">Play →</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

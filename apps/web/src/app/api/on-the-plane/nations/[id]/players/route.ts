@@ -44,40 +44,56 @@ export async function GET(
 
   const dualIds = (dualNationals ?? []).map((d) => d.person_id);
 
-  // Query all eligible players (primary nation + dual nationals)
-  // Using the players view for backward-compat reads
-  const { data: primaryPlayers } = await sb
-    .from("players")
-    .select(`
-      person_id, name, position, level, archetype, personality_type,
-      club, best_role, best_role_score, overall_pillar_score,
-      technical_score, tactical_score, mental_score, physical_score
-    `)
+  // Step 1: Get person IDs from people table (primary nation)
+  const { data: primaryPeople } = await sb
+    .from("people")
+    .select("id")
     .eq("nation_id", nationId)
-    .eq("active", true)
-    .order("level", { ascending: false, nullsFirst: false });
+    .eq("active", true);
 
-  let dualPlayers: typeof primaryPlayers = [];
-  if (dualIds.length > 0) {
+  const primaryIds = (primaryPeople ?? []).map((p) => p.id);
+
+  // Combine primary + dual national IDs
+  const allIds = [...new Set([...primaryIds, ...dualIds])];
+
+  if (allIds.length === 0) {
+    return NextResponse.json({ nation_id: nationId, slug: wcNation.slug, total: 0, players: [] });
+  }
+
+  // Step 2: Get full player details from player_intelligence_card view
+  // Query in batches if needed (Supabase IN has limits)
+  const BATCH = 500;
+  type PICRow = {
+    person_id: number; name: string; position: string | null;
+    level: number | null; archetype: string | null; personality_type: string | null;
+    club: string | null; best_role: string | null; best_role_score: number | null;
+    overall_pillar_score: number | null;
+    technical_score: number | null; tactical_score: number | null;
+    mental_score: number | null; physical_score: number | null;
+  };
+  const picRows: PICRow[] = [];
+
+  for (let i = 0; i < allIds.length; i += BATCH) {
+    const batch = allIds.slice(i, i + BATCH);
     const { data } = await sb
-      .from("players")
+      .from("player_intelligence_card")
       .select(`
         person_id, name, position, level, archetype, personality_type,
         club, best_role, best_role_score, overall_pillar_score,
         technical_score, tactical_score, mental_score, physical_score
       `)
-      .in("person_id", dualIds)
+      .in("person_id", batch)
       .eq("active", true);
-    dualPlayers = data;
+    if (data) picRows.push(...(data as PICRow[]));
   }
 
-  // Merge and deduplicate
+  // Build player pool
   const seen = new Set<number>();
   const allPlayers: PoolPlayer[] = [];
 
   const today = new Date();
-  const addPlayer = (p: NonNullable<typeof primaryPlayers>[0]) => {
-    if (seen.has(p.person_id)) return;
+  for (const p of picRows) {
+    if (seen.has(p.person_id)) continue;
     seen.add(p.person_id);
     allPlayers.push({
       person_id: p.person_id,
@@ -87,17 +103,14 @@ export async function GET(
       overall_pillar_score: p.overall_pillar_score,
       archetype: p.archetype,
       personality_type: p.personality_type,
-      age: null, // computed below if DOB available
+      age: null,
       club: p.club,
       best_role: p.best_role,
       best_role_score: p.best_role_score,
       international_caps: null,
       has_national_team_history: false,
     });
-  };
-
-  for (const p of primaryPlayers ?? []) addPlayer(p);
-  for (const p of dualPlayers ?? []) addPlayer(p);
+  }
 
   // Fetch DOBs for age computation
   const personIds = allPlayers.map((p) => p.person_id);

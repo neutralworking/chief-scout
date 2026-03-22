@@ -51,6 +51,10 @@
   --accent-club: #3dba6f;
   --accent-club-primary: #3dba6f;
   --accent-club-secondary: #4a90d9;
+  --bg-pit: #0a0a0a;
+  --bg-surface-dark: #141414;
+  --border-panel: rgba(111, 195, 223, 0.35);
+  --border-bright: #6fc3df;
 }
 
 html, body {
@@ -66,13 +70,35 @@ body {
 
 /* Glass panel utility — high contrast default (no blur) */
 .glass {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-dark, #141414);
+  border: 1px solid var(--border-panel);
+  border-radius: 0;
 }
 
 .glass-elevated {
   background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-panel);
+  border-radius: 0;
+}
+
+/* Sharp panel with colored top border */
+.panel-accent-tactical { border-top: 2px solid var(--color-accent-tactical); }
+.panel-accent-technical { border-top: 2px solid var(--color-accent-technical); }
+.panel-accent-mental { border-top: 2px solid var(--color-accent-mental); }
+.panel-accent-physical { border-top: 2px solid var(--color-accent-physical); }
+.panel-accent-personality { border-top: 2px solid var(--color-accent-personality); }
+.panel-accent-cyan { border-top: 2px solid var(--border-bright); }
+
+/* Pit background for inset areas */
+.bg-pit { background: var(--bg-pit); }
+
+/* Section header pip */
+.section-pip {
+  width: 3px;
+  height: 10px;
+  border-radius: 1px;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 /* Scrollbar styling */

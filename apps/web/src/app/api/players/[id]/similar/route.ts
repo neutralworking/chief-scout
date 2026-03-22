@@ -41,8 +41,16 @@ function scoreLegendToActive(
   // 8. Same preferred foot (5pts)
   if (src.preferred_foot && p.preferred_foot === src.preferred_foot) score += 5;
 
-  // 9. Exact position match bonus (10pts — adjacent positions searched but exact is better)
-  if (src.position && p.position === src.position) score += 10;
+  // 9. Position match (20pts exact, 8pts adjacent — position matters for "plays like")
+  if (src.position && p.position === src.position) {
+    score += 20;
+  } else if (src.position) {
+    const adj: Record<string, string[]> = {
+      GK: [], WD: ["WM"], CD: ["DM"], DM: ["CM", "CD"], CM: ["DM", "AM"],
+      WM: ["WD", "WF"], AM: ["CM", "WF", "CF"], WF: ["WM", "AM", "CF"], CF: ["AM", "WF"],
+    };
+    if ((adj[src.position] ?? []).includes(p.position)) score += 8;
+  }
 
   return score;
 }

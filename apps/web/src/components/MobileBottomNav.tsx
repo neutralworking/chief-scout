@@ -52,6 +52,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
   {
     heading: "Admin",
     items: [
+      { label: "Admin", href: "/admin", stagingOnly: true },
       { label: "Tactics", href: "/formations", stagingOnly: true },
       { label: "Network", href: "/network", stagingOnly: true },
     ],
@@ -87,11 +88,27 @@ function IconPlayers({ active }: { active: boolean }) {
   );
 }
 
-function IconAdmin({ active }: { active: boolean }) {
+function IconClubs({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+      <path d="M10 6h4" />
+      <path d="M10 10h4" />
+      <path d="M10 14h4" />
+      <path d="M10 18h4" />
+    </svg>
+  );
+}
+
+function IconCompare({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3l4 4-4 4" />
+      <path d="M20 7H4" />
+      <path d="M8 21l-4-4 4-4" />
+      <path d="M4 17h16" />
     </svg>
   );
 }
@@ -112,12 +129,12 @@ const PRIMARY_TABS: ReadonlyArray<{
   label: string;
   href: string;
   exact?: boolean;
-  stagingOnly?: boolean;
   Icon: (props: { active: boolean }) => React.JSX.Element;
 }> = [
   { label: "Home", href: "/", exact: true, Icon: IconHome },
   { label: "Players", href: "/players", Icon: IconPlayers },
-  { label: "Admin", href: "/admin", stagingOnly: true, Icon: IconAdmin },
+  { label: "Clubs", href: "/clubs", Icon: IconClubs },
+  { label: "Compare", href: "/compare", Icon: IconCompare },
 ];
 
 /* ── Component ───────────────────────────────────────────────────── */
@@ -126,11 +143,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
-  const prod = isProduction();
-
-  const tabs = prod
-    ? PRIMARY_TABS.filter((t) => !("stagingOnly" in t && t.stagingOnly))
-    : PRIMARY_TABS;
+  const tabs = PRIMARY_TABS;
 
   // Animate open/close
   const openSheet = useCallback(() => {

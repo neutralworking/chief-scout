@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase-server";
+import { POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { prodFilter, isProduction } from "@/lib/env";
 import { LandingPage } from "@/components/LandingPage";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
-import { Topbar } from "@/components/Topbar";
-import { SectionHeader } from "@/components/SectionHeader";
 
 interface NewsStoryWithTags {
   id: string;
@@ -28,6 +27,22 @@ interface FixtureRow {
   home_team: string;
   away_team: string;
   venue: string | null;
+}
+
+interface ContractPlayer {
+  person_id: number;
+  name: string;
+  position: string | null;
+  club: string | null;
+  contract_expiry_date: string;
+}
+
+interface RisingStar {
+  person_id: number;
+  name: string;
+  position: string | null;
+  club: string | null;
+  trajectory: string;
 }
 
 interface MarketMover {
@@ -51,6 +66,8 @@ const FEATURED_COLS = "person_id, name, position, club, nation, nation_code, lev
 
 async function getDashboardData() {
   if (!supabaseServer) return null;
+
+  const sixMonthsOut = new Date(Date.now() + 180 * 86400000).toISOString().split("T")[0];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
@@ -85,7 +102,23 @@ async function getDashboardData() {
       .lte("utc_date", new Date(Date.now() + 14 * 86400000).toISOString())
       .order("utc_date", { ascending: true })
       .limit(15),
-    // 4: Market movers — biggest premium/discount
+    // 4: Contract watch — expiring within 6 months
+    supabaseServer
+      .from("people")
+      .select("id, name, contract_expiry_date, clubs(clubname), player_profiles(position)")
+      .not("contract_expiry_date", "is", null)
+      .lte("contract_expiry_date", sixMonthsOut)
+      .gte("contract_expiry_date", new Date().toISOString().split("T")[0])
+      .order("contract_expiry_date", { ascending: true })
+      .limit(3),
+    // 5: Rising stars — career trajectory
+    supabaseServer
+      .from("career_metrics")
+      .select("person_id, trajectory, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
+      .eq("trajectory", "rising")
+      .order("loyalty_score", { ascending: false })
+      .limit(3),
+    // 6: Market movers — biggest premium/discount
     supabaseServer
       .from("player_market")
       .select("person_id, market_premium, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
@@ -96,7 +129,7 @@ async function getDashboardData() {
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dofPicksResult, sentimentResult, newsResult, fixturesResult, marketResult] = results as any[];
+  const [dofPicksResult, sentimentResult, newsResult, fixturesResult, contractResult, risingResult, marketResult] = results as any[];
 
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
@@ -215,6 +248,33 @@ async function getDashboardData() {
   // Fixtures
   const fixtures = (fixturesResult.data ?? []) as FixtureRow[];
 
+  // Contract watch
+  const contractPlayers = ((contractResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const clubs = r.clubs as Record<string, unknown> | null;
+    const profiles = r.player_profiles as Record<string, unknown> | null;
+    return {
+      person_id: r.id as number,
+      name: r.name as string,
+      position: (profiles?.position as string | null) ?? null,
+      club: (clubs?.clubname as string | null) ?? null,
+      contract_expiry_date: r.contract_expiry_date as string,
+    };
+  }) as ContractPlayer[];
+
+  // Rising stars
+  const risingStars = ((risingResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
+    const people = r.people as Record<string, unknown> | null;
+    const clubs = people?.clubs as Record<string, unknown> | null;
+    const profiles = r.player_profiles as Record<string, unknown> | null;
+    return {
+      person_id: r.person_id as number,
+      name: (people?.name as string) ?? "Unknown",
+      position: (profiles?.position as string | null) ?? null,
+      club: (clubs?.clubname as string | null) ?? null,
+      trajectory: r.trajectory as string,
+    };
+  }) as RisingStar[];
+
   // Market movers — take top 3 overpriced + top 3 undervalued
   const marketRaw = ((marketResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
     const people = r.people as Record<string, unknown> | null;
@@ -277,7 +337,7 @@ async function getDashboardData() {
       .filter((p): p is TrendingPlayer => p !== null);
   }
 
-  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, marketMovers, trendingPlayers };
+  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -301,6 +361,15 @@ function formatFixtureTime(iso: string): string {
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatExpiryDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+}
+
+function daysUntil(dateStr: string): number {
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
 const SENTIMENT_DOT: Record<string, string> = {
   positive: "bg-[var(--color-sentiment-positive)]",
   negative: "bg-[var(--color-sentiment-negative)]",
@@ -310,23 +379,6 @@ const SENTIMENT_DOT: Record<string, string> = {
 const COMP_SHORT: Record<string, string> = {
   "Premier League": "PL", "La Liga": "LL", "Serie A": "SA",
   "Bundesliga": "BL", "Ligue 1": "L1",
-};
-
-const NEWS_TYPE_STYLES: Record<string, string> = {
-  transfer: "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/20",
-  injury: "bg-[var(--color-sentiment-negative)]/10 text-[var(--color-sentiment-negative)] border border-[var(--color-sentiment-negative)]/20",
-  contract: "bg-[var(--color-accent-mental)]/10 text-[var(--color-accent-mental)] border border-[var(--color-accent-mental)]/20",
-  tactical: "bg-[var(--color-accent-physical)]/10 text-[var(--color-accent-physical)] border border-[var(--color-accent-physical)]/20",
-  scouting: "bg-[var(--color-accent-personality)]/10 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/20",
-  analysis: "bg-[var(--border-bright)]/10 text-[var(--border-bright)] border border-[var(--border-bright)]/15",
-};
-
-const COMP_DISPLAY: Record<string, string> = {
-  "Premier League": "Prem",
-  "La Liga": "La Liga",
-  "Serie A": "Serie A",
-  "Bundesliga": "Bundes.",
-  "Ligue 1": "Ligue 1",
 };
 
 async function getShowcasePlayers(): Promise<PlayerCardType[]> {
@@ -364,28 +416,12 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, news, fixtures, marketMovers, trendingPlayers } = data;
+  const { featured, featuredReason, featuredPool, news, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers } = data;
 
   return (
     <div className="flex flex-col gap-2 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
-      <Topbar />
-
-      {/* Row 1: News (3col) + Fixtures (2col) */}
+      {/* Row 1: Featured Player + Fixtures / League / Contracts */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0">
-<<<<<<< HEAD
-        {/* News — 3 cols, scrollable within */}
-        <div className="lg:col-span-3 glass panel-accent-cyan p-2.5 flex flex-col min-h-0">
-          <SectionHeader
-            label="Latest Intelligence"
-            color="cyan"
-            action={
-              <Link href="/news" className="text-[10px] text-[var(--border-bright)] hover:underline">
-                All stories &rarr;
-              </Link>
-            }
-          />
-          <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-1.5">
-=======
         {/* Featured Player — 3 cols */}
         <div className="lg:col-span-3">
           {featured ? (
@@ -495,7 +531,6 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1">
->>>>>>> main
             {news.length === 0 && (
               <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
             )}
@@ -506,7 +541,7 @@ export default async function DashboardPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   {story.story_type && (
-                    <span className={`text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 mr-1 ${NEWS_TYPE_STYLES[story.story_type?.toLowerCase() ?? ""] ?? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)]"}`}>
+                    <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] mr-1">
                       {story.story_type}
                     </span>
                   )}
@@ -530,7 +565,7 @@ export default async function DashboardPage() {
                           <Link
                             key={tag.player_id}
                             href={`/players/${tag.player_id}`}
-                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                             {tag.name}
@@ -545,34 +580,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Fixtures — 2 cols */}
-        <div className="lg:col-span-2 glass panel-accent-tactical p-2.5 flex flex-col min-h-0">
-          <SectionHeader
-            label="Upcoming Fixtures"
-            color="tactical"
-            action={
-              <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
-                All &rarr;
-              </Link>
-            }
-          />
-          {fixtures.length === 0 ? (
-            <p className="text-[10px] text-[var(--text-muted)] py-1 text-center mt-1.5">No upcoming fixtures.</p>
-          ) : (
-            <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-1.5">
-              {fixtures.map((f) => (
-                <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                  <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-12 shrink-0">
-                    {COMP_DISPLAY[f.competition] ?? f.competition_code ?? ""}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-[11px]">
-                      <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
-                      <span className="text-[var(--text-muted)] text-[9px]">v</span>
-                      <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
-                    </div>
-=======
         {/* Right column — Rising Stars + Market Movers side-by-side, Gaffer CTA at bottom */}
         <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
           {/* Intelligence: Rising Stars + Market Movers */}
@@ -596,50 +603,10 @@ export default async function DashboardPage() {
                         <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{p.name}</span>
                       </Link>
                     ))}
->>>>>>> main
                   </div>
-                  <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatFixtureDate(f.utc_date)}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                </div>
+              )}
 
-<<<<<<< HEAD
-      {/* Row 2: Featured Player (2col) + Market Movers / Trending / Gaffer (3col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
-        {/* Featured Player — 2 cols */}
-        <div className="lg:col-span-2">
-          {featured ? (
-            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
-          ) : (
-            <div className="glass p-4">
-              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Right column — Market Movers + Trending + Game CTAs */}
-        <div className="lg:col-span-3 flex flex-col gap-2 min-h-0">
-          {/* Market Movers */}
-          {marketMovers.length > 0 && (
-            <div className="glass panel-accent-physical p-2.5">
-              <SectionHeader label="Market Movers" color="physical" />
-              <div className="space-y-0.5 mt-1.5">
-                {marketMovers.map((p) => {
-                  const isOver = p.market_premium > 0;
-                  return (
-                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
-                      <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
-                        {isOver ? "+" : ""}{p.market_premium}%
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-=======
               {/* Market Movers */}
               {marketMovers.length > 0 && (
                 <div className="glass p-2.5">
@@ -661,7 +628,6 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               )}
->>>>>>> main
             </div>
           )}
 

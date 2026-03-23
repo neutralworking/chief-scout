@@ -358,45 +358,60 @@ export default async function DashboardPage() {
   const { featured, featuredReason, featuredPool, news, fixtures, marketMovers, trendingPlayers } = data;
 
   return (
-    <div className="flex flex-col gap-2 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
-      {/* Row 1: News (3 cols) + Fixtures (2 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0" style={{ maxHeight: "50vh" }}>
-        {/* News — top-left, 3 cols */}
-        <div className="lg:col-span-3 glass panel-accent-cyan p-3 flex flex-col min-h-[200px]" style={{ maxHeight: "50vh" }}>
+    <div className="flex flex-col gap-3 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+      {/* Row 1: Featured Player — hero, full width */}
+      <div className="shrink-0">
+        {featured ? (
+          <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
+        ) : (
+          <div className="glass p-6">
+            <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: News (3 cols) + Fixtures (2 cols) — scrollable intel */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
+        {/* News */}
+        <div className="lg:col-span-3 glass panel-accent-cyan p-4 flex flex-col min-h-0">
           <SectionHeader
             label="Latest News"
             color="cyan"
             action={<Link href="/news" className="text-[10px] text-[var(--border-bright)] hover:underline">All stories &rarr;</Link>}
           />
-          <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
+          <div className="space-y-2 overflow-y-auto flex-1 -mr-1 pr-1 mt-3">
             {news.length === 0 && (
-              <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
+              <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet.</p>
             )}
             {news.map((story, i) => (
-              <div key={story.id} className={`flex gap-2 ${i === 0 ? "pb-2 border-b border-[var(--border-panel)]/20" : ""}`}>
-                <span className="text-[9px] text-[var(--text-muted)] w-7 shrink-0 pt-0.5 font-mono">
+              <div key={story.id} className={`flex gap-2.5 ${i === 0 ? "pb-2.5 mb-1 border-b border-[var(--border-panel)]/20" : ""}`}>
+                <span className="text-[9px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  {story.story_type && (
-                    <span className={`text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 border mr-1 ${NEWS_TYPE_STYLES[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]"}`}>
-                      {story.story_type}
-                    </span>
-                  )}
-                  {story.url ? (
-                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--border-bright)] transition-colors ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
-                      {story.headline}
-                    </a>
-                  ) : (
-                    <p className={`text-[var(--text-primary)] ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
-                      {story.headline}
-                    </p>
-                  )}
+                  <div className="flex items-start gap-1.5">
+                    {story.story_type && (
+                      <span className={`text-[8px] font-bold tracking-wider uppercase px-1.5 py-0.5 border shrink-0 mt-0.5 ${NEWS_TYPE_STYLES[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]"}`}>
+                        {story.story_type}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      {story.url ? (
+                        <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--border-bright)] transition-colors leading-snug ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                          {story.headline}
+                        </a>
+                      ) : (
+                        <p className={`text-[var(--text-primary)] leading-snug ${i === 0 ? "text-sm font-semibold" : "text-xs"}`}>
+                          {story.headline}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   {i === 0 && story.summary && (
-                    <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 line-clamp-2">{story.summary}</p>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-1 line-clamp-2 leading-relaxed">{story.summary}</p>
                   )}
                   {story.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-0.5">
+                    <div className="flex flex-wrap gap-1 mt-1">
                       {story.tags.slice(0, 3).map((tag) => {
                         const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
                         return (
@@ -418,66 +433,52 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Fixtures — top-right, 2 cols */}
-        <div className="lg:col-span-2 glass panel-accent-tactical p-3 flex flex-col min-h-0" style={{ maxHeight: "50vh" }}>
-          <SectionHeader
-            label="Upcoming Fixtures"
-            color="tactical"
-            action={<Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">All &rarr;</Link>}
-          />
-          {fixtures.length === 0 ? (
-            <p className="text-[10px] text-[var(--text-muted)] py-4 text-center mt-2">No upcoming fixtures.</p>
-          ) : (
-            <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
-              {fixtures.map((f) => (
-                <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-1 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                  <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
-                    {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-[11px]">
-                      <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
-                      <span className="text-[var(--text-muted)] text-[9px]">v</span>
-                      <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
+        {/* Right column: Fixtures + Market Movers + Trending */}
+        <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
+          {/* Fixtures */}
+          <div className="glass panel-accent-tactical p-4 flex flex-col flex-1 min-h-0">
+            <SectionHeader
+              label="Upcoming Fixtures"
+              color="tactical"
+              action={<Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">All &rarr;</Link>}
+            />
+            {fixtures.length === 0 ? (
+              <p className="text-[11px] text-[var(--text-muted)] py-4 text-center mt-2">No upcoming fixtures.</p>
+            ) : (
+              <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
+                {fixtures.map((f) => (
+                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-1.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                    <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
+                      {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-[11px]">
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
+                        <span className="text-[var(--text-muted)] text-[9px]">v</span>
+                        <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-[9px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</div>
-                    <div className="text-[8px] text-[var(--color-accent-tactical)] font-mono">{formatFixtureTime(f.utc_date)}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-[9px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</div>
+                      <div className="text-[8px] text-[var(--color-accent-tactical)] font-mono">{formatFixtureTime(f.utc_date)}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {/* Row 2: Featured (3 cols) + Market Movers + Trending + Games (2 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
-        {/* Featured Player — 3 cols */}
-        <div className="lg:col-span-3">
-          {featured ? (
-            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
-          ) : (
-            <div className="glass p-4">
-              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Browse column — 2 cols */}
-        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
-          {/* Market Movers */}
+          {/* Market Movers — compact */}
           {marketMovers.length > 0 && (
-            <div className="glass panel-accent-physical p-3">
+            <div className="glass panel-accent-physical p-3 shrink-0">
               <SectionHeader label="Market Movers" color="physical" />
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              <div className="space-y-1 mt-2">
                 {marketMovers.map((p) => {
                   const isOver = p.market_premium > 0;
                   return (
-                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors">
-                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{p.name}</span>
-                      <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
+                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors">
+                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
+                      <span className={`text-[11px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
                         {isOver ? "+" : ""}{p.market_premium}%
                       </span>
                     </Link>
@@ -487,47 +488,12 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Trending Players */}
+          {/* Trending Players — compact */}
           {trendingPlayers.length > 0 && (
-            <TrendingPlayers players={trendingPlayers} />
+            <div className="shrink-0">
+              <TrendingPlayers players={trendingPlayers} />
+            </div>
           )}
-
-          {/* Game CTAs — slim row */}
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <Link href="/choices" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)]">Gaffer</span>
-                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-personality)] transition-colors hidden sm:inline">
-                  Make the calls.
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-[var(--color-accent-personality)] group-hover:translate-x-0.5 transition-transform">
-                Play &rarr;
-              </span>
-            </Link>
-            <Link href="/kickoff-clash" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#e74c3c]">Kickoff Clash</span>
-                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[#e74c3c] transition-colors hidden sm:inline">
-                  Card battler.
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-[#e74c3c] group-hover:translate-x-0.5 transition-transform">
-                Play &rarr;
-              </span>
-            </Link>
-            <Link href="/on-the-plane" className="glass px-3 py-2 flex-1 min-w-[140px] flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors group">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">On The Plane</span>
-                <span className="text-[11px] text-[var(--text-secondary)] group-hover:text-[var(--color-accent-physical)] transition-colors hidden sm:inline">
-                  Pick your 26.
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-[var(--color-accent-physical)] group-hover:translate-x-0.5 transition-transform">
-                Play &rarr;
-              </span>
-            </Link>
-          </div>
         </div>
       </div>
     </div>

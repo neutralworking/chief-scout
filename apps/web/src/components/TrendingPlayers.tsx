@@ -3,6 +3,7 @@ import { POSITION_COLORS } from "@/lib/types";
 import { getArchetypeColor } from "@/lib/archetype-styles";
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
+import { SectionHeader } from "@/components/SectionHeader";
 
 interface TrendingPlayer {
   person_id: number;
@@ -21,25 +22,22 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
   if (players.length === 0) return null;
 
   return (
-    <div className="glass p-2.5">
-      <div className="flex items-center justify-between mb-1.5">
-        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-          Trending Players
-        </h2>
-        <Link href="/news" className="text-xs text-[var(--accent-personality)] hover:underline">
-          News feed &rarr;
-        </Link>
-      </div>
-      <div className="space-y-1.5">
+    <div className="glass panel-accent-personality p-3">
+      <SectionHeader
+        label="Trending Players"
+        color="personality"
+        action={<Link href="/news" className="text-[10px] text-[var(--color-accent-personality)] hover:underline">News &rarr;</Link>}
+      />
+      <div className="space-y-1 mt-2">
         {players.map((p) => {
           const posColor = POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60";
           return (
             <Link
               key={p.person_id}
               href={`/players/${p.person_id}`}
-              className="flex items-center gap-3 p-2 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors group"
+              className="flex items-center gap-3 p-2 hover:bg-[var(--bg-elevated)]/50 transition-colors group"
             >
-              <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
+              <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
                 {p.position ?? "–"}
               </span>
               {p.fingerprint?.some(v => v > 0) && (() => {

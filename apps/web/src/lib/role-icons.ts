@@ -40,6 +40,20 @@ export interface RoleIcon {
 export const ROLE_ICONS: Record<string, RoleIcon> = {
   // ── GK ──────────────────────────────────────────────────────────────────
 
+  "Libero GK": {
+    role: "Libero GK",
+    position: "GK",
+    iconPlayer: "Marc-André ter Stegen",
+    nationality: "Germany",
+    peakScore: 90,
+    peakEra: "2015–2019",
+    peakClub: "Barcelona",
+    peakFormation: "4-3-3",
+    snapshot:
+      "Ter Stegen redefined the goalkeeper as a ball-playing distributor under Guardiola's positional play principles. His ability to receive under pressure, play sharp passes into tight spaces, and act as an extra outfield player made him essential to Barcelona's build-up. In the 2018–19 Champions League knockout rounds, his saves were as vital as his distribution — the complete Libero GK.",
+    keyTraits: ["Distribution under pressure", "Footwork", "Composure on the ball", "Line management"],
+  },
+
   "Sweeper Keeper": {
     role: "Sweeper Keeper",
     position: "GK",
@@ -54,10 +68,9 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Sweeping range", "Distribution under pressure", "Anticipation", "Commanding presence"],
   },
 
-  "Shot Stopper": {
-    role: "Shot Stopper",
-    culturalName: "Torwart",
-    origin: "German",
+  Comandante: {
+    role: "Comandante",
+    origin: "Italian",
     position: "GK",
     iconPlayer: "Gianluigi Buffon",
     nationality: "Italy",
@@ -70,11 +83,24 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Reflexes", "Positioning", "Big-game temperament", "Aerial command"],
   },
 
+  Shotstopper: {
+    role: "Shotstopper",
+    position: "GK",
+    iconPlayer: "Oliver Kahn",
+    nationality: "Germany",
+    peakScore: 94,
+    peakEra: "1999–2002",
+    peakClub: "Bayern Munich",
+    peakFormation: "4-4-2",
+    snapshot:
+      "Kahn was the purest shot-stopper in the modern era — a goalkeeper whose reflexes, physical presence, and raw athleticism made him virtually unbeatable in one-on-one situations. His 2002 World Cup, where he carried Germany to the final almost single-handedly, was the definitive Shotstopper performance. His vocal commanding style and six-yard-box dominance defined the role.",
+    keyTraits: ["Reflexes", "Physical presence", "Six-yard-box dominance", "Shot-stopping athleticism"],
+  },
+
   // ── CD ──────────────────────────────────────────────────────────────────
 
-  "Ball-Playing CB": {
-    role: "Ball-Playing CB",
-    culturalName: "Libero",
+  Libero: {
+    role: "Libero",
     origin: "Italian",
     position: "CD",
     iconPlayer: "Franz Beckenbauer",
@@ -86,22 +112,6 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     snapshot:
       "Beckenbauer didn't just play the Libero — he invented it. Operating behind the back line with total freedom, he carried the ball into midfield, sprayed passes across the pitch, and orchestrated attacks from deep. Three consecutive European Cups and a World Cup as captain proved the concept. Every ball-playing centre-back since is measured against Der Kaiser's blueprint of defensive intelligence fused with creative vision.",
     keyTraits: ["Progressive carrying", "Passing range", "Spatial awareness", "Leadership"],
-  },
-
-  Stopper: {
-    role: "Stopper",
-    culturalName: "Vorstopper",
-    origin: "German",
-    position: "CD",
-    iconPlayer: "Fabio Cannavaro",
-    nationality: "Italy",
-    peakScore: 95,
-    peakEra: "2004–2006",
-    peakClub: "Juventus / Italy",
-    peakFormation: "4-4-2",
-    snapshot:
-      "At 5'9\" Cannavaro had no right to dominate aerially, yet his timing, leap, and reading of the game made him the world's best defender. His 2006 Ballon d'Or — the last defender to win it — was earned through a World Cup where he was physically untouchable, winning every duel and marshalling Italy's backline to near-perfection. Pure front-foot aggression married to anticipation that bordered on clairvoyance.",
-    keyTraits: ["Aerial timing", "Tackling precision", "Anticipation", "Aggression"],
   },
 
   Sweeper: {
@@ -118,20 +128,20 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Positional intelligence", "Reading of play", "Interceptions", "Composure"],
   },
 
-  "Ball-Carrying CB": {
-    role: "Ball-Carrying CB",
-    culturalName: "Zagueiro",
-    origin: "Brazilian",
+  Stopper: {
+    role: "Stopper",
+    culturalName: "Vorstopper",
+    origin: "German",
     position: "CD",
-    iconPlayer: "Virgil van Dijk",
-    nationality: "Netherlands",
-    peakScore: 93,
-    peakEra: "2018–2020",
-    peakClub: "Liverpool",
-    peakFormation: "4-3-3",
+    iconPlayer: "Fabio Cannavaro",
+    nationality: "Italy",
+    peakScore: 95,
+    peakEra: "2004–2006",
+    peakClub: "Juventus / Italy",
+    peakFormation: "4-4-2",
     snapshot:
-      "Van Dijk transformed Liverpool from top-four hopefuls into Champions League and Premier League winners by combining physical dominance with the composure to carry the ball 30 yards into midfield. At his peak, opponents simply could not dribble past him — he went the entire 2018–19 season without being beaten one-on-one. His progressive passing and ability to step into midfield channels made him the modern template for the ball-carrying centre-back.",
-    keyTraits: ["Progressive carries", "Physical dominance", "Composure under pressure", "Recovery pace"],
+      "At 5'9\" Cannavaro had no right to dominate aerially, yet his timing, leap, and reading of the game made him the world's best defender. His 2006 Ballon d'Or — the last defender to win it — was earned through a World Cup where he was physically untouchable, winning every duel and marshalling Italy's backline to near-perfection. Pure front-foot aggression married to anticipation that bordered on clairvoyance.",
+    keyTraits: ["Aerial timing", "Tackling precision", "Anticipation", "Aggression"],
   },
 
   // ── WD ──────────────────────────────────────────────────────────────────
@@ -152,9 +162,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Tactical intelligence", "Positional versatility", "Passing accuracy", "Defensive discipline"],
   },
 
-  "Overlapping Full-Back": {
-    role: "Overlapping Full-Back",
-    culturalName: "Lateral",
+  Lateral: {
+    role: "Lateral",
     origin: "Portuguese",
     position: "WD",
     iconPlayer: "Cafu",
@@ -168,10 +177,9 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Stamina", "Pace", "Crossing", "Recovery runs"],
   },
 
-  "Wing-Back": {
-    role: "Wing-Back",
-    culturalName: "Carrilero",
-    origin: "Spanish",
+  Fluidificante: {
+    role: "Fluidificante",
+    origin: "Italian",
     position: "WD",
     iconPlayer: "Javier Zanetti",
     nationality: "Argentina",
@@ -182,6 +190,21 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     snapshot:
       "Zanetti's 858 appearances for Inter tell the story of the ultimate wing-back — a player who could operate on either flank with equal effectiveness, covering every blade of grass for over a decade. Under Mourinho in 2010 he was essential to Inter's treble, providing tireless width in a 3-5-2 that demanded total commitment from the wing-backs. His consistency, versatility, and engine were unmatched at the position.",
     keyTraits: ["Stamina", "Versatility", "Defensive awareness", "Consistency"],
+  },
+
+  Corredor: {
+    role: "Corredor",
+    origin: "Spanish",
+    position: "WD",
+    iconPlayer: "Kyle Walker",
+    nationality: "England",
+    peakScore: 91,
+    peakEra: "2017–2022",
+    peakClub: "Manchester City",
+    peakFormation: "4-3-3 / 3-2-2-3",
+    snapshot:
+      "Walker's elite pace made him the definitive pace-based full-back of his generation — a defender who could recover any situation with his speed in transition. Under Guardiola he evolved from a raw athletic talent into a disciplined tactical weapon, using his acceleration to push high in possession and recover instantly when City lost the ball. His ability to nullify the world's fastest forwards while also contributing forward made him invaluable.",
+    keyTraits: ["Explosive pace", "Recovery speed", "Transition play", "Defensive athleticism"],
   },
 
   // ── DM ──────────────────────────────────────────────────────────────────
@@ -201,9 +224,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Passing range", "Tempo control", "Vision", "Composure"],
   },
 
-  Anchor: {
-    role: "Anchor",
-    culturalName: "Sentinelle",
+  Sentinelle: {
+    role: "Sentinelle",
     origin: "French",
     position: "DM",
     iconPlayer: "Sergio Busquets",
@@ -217,9 +239,23 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Positional discipline", "Press resistance", "Spatial awareness", "Ball retention"],
   },
 
-  "Ball-Winner": {
-    role: "Ball-Winner",
-    culturalName: "Volante",
+  Pivote: {
+    role: "Pivote",
+    origin: "Spanish",
+    position: "DM",
+    iconPlayer: "Rodri",
+    nationality: "Spain",
+    peakScore: 93,
+    peakEra: "2022–2024",
+    peakClub: "Manchester City",
+    peakFormation: "4-3-3 / 3-2-2-3",
+    snapshot:
+      "Rodri is the modern midfield brain — a deep midfielder who organizes the entire team's shape, reads the game before it happens, and distributes with impeccable precision. His 2024 Ballon d'Or was the recognition of a player who elevated Manchester City and Spain by making both sides function as cohesive tactical units. He wins the ball back, dictates tempo, and controls space simultaneously.",
+    keyTraits: ["Tactical organization", "Reading of play", "Distribution", "Shape control"],
+  },
+
+  Volante: {
+    role: "Volante",
     origin: "Brazilian",
     position: "DM",
     iconPlayer: "N'Golo Kanté",
@@ -231,20 +267,6 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     snapshot:
       "Kanté's peak was otherworldly — back-to-back Premier League titles with two different clubs, followed by a World Cup. His ground coverage was so extreme that the joke '70% of the Earth is covered by water, the rest is covered by Kanté' barely felt like hyperbole. He won the ball back more than anyone in Europe while maintaining the stamina to support attacks. In Conte's 3-4-3 at Chelsea, he was the engine that made the entire system function.",
     keyTraits: ["Ball recovery", "Ground coverage", "Pressing intensity", "Stamina"],
-  },
-
-  "Destroyer-Creator": {
-    role: "Destroyer-Creator",
-    position: "DM",
-    iconPlayer: "Patrick Vieira",
-    nationality: "France",
-    peakScore: 94,
-    peakEra: "1998–2004",
-    peakClub: "Arsenal",
-    peakFormation: "4-4-2",
-    snapshot:
-      "Vieira was the complete midfielder — 6'4\" of power, grace, and fury who could tackle like a destroyer and pass like a playmaker. He anchored Arsenal's Invincibles and France's 1998 World Cup winners, dominating the centre of the pitch in both directions. His duels with Keane defined an era. No midfielder since has combined his physical intensity with his technical quality and range of passing from deep.",
-    keyTraits: ["Physical dominance", "Tackling", "Passing range", "Leadership"],
   },
 
   // ── CM ──────────────────────────────────────────────────────────────────
@@ -264,9 +286,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Close control", "Carrying through pressure", "Half-space movement", "Big-game composure"],
   },
 
-  "Box-to-Box": {
-    role: "Box-to-Box",
-    culturalName: "Tuttocampista",
+  Tuttocampista: {
+    role: "Tuttocampista",
     origin: "Italian",
     position: "CM",
     iconPlayer: "Frank Lampard",
@@ -280,9 +301,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Late arriving runs", "Finishing from midfield", "Stamina", "Tactical intelligence"],
   },
 
-  "Deep Playmaker": {
-    role: "Deep Playmaker",
-    culturalName: "Metodista",
+  Metodista: {
+    role: "Metodista",
     origin: "Italian",
     position: "CM",
     iconPlayer: "Xavi",
@@ -296,12 +316,54 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Passing accuracy", "Tempo control", "Press resistance", "Spatial scanning"],
   },
 
+  Relayeur: {
+    role: "Relayeur",
+    origin: "French",
+    position: "CM",
+    iconPlayer: "Yaya Touré",
+    nationality: "Ivory Coast",
+    peakScore: 93,
+    peakEra: "2011–2014",
+    peakClub: "Manchester City",
+    peakFormation: "4-2-3-1",
+    snapshot:
+      "Touré at City was an unstoppable force — a midfielder with the physique of a centre-back, the engine of a defensive midfielder, and the goal threat of a forward. He covered every inch of the pitch at pace, arriving box to box in phases both teams could barely track. His 2013–14 season — 24 goals from central midfield — was the definitive Relayeur performance: tireless, powerful, decisive.",
+    keyTraits: ["Physical engine", "Box-to-box stamina", "Goalscoring runs", "Powerful carrying"],
+  },
+
   // ── WM ──────────────────────────────────────────────────────────────────
 
-  "Wide Playmaker": {
-    role: "Wide Playmaker",
-    culturalName: "Fantasista",
+  Winger: {
+    role: "Winger",
+    position: "WM",
+    iconPlayer: "Garrincha",
+    nationality: "Brazil",
+    peakScore: 95,
+    peakEra: "1958–1962",
+    peakClub: "Botafogo / Brazil",
+    peakFormation: "4-2-4",
+    snapshot:
+      "Garrincha was the joy of football made human — born with curved legs that gave him an impossible body swerve no defender could read. In two World Cups he was virtually unbeatable: Brazil never lost a match when Pelé and Garrincha played together. In the 1962 World Cup he dragged Brazil to the title almost single-handedly after Pelé's injury, scoring and creating with abandon. He is the Traditional Winger distilled to its purest essence: take on your man, beat him, deliver the ball, entertain.",
+    keyTraits: ["Body feints", "1v1 mastery", "Crossing", "Entertainment"],
+  },
+
+  Tornante: {
+    role: "Tornante",
     origin: "Italian",
+    position: "WM",
+    iconPlayer: "Christian Maggio",
+    nationality: "Italy",
+    peakScore: 85,
+    peakEra: "2011–2014",
+    peakClub: "Napoli",
+    peakFormation: "3-4-3 / 4-3-3",
+    snapshot:
+      "Maggio epitomised the Tornante — a wide midfielder who worked both phases of the game selflessly, tracking back to help defensively and bombing forward to provide width in attack. Under Mazzarri at Napoli he was a cog in one of the most effective wide systems in Serie A, covering his entire flank tirelessly. The Tornante asks nothing glamorous and delivers everything functional.",
+    keyTraits: ["Two-way running", "Defensive work rate", "Width provision", "Stamina"],
+  },
+
+  "False Winger": {
+    role: "False Winger",
     position: "WM",
     iconPlayer: "David Silva",
     nationality: "Spain",
@@ -310,8 +372,22 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     peakClub: "Manchester City",
     peakFormation: "4-2-3-1",
     snapshot:
-      "Silva was the conjurer — nominally starting wide but constantly drifting inside to find pockets of space between opposition lines. His first touch killed the ball dead in the tightest spaces, and his vision produced through balls that only he could see. At City under Mancini and Pellegrini, he was the creative heartbeat of two title-winning sides, linking play with a subtlety that made the complex look effortless. The quintessential wide playmaker: imagination over pace.",
+      "Silva was the conjurer — nominally starting wide but constantly drifting inside to find pockets of space between opposition lines. His first touch killed the ball dead in the tightest spaces, and his vision produced through balls that only he could see. At City under Mancini and Pellegrini, he was the creative heartbeat of two title-winning sides, linking play with a subtlety that made the complex look effortless. The quintessential false winger: imagination over pace.",
     keyTraits: ["First touch", "Vision", "Half-space intelligence", "Weight of pass"],
+  },
+
+  Shuttler: {
+    role: "Shuttler",
+    position: "WM",
+    iconPlayer: "Ryan Giggs",
+    nationality: "Wales",
+    peakScore: 93,
+    peakEra: "1993–1999",
+    peakClub: "Manchester United",
+    peakFormation: "4-4-2",
+    snapshot:
+      "Young Giggs was electrifying — a winger who received the ball on the left and simply ran at defenders with terrifying pace and balance. His FA Cup semi-final goal against Arsenal in 1999, dribbling past five players, was the definitive wide shuttle moment. What elevated Giggs was his ability to beat men on either side, cutting inside or going to the byline with equal menace. His stamina and pace to cover the flank end to end made him the prototype Shuttler.",
+    keyTraits: ["Dribbling at pace", "Balance", "Acceleration", "Flank coverage"],
   },
 
   "Wide Provider": {
@@ -326,34 +402,6 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     snapshot:
       "Beckham's right foot was the most precise delivery instrument in football history. From the right touchline he could find a striker's head from 50 yards with metronomic accuracy, and his set-piece mastery produced goals and assists that defied geometry. The 1999 treble season — capped by those two corner kicks in Barcelona — was the summit of a player whose crossing, free kicks, and work rate from wide made Ferguson's 4-4-2 devastatingly effective.",
     keyTraits: ["Crossing accuracy", "Set-piece delivery", "Work rate", "Passing range"],
-  },
-
-  "Direct Winger": {
-    role: "Direct Winger",
-    position: "WM",
-    iconPlayer: "Ryan Giggs",
-    nationality: "Wales",
-    peakScore: 93,
-    peakEra: "1993–1999",
-    peakClub: "Manchester United",
-    peakFormation: "4-4-2",
-    snapshot:
-      "Young Giggs was electrifying — a winger who received the ball on the left and simply ran at defenders with terrifying pace and balance. His FA Cup semi-final goal against Arsenal in 1999, dribbling past five players, was the definitive Direct Winger moment. What elevated Giggs was his ability to beat men on either side, cutting inside or going to the byline with equal menace. Before he reinvented himself as a central midfielder, he was the most exciting wide player in English football.",
-    keyTraits: ["Dribbling at pace", "Balance", "Acceleration", "Unpredictability"],
-  },
-
-  "Traditional Winger": {
-    role: "Traditional Winger",
-    position: "WM",
-    iconPlayer: "Garrincha",
-    nationality: "Brazil",
-    peakScore: 95,
-    peakEra: "1958–1962",
-    peakClub: "Botafogo / Brazil",
-    peakFormation: "4-2-4",
-    snapshot:
-      "Garrincha was the joy of football made human — born with curved legs that gave him an impossible body swerve no defender could read. In two World Cups he was virtually unbeatable: Brazil never lost a match when Pelé and Garrincha played together. In the 1962 World Cup he dragged Brazil to the title almost single-handedly after Pelé's injury, scoring and creating with abandon. He is the Traditional Winger distilled to its purest essence: take on your man, beat him, deliver the ball, entertain.",
-    keyTraits: ["Body feints", "1v1 mastery", "Crossing", "Entertainment"],
   },
 
   // ── AM ──────────────────────────────────────────────────────────────────
@@ -373,23 +421,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["First touch", "Body feints", "Vision", "Big-game dominance"],
   },
 
-  "Advanced Playmaker": {
-    role: "Advanced Playmaker",
-    position: "AM",
-    iconPlayer: "Kevin De Bruyne",
-    nationality: "Belgium",
-    peakScore: 95,
-    peakEra: "2017–2023",
-    peakClub: "Manchester City",
-    peakFormation: "4-3-3 / 3-2-2-3",
-    snapshot:
-      "De Bruyne elevated the Advanced Playmaker role to its modern peak — linking midfield to attack with passes that were simultaneously powerful, precise, and perfectly weighted. His crossing from deep, through balls into channels, and long-range shooting made him impossible to defend against because no single strategy could nullify all his weapons. Four Premier League titles in five years, with De Bruyne consistently the most creative player in the league, proved his dominance was sustained, not sporadic.",
-    keyTraits: ["Passing power and precision", "Crossing from deep", "Vision", "Long-range shooting"],
-  },
-
-  "Shadow Striker": {
-    role: "Shadow Striker",
-    culturalName: "Seconda Punta",
+  "Seconda Punta": {
+    role: "Seconda Punta",
     origin: "Italian",
     position: "AM",
     iconPlayer: "Thomas Müller",
@@ -401,6 +434,35 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     snapshot:
       "Müller scored 10 goals at the 2010 World Cup aged 20 without possessing elite pace, dribbling, or technique. His genius was positional — an intuitive understanding of where space would appear before it existed. As a Shadow Striker behind the centre-forward, he made runs that defenders couldn't track because they defied conventional movement patterns. He coined the term 'Raumdeuter' (space interpreter) and at his peak, no player in the world was more dangerous arriving late in the penalty area.",
     keyTraits: ["Off-the-ball movement", "Spatial intelligence", "Finishing instinct", "Positional versatility"],
+  },
+
+  Enganche: {
+    role: "Enganche",
+    origin: "Argentine",
+    position: "AM",
+    iconPlayer: "Juan Román Riquelme",
+    nationality: "Argentina",
+    peakScore: 93,
+    peakEra: "2005–2007",
+    peakClub: "Villarreal / Boca Juniors",
+    peakFormation: "4-3-1-2",
+    snapshot:
+      "Riquelme was the last great Enganche — a number 10 who stood almost still in the centre of the pitch and yet controlled everything. He saw passes others couldn't conceive, threaded balls through gaps that seemed mathematically impossible, and bent matches to his will through pure intelligence and touch. His 2005–06 Champions League campaign with Villarreal proved a cultured playmaker could still dominate in modern football when given the right system.",
+    keyTraits: ["Passing vision", "Thread-the-needle delivery", "Positional intelligence", "Touch"],
+  },
+
+  Boxcrasher: {
+    role: "Boxcrasher",
+    position: "AM",
+    iconPlayer: "Frank Lampard",
+    nationality: "England",
+    peakScore: 94,
+    peakEra: "2004–2010",
+    peakClub: "Chelsea",
+    peakFormation: "4-3-3",
+    snapshot:
+      "Lampard was the prototype Boxcrasher — an attacking midfielder who arrived in the penalty area with the timing and finishing of a striker while also covering ground defensively. His 211 goals from central midfield are the benchmark for late-arriving, box-crashing play. At Chelsea under Mourinho his runs from deep into the box were timed with such precision that defenders rarely tracked him until it was too late.",
+    keyTraits: ["Late arriving runs", "Finishing from midfield", "Box-crashing timing", "Tactical intelligence"],
   },
 
   // ── WF ──────────────────────────────────────────────────────────────────
@@ -419,9 +481,23 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Cut inside finish", "Explosive acceleration", "Left-foot curl", "Big-game decisiveness"],
   },
 
-  "Inverted Winger": {
-    role: "Inverted Winger",
-    culturalName: "Inventor",
+  Raumdeuter: {
+    role: "Raumdeuter",
+    origin: "German",
+    position: "WF",
+    iconPlayer: "Thomas Müller",
+    nationality: "Germany",
+    peakScore: 94,
+    peakEra: "2012–2016",
+    peakClub: "Bayern Munich",
+    peakFormation: "4-2-3-1 / 3-5-2",
+    snapshot:
+      "Müller coined the term Raumdeuter — 'space interpreter' — because no existing football position described what he did. Operating between the lines, he made runs into spaces that didn't exist yet, arriving in the penalty area with ghostly timing. Under Heynckes and Guardiola at Bayern, he was the player who turned territorial dominance into goals: 2012–13 saw him contribute to 47 goals in a treble-winning season. His movement is unteachable — a sixth sense for where the ball will be, not where it is.",
+    keyTraits: ["Space interpretation", "Arrival timing", "Off-ball intelligence", "Positional instinct"],
+  },
+
+  Inventor: {
+    role: "Inventor",
     origin: "English",
     position: "WF",
     iconPlayer: "Bernardo Silva",
@@ -431,13 +507,12 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     peakClub: "Manchester City",
     peakFormation: "4-3-3 / 3-2-2-3",
     snapshot:
-      "Bernardo Silva proved that a wide forward could dominate without pace. Operating as an Inverted Winger under Guardiola, he drifted inside to create numerical superiority in the half-spaces, finding pockets that shouldn't exist and playing passes that shouldn't be possible. His work rate off the ball was as elite as his technique on it — he pressed like a midfielder and created like a 10 while nominally playing wide. The 2022–23 treble season, where he was arguably City's best player, was the role's masterclass.",
+      "Bernardo Silva proved that a wide forward could dominate without pace. Operating as an Inventor from wide under Guardiola, he drifted inside to create numerical superiority in the half-spaces, finding pockets that shouldn't exist and playing passes that shouldn't be possible. His work rate off the ball was as elite as his technique on it — he pressed like a midfielder and created like a 10 while nominally playing wide. The 2022–23 treble season, where he was arguably City's best player, was the role's masterclass.",
     keyTraits: ["Technical precision", "Half-space occupation", "Work rate off the ball", "Vision"],
   },
 
-  "Wide Forward": {
-    role: "Wide Forward",
-    culturalName: "Extremo",
+  Extremo: {
+    role: "Extremo",
     origin: "Portuguese",
     position: "WF",
     iconPlayer: "Kylian Mbappé",
@@ -453,22 +528,6 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
 
   // ── CF ──────────────────────────────────────────────────────────────────
 
-  "Target Man": {
-    role: "Target Man",
-    culturalName: "Prima Punta",
-    origin: "Italian",
-    position: "CF",
-    iconPlayer: "Didier Drogba",
-    nationality: "Ivory Coast",
-    peakScore: 93,
-    peakEra: "2006–2012",
-    peakClub: "Chelsea",
-    peakFormation: "4-3-3 / 4-4-2",
-    snapshot:
-      "Drogba was the ultimate big-game Target Man — a 6'2\" force of nature who combined aerial dominance, physical power, and a finisher's instinct that came alive in finals. He scored in four FA Cup finals, the League Cup final, and the 2012 Champions League final where his header forced extra time and his penalty sealed the trophy. Under Mourinho he was Chelsea's reference point, holding the ball up, bullying defenders, and bringing teammates into play before ruthlessly converting chances himself.",
-    keyTraits: ["Aerial dominance", "Physical power", "Big-game scoring", "Hold-up play"],
-  },
-
   Poacher: {
     role: "Poacher",
     position: "CF",
@@ -483,9 +542,22 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Instinctive finishing", "Penalty-area movement", "Reactions", "Positioning"],
   },
 
-  "False 9": {
-    role: "False 9",
-    culturalName: "Falso Nove",
+  Spearhead: {
+    role: "Spearhead",
+    position: "CF",
+    iconPlayer: "Roberto Firmino",
+    nationality: "Brazil",
+    peakScore: 91,
+    peakEra: "2017–2020",
+    peakClub: "Liverpool",
+    peakFormation: "4-3-3",
+    snapshot:
+      "Firmino redefined what a centre-forward could be in Klopp's gegenpressing system — a striker whose primary job was defending. His pressing triggers, ability to win the ball back in the opponent's third, and selfless movement to create space for Salah and Mane made Liverpool's front three the most feared in Europe. The 2018–19 Champions League win and 2019–20 Premier League title were built on Firmino's willingness to sacrifice his own numbers for the team's success. He proved that the Spearhead was not a compromise but a weapon.",
+    keyTraits: ["Pressing intelligence", "Work rate", "Link-up play", "Selfless movement"],
+  },
+
+  "Falso Nove": {
+    role: "Falso Nove",
     origin: "Spanish",
     position: "CF",
     iconPlayer: "Lionel Messi",
@@ -499,47 +571,19 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Dropping deep to create", "Dribbling through lines", "Vision", "Finishing versatility"],
   },
 
-  "Complete Forward": {
-    role: "Complete Forward",
+  "Prima Punta": {
+    role: "Prima Punta",
+    origin: "Italian",
     position: "CF",
-    iconPlayer: "Ronaldo Nazário",
-    nationality: "Brazil",
-    peakScore: 97,
-    peakEra: "1996–2002",
-    peakClub: "Barcelona / Inter / Real Madrid",
-    peakFormation: "4-4-2 / 3-5-2",
+    iconPlayer: "Didier Drogba",
+    nationality: "Ivory Coast",
+    peakScore: 93,
+    peakEra: "2006–2012",
+    peakClub: "Chelsea",
+    peakFormation: "4-3-3 / 4-4-2",
     snapshot:
-      "R9 at his peak was the most complete forward football has ever produced — he could score from anywhere, create for others, dribble past entire defences, head the ball, and play with his back to goal. His 1996–97 season at Barcelona (47 goals) and the 2002 World Cup (8 goals, including the final) bookended a peak interrupted by devastating injuries but never diminished in brilliance. When fully fit, Ronaldo possessed a combination of pace, power, technique, and finishing that no centre-forward before or since has matched.",
-    keyTraits: ["Explosive pace with the ball", "Finishing from any angle", "Dribbling power", "Complete skill set"],
-  },
-
-  "Pressing Forward": {
-    role: "Pressing Forward",
-    position: "CF",
-    iconPlayer: "Roberto Firmino",
-    nationality: "Brazil",
-    peakScore: 91,
-    peakEra: "2017–2020",
-    peakClub: "Liverpool",
-    peakFormation: "4-3-3",
-    snapshot:
-      "Firmino redefined what a centre-forward could be in Klopp's gegenpressing system — a striker whose primary job was defending. His pressing triggers, ability to win the ball back in the opponent's third, and selfless movement to create space for Salah and Mane made Liverpool's front three the most feared in Europe. The 2018–19 Champions League win and 2019–20 Premier League title were built on Firmino's willingness to sacrifice his own numbers for the team's success. He proved that the Pressing Forward was not a compromise but a weapon.",
-    keyTraits: ["Pressing intelligence", "Work rate", "Link-up play", "Selfless movement"],
-  },
-
-  Raumdeuter: {
-    role: "Raumdeuter",
-    origin: "German",
-    position: "CF",
-    iconPlayer: "Thomas Müller",
-    nationality: "Germany",
-    peakScore: 94,
-    peakEra: "2012–2016",
-    peakClub: "Bayern Munich",
-    peakFormation: "4-2-3-1 / 3-5-2",
-    snapshot:
-      "Müller coined the term Raumdeuter — 'space interpreter' — because no existing football position described what he did. Operating between the lines, he made runs into spaces that didn't exist yet, arriving in the penalty area with ghostly timing. Under Heynckes and Guardiola at Bayern, he was the player who turned territorial dominance into goals: 2012–13 saw him contribute to 47 goals in a treble-winning season. His movement is unteachable — a sixth sense for where the ball will be, not where it is.",
-    keyTraits: ["Space interpretation", "Arrival timing", "Off-ball intelligence", "Positional instinct"],
+      "Drogba was the ultimate big-game Target Man — a 6'2\" force of nature who combined aerial dominance, physical power, and a finisher's instinct that came alive in finals. He scored in four FA Cup finals, the League Cup final, and the 2012 Champions League final where his header forced extra time and his penalty sealed the trophy. Under Mourinho he was Chelsea's reference point, holding the ball up, bullying defenders, and bringing teammates into play before ruthlessly converting chances himself.",
+    keyTraits: ["Aerial dominance", "Physical power", "Big-game scoring", "Hold-up play"],
   },
 };
 

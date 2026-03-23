@@ -107,53 +107,58 @@ POSITION_WEIGHTS = {
 # Lineage in SACROSANCT System 4.
 TACTICAL_ROLES = {
     "GK": [
-        ("GK", "Cover",   "Torwart"),             # German: the traditional keeper. Kahn, Buffon, Courtois
-        ("GK", "Passer",  "Sweeper Keeper"),       # Neuer: high line, sweeps behind, commands area
-        ("GK", "Controller", "Ball-Playing GK"),   # Ederson, Ter Stegen: distribution as a weapon
+        ("GK", "Passer",     "Libero GK"),        # Ederson, Ter Stegen: distribution specialist
+        ("GK", "Cover",      "Sweeper Keeper"),    # Neuer, Alisson: high line, reads danger
+        ("GK", "Commander",  "Comandante"),        # Buffon, Casillas: organizer, commands area
+        ("GK", "Target",     "Shotstopper"),       # Kahn, Courtois: reflexes, presence
     ],
     "CD": [
-        ("Cover", "Passer",     "Libero"),         # Beckenbauer → Stones: builds from back, reads danger
-        ("Destroyer", "Powerhouse", "Vorstopper"), # German: "front stopper" — Baresi, Chiellini, Konaté
-        ("Cover", "Controller",  "Sweeper"),        # Sammer → Hummels → Marquinhos: last man, reads play
-        ("Destroyer", "Commander", "Zagueiro"),     # Brazilian: the commanding CB — Lúcio, Thiago Silva
+        ("Passer", "Cover",        "Libero"),       # Beckenbauer, Stones: ball-playing CB
+        ("Cover", "Controller",    "Sweeper"),       # Sammer, Hummels: last man, reads play
+        ("Commander", "Destroyer", "Zagueiro"),      # Thiago Silva, Van Dijk: commanding CB
+        ("Powerhouse", "Destroyer","Vorstopper"),    # Chiellini, Konate: aggressive, wins duels
     ],
     "WD": [
-        ("Engine", "Dribbler",  "Lateral"),        # Portuguese/Spanish: the attacking fullback. Cafu, TAA
-        ("Controller", "Passer","Invertido"),       # Spanish: inverted FB. Lahm 2013 → Cancelo → Rico Lewis
-        ("Engine", "Sprinter",  "Carrilero"),       # Spanish: "lane runner" — Facchetti, Zanetti, Hakimi
+        ("Passer", "Dribbler",   "Lateral"),        # TAA, Cafu: attacking fullback, final ball
+        ("Engine", "Cover",      "Fluidificante"),   # Zanetti, Robertson: covers full flank
+        ("Controller", "Passer", "Invertido"),       # Lahm, Cancelo: inverted FB, tucks inside
+        ("Sprinter", "Engine",   "Corredor"),        # Walker, Theo Hernandez: pace-based fullback
     ],
     "DM": [
-        ("Cover", "Destroyer",  "Sentinelle"),     # French: the sentinel. Makélélé → Casemiro. Guards the gate
-        ("Controller", "Passer","Regista"),         # Gerson → Pirlo → Jorginho: tempo dictator from deep
-        ("Destroyer", "Engine", "Volante"),         # Brazilian: "steering wheel" — Gattuso, Kanté, Caicedo
+        ("Passer", "Controller",   "Regista"),       # Pirlo, Jorginho: deep playmaker
+        ("Cover", "Destroyer",     "Sentinelle"),    # Makelele, Casemiro: shield, guards gate
+        ("Controller", "Cover",    "Pivote"),        # Busquets, Rodri: midfield brain
+        ("Powerhouse", "Destroyer","Volante"),       # Gattuso, Kante: ball-winner, aggressive
     ],
     "CM": [
-        ("Controller", "Passer","Metodista"),       # Italian: "the methodist" — Xavi, Kroos, Pedri
-        ("Engine", "Cover",     "Tuttocampista"),   # Italian: "all-pitch player" — Lampard, Gerrard, Bellingham
-        ("Passer", "Creator",   "Mezzala"),         # Italian: "half-winger" — Barella. Half-space creator
-        ("Engine", "Destroyer", "Relayeur"),        # French: "relay" — Valverde. Links phases, tireless shuttle
+        ("Passer", "Creator",      "Mezzala"),       # Barella, Kovacic: half-space creator
+        ("Engine", "Cover",        "Tuttocampista"), # Lampard, Gerrard: all-pitch midfielder
+        ("Controller", "Passer",   "Metodista"),     # Xavi, Kroos: orchestrator
+        ("Sprinter", "Engine",     "Relayeur"),      # Valverde, Toure: tireless shuttle
     ],
     "WM": [
-        ("Creator", "Passer",   "Fantasista"),      # Italian: the wide creator. Silva, Bernardo, Foden
-        ("Sprinter", "Passer",  "Winger"),          # Garrincha, Figo, Saka. The oldest attacking role
-        ("Dribbler", "Striker", "Raumdeuter"),      # German: "space interpreter" — Müller coined it himself
+        ("Dribbler", "Passer",    "Winger"),         # Garrincha, Figo, Saka: beats man with skill
+        ("Engine", "Cover",       "Tornante"),       # Moses, Kostic: full-flank, both phases
+        ("Controller", "Cover",   "False Winger"),   # Bernardo Silva, Foden: drifts inside
+        ("Sprinter", "Engine",    "Shuttler"),       # Sterling, Sane: pace + stamina from wide
     ],
     "AM": [
-        ("Creator", "Dribbler", "Trequartista"),    # Baggio → Zidane → Messi: the free-roaming 10
-        ("Controller", "Creator","Enganche"),        # Argentine: the hook. Riquelme → Dybala. Sees everything
-        ("Dribbler", "Striker", "Seconda Punta"),    # Italian: "second striker" — Del Piero, Havertz
+        ("Dribbler", "Creator",   "Trequartista"),   # Baggio, Zidane: free-roaming 10
+        ("Engine", "Striker",     "Seconda Punta"),  # Del Piero, Griezmann: reads space, links play
+        ("Controller", "Creator", "Enganche"),       # Riquelme, Dybala: the hook, sees everything
+        ("Sprinter", "Striker",   "Boxcrasher"),     # Havertz, Bruno Fernandes: arrives in box
     ],
     "WF": [
-        ("Dribbler", "Sprinter","Inside Forward"),   # Robben → Salah → Yamal. Historical English term from W-M era
-        ("Sprinter", "Striker", "Extremo"),           # Portuguese: the wide attacker — Henry, Mbappé
-        ("Creator", "Dribbler", "Inverted Winger"),    # cuts inside to create — Saka, Grealish
+        ("Dribbler", "Sprinter",  "Inside Forward"), # Robben, Salah: cuts inside to shoot
+        ("Engine", "Striker",     "Raumdeuter"),     # Son, Mane: space interpreter, presses + scores
+        ("Creator", "Dribbler",   "Inventor"),       # Grealish, Neymar: creates from nothing
+        ("Sprinter", "Striker",   "Extremo"),        # Henry, Mbappe: electric pace + power
     ],
     "CF": [
-        ("Target", "Powerhouse","Prima Punta"),      # Italian: "first striker" — Toni, Giroud. Holds up, aerial
-        ("Striker", "Sprinter", "Poacher"),           # Gerd Müller → Inzaghi → Haaland. Goals, movement, instinct
-        ("Striker", "Creator",   "Complete Forward"), # R9, Van Basten, Benzema. Scores AND creates — the total striker
-        ("Creator", "Controller","Falso Nove"),       # Hidegkuti 1953 → Messi 2009 → Firmino
-        ("Dribbler", "Striker", "Seconda Punta"),     # Totti → Griezmann. Between the lines
+        ("Striker", "Dribbler",    "Poacher"),       # Gerd Muller, Inzaghi: pure finisher
+        ("Engine", "Destroyer",    "Spearhead"),     # Vardy, Suarez: leads the press
+        ("Creator", "Controller",  "Falso Nove"),    # Messi (2009), Benzema: false 9
+        ("Target", "Powerhouse",   "Prima Punta"),   # Toni, Giroud: target striker
     ],
 }
 
@@ -205,21 +210,21 @@ def compute_model_scores(grades, level=None):
         # scout_grade: already 1-20
         # stat_score scale varies by source:
         #   - scout_assessment: scout_grade 1-20
-        #   - understat/computed: stat_score 1-10
-        #   - statsbomb: stat_score 1-20
         #   - eafc_inferred: stat_score 1-20 (re-imported from EA FC 25)
+        #   - statsbomb/api_football/understat/computed/fbref: stat_score 1-10
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            if source in ("statsbomb", "eafc_inferred"):
-                score_20 = min(g["stat_score"], 20)  # already 1-20
+            if source == "eafc_inferred":
+                score_20 = min(g["stat_score"], 20)  # EA FC is genuinely 1-20
             elif source == "understat":
                 # Understat clusters high (9-10 for any decent player).
                 # Compress: 10→17, 8→14, 5→9. Prevents understat-only
                 # players from scoring as if they had elite scout grades.
                 score_20 = min(g["stat_score"] * 1.7, 17)
             else:
-                score_20 = min(g["stat_score"] * 2, 20)  # 1-10 → 2-20
+                # StatsBomb, API-Football, computed, fbref: all 1-10 → 2-20
+                score_20 = min(g["stat_score"] * 2, 20)
         else:
             continue
         priority = SOURCE_PRIORITY.get(source, 0)
@@ -603,20 +608,22 @@ def main():
                 gap = 1   # Very sparse: almost entirely trust level
             elif grade_count < 30:
                 gap = 3   # Moderate data
-            elif level >= 80:
-                gap = 2   # Elite with rich data — tight floor
+            elif grade_count >= 50:
+                gap = 8   # Rich data (50+ grades): let data speak
             else:
-                gap = 10  # Lower level with rich data — let data speak
+                gap = 5   # Moderate-rich data (30-49 grades)
             level_floor = min(max(level - gap, 50), 90)
             best_role_score = max(best_role_score, level_floor)
 
             # GK data gap: GK-specific attributes (positioning, throwing, etc.)
             # are poorly captured by non-scout data sources.
-            # Compensate with a level-trust boost for unscouted GKs.
-            if position == "GK":
+            # Only boost truly sparse unscouted GKs (<20 grades).
+            # GKs with 20+ grades from EAFC/StatsBomb/Understat have enough
+            # signal — let the data-density floor above handle them.
+            if position == "GK" and grade_count < 20:
                 has_scout = any(g.get("source") == "scout_assessment" for g in grades)
                 if not has_scout:
-                    gk_floor = min(level + 3, 92)
+                    gk_floor = min(level + 2, 90)
                     best_role_score = max(best_role_score, gk_floor)
 
         results.append({

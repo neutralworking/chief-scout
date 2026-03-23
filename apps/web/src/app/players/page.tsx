@@ -230,7 +230,7 @@ function PlayersContent() {
   }, [searchOpen]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)] surface-vibrant rounded-[var(--radius-lg)]">
       {/* Header: Title + Search + Admin + Pagination */}
       <div className="sticky top-0 z-30 bg-[var(--bg-base)] pb-2">
         <div className="flex items-center gap-2 mb-1.5">
@@ -258,7 +258,7 @@ function PlayersContent() {
           {!isAdmin ? (
             <button
               onClick={() => setShowLogin(!showLogin)}
-              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0"
+              className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0"
               title="Admin login"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +266,7 @@ function PlayersContent() {
               </svg>
             </button>
           ) : (
-            <span className="text-[10px] text-[var(--color-accent-tactical)] shrink-0" title="Editing enabled">
+            <span className="text-[11px] text-[var(--color-accent-tactical)] shrink-0" title="Editing enabled">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -279,7 +279,7 @@ function PlayersContent() {
               onChange={(e) => setLoginPass(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleLogin(); }}
               placeholder="PIN"
-              className="w-20 px-2 py-0.5 text-[10px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
+              className="w-20 px-2 py-0.5 text-[11px] rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-accent-tactical)]"
               autoFocus
             />
           )}
@@ -287,7 +287,7 @@ function PlayersContent() {
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <button
               onClick={toggleAutoScroll}
-              className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
+              className={`text-[11px] font-medium px-1.5 py-0.5 rounded transition-colors ${
                 autoScroll
                   ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
                   : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
@@ -301,32 +301,32 @@ function PlayersContent() {
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="text-[10px] font-mono px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
+                  className="text-[11px] font-data px-1 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-muted)]"
                 >
                   {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0 || loading}
-                  className="px-1.5 py-0.5 text-[10px] glass rounded text-[var(--text-secondary)] disabled:opacity-30">&larr;</button>
-                <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                  className="px-1.5 py-0.5 text-[11px] card rounded text-[var(--text-secondary)] disabled:opacity-30">&larr;</button>
+                <span className="text-[11px] font-data text-[var(--text-muted)]">
                   {loading ? "..." : `${page * pageSize + 1}–${page * pageSize + players.length}`}
                 </span>
                 <button onClick={() => setPage(page + 1)} disabled={!hasMore || loading}
-                  className="px-1.5 py-0.5 text-[10px] glass rounded text-[var(--text-secondary)] disabled:opacity-30">&rarr;</button>
+                  className="px-1.5 py-0.5 text-[11px] card rounded text-[var(--text-secondary)] disabled:opacity-30">&rarr;</button>
               </>
             )}
             {autoScroll && (
-              <span className="text-[10px] font-mono text-[var(--text-muted)]">{players.length}</span>
+              <span className="text-[11px] font-data text-[var(--text-muted)]">{players.length}</span>
             )}
           </div>
         </div>
 
         {/* Compact controls */}
-        <div className="glass p-1.5 mb-2 overflow-hidden">
+        <div className="card-vibrant p-1.5 mb-2 overflow-hidden">
           {/* Row 1: Position pills + dropdowns */}
           <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-0.5 shrink-0">
               <button onClick={() => updateParam("position", "")}
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
+                className={`text-[11px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
                   !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                 }`}>
@@ -334,7 +334,7 @@ function PlayersContent() {
               </button>
               {POSITIONS.map((pos) => (
                 <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
-                  className={`text-[9px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                  className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
                     position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
                       : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                   }`}>
@@ -345,7 +345,7 @@ function PlayersContent() {
             <div className="flex gap-0.5 shrink-0 ml-1">
               {[["U16", "16"], ["U18", "18"], ["U21", "21"], ["U23", "23"]].map(([label, val]) => (
                 <button key={val} onClick={() => updateParam("max_age", maxAge === val ? "" : val)}
-                  className={`text-[9px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                  className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
                     maxAge === val ? "bg-blue-500/20 text-blue-400"
                       : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                   }`}>
@@ -355,7 +355,7 @@ function PlayersContent() {
             </div>
             <div className="flex gap-1 shrink-0 ml-auto">
               <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px]">
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[11px]">
                 <option value="role_score">Role Score</option>
                 <option value="level">Overall</option>
                 <option value="level_raw">Level</option>
@@ -366,13 +366,13 @@ function PlayersContent() {
                 <option value="name">Name</option>
               </select>
               <select value={league} onChange={(e) => updateParam("league", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[10px] max-w-[120px]">
+                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[11px] max-w-[120px]">
                 <option value="">League</option>
                 {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
               {hasFilters && (
                 <button onClick={() => { setSearchInput(""); setSearchOpen(false); router.push("/players"); }}
-                  className="px-1.5 py-0.5 rounded text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
+                  className="px-1.5 py-0.5 rounded text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
                   Clear
                 </button>
               )}
@@ -384,7 +384,7 @@ function PlayersContent() {
       {/* Content */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && players.length > 0 && (
-          <div className="glass panel-accent-cyan overflow-hidden flex-1 min-h-0 flex flex-col">
+          <div className="card-vibrant overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
               <table className="w-full">
@@ -411,7 +411,7 @@ function PlayersContent() {
                     return (
                       <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
                         <td className="py-1.5 px-2 text-center">
-                          <span className={`text-[10px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
+                          <span className={`text-[11px] font-bold tracking-wider px-2 py-1 rounded ${posColor} text-white`}>
                             {player.position ?? "–"}
                           </span>
                         </td>
@@ -430,13 +430,13 @@ function PlayersContent() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs text-[var(--text-muted)]">{player.club || ""}</span>
                             {player.earned_archetype && (
-                              <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
+                              <span className={`text-[11px] font-semibold px-1 py-0.5 rounded ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
                                 {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="py-1.5 px-2 text-center font-mono text-sm text-[var(--text-secondary)]">
+                        <td className="py-1.5 px-2 text-center font-data text-sm text-[var(--text-secondary)]">
                           {player.dob ? computeAge(player.dob) : "–"}
                         </td>
                         <td className="py-1.5 px-3 text-sm text-[var(--text-secondary)] hidden lg:table-cell">{player.best_role || "–"}</td>
@@ -453,7 +453,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-sm font-bold ${ratingColor(player.best_role_score)}`}>
+                            <span className={`font-data text-sm font-bold ${ratingColor(player.best_role_score)}`}>
                               {player.best_role_score ?? "–"}
                             </span>
                           )}
@@ -471,7 +471,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-sm ${ratingColor(player.level)}`}>
+                            <span className={`font-data text-sm ${ratingColor(player.level)}`}>
                               {player.level ?? "–"}
                             </span>
                           )}
@@ -489,24 +489,24 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "director_valuation_meur", v)}
                             />
                           ) : (
-                            <span className="font-mono text-sm text-[var(--color-accent-tactical)]">
+                            <span className="font-data text-sm text-[var(--color-accent-tactical)]">
                               {fmtMeur(player.director_valuation_meur)}
                             </span>
                           )}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-sm text-[var(--text-secondary)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-data text-sm text-[var(--text-secondary)] hidden lg:table-cell">
                           {fmtValue(player.market_value_eur)}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-data text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.apps ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-data text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.goals ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs text-[var(--text-muted)] hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-data text-xs text-[var(--text-muted)] hidden lg:table-cell">
                           {player.assists ?? "–"}
                         </td>
-                        <td className="py-1.5 px-3 text-right font-mono text-xs hidden lg:table-cell">
+                        <td className="py-1.5 px-3 text-right font-data text-xs hidden lg:table-cell">
                           {player.rating != null ? (
                             <span className="text-amber-400">{player.rating.toFixed(2)}</span>
                           ) : "–"}
@@ -527,20 +527,20 @@ function PlayersContent() {
                   <div key={player.person_id} className="px-3 py-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
+                        <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                           {player.position ?? "–"}
                         </span>
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
                           <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                             {player.name}
-                            {player.dob && <span className="text-xs text-[var(--text-muted)] font-mono ml-1">{computeAge(player.dob)}</span>}
+                            {player.dob && <span className="text-xs text-[var(--text-muted)] font-data ml-1">{computeAge(player.dob)}</span>}
                             {player.nation && <span className="text-xs ml-1" title={player.nation}>{nationFlag(player.nation_code, player.nation)}</span>}
                           </p>
                           <p className="text-xs text-[var(--text-muted)] truncate">
                             {player.club || ""}
                           </p>
                           {(player.goals != null || player.assists != null) && (
-                            <p className="text-xs font-mono text-[var(--text-muted)]">
+                            <p className="text-xs font-data text-[var(--text-muted)]">
                               {player.goals != null && <span className="text-green-400">{player.goals}G</span>}
                               {player.goals != null && player.assists != null && " "}
                               {player.assists != null && <span className="text-blue-400">{player.assists}A</span>}
@@ -551,7 +551,7 @@ function PlayersContent() {
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-2">
                         {fmtMeur(player.director_valuation_meur) !== "–" && (
-                          <span className="text-xs font-mono text-[var(--color-accent-tactical)]">
+                          <span className="text-xs font-data text-[var(--color-accent-tactical)]">
                             {fmtMeur(player.director_valuation_meur)}
                           </span>
                         )}
@@ -577,7 +577,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "best_role_score", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-sm font-bold ${ratingColor(player.best_role_score)}`}>
+                            <span className={`font-data text-sm font-bold ${ratingColor(player.best_role_score)}`}>
                               {player.best_role_score ?? "–"}
                             </span>
                           )}
@@ -596,7 +596,7 @@ function PlayersContent() {
                               onSaved={(v) => updateLocal(player.person_id, "level", v)}
                             />
                           ) : (
-                            <span className={`font-mono text-sm ${ratingColor(player.level)}`}>
+                            <span className={`font-data text-sm ${ratingColor(player.level)}`}>
                               {player.level ?? "–"}
                             </span>
                           )}
@@ -621,24 +621,24 @@ function PlayersContent() {
         )}
 
         {loading && !loadingMore && (
-          <div className="glass py-12 text-center flex-1">
+          <div className="card py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading players...</p>
           </div>
         )}
         {error && (
-          <div className="glass p-4">
+          <div className="card p-4">
             <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
           </div>
         )}
         {!loading && !error && players.length === 0 && (
-          <div className="glass py-12 text-center flex-1">
+          <div className="card py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">
               {hasFilters ? "No players match the current filters." : "No player data found."}
             </p>
           </div>
         )}
         {!loading && !error && players.length > 0 && (
-          <span className="text-[10px] text-[var(--text-muted)] font-mono mt-1">
+          <span className="text-[11px] text-[var(--text-muted)] font-data mt-1">
             {players.length} scouted players
           </span>
         )}

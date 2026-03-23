@@ -31,7 +31,7 @@ export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
 
   if (moments.length === 0) {
     return (
-      <div className="glass p-5">
+      <div className="card p-5">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">
           Key Moments
         </h3>
@@ -44,7 +44,7 @@ export function KeyMomentsList({ moments }: { moments: KeyMoment[] }) {
   const hasMore = moments.length > COLLAPSED_LIMIT;
 
   return (
-    <div className="glass p-5">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           Key Moments

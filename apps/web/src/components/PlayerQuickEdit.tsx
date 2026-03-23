@@ -120,7 +120,7 @@ export function PlayerQuickEdit({ player }: { player: PlayerData }) {
   const labelClass = "text-[8px] uppercase tracking-wider text-[var(--text-muted)] block mb-0.5";
 
   return (
-    <div className="glass rounded-xl p-3 sm:p-4 space-y-3">
+    <div className="card rounded-xl p-3 sm:p-4 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)]">Quick Edit</span>
         <div className="flex items-center gap-2">

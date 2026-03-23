@@ -362,7 +362,7 @@ export default async function PlayerDetailPage({
         </div>
 
         {/* Identity bar — everything in one panel */}
-        <div className="glass panel-accent-cyan p-2.5">
+        <div className="card-vibrant p-4 sm:p-5 hybrid-transition">
           {/* Row 1: Avatar + Name + Bio details + Role badge */}
           <div className="flex items-start gap-3">
             {/* Avatar */}
@@ -377,13 +377,13 @@ export default async function PlayerDetailPage({
             {/* Name + bio line + scouting notes */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-base font-bold tracking-tight truncate">{player.name}</h1>
-                <Link href={`/players?position=${player.position ?? ""}`} className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
+                <h1 className="text-base font-bold tracking-tight truncate font-[family-name:var(--font-display)] uppercase">{player.name}</h1>
+                <Link href={`/players?position=${player.position ?? ""}`} className={`text-[11px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
                   {player.position ?? "–"}{player.side && ["WF", "WD", "WM"].includes(player.position ?? "") ? ` · ${player.side}` : ""}
                 </Link>
                 {/* TODO: secondary positions when data available */}
                 {!player.active && (
-                  <span className="text-[9px] font-semibold px-1.5 py-0.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
+                  <span className="text-[11px] font-semibold px-1.5 py-0.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] flex-wrap">
@@ -403,7 +403,7 @@ export default async function PlayerDetailPage({
               </div>
               {/* Season stats summary */}
               {latestAfSeason && (latestAfSeason.appearances ?? 0) > 0 && (
-                <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
+                <p className="text-[11px] font-data text-[var(--text-muted)] mt-1">
                   <span className="text-[var(--text-secondary)]">{latestAfSeason.season.slice(2)}/{(parseInt(latestAfSeason.season) + 1).toString().slice(2)}:</span>
                   {" "}{latestAfSeason.appearances} apps
                   {(latestAfSeason.goals ?? 0) > 0 && <span className="text-green-400"> · {latestAfSeason.goals}G</span>}
@@ -432,11 +432,11 @@ export default async function PlayerDetailPage({
           <div className="mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-3 gap-y-1">
             {(player.earned_archetype || player.archetype) && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">
                   {player.earned_archetype ? "Archetype" : "Style"}
                 </span>
                 {player.earned_archetype ? (
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
+                  <span className={`text-[11px] font-semibold px-1.5 py-0.5 ${getArchetypeBadgeClasses(player.earned_archetype)}`}>
                     {[player.legacy_tag, player.behavioral_tag, player.earned_archetype].filter(Boolean).join(" ")}
                   </span>
                 ) : (
@@ -449,18 +449,18 @@ export default async function PlayerDetailPage({
 
             {player.personality_type && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
-                <span className="text-[11px] font-mono font-bold text-[var(--color-accent-personality)]">{player.personality_type}</span>
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
+                <span className="text-[11px] font-data font-bold text-[var(--color-accent-personality)]">{player.personality_type}</span>
                 {personalityName && (
-                  <span className="text-[10px] text-[var(--text-muted)]">{personalityName}</span>
+                  <span className="text-[11px] text-[var(--text-muted)]">{personalityName}</span>
                 )}
               </div>
             )}
 
             {valuation?.market_value_p50 != null && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Val</span>
-                <span className="text-[11px] font-mono font-bold text-[var(--color-accent-tactical)]">
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Val</span>
+                <span className="text-[11px] font-data font-bold text-[var(--color-accent-tactical)]">
                   {formatVal(valuation.market_value_p50)}
                 </span>
                 <span className={`w-1.5 h-1.5 ${
@@ -473,8 +473,8 @@ export default async function PlayerDetailPage({
 
             {player.market_value_eur != null && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">TM</span>
-                <span className="text-[11px] font-mono font-bold text-[var(--text-secondary)]">
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">TM</span>
+                <span className="text-[11px] font-data font-bold text-[var(--text-secondary)]">
                   {formatVal(player.market_value_eur)}
                 </span>
               </div>
@@ -482,8 +482,8 @@ export default async function PlayerDetailPage({
 
             {player.legacy_score != null && player.legacy_score > 0 && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Legacy</span>
-                <span className="text-[11px] font-mono font-bold" style={{
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Legacy</span>
+                <span className="text-[11px] font-data font-bold" style={{
                   color: player.legacy_score >= 5000 ? "#f59e0b" : player.legacy_score >= 2500 ? "#a855f7" : player.legacy_score >= 1000 ? "#3b82f6" : "var(--text-secondary)"
                 }}>
                   {player.legacy_score.toLocaleString()}
@@ -493,21 +493,21 @@ export default async function PlayerDetailPage({
 
             {player.squad_role && (
               <div className="flex items-center gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)]">Role</span>
-                <span className="text-[10px] text-[var(--text-secondary)]">{player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
+                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Role</span>
+                <span className="text-[11px] text-[var(--text-secondary)]">{player.squad_role.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
               </div>
             )}
 
             {/* Tags inline */}
             {player.loan_status && (
-              <span className="text-[8px] font-semibold px-1 py-0.5 border bg-amber-500/15 text-amber-400 border-amber-500/25">
+              <span className="text-[11px] font-semibold px-1 py-0.5 border bg-amber-500/15 text-amber-400 border-amber-500/25">
                 Loan: {player.loan_status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
               </span>
             )}
             {playerTags.slice(0, 5).map((t: { tag_name: string; category: string }, i: number) => (
               <span
                 key={i}
-                className={`text-[8px] font-semibold px-1 py-0.5 border ${
+                className={`text-[11px] font-semibold px-1 py-0.5 border ${
                   t.category === "scouting" ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/25" :
                   t.category === "style" ? "bg-purple-500/15 text-purple-400 border-purple-500/25" :
                   t.category === "fitness" ? "bg-green-500/15 text-green-400 border-green-500/25" :
@@ -523,13 +523,13 @@ export default async function PlayerDetailPage({
             {/* External links — pushed right */}
             <div className="flex items-center gap-1.5 ml-auto">
               {player.transfermarkt_id && (
-                <a href={`https://www.transfermarkt.com/spieler/profil/spieler/${player.transfermarkt_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">TM</a>
+                <a href={`https://www.transfermarkt.com/spieler/profil/spieler/${player.transfermarkt_id}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">TM</a>
               )}
               {fbrefId && (
-                <a href={`https://fbref.com/en/players/${fbrefId}/`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">FBRef</a>
+                <a href={`https://fbref.com/en/players/${fbrefId}/`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">FBRef</a>
               )}
               {player.wikidata_id && (
-                <a href={`https://www.wikidata.org/wiki/${player.wikidata_id}`} target="_blank" rel="noopener noreferrer" className="text-[9px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Wiki</a>
+                <a href={`https://www.wikidata.org/wiki/${player.wikidata_id}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Wiki</a>
               )}
             </div>
           </div>
@@ -543,13 +543,13 @@ export default async function PlayerDetailPage({
       </div>
 
       {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-1">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Left: Radar + Personality + Stats */}
-        <div className="lg:overflow-y-auto space-y-1 pr-0.5">
+        <div className="lg:overflow-y-auto space-y-3 pr-1">
           <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
 
           {(player.ei != null || player.personality_type) && (
-            <div className="glass panel-accent-personality p-2.5">
+            <div className="card card-pillar-personality p-3">
               <SectionHeader label="Personality" color="personality" />
               <PersonalityBadge
                 personalityType={player.personality_type}
@@ -566,7 +566,7 @@ export default async function PlayerDetailPage({
           )}
 
           {player.best_role && (
-            <div className="glass panel-accent-tactical p-3">
+            <div className="card card-pillar-tactical p-3">
               <SectionHeader label="Best Roles" color="tactical" />
               <div className="mt-2 space-y-2">
                 <div className="flex items-center gap-2">
@@ -574,7 +574,7 @@ export default async function PlayerDetailPage({
                   <div className="flex-1 h-1.5 bg-[var(--bg-pit)]">
                     <div className="h-full bg-[var(--color-accent-tactical)]" style={{ width: `${player.best_role_score ?? 0}%` }} />
                   </div>
-                  <span className="font-mono text-[12px] font-bold text-[var(--color-accent-tactical)] w-8 text-right">
+                  <span className="font-data text-[12px] font-bold text-[var(--color-accent-tactical)] w-8 text-right">
                     {player.best_role_score}
                   </span>
                 </div>
@@ -588,7 +588,7 @@ export default async function PlayerDetailPage({
         </div>
 
         {/* Right: Valuation + Career + Similar + News + Shortlists */}
-        <div className="lg:overflow-y-auto space-y-1 pl-0.5">
+        <div className="lg:overflow-y-auto space-y-3 pl-1">
           {valuation && <ValuationPanel valuation={valuation} />}
 
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />

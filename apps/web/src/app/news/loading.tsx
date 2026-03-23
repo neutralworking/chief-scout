@@ -9,7 +9,7 @@ export default function NewsLoading() {
       </div>
       <div className="space-y-3">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="glass rounded-xl p-4 space-y-2">
+          <div key={i} className="card rounded-xl p-4 space-y-2">
             <div className="flex items-center gap-2">
               <div className="h-4 w-16 bg-[var(--bg-elevated)] rounded animate-pulse" />
               <div className="h-3 w-12 bg-[var(--bg-elevated)] rounded animate-pulse" />

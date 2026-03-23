@@ -123,7 +123,7 @@ export function ClubsList({
       </div>
 
       {/* Search + league dropdown */}
-      <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
+      <div className="card rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={search}
@@ -152,7 +152,7 @@ export function ClubsList({
       </div>
 
       {/* Desktop table */}
-      <div className="glass rounded-xl overflow-hidden hidden sm:block">
+      <div className="card rounded-xl overflow-hidden hidden sm:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
@@ -214,7 +214,7 @@ export function ClubsList({
           <Link
             key={club.id}
             href={`/clubs/${club.id}`}
-            className="glass rounded-lg p-3 flex items-center justify-between hover:border-[var(--color-accent-personality)]/30 transition-colors block"
+            className="card rounded-lg p-3 flex items-center justify-between hover:border-[var(--color-accent-personality)]/30 transition-colors block"
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{club.name}</p>
@@ -243,7 +243,7 @@ export function ClubsList({
           </Link>
         ))}
         {filtered.length === 0 && (
-          <div className="glass rounded-xl py-8 text-center text-sm text-[var(--text-muted)]">
+          <div className="card rounded-xl py-8 text-center text-sm text-[var(--text-muted)]">
             No clubs match your filters.
           </div>
         )}

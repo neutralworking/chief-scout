@@ -11,7 +11,7 @@ export function NewsHeadlines({ news }: { news: NewsStory[] }) {
   if (headlines.length === 0) return null;
 
   return (
-    <div className="glass px-2.5 py-1.5 flex items-center gap-3 overflow-x-auto">
+    <div className="card px-2.5 py-1.5 flex items-center gap-3 overflow-x-auto">
       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] shrink-0">News</span>
       <div className="flex items-center gap-3 min-w-0">
         {headlines.map((story) => {

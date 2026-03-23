@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isProduction } from "@/lib/env";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 /* ── Nav data (mirrors Sidebar grouping) ─────────────────────────── */
 
@@ -248,7 +247,7 @@ export function MobileBottomNav() {
             <nav className="px-6 pb-4">
               {SHEET_CATEGORIES.map((cat) => (
                 <div key={cat.heading} className="mt-4 first:mt-2">
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] pb-2">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] pb-2">
                     {cat.heading}
                   </div>
                   <div className="flex flex-wrap gap-x-1 gap-y-1">
@@ -273,10 +272,6 @@ export function MobileBottomNav() {
                 </div>
               ))}
 
-              {/* Footer: theme toggle */}
-              <div className="mt-6 pt-4 border-t border-[var(--border-subtle)] border-opacity-30">
-                <ThemeToggle />
-              </div>
             </nav>
           </div>
         </div>

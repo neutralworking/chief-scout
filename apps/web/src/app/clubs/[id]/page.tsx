@@ -209,7 +209,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
       </Link>
 
       {/* Header */}
-      <div className="glass rounded-xl p-3 sm:p-4">
+      <div className="card rounded-xl p-3 sm:p-4">
         <div className="flex items-start gap-3">
           {logoUrl ? (
             <img src={logoUrl} alt={clubName} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain bg-white/10 p-1 shrink-0" />
@@ -292,7 +292,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
         const confColor = conf >= 0.7 ? "text-green-400" : conf >= 0.4 ? "text-amber-400" : "text-[var(--text-muted)]";
 
         return (
-          <div className="glass rounded-xl p-3 sm:p-4">
+          <div className="card rounded-xl p-3 sm:p-4">
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <span className="text-[8px] uppercase tracking-wider text-[var(--text-muted)] block">Power</span>
@@ -327,14 +327,14 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
       })()}
 
       {players.length === 0 ? (
-        <div className="glass rounded-xl p-8 text-center">
+        <div className="card rounded-xl p-8 text-center">
           <p className="text-sm text-[var(--text-muted)]">No active players linked to this club.</p>
         </div>
       ) : (
         <>
           {/* Key Players */}
           {keyPlayers.length > 0 && (
-            <div className="glass rounded-xl p-3 sm:p-4">
+            <div className="card rounded-xl p-3 sm:p-4">
               <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Key Players</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 {keyPlayers.map((p) => {
@@ -370,7 +370,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           {(strengths.length > 0 || weaknesses.length > 0) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {strengths.length > 0 && (
-                <div className="glass rounded-xl p-3 sm:p-4">
+                <div className="card rounded-xl p-3 sm:p-4">
                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-2">Strengths</h2>
                   <ul className="space-y-1.5">
                     {strengths.map((s, i) => (
@@ -383,7 +383,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
                 </div>
               )}
               {weaknesses.length > 0 && (
-                <div className="glass rounded-xl p-3 sm:p-4">
+                <div className="card rounded-xl p-3 sm:p-4">
                   <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-sentiment-negative)] mb-2">Weaknesses</h2>
                   <ul className="space-y-1.5">
                     {weaknesses.map((w, i) => (
@@ -401,7 +401,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           {/* Two-column: Positional Depth + Squad Profile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             {/* Positional Depth */}
-            <div className="glass rounded-xl p-3 sm:p-4">
+            <div className="card rounded-xl p-3 sm:p-4">
               <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Positional Depth</h2>
               <div className="space-y-2.5">
                 {POSITIONS.map((pos) => {
@@ -436,7 +436,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
             </div>
 
             {/* Squad Profile — merged card */}
-            <div className="glass rounded-xl p-3 sm:p-4 space-y-4">
+            <div className="card rounded-xl p-3 sm:p-4 space-y-4">
               {/* Age Profile */}
               <div>
                 <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Age Profile</h2>
@@ -502,7 +502,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           </div>
 
           {/* Full Squad */}
-          <div className="glass rounded-xl p-3 sm:p-4">
+          <div className="card rounded-xl p-3 sm:p-4">
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Full Squad</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

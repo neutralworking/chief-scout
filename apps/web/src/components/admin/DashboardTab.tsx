@@ -61,7 +61,7 @@ export function DashboardTab() {
       <AdminActions />
 
       {/* Quick Stats */}
-      <div className="glass rounded-xl p-4">
+      <div className="card rounded-xl p-4">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Quick Stats</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           {[
@@ -83,7 +83,7 @@ export function DashboardTab() {
       </div>
 
       {/* Data Coverage */}
-      <div className="glass rounded-xl p-4">
+      <div className="card rounded-xl p-4">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Data Coverage</h2>
         <div className="space-y-2.5">
           {[
@@ -118,7 +118,7 @@ export function DashboardTab() {
       </div>
 
       {/* Pipeline Status */}
-      <div className="glass rounded-xl p-4">
+      <div className="card rounded-xl p-4">
         <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Pipeline Status</h2>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-[var(--text-secondary)]">Valuations last computed</span>
@@ -132,7 +132,7 @@ export function DashboardTab() {
 
       {/* External Data + Clubs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="glass rounded-xl p-4">
+        <div className="card rounded-xl p-4">
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">External Data</h2>
           <div className="space-y-2">
             {[
@@ -147,7 +147,7 @@ export function DashboardTab() {
           </div>
         </div>
 
-        <div className="glass rounded-xl p-4">
+        <div className="card rounded-xl p-4">
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Club Coverage</h2>
           <div className="space-y-2">
             {[

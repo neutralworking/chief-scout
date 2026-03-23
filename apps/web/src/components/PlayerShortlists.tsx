@@ -37,7 +37,7 @@ export function PlayerShortlists({ personId }: { personId: number }) {
   if (loading || entries.length === 0) return null;
 
   return (
-    <div className="glass p-5">
+    <div className="card p-5">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-3">
         Appears in Shortlists
       </h3>

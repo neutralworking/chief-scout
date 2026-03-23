@@ -36,7 +36,7 @@ export function PlayerIdentityPanel({
 
   return (
     <div className={gridClass}>
-      <div className="glass p-4">
+      <div className="card p-4">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-personality)] mb-3">
           Personality
         </h3>
@@ -52,7 +52,7 @@ export function PlayerIdentityPanel({
         />
       </div>
 
-      <div className="glass p-4">
+      <div className="card p-4">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent-tactical)] mb-3">
           Archetype
         </h3>

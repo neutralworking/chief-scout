@@ -197,7 +197,7 @@ export function ScoutPadTab() {
       </div>
 
       {/* Table */}
-      <div className="glass rounded-xl overflow-hidden">
+      <div className="card rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>

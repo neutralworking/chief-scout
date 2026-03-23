@@ -423,7 +423,7 @@ export default function PlayerEditorPage() {
       </div>
 
       {/* Header */}
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight">{player.name}</h1>
@@ -443,7 +443,7 @@ export default function PlayerEditorPage() {
       </div>
 
       {/* Data Completeness */}
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Data Completeness</h2>
           <span className="text-[10px] font-mono text-[var(--text-muted)]">{filledCount}/{completenessItems.length}</span>
@@ -466,7 +466,7 @@ export default function PlayerEditorPage() {
       </div>
 
       {/* Scouting Profile (PRIMARY) */}
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Scouting Profile</h2>
 
         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -513,7 +513,7 @@ export default function PlayerEditorPage() {
       </div>
 
       {/* Tags */}
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3">Tags</h2>
 
         {/* Current tags */}
@@ -620,7 +620,7 @@ export default function PlayerEditorPage() {
       {/* Sticky save bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-50">
         <div className="max-w-3xl mx-auto px-4 pb-4">
-          <div className="glass rounded-xl p-3 flex items-center justify-between border border-[var(--border-subtle)]">
+          <div className="card rounded-xl p-3 flex items-center justify-between border border-[var(--border-subtle)]">
             <div className="text-xs text-[var(--text-muted)]">
               {error && <span className="text-red-400">{error}</span>}
               {saved && <span className="text-[var(--accent-tactical)]">Saved</span>}
@@ -647,7 +647,7 @@ export default function PlayerEditorPage() {
 function CollapsibleSection({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="glass rounded-xl mb-4 overflow-hidden">
+    <div className="card rounded-xl mb-4 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-4"

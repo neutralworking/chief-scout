@@ -8,23 +8,23 @@ import { RoleTooltip } from "@/components/RoleTooltip";
 const TACTICAL_ROLES = [
   "",
   // GK
-  "Torwart", "Sweeper Keeper", "Ball-Playing GK",
+  "Libero GK", "Sweeper Keeper", "Comandante", "Shotstopper",
   // CD
   "Libero", "Vorstopper", "Sweeper", "Zagueiro",
   // WD
-  "Lateral", "Invertido", "Carrilero",
+  "Lateral", "Fluidificante", "Invertido", "Corredor",
   // DM
-  "Sentinelle", "Regista", "Volante",
+  "Regista", "Sentinelle", "Pivote", "Volante",
   // CM
-  "Metodista", "Tuttocampista", "Mezzala", "Relayeur",
+  "Mezzala", "Tuttocampista", "Metodista", "Relayeur",
   // WM
-  "Fantasista", "Winger", "Raumdeuter",
+  "Winger", "Tornante", "False Winger", "Shuttler",
   // AM
-  "Trequartista", "Enganche", "Seconda Punta",
+  "Trequartista", "Seconda Punta", "Enganche", "Boxcrasher",
   // WF
-  "Inside Forward", "Extremo", "Inverted Winger",
+  "Inside Forward", "Raumdeuter", "Inventor", "Extremo",
   // CF
-  "Prima Punta", "Poacher", "Complete Forward", "Falso Nove",
+  "Poacher", "Spearhead", "Falso Nove", "Prima Punta",
 ];
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";

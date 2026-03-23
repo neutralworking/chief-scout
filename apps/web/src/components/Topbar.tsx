@@ -9,7 +9,7 @@ export function Topbar({ playerCount, tier1Count }: TopbarProps) {
       <span className="font-mono text-[11px] font-bold tracking-[3px] uppercase text-[var(--border-bright)]">
         Chief Scout
       </span>
-      <div className="flex gap-4 items-center text-[10px] text-[var(--text-muted)] font-mono">
+      <div className="flex gap-4 items-center text-[11px] text-[var(--text-muted)] font-mono">
         {playerCount != null && <span>{playerCount.toLocaleString()} Players</span>}
         {tier1Count != null && <span>{tier1Count} Scouted</span>}
       </div>

@@ -480,11 +480,11 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       ],
       WM: [
         { role: "Wide Provider", blueprint: "Beckham", demand: "Hugs the right touchline, delivers crosses, set-piece specialist, vision from wide" },
-        { role: "Direct Winger", blueprint: "Giggs", demand: "Beats full-backs 1v1, dribbles past men, stretches play, direct and unpredictable" },
+        { role: "Shuttler", blueprint: "Giggs", demand: "Beats full-backs 1v1, dribbles past men, stretches play, direct and unpredictable" },
       ],
       CF: [
         { role: "Poacher", blueprint: "Solskjær", demand: "Lives on the shoulder, clinical inside the six-yard box, fox in the box" },
-        { role: "Complete Forward", blueprint: "Cole/Yorke", demand: "Link play, movement, pressing — interchangeable with the partner" },
+        { role: "Poacher", blueprint: "Cole/Yorke", demand: "Link play, movement, pressing — interchangeable with the partner" },
       ],
     },
   },
@@ -539,7 +539,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Kuba / Ronaldo", demand: "Direct running, takes on full-backs, lethal in transition" },
       ],
       AM: [{ role: "Advanced Playmaker", blueprint: "Götze / Özil", demand: "Links midfield to attack, finds the killer pass, intelligent movement" }],
-      CF: [{ role: "Complete Forward", blueprint: "Lewandowski / Benzema", demand: "Holds up, runs behind, presses, scores — does everything" }],
+      CF: [{ role: "Poacher", blueprint: "Lewandowski / Benzema", demand: "Holds up, runs behind, presses, scores — does everything" }],
     },
   },
 
@@ -591,7 +591,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       ],
       AM: [{ role: "Trequartista", blueprint: "Kaká", demand: "The most explosive no. 10 — receives, turns, accelerates into the final third" }],
       CF: [
-        { role: "Complete Forward", blueprint: "Shevchenko", demand: "Clinical finisher, intelligent movement, scores from anywhere" },
+        { role: "Poacher", blueprint: "Shevchenko", demand: "Clinical finisher, intelligent movement, scores from anywhere" },
         { role: "Prima Punta", blueprint: "Inzaghi", demand: "Pure poacher — lives offside, scores tap-ins, ghosts into the box" },
       ],
     },
@@ -620,7 +620,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Traditional Winger", blueprint: "Kuyt", demand: "Relentless work rate, presses from wide, arrives in the box" },
         { role: "Wide Playmaker", blueprint: "Luis García", demand: "Creates from wide left, drifts inside, scores important goals" },
       ],
-      CF: [{ role: "Complete Forward", blueprint: "Torres", demand: "Pace in behind, clinical finishing, terrorises high lines" }],
+      CF: [{ role: "Poacher", blueprint: "Torres", demand: "Pace in behind, clinical finishing, terrorises high lines" }],
     },
   },
 
@@ -645,7 +645,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Wide Forward", blueprint: "Harrison", demand: "Direct, pace, stretches the defence — Bielsa's outlet on the break" },
         { role: "Inside Forward", blueprint: "Susaeta / Bamford", demand: "Works the channels, presses relentlessly, movement over technique" },
       ],
-      CF: [{ role: "Complete Forward", blueprint: "Llorente (Athl.) / Bamford", demand: "Holds up, presses, runs — the system's willing runner" }],
+      CF: [{ role: "Poacher", blueprint: "Llorente (Athl.) / Bamford", demand: "Holds up, presses, runs — the system's willing runner" }],
     },
   },
 
@@ -672,7 +672,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Zagallo", demand: "The original inverted winger — tucks inside, creates overloads in midfield" },
       ],
       CF: [
-        { role: "Complete Forward", blueprint: "Pelé", demand: "The complete forward — shoots, heads, dribbles, creates, defines the position" },
+        { role: "Poacher", blueprint: "Pelé", demand: "The complete forward — shoots, heads, dribbles, creates, defines the position" },
         { role: "Poacher", blueprint: "Vavá", demand: "Finisher — feeds off Pelé and Garrincha's service, clinical in the box" },
       ],
     },
@@ -727,7 +727,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       AM: [{ role: "Trequartista", blueprint: "Fàbregas / Silva", demand: "The false striker — occupies CB attention, creates for runners" }],
       WF: [
         { role: "Inside Forward", blueprint: "Pedro / Navas", demand: "Makes runs in behind when the no. 10 drops — constant movement" },
-        { role: "Inverted Winger", blueprint: "Silva / Mata", demand: "Drifts inside, finds pockets, creates with vision not pace" },
+        { role: "Inventor", blueprint: "Silva / Mata", demand: "Drifts inside, finds pockets, creates with vision not pace" },
       ],
     },
   },

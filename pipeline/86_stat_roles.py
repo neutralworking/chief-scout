@@ -46,7 +46,7 @@ DRY_RUN = args.dry_run
 ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
     # ── GK ────────────────────────────────────────────────
     "GK": {
-        "Torwart": [
+        "Shotstopper": [
             # Traditional shot-stopper: low passing, high saves implied by rating
             ("avg_rating", "high"),
         ],
@@ -54,9 +54,13 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("pass_accuracy", "high"),
             ("passes_p90", "medium"),
         ],
-        "Ball-Playing GK": [
+        "Libero GK": [
             ("pass_accuracy", "very_high"),
             ("passes_p90", "high"),
+        ],
+        "Comandante": [
+            ("avg_rating", "very_high"),
+            ("passes_p90", "medium"),
         ],
     },
     # ── CD ────────────────────────────────────────────────
@@ -89,7 +93,7 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("key_passes_p90", "medium"),
             ("tackles_p90", "high"),
         ],
-        "Carrilero": [
+        "Fluidificante": [
             ("tackles_p90", "very_high"),
             ("duels_won_pct", "high"),
             ("interceptions_p90", "medium"),
@@ -98,6 +102,11 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("dribbles_p90", "high"),
             ("key_passes_p90", "high"),
             ("passes_p90", "medium"),
+        ],
+        "Corredor": [
+            ("passes_p90", "very_high"),
+            ("dribbles_p90", "high"),
+            ("tackles_p90", "medium"),
         ],
     },
     # ── DM ────────────────────────────────────────────────
@@ -116,6 +125,11 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("pass_accuracy", "very_high"),
             ("passes_p90", "very_high"),
             ("key_passes_p90", "high"),
+        ],
+        "Pivote": [
+            ("tackles_p90", "high"),
+            ("interceptions_p90", "high"),
+            ("pass_accuracy", "medium"),
         ],
     },
     # ── CM ────────────────────────────────────────────────
@@ -154,10 +168,20 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("shots_p90", "high"),
             ("key_passes_p90", "medium"),
         ],
-        "Fantasista": [
+        "False Winger": [
             ("key_passes_p90", "very_high"),
             ("assists_p90", "high"),
             ("dribbles_p90", "high"),
+        ],
+        "Tornante": [
+            ("passes_p90", "high"),
+            ("key_passes_p90", "high"),
+            ("tackles_p90", "medium"),
+        ],
+        "Shuttler": [
+            ("dribbles_p90", "high"),
+            ("passes_p90", "high"),
+            ("tackles_p90", "medium"),
         ],
     },
     # ── AM ────────────────────────────────────────────────
@@ -177,6 +201,11 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("shots_p90", "high"),
             ("key_passes_p90", "medium"),
         ],
+        "Boxcrasher": [
+            ("goals_p90", "high"),
+            ("dribbles_p90", "high"),
+            ("duels_won_pct", "medium"),
+        ],
     },
     # ── WF ────────────────────────────────────────────────
     "WF": {
@@ -195,6 +224,16 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("dribbles_p90", "high"),
             ("assists_p90", "high"),
         ],
+        "Raumdeuter": [
+            ("goals_p90", "high"),
+            ("shots_p90", "high"),
+            ("key_passes_p90", "medium"),
+        ],
+        "Inventor": [
+            ("key_passes_p90", "high"),
+            ("dribbles_p90", "high"),
+            ("assists_p90", "high"),
+        ],
     },
     # ── CF ────────────────────────────────────────────────
     "CF": {
@@ -204,8 +243,10 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("shot_accuracy", "high"),
         ],
         "Poacher": [
-            ("goals_p90", "very_high"),
-            ("shot_accuracy", "very_high"),
+            ("goals_p90", "high"),
+            ("assists_p90", "medium"),
+            ("dribbles_p90", "medium"),
+            ("duels_won_pct", "medium"),
         ],
         "Falso Nove": [
             ("key_passes_p90", "high"),
@@ -213,11 +254,10 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("dribbles_p90", "medium"),
             ("goals_p90", "medium"),
         ],
-        "Complete Forward": [
+        "Spearhead": [
             ("goals_p90", "high"),
-            ("assists_p90", "medium"),
-            ("dribbles_p90", "medium"),
-            ("duels_won_pct", "medium"),
+            ("shots_p90", "high"),
+            ("duels_won_pct", "high"),
         ],
     },
 }

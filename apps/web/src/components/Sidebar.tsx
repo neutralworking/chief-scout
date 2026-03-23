@@ -96,10 +96,10 @@ export function Sidebar() {
         {/* Logo */}
         <div className="p-6 border-b border-[var(--border-subtle)]">
           <Link href="/" className="block">
-            <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            <h1 className="text-lg font-bold tracking-tight text-gradient-brand font-[family-name:var(--font-display)]">
               CHIEF SCOUT
             </h1>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5 tracking-widest uppercase">
+            <p className="text-[11px] text-[var(--text-muted)] mt-1 tracking-[2px] uppercase font-[family-name:var(--font-display)]">
               Intelligence Platform
             </p>
           </Link>
@@ -109,7 +109,7 @@ export function Sidebar() {
         <nav className="flex-1 py-2 overflow-y-auto">
           {NAV_CATEGORIES.map((cat) => (
             <div key={cat.heading}>
-              <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-6 pt-4 pb-1">
+              <div className="text-[11px] font-bold uppercase tracking-[2px] text-[var(--text-muted)] px-6 pt-5 pb-1.5 font-[family-name:var(--font-display)]">
                 {cat.heading}
               </div>
               {cat.items.map((item) => {
@@ -120,10 +120,10 @@ export function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center px-6 py-3 text-sm transition-colors ${
+                    className={`flex items-center px-6 py-3 text-sm transition-all ${
                       active
-                        ? "text-[var(--text-primary)] bg-[var(--bg-elevated)] border-r-2 border-[var(--accent-personality)]"
-                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
+                        ? "text-[var(--text-primary)] bg-[var(--bg-elevated)] border-r-2 border-[var(--border-bright)] font-semibold"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/30"
                     }`}
                   >
                     {item.label}
@@ -159,7 +159,7 @@ export function Sidebar() {
           ) : (
             <button
               onClick={() => setShowPin(true)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-lg hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium text-[var(--text-muted)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/30 hover:border-[var(--border-bright)] transition-all"
             >
               Admin Login
             </button>

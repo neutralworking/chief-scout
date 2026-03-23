@@ -191,11 +191,11 @@ export function MobileBottomNav() {
                 key={tab.href}
                 href={tab.href}
                 className="mobile-tab-btn flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors"
-                style={{ color: active ? "var(--color-accent-tactical)" : "var(--text-muted)" }}
+                style={{ color: active ? "var(--border-bright)" : "var(--text-muted)" }}
                 onClick={() => sheetOpen && closeSheet()}
               >
                 <tab.Icon active={active} />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
+                <span className="text-[11px] font-semibold">{tab.label}</span>
               </Link>
             );
           })}
@@ -207,7 +207,7 @@ export function MobileBottomNav() {
             style={{ color: sheetOpen || sheetLinkActive ? "var(--color-accent-tactical)" : "var(--text-muted)" }}
           >
             <IconMore active={sheetOpen || sheetLinkActive} />
-            <span className="text-[10px] font-semibold">More</span>
+            <span className="text-[11px] font-semibold">More</span>
           </button>
         </div>
 
@@ -247,7 +247,7 @@ export function MobileBottomNav() {
             <nav className="px-6 pb-4">
               {SHEET_CATEGORIES.map((cat) => (
                 <div key={cat.heading} className="mt-4 first:mt-2">
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] pb-2">
+                  <div className="text-[11px] font-bold uppercase tracking-[2px] text-[var(--text-muted)] pb-2 font-[family-name:var(--font-display)]">
                     {cat.heading}
                   </div>
                   <div className="flex flex-wrap gap-x-1 gap-y-1">
@@ -258,10 +258,11 @@ export function MobileBottomNav() {
                           key={item.href}
                           href={item.href}
                           onClick={closeSheet}
-                          className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                          className="px-4 py-2 rounded-[var(--radius-pill)] text-sm font-medium transition-all"
                           style={{
-                            color: active ? "var(--color-accent-tactical)" : "var(--text-secondary)",
+                            color: active ? "var(--text-primary)" : "var(--text-muted)",
                             background: active ? "var(--bg-elevated)" : "transparent",
+                            border: active ? "1px solid var(--border-bright)" : "1px solid transparent",
                           }}
                         >
                           {item.label}

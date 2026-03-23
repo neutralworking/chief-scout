@@ -362,7 +362,7 @@ export default async function DashboardPage() {
       {/* Row 1: News (3 cols) + Fixtures (2 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0" style={{ maxHeight: "50vh" }}>
         {/* News — top-left, 3 cols */}
-        <div className="lg:col-span-3 glass panel-accent-cyan p-3 flex flex-col min-h-0" style={{ maxHeight: "50vh" }}>
+        <div className="lg:col-span-3 glass panel-accent-cyan p-3 flex flex-col min-h-[200px]" style={{ maxHeight: "50vh" }}>
           <SectionHeader
             label="Latest News"
             color="cyan"
@@ -452,10 +452,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 2: Featured (2 cols) + Market Movers + Trending + Games (3 cols) */}
+      {/* Row 2: Featured (3 cols) + Market Movers + Trending + Games (2 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
-        {/* Featured Player — 2 cols */}
-        <div className="lg:col-span-2">
+        {/* Featured Player — 3 cols */}
+        <div className="lg:col-span-3">
           {featured ? (
             <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
           ) : (
@@ -465,8 +465,8 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Browse column — 3 cols */}
-        <div className="lg:col-span-3 flex flex-col gap-2 min-h-0">
+        {/* Browse column — 2 cols */}
+        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
           {/* Market Movers */}
           {marketMovers.length > 0 && (
             <div className="glass panel-accent-physical p-3">

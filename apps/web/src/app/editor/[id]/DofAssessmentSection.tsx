@@ -141,7 +141,7 @@ export default function DofAssessmentSection({ personId }: { personId: number })
 
   if (loading) {
     return (
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">DoF Assessment</h2>
         <p className="text-xs text-[var(--text-muted)] mt-2">Loading...</p>
       </div>
@@ -149,7 +149,7 @@ export default function DofAssessmentSection({ personId }: { personId: number })
   }
 
   return (
-    <div className="glass rounded-xl p-4 mb-4">
+    <div className="card rounded-xl p-4 mb-4">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between"

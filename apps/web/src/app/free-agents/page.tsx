@@ -196,7 +196,7 @@ function FreeAgentsContent() {
       </div>
 
       {/* Sort */}
-      <div className="glass rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
+      <div className="card rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
         <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
           className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
           <option value="overall">Sort: Rating</option>
@@ -215,7 +215,7 @@ function FreeAgentsContent() {
 
       {/* Desktop table */}
       {!loading && !error && players.length > 0 && (
-        <div className="glass rounded-xl overflow-hidden hidden sm:block">
+        <div className="card rounded-xl overflow-hidden hidden sm:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
@@ -397,21 +397,21 @@ function FreeAgentsContent() {
 
       {/* Loading */}
       {loading && (
-        <div className="glass rounded-xl py-12 text-center">
+        <div className="card rounded-xl py-12 text-center">
           <p className="text-sm text-[var(--text-muted)]">Loading...</p>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="glass rounded-xl p-4 mt-4">
+        <div className="card rounded-xl p-4 mt-4">
           <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
         </div>
       )}
 
       {/* Empty */}
       {!loading && !error && players.length === 0 && (
-        <div className="glass rounded-xl py-12 text-center">
+        <div className="card rounded-xl py-12 text-center">
           <p className="text-sm text-[var(--text-muted)]">
             {isFreeTab ? "No free agents found." : `No contracts expiring in ${tab}.`}
             {" "}Contract data may not be fully populated.

@@ -106,7 +106,7 @@ export function PersonalityTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-3">
         {/* Queue list */}
-        <div className="glass rounded-xl overflow-hidden">
+        <div className="card rounded-xl overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-sm text-[var(--text-muted)]">Loading queue...</div>
           ) : (
@@ -187,7 +187,7 @@ export function PersonalityTab() {
             }}
           />
         ) : (
-          <div className="glass rounded-xl p-6 flex items-center justify-center">
+          <div className="card rounded-xl p-6 flex items-center justify-center">
             <p className="text-sm text-[var(--text-muted)]">Select a player to assess</p>
           </div>
         )}
@@ -236,7 +236,7 @@ function AssessmentPanel({ player, onSave }: { player: QueuePlayer; onSave: (pid
   }
 
   return (
-    <div className="glass rounded-xl p-4 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+    <div className="card rounded-xl p-4 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

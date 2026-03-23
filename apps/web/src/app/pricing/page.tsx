@@ -185,7 +185,7 @@ function PricingContent() {
           return (
             <div
               key={tier.id}
-              className={`glass rounded-xl p-6 flex flex-col relative ${
+              className={`card rounded-xl p-6 flex flex-col relative ${
                 tier.popular
                   ? "border-2 border-[var(--color-accent-personality)] shadow-[0_0_30px_rgba(var(--color-accent-personality),0.1)]"
                   : ""

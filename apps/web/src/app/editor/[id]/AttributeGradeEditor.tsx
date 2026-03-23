@@ -164,7 +164,7 @@ export default function AttributeGradeEditor({ personId }: Props) {
 
   if (!loaded) {
     return (
-      <div className="glass rounded-xl p-4 mb-4">
+      <div className="card rounded-xl p-4 mb-4">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Attribute Grades</h2>
         <div className="text-xs text-[var(--text-muted)] mt-2">Loading grades...</div>
       </div>
@@ -189,7 +189,7 @@ export default function AttributeGradeEditor({ personId }: Props) {
     : PILLAR_MODELS.filter((p) => p.pillar === activeTab);
 
   return (
-    <div className="glass rounded-xl p-4 mb-4">
+    <div className="card rounded-xl p-4 mb-4">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Attribute Grades</h2>
         <span className="text-[10px] text-[var(--text-muted)] font-mono">{coveredCount}/{allAttrs.length} attrs</span>

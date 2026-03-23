@@ -454,7 +454,7 @@ export function AllTimeXI() {
       {/* Right: Analysis Panel (hidden on mobile in pitch view, always visible on desktop) */}
       <div className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 gap-3" style={{ minHeight: "min(60vw, 500px)" }}>
         {/* Squad List — fills available space */}
-        <div className="glass rounded-xl overflow-hidden flex-1 flex flex-col">
+        <div className="card rounded-xl overflow-hidden flex-1 flex flex-col">
           <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
             <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Squad</span>
           </div>
@@ -482,7 +482,7 @@ export function AllTimeXI() {
 
         {/* Analysis */}
         {analysis && analysis.total > 0 && (
-          <div className="glass rounded-xl p-3 space-y-2">
+          <div className="card rounded-xl p-3 space-y-2">
             <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Analysis</span>
 
             <div className="space-y-1.5">

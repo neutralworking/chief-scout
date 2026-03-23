@@ -91,7 +91,7 @@ export function InsightsPanel({ position: externalPosition, league }: InsightsPa
       {loading && (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="glass h-16 animate-pulse" />
+            <div key={i} className="card h-16 animate-pulse" />
           ))}
         </div>
       )}
@@ -107,7 +107,7 @@ export function InsightsPanel({ position: externalPosition, league }: InsightsPa
 
       {/* Empty state */}
       {!loading && insights.length === 0 && (
-        <div className="glass py-12 text-center">
+        <div className="card py-12 text-center">
           <p className="text-sm text-[var(--text-muted)]">No insights found. Run pipeline 85 to generate.</p>
         </div>
       )}

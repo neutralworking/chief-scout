@@ -297,7 +297,7 @@ function StatsContent() {
       {/* Table */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && !error && sorted.length > 0 && (
-          <div className="glass rounded-xl overflow-hidden flex-1 min-h-0">
+          <div className="card rounded-xl overflow-hidden flex-1 min-h-0">
             <div className="overflow-auto h-full">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-[var(--bg-surface)] z-10">
@@ -410,19 +410,19 @@ function StatsContent() {
         )}
 
         {loading && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="card rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading stats...</p>
           </div>
         )}
 
         {error && (
-          <div className="glass rounded-xl p-4">
+          <div className="card rounded-xl p-4">
             <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
           </div>
         )}
 
         {!loading && !error && sorted.length === 0 && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="card rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">
               No stats found for {currentLeague?.name ?? "this league"}.
             </p>

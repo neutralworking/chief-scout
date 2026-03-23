@@ -233,7 +233,7 @@ function BriefingCard({
   const pursuitStyle = PURSUIT_STYLE[player.pursuit_status] ?? "";
 
   return (
-    <div className="glass rounded-lg p-3">
+    <div className="card rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
         <Link href={`/players/${playerId}`} className="text-sm font-bold text-[var(--text-primary)] hover:text-white transition-colors">
           {player.name}
@@ -305,7 +305,7 @@ function StoryCard({
   const hasReactions = Object.values(counts).some((c) => c > 0);
 
   return (
-    <article className={`glass rounded-lg p-3 group/story ${isTracked ? "ring-1 ring-[var(--color-accent-personality)]/20" : ""}`}>
+    <article className={`card rounded-lg p-3 group/story ${isTracked ? "ring-1 ring-[var(--color-accent-personality)]/20" : ""}`}>
       {/* Headline */}
       <div className="text-sm font-semibold leading-snug mb-1 line-clamp-2">
         {story.url ? (
@@ -562,11 +562,11 @@ export default function NewsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="glass rounded-xl py-12 text-center">
+        <div className="card rounded-xl py-12 text-center">
           <p className="text-sm text-[var(--text-muted)]">Loading intelligence...</p>
         </div>
       ) : validStories.length === 0 ? (
-        <div className="glass rounded-xl p-8 text-center">
+        <div className="card rounded-xl p-8 text-center">
           <p className="text-sm text-[var(--text-muted)]">No stories found.</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
         </div>
@@ -591,7 +591,7 @@ export default function NewsPage() {
             ))}
           </div>
           {trackedStoryIds.size === 0 && (
-            <div className="glass rounded-xl p-6 text-center mt-2">
+            <div className="card rounded-xl p-6 text-center mt-2">
               <p className="text-sm text-[var(--text-muted)]">No recent news about tracked players.</p>
               <p className="text-[11px] text-[var(--text-muted)] mt-1">Stories mentioning players you&apos;re pursuing will appear here.</p>
             </div>
@@ -641,7 +641,7 @@ export default function NewsPage() {
 
                 return (
                   <Link key={pid} href={`/players/${pid}`}
-                    className="glass rounded-lg p-2.5 flex items-center gap-2 hover:border-[var(--color-accent-personality)]/30 transition-colors block">
+                    className="card rounded-lg p-2.5 flex items-center gap-2 hover:border-[var(--color-accent-personality)]/30 transition-colors block">
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
                       <p className="text-[9px] text-[var(--text-muted)]">

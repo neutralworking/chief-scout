@@ -34,7 +34,7 @@ export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
     : 50;
 
   return (
-    <div className="glass p-3 sm:p-4 space-y-3">
+    <div className="card p-3 sm:p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">
           Transfer Valuation

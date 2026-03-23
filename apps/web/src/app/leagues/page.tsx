@@ -172,7 +172,7 @@ function LeagueCard({ league }: { league: LeagueRow }) {
   return (
     <Link
       href={`/clubs?league=${encodeURIComponent(league.name)}`}
-      className="glass rounded-xl p-3 hover:border-[var(--color-accent-personality)]/40 transition-colors group"
+      className="card rounded-xl p-3 hover:border-[var(--color-accent-personality)]/40 transition-colors group"
     >
       <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-white truncate">
         {league.name}

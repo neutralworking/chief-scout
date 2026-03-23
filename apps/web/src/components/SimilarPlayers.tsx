@@ -53,7 +53,7 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
 
   if (loading) {
     return (
-      <div className="glass rounded-xl p-3">
+      <div className="card rounded-xl p-3">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Similar Players</h3>
         <p className="text-[10px] text-[var(--text-muted)]">Finding matches...</p>
       </div>
@@ -63,7 +63,7 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
   if (players.length === 0 && legendComps.length === 0) return null;
 
   return (
-    <div className="glass rounded-xl p-3">
+    <div className="card rounded-xl p-3">
       {/* Legend comparisons */}
       {legendComps.length > 0 && (
         <div className="mb-3">

@@ -376,17 +376,17 @@ function LegendsContent() {
           {/* Pagination */}
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
             <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0 || loading}
-              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30">&larr;</button>
+              className="px-2 py-0.5 text-[10px] font-medium card rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30">&larr;</button>
             <span className="text-[10px] font-mono text-[var(--text-muted)]">
               {loading ? "..." : `${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + players.length}`}
             </span>
             <button onClick={() => setPage(page + 1)} disabled={!hasMore || loading}
-              className="px-2 py-0.5 text-[10px] font-medium glass rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30">&rarr;</button>
+              className="px-2 py-0.5 text-[10px] font-medium card rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-30">&rarr;</button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="glass rounded-lg p-2 mb-2 flex flex-col sm:flex-row gap-1.5">
+        <div className="card rounded-lg p-2 mb-2 flex flex-col sm:flex-row gap-1.5">
           <input
             type="text"
             value={searchInput}
@@ -412,7 +412,7 @@ function LegendsContent() {
       {/* Table */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!loading && players.length > 0 && (
-          <div className="glass rounded-xl overflow-hidden flex-1 min-h-0 flex flex-col">
+          <div className="card rounded-xl overflow-hidden flex-1 min-h-0 flex flex-col">
             {/* Desktop table */}
             <div className="flex-1 overflow-y-auto hidden sm:block">
               <table className="w-full text-sm">
@@ -536,13 +536,13 @@ function LegendsContent() {
         )}
 
         {loading && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="card rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">Loading legends...</p>
           </div>
         )}
 
         {!loading && players.length === 0 && (
-          <div className="glass rounded-xl py-12 text-center flex-1">
+          <div className="card rounded-xl py-12 text-center flex-1">
             <p className="text-sm text-[var(--text-muted)]">
               {q || position ? "No legends match the current filters." : "No retired players found."}
             </p>

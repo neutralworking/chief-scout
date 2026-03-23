@@ -130,7 +130,7 @@ export default function GemsPage() {
         </div>
 
         {/* Summary bar */}
-        <div className="glass rounded-xl px-3 py-2 mb-2">
+        <div className="card rounded-xl px-3 py-2 mb-2">
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-[var(--text-secondary)]">
               <span className="font-bold text-[var(--text-primary)]">{total}</span> gems
@@ -150,7 +150,7 @@ export default function GemsPage() {
         </div>
 
         {/* Filters */}
-        <div className="glass rounded-lg p-1.5 mb-2 overflow-hidden">
+        <div className="card rounded-lg p-1.5 mb-2 overflow-hidden">
           {/* Position pills */}
           <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
             <div className="flex gap-0.5 shrink-0">
@@ -196,7 +196,7 @@ export default function GemsPage() {
         {loading && (
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="glass rounded-xl h-16 animate-pulse" />
+              <div key={i} className="card rounded-xl h-16 animate-pulse" />
             ))}
           </div>
         )}
@@ -219,7 +219,7 @@ export default function GemsPage() {
 
         {/* Empty state */}
         {!loading && insights.length === 0 && (
-          <div className="glass rounded-xl py-12 text-center">
+          <div className="card rounded-xl py-12 text-center">
             <p className="text-sm text-[var(--text-muted)]">No gems found. Run the insights pipeline to generate.</p>
           </div>
         )}

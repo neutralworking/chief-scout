@@ -92,7 +92,7 @@ export function PlayerStats({
   ];
 
   return (
-    <div className="glass p-5">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           Season Stats

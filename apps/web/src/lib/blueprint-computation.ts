@@ -4,7 +4,7 @@
  * A blueprint is the emergent scouting descriptor: what type of player this is.
  * It combines WHERE they play (tactical role) with WHO they are (personality theme).
  *
- * Example: Ball-Playing CB + Captain personality → "Modern CB"
+ * Example: Libero + Captain personality → "Modern CB"
  *          (a CB who builds from back AND commands the defensive line)
  *
  * The role alone gives the tactical function. The personality theme shifts the
@@ -20,14 +20,14 @@ import { PERSONALITY_TYPES, type PersonalityTheme } from "./personality";
 
 export const BLUEPRINT_VOCABULARY: Record<string, string[]> = {
   GK: ["Shot-Stopper", "Sweeper Keeper", "Commanding Keeper"],
-  CD: ["Ball-Playing CB", "Modern CB", "Traditional CB", "Aggressive CB", "Progressor CB"],
-  WD: ["Inverted Full-Back", "Overlapping Full-Back", "Wing-Back", "Attacking Full-Back", "Playmaking Full-Back"],
-  DM: ["Anchor", "Deep-Lying Playmaker", "Ball Winner", "Regista", "Box-to-Box Anchor"],
-  CM: ["Metronome", "Box-to-Box", "Mezzala", "Deep-Lying Playmaker", "Driver"],
-  WM: ["Wide Playmaker", "Direct Winger", "Wide Provider", "Work-Rate Winger"],
-  AM: ["No.10", "Shadow Striker", "Trequartista", "Pressing Playmaker"],
-  WF: ["Inside Forward", "Inverted Winger", "Explosive Winger", "Direct Winger", "Wide Playmaker"],
-  CF: ["Complete Striker", "Poacher", "Target Man", "False Nine", "Pressing Forward", "Goal Machine"],
+  CD: ["Libero", "Modern CB", "Traditional CB", "Aggressive CB", "Progressor CB"],
+  WD: ["Invertido", "Lateral", "Fluidificante", "Attacking Full-Back", "Playmaking Full-Back"],
+  DM: ["Sentinelle", "Deep-Lying Playmaker", "Volante", "Regista", "Box-to-Box Anchor"],
+  CM: ["Metronome", "Tuttocampista", "Mezzala", "Deep-Lying Playmaker", "Driver"],
+  WM: ["False Winger", "Shuttler", "Wide Provider", "Work-Rate Winger"],
+  AM: ["No.10", "Seconda Punta", "Trequartista", "Pressing Playmaker"],
+  WF: ["Inside Forward", "Inventor", "Explosive Winger", "Shuttler", "False Winger"],
+  CF: ["Poacher", "Prima Punta", "Falso Nove", "Spearhead", "Goal Machine"],
 };
 
 // ─── Role × Personality Theme → Blueprint mapping ──────────────────────────
@@ -46,7 +46,7 @@ interface BlueprintRule {
 
 const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   // ── GK ──────────────────────────────────────────────────────────────────
-  "Shot Stopper": {
+  "Shotstopper": {
     default: "Shot-Stopper",
     captain: "Commanding Keeper",
   },
@@ -56,9 +56,9 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   },
 
   // ── CD ──────────────────────────────────────────────────────────────────
-  // Ball-Playing CB: builds from back with progressive passing (Beckenbauer)
-  "Ball-Playing CB": {
-    default: "Ball-Playing CB",
+  // Libero (Ball-Playing CB): builds from back with progressive passing (Beckenbauer)
+  "Libero": {
+    default: "Libero",
     captain: "Modern CB",       // leader who builds = complete modern defender (Van Dijk)
     catalyst: "Progressor CB",  // aggressive ball-player who drives forward (Konaté)
   },
@@ -71,35 +71,29 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   // Sweeper: reads danger, covers space (Baresi)
   "Sweeper": {
     default: "Modern CB",
-    maestro: "Ball-Playing CB",    // composed, elegant reading (Bonucci)
-    professor: "Ball-Playing CB",  // cerebral game-reader (Hummels)
+    maestro: "Libero",    // composed, elegant reading (Bonucci)
+    professor: "Libero",  // cerebral game-reader (Hummels)
   },
-  // Ball-Carrying CB: steps out, carries into midfield (Van Dijk / Dias)
-  "Ball-Carrying CB": {
-    default: "Progressor CB",
-    general: "Modern CB",      // systematic progressor = complete (Dias)
-    captain: "Modern CB",      // commanding progressor = complete (Van Dijk)
-    professor: "Modern CB",    // cerebral progressor = complete
-  },
+  // Ball-Carrying CB merged into Libero above (both → "Libero")
 
   // ── WD ──────────────────────────────────────────────────────────────────
-  // Inverted Full-Back: tucks inside in possession (Cancelo)
-  "Inverted Full-Back": {
-    default: "Inverted Full-Back",
+  // Invertido (Inverted Full-Back): tucks inside in possession (Cancelo)
+  "Invertido": {
+    default: "Invertido",
     maestro: "Playmaking Full-Back",  // creative inverter = playmaker from deep (Cancelo)
     professor: "Playmaking Full-Back",
   },
-  // Overlapping Full-Back: wide + high, delivers (Cafu)
-  "Overlapping Full-Back": {
-    default: "Overlapping Full-Back",
+  // Lateral (Overlapping Full-Back): wide + high, delivers (Cafu)
+  "Lateral": {
+    default: "Lateral",
     catalyst: "Attacking Full-Back",   // occasion-driven attacker (Dani Alves)
     maestro: "Attacking Full-Back",
   },
-  // Wing-Back: full width both phases, tireless (Hakimi)
-  "Wing-Back": {
-    default: "Wing-Back",
+  // Fluidificante (Wing-Back): full width both phases, tireless (Hakimi)
+  "Fluidificante": {
+    default: "Fluidificante",
     catalyst: "Attacking Full-Back",
-    general: "Wing-Back",              // systematic shuttle
+    general: "Fluidificante",              // systematic shuttle
   },
 
   // ── DM ──────────────────────────────────────────────────────────────────
@@ -109,17 +103,17 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
     maestro: "Regista",       // the archetype — quietly brilliant orchestrator (Pirlo)
     professor: "Regista",     // cerebral tempo-setter (Jorginho)
   },
-  // Anchor: shields back four, positional (Busquets)
-  "Anchor": {
-    default: "Anchor",
-    catalyst: "Ball Winner",   // aggressive anchor → ball winner (Casemiro)
+  // Sentinelle (Anchor): shields back four, positional (Busquets)
+  "Sentinelle": {
+    default: "Sentinelle",
+    catalyst: "Volante",       // aggressive anchor → ball winner (Casemiro)
     professor: "Deep-Lying Playmaker",  // cerebral anchor → DLP tendency
   },
-  // Ball-Winner: aggressive pressing, disrupts (Kanté)
-  "Ball-Winner": {
-    default: "Ball Winner",
-    maestro: "Anchor",         // composed disruptor → positional anchor
-    professor: "Anchor",
+  // Volante (Ball-Winner): aggressive pressing, disrupts (Kanté)
+  "Volante": {
+    default: "Volante",
+    maestro: "Sentinelle",     // composed disruptor → positional anchor
+    professor: "Sentinelle",
   },
   // Destroyer-Creator: tackles AND creates (Vieira / Yaya Touré)
   "Destroyer-Creator": {
@@ -135,14 +129,14 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
     general: "Driver",         // systematic half-space runner (Valverde)
     catalyst: "Driver",        // aggressive runner
   },
-  // Box-to-Box: covers both penalty areas (Lampard)
-  "Box-to-Box": {
-    default: "Box-to-Box",
+  // Tuttocampista (Box-to-Box): covers both penalty areas (Lampard)
+  "Tuttocampista": {
+    default: "Tuttocampista",
     maestro: "Driver",         // composed B2B → drives with purpose
     professor: "Metronome",    // cerebral B2B → metronomic presence
   },
-  // Deep Playmaker: orchestrates possession from CM (Xavi)
-  "Deep Playmaker": {
+  // Metodista (Deep Playmaker): orchestrates possession from CM (Xavi)
+  "Metodista": {
     default: "Deep-Lying Playmaker",
     maestro: "Metronome",      // quietly brilliant orchestrator (Xavi)
     professor: "Metronome",    // cerebral tempo (Kroos)
@@ -150,24 +144,24 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   },
 
   // ── WM ──────────────────────────────────────────────────────────────────
-  // Wide Playmaker: drifts inside, creates from half-spaces (Silva)
-  "Wide Playmaker": {
-    default: "Wide Playmaker",
+  // False Winger (Wide Playmaker): drifts inside, creates from half-spaces (Silva)
+  "False Winger": {
+    default: "False Winger",
   },
   // Wide Provider: touchline hugger, precision delivery (Beckham)
   "Wide Provider": {
     default: "Wide Provider",
-    catalyst: "Direct Winger",   // occasion-driven provider → more direct
+    catalyst: "Shuttler",   // occasion-driven provider → more direct
   },
-  // Direct Winger: beats his man, stretches defence (Giggs)
-  "Direct Winger": {
-    default: "Direct Winger",
+  // Shuttler (Direct Winger): beats his man, stretches defence (Giggs)
+  "Shuttler": {
+    default: "Shuttler",
     general: "Work-Rate Winger",  // systematic direct winger → both phases
     captain: "Work-Rate Winger",
   },
-  // Traditional Winger: width, delivery, direct running
-  "Traditional Winger": {
-    default: "Direct Winger",
+  // Winger (Traditional Winger): width, delivery, direct running
+  "Winger": {
+    default: "Shuttler",
     maestro: "Wide Provider",     // composed traditional winger → delivery focus
     professor: "Wide Provider",
     general: "Work-Rate Winger",
@@ -180,15 +174,15 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
     general: "No.10",           // systematic creator → classic 10
     captain: "No.10",           // commanding creator → classic 10
   },
-  // Advanced Playmaker: links midfield to attack (De Bruyne)
-  "Advanced Playmaker": {
+  // Enganche (Advanced Playmaker): links midfield to attack (De Bruyne)
+  "Enganche": {
     default: "No.10",
     catalyst: "Pressing Playmaker",  // aggressive creator → presses too
   },
-  // Shadow Striker: late runs between the lines (Müller)
-  "Shadow Striker": {
-    default: "Shadow Striker",
-    general: "Shadow Striker",
+  // Seconda Punta (Shadow Striker): late runs between the lines (Müller)
+  "Seconda Punta": {
+    default: "Seconda Punta",
+    general: "Seconda Punta",
     catalyst: "Pressing Playmaker",  // aggressive between-lines runner
   },
 
@@ -196,29 +190,29 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   // Inside Forward: cuts inside, shoots (Salah)
   "Inside Forward": {
     default: "Inside Forward",
-    maestro: "Inverted Winger",    // composed inside forward → creative cutter (Bernardo)
-    professor: "Inverted Winger",
+    maestro: "Inventor",    // composed inside forward → creative cutter (Bernardo)
+    professor: "Inventor",
   },
-  // Inverted Winger: creates from inside (Bernardo Silva)
-  "Inverted Winger": {
-    default: "Inverted Winger",
+  // Inventor (Inverted Winger): creates from inside (Bernardo Silva)
+  "Inventor": {
+    default: "Inventor",
     catalyst: "Inside Forward",    // aggressive inverted winger → goal threat
     general: "Inside Forward",
   },
-  // Wide Forward: stretches defence, devastating pace (Mbappé)
-  "Wide Forward": {
+  // Extremo (Wide Forward): stretches defence, devastating pace (Mbappé)
+  "Extremo": {
     default: "Explosive Winger",
     maestro: "Inside Forward",     // composed wide forward → cuts in with purpose
     professor: "Inside Forward",
-    general: "Direct Winger",      // systematic pace merchant → more structured
+    general: "Shuttler",           // systematic pace merchant → more structured
   },
 
   // ── CF ──────────────────────────────────────────────────────────────────
-  // Target Man: holds up, wins aerial duels (Giroud)
-  "Target Man": {
-    default: "Target Man",
-    maestro: "Complete Striker",    // composed target → links play too
-    professor: "Complete Striker",
+  // Prima Punta (Target Man): holds up, wins aerial duels (Giroud)
+  "Prima Punta": {
+    default: "Prima Punta",
+    maestro: "Poacher",    // composed target → links play too
+    professor: "Poacher",
   },
   // Poacher: clinical inside the box (Inzaghi)
   "Poacher": {
@@ -226,24 +220,20 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
     general: "Goal Machine",       // systematic poacher → relentless finisher
     captain: "Goal Machine",       // competitive poacher → demands goals
   },
-  // False 9: drops deep, links play (Messi)
-  "False 9": {
-    default: "False Nine",
+  // Falso Nove (False 9): drops deep, links play (Messi)
+  "Falso Nove": {
+    default: "Falso Nove",
   },
-  // Complete Forward: does everything (Benzema)
-  "Complete Forward": {
-    default: "Complete Striker",
-    catalyst: "Goal Machine",      // aggressive all-rounder → goal-focused
-  },
-  // Pressing Forward: defends from the front (Firmino)
-  "Pressing Forward": {
-    default: "Pressing Forward",
-    maestro: "False Nine",         // composed presser → drops and links (Firmino evolution)
+  // Poacher (Complete Forward): does everything (Benzema) — merged into Poacher key above
+  // Spearhead (Pressing Forward): defends from the front (Firmino)
+  "Spearhead": {
+    default: "Spearhead",
+    maestro: "Falso Nove",         // composed presser → drops and links (Firmino evolution)
   },
   // Raumdeuter: space interpreter (Müller)
   "Raumdeuter": {
-    default: "Shadow Striker",
-    captain: "Pressing Forward",   // vocal space-reader → organises press
+    default: "Seconda Punta",
+    captain: "Spearhead",          // vocal space-reader → organises press
   },
 };
 
@@ -261,7 +251,7 @@ export function getPersonalityTheme(personalityCode: string | null | undefined):
 /**
  * Compute the blueprint from a player's best role and personality type.
  *
- * @param bestRole - The tactical role name (e.g., "Ball-Playing CB", "Regista")
+ * @param bestRole - The tactical role name (e.g., "Libero", "Regista")
  * @param personalityType - The 4-letter personality code (e.g., "ANLC", "IXSP")
  * @param position - Optional fallback position for vocabulary validation
  * @returns The computed blueprint string, or null if role is unknown

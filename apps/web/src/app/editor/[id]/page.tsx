@@ -21,14 +21,14 @@ const PLAYING_MODELS = [
 
 const BLUEPRINT_BY_POSITION: Record<string, string[]> = {
   GK: ["Shot-Stopper", "Complete Keeper", "Modern Keeper"],
-  CD: ["Modern CB", "Ball-Playing CB", "Traditional CB", "Aggressive CB", "Ball Winner", "Progressor CB", "Hybrid Defender"],
-  WD: ["Defensive Full-Back", "Overlapping Full-Back", "Attacking Full-Back", "Inverted Full-Back", "Two-Way Full-Back", "Flanker", "Playmaking Full-Back", "Ball-Playing Fullback"],
-  DM: ["Anchor", "Deep-Lying Playmaker", "Conductor", "Regista", "Box-to-Box Anchor", "Ball Winner", "Holding Midfielder"],
-  CM: ["Metronome", "Maestro", "Conductor", "Deep-Lying Playmaker", "Box-to-Box", "Box-to-Box Creator", "Driver", "Interior Playmaker", "Playmaker", "Technical Midfielder", "Ball Winner", "Holding Midfielder", "General"],
-  WM: ["Tireless Technician", "Free-Roaming Attacker", "Wide Playmaker", "Work-Rate Winger", "Wide Runner"],
+  CD: ["Modern CB", "Libero", "Traditional CB", "Aggressive CB", "Volante", "Progressor CB", "Hybrid Defender"],
+  WD: ["Defensive Full-Back", "Lateral", "Attacking Full-Back", "Invertido", "Two-Way Full-Back", "Flanker", "Playmaking Full-Back", "Ball-Playing Fullback"],
+  DM: ["Sentinelle", "Deep-Lying Playmaker", "Conductor", "Regista", "Box-to-Box Anchor", "Volante", "Holding Midfielder"],
+  CM: ["Metronome", "Maestro", "Conductor", "Deep-Lying Playmaker", "Tuttocampista", "Box-to-Box Creator", "Driver", "Interior Playmaker", "Playmaker", "Technical Midfielder", "Volante", "Holding Midfielder", "General"],
+  WM: ["Tireless Technician", "Free-Roaming Attacker", "False Winger", "Work-Rate Winger", "Wide Runner"],
   AM: ["Playmaker", "Floating Playmaker", "Pressing Playmaker", "No.10", "Seconda Punta"],
-  WF: ["Wizard", "Explosive Winger", "Inverted Winger", "Work-Rate Winger", "Direct Winger", "Inside Forward", "Wide Playmaker", "Flanker", "Defensive Winger", "No.10"],
-  CF: ["Complete Striker", "Poacher", "Colossus", "Prima Punta", "Goal Machine", "Runner", "Mobile Striker", "Falso Nove", "Pressing Forward"],
+  WF: ["Wizard", "Explosive Winger", "Inventor", "Work-Rate Winger", "Shuttler", "Inside Forward", "False Winger", "Flanker", "Defensive Winger", "No.10"],
+  CF: ["Poacher", "Colossus", "Prima Punta", "Goal Machine", "Runner", "Mobile Striker", "Falso Nove", "Spearhead"],
 };
 
 const ALL_BLUEPRINTS = [...new Set(Object.values(BLUEPRINT_BY_POSITION).flat())].sort();

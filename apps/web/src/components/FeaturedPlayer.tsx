@@ -102,8 +102,8 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 
 function IntelChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20 text-[10px]">
-      <span className="font-mono text-[7px] font-bold uppercase tracking-[1.5px] opacity-50">{label}</span>
+    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20 text-[11px]">
+      <span className="font-data text-[11px] font-bold uppercase tracking-[1.5px] opacity-50">{label}</span>
       <span className="font-semibold text-[var(--text-secondary)]">{value}</span>
     </div>
   );
@@ -222,20 +222,20 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   }
 
   return (
-    <div className={`border-l-2 border-[var(--color-accent-tactical)] ${styles.card} p-3 sm:p-5`}>
+    <div className={`card-vibrant border-l-2 border-[var(--color-accent-tactical)] p-4 sm:p-5`}>
       {/* Header: Featured label + cycling */}
       <div className="flex items-center gap-1.5 mb-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
         {reasonInfo && (
-          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
+          <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5" style={{ color: reasonInfo.color, backgroundColor: `color-mix(in srgb, ${reasonInfo.color} 15%, transparent)` }}>
             {reasonInfo.label}
           </span>
         )}
         {canCycle && (
           <div className="flex items-center gap-2 ml-auto">
-            <button onClick={prevFeatured} className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">&larr; Prev</button>
-            <span className="text-[8px] text-[var(--text-muted)] font-mono">{poolIndex + 1}/{pool.length}</span>
-            <button onClick={nextFeatured} className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">Next &rarr;</button>
+            <button onClick={prevFeatured} className="text-[11px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">&larr; Prev</button>
+            <span className="text-[11px] text-[var(--text-muted)] font-data">{poolIndex + 1}/{pool.length}</span>
+            <button onClick={nextFeatured} className="text-[11px] font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">Next &rarr;</button>
           </div>
         )}
       </div>
@@ -247,14 +247,14 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           {/* Position + Name + Overall */}
           <Link href={`/players/${player.person_id}`} className="group">
             <div className="flex items-center gap-2 min-w-0">
-              <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
+              <span className={`text-[11px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
                 {player.position ?? "–"}
               </span>
-              <h2 className={`text-lg ${styles.nameFont} text-[var(--text-primary)] truncate flex-1 group-hover:text-[var(--accent-personality)] transition-colors`}>
+              <h2 className="text-lg font-[family-name:var(--font-display)] uppercase text-[var(--text-primary)] truncate flex-1 group-hover:text-[var(--accent-personality)] transition-colors">
                 {player.name}
               </h2>
               {overall != null && (
-                <span className="text-xl font-mono font-bold shrink-0" style={{ color: dominant ? PILLAR_HEX[dominant] : "var(--text-primary)" }}>
+                <span className="text-xl font-data font-bold shrink-0 text-gradient-brand">
                   {overall}
                 </span>
               )}
@@ -280,7 +280,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
           {/* Season stats */}
           {(player.af_appearances ?? 0) > 0 && (
-            <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1">
+            <p className="text-[11px] font-data text-[var(--text-muted)] mt-1">
               <span className="text-[var(--color-accent-tactical)]">{player.af_appearances}</span> apps
               {(player.af_goals ?? 0) > 0 && <span className="text-green-400"> · {player.af_goals} goals</span>}
               {(player.af_assists ?? 0) > 0 && <span className="text-blue-400"> · {player.af_assists} assists</span>}
@@ -295,10 +295,10 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           {(player.best_role || value) && (
             <div className="flex items-center gap-2 min-w-0">
               {player.best_role && (
-                <span className="text-[10px] text-[var(--text-muted)] truncate">{player.best_role}</span>
+                <span className="text-[11px] text-[var(--text-muted)] truncate">{player.best_role}</span>
               )}
               {value != null && (
-                <span className="text-[10px] font-mono font-semibold text-[var(--text-secondary)] ml-auto shrink-0">
+                <span className="text-[11px] font-data font-semibold text-[var(--text-secondary)] ml-auto shrink-0">
                   {formatValue(value)}
                 </span>
               )}
@@ -313,19 +313,19 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
               </div>
               <div className="flex items-center gap-3 mt-1">
                 <div className="text-center">
-                  <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
-                  <div className="text-lg font-mono font-bold text-[var(--text-primary)]">
-                    {posScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{selectedPos} Fit</div>
+                  <div className="text-lg font-data font-bold text-[var(--text-primary)]">
+                    {posScore}<span className="text-[11px] text-[var(--text-muted)]">%</span>
                   </div>
-                  <div className={`text-[9px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
+                  <div className={`text-[11px] font-semibold ${posGrade.color}`}>{posGrade.label}</div>
                 </div>
                 {activeRole && (
                   <div className="text-center">
-                    <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
-                    <div className="text-lg font-mono font-bold text-[var(--text-primary)]">
-                      {roleScore}<span className="text-[9px] text-[var(--text-muted)]">%</span>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Role</div>
+                    <div className="text-lg font-data font-bold text-[var(--text-primary)]">
+                      {roleScore}<span className="text-[11px] text-[var(--text-muted)]">%</span>
                     </div>
-                    <div className={`text-[9px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
+                    <div className={`text-[11px] font-semibold ${roleGrade.color}`}>{roleGrade.label}</div>
                   </div>
                 )}
               </div>
@@ -340,8 +340,8 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 if (v == null) return null;
                 return (
                   <div key={key} className={`flex items-center gap-1.5 px-2 py-1 border-l-2 ${PILLAR_BORDER[key]} bg-[var(--bg-pit)]`}>
-                    <span className="text-[7px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
-                    <span className="text-[11px] font-mono font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
+                    <span className="text-[11px] font-data font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
                   </div>
                 );
               })}
@@ -369,11 +369,11 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
       {showRadar && (
         <div className="mt-2 hidden md:block">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Position Fit</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Position Fit</span>
             <select
               value={selectedPos}
               onChange={(e) => setSelectedPos(e.target.value)}
-              className="text-xs sm:text-[10px] font-mono font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-2 py-1 sm:px-1.5 sm:py-0.5 text-[var(--text-primary)] cursor-pointer"
+              className="text-xs sm:text-[11px] font-data font-bold bg-[var(--bg-elevated)] border border-[var(--border-subtle)] px-2 py-1 sm:px-1.5 sm:py-0.5 text-[var(--text-primary)] cursor-pointer"
             >
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>{p}{p === player.position ? " *" : ""}</option>
@@ -386,13 +386,13 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
                 <button
                   key={role.name}
                   onClick={() => setSelectedRole(role.name)}
-                  className={`text-[10px] sm:text-[9px] px-2 py-1 sm:px-1.5 sm:py-0.5 font-medium transition-colors ${
+                  className={`text-[11px] px-2 py-1 sm:px-1.5 sm:py-0.5 font-medium transition-colors ${
                     selectedRole === role.name
                       ? "bg-[var(--accent-personality)]/20 text-[var(--accent-personality)] ring-1 ring-[var(--accent-personality)]/30"
                       : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                   }`}
                 >
-                  {role.name} <span className="font-mono opacity-60">{role.score}</span>
+                  {role.name} <span className="font-data opacity-60">{role.score}</span>
                 </button>
               ))}
             </div>

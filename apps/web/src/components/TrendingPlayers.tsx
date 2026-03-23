@@ -22,11 +22,11 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
   if (players.length === 0) return null;
 
   return (
-    <div className="glass panel-accent-personality p-3">
+    <div className="card-vibrant p-3">
       <SectionHeader
         label="Trending Players"
         color="personality"
-        action={<Link href="/news" className="text-[10px] text-[var(--color-accent-personality)] hover:underline">News &rarr;</Link>}
+        action={<Link href="/news" className="text-[11px] text-[var(--color-accent-personality)] hover:underline">News &rarr;</Link>}
       />
       <div className="space-y-1 mt-2">
         {players.map((p) => {
@@ -37,7 +37,7 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
               href={`/players/${p.person_id}`}
               className="flex items-center gap-3 p-2 hover:bg-[var(--bg-elevated)]/50 transition-colors group"
             >
-              <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
+              <span className={`text-[11px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
                 {p.position ?? "–"}
               </span>
               {p.fingerprint?.some(v => v > 0) && (() => {
@@ -60,11 +60,11 @@ export function TrendingPlayers({ players }: { players: TrendingPlayer[] }) {
               </div>
               <div className="shrink-0 flex items-center gap-2">
                 {p.personality_type && (
-                  <span className="text-[10px] font-mono font-bold tracking-wider text-[var(--accent-personality)]">
+                  <span className="text-[11px] font-data font-bold tracking-wider text-[var(--accent-personality)]">
                     {p.personality_type}
                   </span>
                 )}
-                <span className="text-[10px] text-[var(--text-muted)]" title={`${p.story_count} recent stories`}>
+                <span className="text-[11px] text-[var(--text-muted)]" title={`${p.story_count} recent stories`}>
                   {p.story_count} stories
                 </span>
               </div>

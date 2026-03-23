@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Bricolage_Grotesque } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -7,6 +9,19 @@ import { ServiceWorkerRegistration } from "@/components/ServiceWorker";
 import { Topbar } from "@/components/Topbar";
 import { AuthProvider } from "@/components/AuthProvider";
 import { isProduction } from "@/lib/env";
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-body",
+  display: "swap",
+});
+
+const clash = localFont({
+  src: "../fonts/ClashDisplay-Variable.woff2",
+  variable: "--font-clash",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Chief Scout — Player Intelligence Platform",
@@ -33,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${bricolage.variable} ${clash.variable}`}>
       <head>
         {isProduction() && (
           <Script
@@ -43,12 +58,6 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a0a0f" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

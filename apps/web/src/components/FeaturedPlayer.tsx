@@ -222,7 +222,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   }
 
   return (
-    <div className={`border-l-2 border-[var(--color-accent-tactical)] ${styles.card} p-5`}>
+    <div className={`border-l-2 border-[var(--color-accent-tactical)] ${styles.card} p-3 sm:p-5`}>
       {/* Header: Featured label + cycling */}
       <div className="flex items-center gap-1.5 mb-2">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Featured</span>
@@ -241,7 +241,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
       </div>
 
       {/* 2-column grid: Left (identity + bio) / Right (scores + radar) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left column: Position, Name, Archetype, Bio */}
         <div className="min-w-0">
           {/* Position + Name + Overall */}
@@ -365,9 +365,9 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
         </div>
       )}
 
-      {/* Position selector + Role pills */}
+      {/* Position selector + Role pills — desktop only (detail-page UX) */}
       {showRadar && (
-        <div className="mt-2">
+        <div className="mt-2 hidden md:block">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Position Fit</span>
             <select

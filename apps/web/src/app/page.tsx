@@ -358,7 +358,7 @@ export default async function DashboardPage() {
   const { featured, featuredReason, featuredPool, news, fixtures, marketMovers, trendingPlayers } = data;
 
   return (
-    <div className="flex flex-col gap-3 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+    <div className="flex flex-col gap-2 sm:gap-3 pb-20 lg:pb-0 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
       {/* Row 1: Featured Player — hero, full width */}
       <div className="shrink-0">
         {featured ? (
@@ -373,7 +373,7 @@ export default async function DashboardPage() {
       {/* Row 2: News (3 cols) + Fixtures (2 cols) — scrollable intel */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
         {/* News */}
-        <div className="lg:col-span-3 glass panel-accent-cyan p-4 flex flex-col min-h-0">
+        <div className="lg:col-span-3 glass panel-accent-cyan p-3 sm:p-4 flex flex-col min-h-0 max-h-[60vh] lg:max-h-none">
           <SectionHeader
             label="Latest News"
             color="cyan"
@@ -436,7 +436,7 @@ export default async function DashboardPage() {
         {/* Right column: Fixtures + Market Movers + Trending */}
         <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
           {/* Fixtures */}
-          <div className="glass panel-accent-tactical p-4 flex flex-col flex-1 min-h-0">
+          <div className="glass panel-accent-tactical p-3 sm:p-4 flex flex-col flex-1 min-h-0 max-h-[50vh] lg:max-h-none">
             <SectionHeader
               label="Upcoming Fixtures"
               color="tactical"
@@ -447,7 +447,7 @@ export default async function DashboardPage() {
             ) : (
               <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
                 {fixtures.map((f) => (
-                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-1.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-2 sm:py-1.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
                     <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
                       {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
                     </span>
@@ -476,7 +476,7 @@ export default async function DashboardPage() {
                 {marketMovers.map((p) => {
                   const isOver = p.market_premium > 0;
                   return (
-                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors">
+                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-2 py-1.5 sm:py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors">
                       <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
                       <span className={`text-[11px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
                         {isOver ? "+" : ""}{p.market_premium}%

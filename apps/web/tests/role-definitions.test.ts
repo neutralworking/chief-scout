@@ -13,53 +13,58 @@ import { ROLE_RADAR_AXES } from "@/lib/role-radar";
 // If a role is added/renamed in the pipeline, this test will catch the drift.
 const PIPELINE_TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   GK: [
-    ["GK", "Cover", "Torwart"],
-    ["GK", "Passer", "Sweeper Keeper"],
-    ["GK", "Controller", "Ball-Playing GK"],
+    ["GK", "Passer", "Libero GK"],
+    ["GK", "Cover", "Sweeper Keeper"],
+    ["GK", "Commander", "Comandante"],
+    ["GK", "Target", "Shotstopper"],
   ],
   CD: [
-    ["Cover", "Passer", "Libero"],
-    ["Destroyer", "Powerhouse", "Vorstopper"],
+    ["Passer", "Cover", "Libero"],
     ["Cover", "Controller", "Sweeper"],
-    ["Destroyer", "Commander", "Zagueiro"],
+    ["Commander", "Destroyer", "Zagueiro"],
+    ["Powerhouse", "Destroyer", "Vorstopper"],
   ],
   WD: [
-    ["Engine", "Dribbler", "Lateral"],
+    ["Passer", "Dribbler", "Lateral"],
+    ["Engine", "Cover", "Fluidificante"],
     ["Controller", "Passer", "Invertido"],
-    ["Engine", "Sprinter", "Carrilero"],
+    ["Sprinter", "Engine", "Corredor"],
   ],
   DM: [
+    ["Passer", "Controller", "Regista"],
     ["Cover", "Destroyer", "Sentinelle"],
-    ["Controller", "Passer", "Regista"],
-    ["Destroyer", "Engine", "Volante"],
+    ["Controller", "Cover", "Pivote"],
+    ["Powerhouse", "Destroyer", "Volante"],
   ],
   CM: [
-    ["Controller", "Passer", "Metodista"],
-    ["Engine", "Cover", "Tuttocampista"],
     ["Passer", "Creator", "Mezzala"],
-    ["Engine", "Destroyer", "Relayeur"],
+    ["Engine", "Cover", "Tuttocampista"],
+    ["Controller", "Passer", "Metodista"],
+    ["Sprinter", "Engine", "Relayeur"],
   ],
   WM: [
-    ["Creator", "Passer", "Fantasista"],
-    ["Sprinter", "Passer", "Winger"],
-    ["Dribbler", "Striker", "Raumdeuter"],
+    ["Dribbler", "Passer", "Winger"],
+    ["Engine", "Cover", "Tornante"],
+    ["Controller", "Cover", "False Winger"],
+    ["Sprinter", "Engine", "Shuttler"],
   ],
   AM: [
-    ["Creator", "Dribbler", "Trequartista"],
+    ["Dribbler", "Creator", "Trequartista"],
+    ["Engine", "Striker", "Seconda Punta"],
     ["Controller", "Creator", "Enganche"],
-    ["Dribbler", "Striker", "Seconda Punta"],
+    ["Sprinter", "Striker", "Boxcrasher"],
   ],
   WF: [
     ["Dribbler", "Sprinter", "Inside Forward"],
+    ["Engine", "Striker", "Raumdeuter"],
+    ["Creator", "Dribbler", "Inventor"],
     ["Sprinter", "Striker", "Extremo"],
-    ["Creator", "Dribbler", "Inverted Winger"],
   ],
   CF: [
-    ["Target", "Powerhouse", "Prima Punta"],
-    ["Striker", "Sprinter", "Poacher"],
-    ["Striker", "Creator", "Complete Forward"],
+    ["Striker", "Dribbler", "Poacher"],
+    ["Engine", "Destroyer", "Spearhead"],
     ["Creator", "Controller", "Falso Nove"],
-    ["Dribbler", "Striker", "Seconda Punta"],
+    ["Target", "Powerhouse", "Prima Punta"],
   ],
 };
 
@@ -72,9 +77,9 @@ describe("Role Definitions — Pipeline ↔ UI Sync", () => {
     );
   });
 
-  it("every position has at least 2 roles", () => {
+  it("every position has exactly 4 roles", () => {
     for (const pos of allPositions) {
-      expect(PIPELINE_TACTICAL_ROLES[pos].length).toBeGreaterThanOrEqual(2);
+      expect(PIPELINE_TACTICAL_ROLES[pos].length).toBe(4);
     }
   });
 
@@ -112,15 +117,10 @@ describe("getRoleDefinition", () => {
     expect(getRoleDefinition(null)).toBeNull();
   });
 
-  it("disambiguates Seconda Punta by position (AM vs CF)", () => {
+  it("finds Seconda Punta in AM", () => {
     const am = getRoleDefinition("Seconda Punta", "AM");
-    const cf = getRoleDefinition("Seconda Punta", "CF");
     expect(am).not.toBeNull();
-    expect(cf).not.toBeNull();
     expect(am!.position).toBe("AM");
-    expect(cf!.position).toBe("CF");
-    // Different descriptions for different positions
-    expect(am!.description).not.toBe(cf!.description);
   });
 
   it("falls back to name-only lookup without position", () => {

@@ -72,16 +72,18 @@ describe("MobileBottomNav", () => {
   // ── Happy path ─────────────────────────────────────────────────
 
   describe("tab bar rendering", () => {
-    it("renders Home, Players, Admin, More tabs in staging", () => {
+    it("renders Home, Players, Clubs, Compare, More tabs in staging", () => {
       const { container } = render(<MobileBottomNav />);
       expect(getTabLink(container, "/")).not.toBeNull();
       expect(getTabLink(container, "/players")).not.toBeNull();
-      expect(getTabLink(container, "/admin")).not.toBeNull();
+      expect(getTabLink(container, "/clubs")).not.toBeNull();
+      expect(getTabLink(container, "/compare")).not.toBeNull();
       expect(getMoreButton(container)).not.toBeNull();
       // Check labels
       expect(getTabLink(container, "/")!.textContent).toContain("Home");
       expect(getTabLink(container, "/players")!.textContent).toContain("Players");
-      expect(getTabLink(container, "/admin")!.textContent).toContain("Admin");
+      expect(getTabLink(container, "/clubs")!.textContent).toContain("Clubs");
+      expect(getTabLink(container, "/compare")!.textContent).toContain("Compare");
       expect(getMoreButton(container)!.textContent).toContain("More");
     });
 
@@ -106,11 +108,11 @@ describe("MobileBottomNav", () => {
       expect(playersTab).toHaveStyle({ color: "var(--color-accent-tactical)" });
     });
 
-    it("highlights Admin tab when on /admin", () => {
-      mockPathname.mockReturnValue("/admin");
+    it("highlights Clubs tab when on /clubs", () => {
+      mockPathname.mockReturnValue("/clubs");
       const { container } = render(<MobileBottomNav />);
-      const adminTab = getTabLink(container, "/admin");
-      expect(adminTab).toHaveStyle({ color: "var(--color-accent-tactical)" });
+      const clubsTab = getTabLink(container, "/clubs");
+      expect(clubsTab).toHaveStyle({ color: "var(--color-accent-tactical)" });
     });
   });
 
@@ -131,7 +133,6 @@ describe("MobileBottomNav", () => {
       const { container } = render(<MobileBottomNav />);
       fireEvent.click(getMoreButton(container)!);
       expect(screen.getByText("Free Agents")).toBeInTheDocument();
-      expect(screen.getByText("Clubs")).toBeInTheDocument();
       expect(screen.getByText("Leagues")).toBeInTheDocument();
       expect(screen.getByText("News")).toBeInTheDocument();
       expect(screen.getByText("Gaffer")).toBeInTheDocument();
@@ -148,7 +149,7 @@ describe("MobileBottomNav", () => {
 
   describe("edge cases", () => {
     it("highlights More tab when a sheet-only route is active", () => {
-      mockPathname.mockReturnValue("/clubs");
+      mockPathname.mockReturnValue("/leagues");
       const { container } = render(<MobileBottomNav />);
       const moreBtn = getMoreButton(container)!;
       expect(moreBtn).toHaveStyle({ color: "var(--color-accent-tactical)" });
@@ -171,8 +172,8 @@ describe("MobileBottomNav", () => {
     it("sheet links have correct hrefs", () => {
       const { container } = render(<MobileBottomNav />);
       fireEvent.click(getMoreButton(container)!);
-      const clubsLink = screen.getByText("Clubs").closest("a");
-      expect(clubsLink).toHaveAttribute("href", "/clubs");
+      const leaguesLink = screen.getByText("Leagues").closest("a");
+      expect(leaguesLink).toHaveAttribute("href", "/leagues");
       const newsLink = screen.getByText("News").closest("a");
       expect(newsLink).toHaveAttribute("href", "/news");
     });

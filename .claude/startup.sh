@@ -48,6 +48,20 @@ if [ -f .claude/context/WORKING.md ]; then
   echo ""
 fi
 
+# Fetch remote + check for branches not yet merged to main
+git fetch --quiet 2>/dev/null
+unmerged_count=$(git branch -r --no-merged origin/main 2>/dev/null | grep -v 'origin/HEAD' | wc -l | tr -d ' ')
+unmerged=$(git branch -r --no-merged origin/main --sort=-committerdate 2>/dev/null | grep -v 'origin/HEAD' | head -5)
+if [ -n "$unmerged" ]; then
+  echo -e "  ${bold}${magenta}Unmerged Branches${reset}  ${dim}(${unmerged_count} total — see BRANCHES.md)${reset}"
+  echo "$unmerged" | while read -r br; do
+    br_name=$(echo "$br" | sed 's|origin/||;s/^ *//')
+    last_commit=$(git log -1 --format="%ar" "$br" 2>/dev/null)
+    echo -e "  ${yellow}↗${reset}  ${br_name}  ${dim}(${last_commit})${reset}"
+  done
+  echo ""
+fi
+
 # Recent commits (compact)
 echo -e "  ${bold}${magenta}Recent${reset}"
 git log --oneline -5 2>/dev/null | while read -r line; do

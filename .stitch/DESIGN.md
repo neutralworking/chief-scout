@@ -1,9 +1,9 @@
 ---
-# Chief Scout — Design System
+# Chief Scout — Design System v2: Vibrant Data
 # Stitch-compatible design brief for UI prototyping
 
 ## Atmosphere
-Dark, professional scouting intelligence dashboard. Think Bloomberg Terminal meets Football Manager — data-dense, high-contrast, no-nonsense. Two modes: **High Contrast** (default, pure black) and **Glass** (frosted blur panels over deep navy).
+Vibrant data storytelling meets football intelligence. Think Spotify Wrapped meets football scouting dashboard — colorful, energetic, human-centered. Two modes: **Vibrant** (default, warm gradient background with translucent cards) and **Calm** (deep black background with pillar-colored left borders for focus).
 
 ## Platform
 - Web, Desktop-first (responsive to mobile)
@@ -11,10 +11,20 @@ Dark, professional scouting intelligence dashboard. Think Bloomberg Terminal mee
 
 ## 🎨 Color Palette
 
-### Backgrounds
+### Brand Gradient (Vibrant Mode)
+- **Primary Gradient**: #e91e8c → #ff6b35 → #fbbf24 (Pink → Orange → Gold)
+- Used for hero sections, featured content, brand moments
+
+### Backgrounds (Vibrant Mode)
+- **Base**: Warm Purple-Tinted (#0c0a14) — main page background
+- **Surface**: Deep Purple (#161222) — card/panel backgrounds
+- **Elevated**: Slightly Lighter (#1a1720) — modals, dropdowns, elevated panels
+- **Gradient Overlay**: Linear gradient with brand colors for visual interest
+
+### Backgrounds (Calm Mode)
 - **Base**: Pure Black (#000000) — main page background
-- **Surface**: Dark Gray (#1e1e1e) — card/panel backgrounds
-- **Elevated**: Slightly Lighter (#252526) — modals, dropdowns, elevated panels
+- **Surface**: Deep Black (#0a0a0a) — card/panel backgrounds with pillar-colored left borders
+- **Border Left**: 4px accent color (technical, tactical, mental, or physical)
 
 ### Text
 - **Primary**: White (#ffffff) — headings, key data
@@ -22,15 +32,15 @@ Dark, professional scouting intelligence dashboard. Think Bloomberg Terminal mee
 - **Muted**: Mid Gray (#808080) — captions, metadata, timestamps
 
 ### Borders
-- **Subtle**: Cyan Tint (#6fc3df) — panel borders, dividers
-- **Glow**: Cyan Glow (rgba(111,195,223,0.25)) — hover/focus states
+- **Subtle**: Soft White Tint (rgba(255,255,255,0.08)) — panel borders, dividers
+- **Glow**: Subtle Glow (rgba(255,255,255,0.12)) — hover/focus states
 
 ### Four-Pillar Accents (core to the product)
-- **Technical**: Amber/Gold (#d4a035) — technical ability scores
-- **Tactical**: Purple (#9b59b6) — tactical intelligence scores
-- **Mental**: Green (#3dba6f) — mental attribute scores
-- **Physical**: Blue (#4a90d9) — physical attribute scores
-- **Personality**: Yellow (#e8c547) — personality/MBTI scores
+- **Technical**: Gold (#fbbf24) — technical ability scores
+- **Tactical**: Purple (#a855f7) — tactical intelligence scores
+- **Mental**: Teal (#34d399) — mental attribute scores
+- **Physical**: Blue (#60a5fa) — physical attribute scores
+- **Personality**: Amber (#f59e0b) — personality/MBTI scores
 
 ### Pursuit Status
 - **Priority**: Red (#e74c3c) — must-sign targets
@@ -45,25 +55,54 @@ Dark, professional scouting intelligence dashboard. Think Bloomberg Terminal mee
 - **Tier 2**: Muted (#8888aa) — data-derived
 - **Tier 3**: Dark Muted (#555570) — skeleton profiles
 
-### Glass Theme (opt-in)
-- Base: Deep Navy (#06060c)
-- Surface: Semi-transparent (rgba(18,18,35,0.7)) + backdrop-blur(16px)
-- Elevated: Semi-transparent (rgba(30,30,55,0.6)) + backdrop-blur(12px)
-- Borders: Faint purple (rgba(60,60,100,0.25))
+### Surface Modes Detail
+
+**Vibrant Mode** (Default)
+- Base Gradient: Subtle warm gradient overlay (#0c0a14 + brand colors)
+- Cards: Semi-transparent (rgba(22,18,34,0.6)) + backdrop-blur(8px)
+- Elevated: Semi-transparent (rgba(26,23,32,0.75)) + backdrop-blur(12px)
+- Borders: Subtle white tint (rgba(255,255,255,0.08))
+- Visual: Colorful, energetic, brand-forward
+
+**Calm Mode** (Alternative)
+- Base: Pure Black (#000000)
+- Cards: Deep Black (#0a0a0a) with 4px pillar-colored left border
+- Elevated: Slightly raised black (#0f0f0f) with accent border
+- Borders: Minimal, accent-focused
+- Visual: Focused, monastic, pillar-driven hierarchy
 
 ## 🔡 Typography
-- **Sans**: Inter — all UI text
-- **Monospace**: JetBrains Mono — data tables, code, IDs
-- **Base size**: 16px
-- **Headings**: Inter Semi-Bold/Bold, tracking tight
-- **Data values**: JetBrains Mono for numbers, scores, stats
+- **Body**: Bricolage Grotesque — all UI text, body copy, labels
+- **Data (Monospace)**: Bricolage Grotesque + tnum (tabular numbers) — data tables, numbers, stats, scores
+- **Display/Hero**: Clash Display — page titles, hero text, featured sections (always UPPERCASE)
+- **Base size**: 16px (minimum 11px for captions)
+- **Headings**: Bricolage Grotesque Semi-Bold/Bold, tracking tight
+- **Data values**: Bricolage Grotesque with font-feature-settings: tnum for monospace alignment
 
 ## 📐 Components
 
-### Cards (.glass)
-- Background: var(--bg-surface), 1px border var(--border-subtle)
-- No border-radius (sharp, angular feel) or very subtle (4px max)
-- Content-dense: multiple data rows per card
+### Border Radius System
+- **Sharp**: 0px (legacy, phased out)
+- **Default**: 12px — standard cards, buttons, inputs
+- **Small**: 6px — pill buttons, compact elements
+- **Large**: 16px — modals, major sections
+- **Pill**: 99px — full-round buttons, badges
+
+### Spacing & Sizing
+- **Minimum padding**: 12px
+- **Minimum text size**: 11px (captions)
+- **Default gap**: 16px between sections
+- **Compact gap**: 8px for related elements
+
+### Cards (.card, .card-vibrant, .card-elevated, .card-pillar-*)
+- **Default (.card)**: Rounded 12px, semi-transparent background, subtle border
+- **.card-vibrant**: Vibrant mode card with gradient underlay, translucent surface
+- **.card-elevated**: Raised shadow effect, used for overlays and modals
+- **.card-pillar-technical**: 4px left border (#fbbf24), optimal for technical data
+- **.card-pillar-tactical**: 4px left border (#a855f7), optimal for tactical intelligence
+- **.card-pillar-mental**: 4px left border (#34d399), optimal for mental attributes
+- **.card-pillar-physical**: 4px left border (#60a5fa), optimal for physical attributes
+- **Glass variant**: backdrop-blur(8px) + semi-transparent (Vibrant mode only)
 
 ### Player Cards (signature component)
 - 3-row layout: Position + Name + Overall → Flag + Club + Age + Archetype → 4 Pillar Scores + Role + Value
@@ -111,8 +150,12 @@ Dark, professional scouting intelligence dashboard. Think Bloomberg Terminal mee
 
 ---
 💡 **Stitch Usage**: When calling `generate_screen_from_text`, always include:
-- "Dark theme, pure black background (#000)"
-- "Four-pillar color system: gold for technical, purple for tactical, green for mental, blue for physical"
-- "Data-dense, Bloomberg Terminal aesthetic"
-- "Inter font family, JetBrains Mono for data"
-- "Glass panel borders with cyan tint"
+- "Vibrant Data design system v2"
+- "Warm purple-tinted surfaces (#0c0a14, #161222) or pure black calm mode"
+- "Brand gradient: #e91e8c → #ff6b35 → #fbbf24 (pink → orange → gold)"
+- "Four-pillar color system: gold #fbbf24 (technical), purple #a855f7 (tactical), teal #34d399 (mental), blue #60a5fa (physical)"
+- "Typography: Bricolage Grotesque for body/data, Clash Display (UPPERCASE) for display/hero"
+- "Border radius: 12px default, 6px small, 16px large, 99px pill"
+- "Translucent cards with subtle white borders (rgba(255,255,255,0.08))"
+- "Minimum padding 12px, minimum text 11px"
+- "Two modes: Vibrant (gradient + translucent cards) or Calm (black + pillar borders)"

@@ -358,13 +358,13 @@ export default async function DashboardPage() {
   const { featured, featuredReason, featuredPool, news, fixtures, marketMovers, trendingPlayers } = data;
 
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 pb-20 lg:pb-0 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+    <div className="surface-vibrant rounded-[var(--radius-lg)] flex flex-col gap-2 sm:gap-3 pb-20 lg:pb-0 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
       {/* Row 1: Featured Player — hero, full width */}
       <div className="shrink-0">
         {featured ? (
           <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
         ) : (
-          <div className="glass p-6">
+          <div className="card-vibrant p-6">
             <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
           </div>
         )}
@@ -373,11 +373,11 @@ export default async function DashboardPage() {
       {/* Row 2: News (3 cols) + Fixtures (2 cols) — scrollable intel */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 flex-1 min-h-0">
         {/* News */}
-        <div className="lg:col-span-3 glass panel-accent-cyan p-3 sm:p-4 flex flex-col min-h-0 max-h-[60vh] lg:max-h-none">
+        <div className="lg:col-span-3 card-vibrant p-4 sm:p-5 flex flex-col min-h-0 max-h-[60vh] lg:max-h-none">
           <SectionHeader
             label="Latest News"
             color="cyan"
-            action={<Link href="/news" className="text-[10px] text-[var(--border-bright)] hover:underline">All stories &rarr;</Link>}
+            action={<Link href="/news" className="text-[11px] text-[var(--border-bright)] hover:underline">All stories &rarr;</Link>}
           />
           <div className="space-y-2 overflow-y-auto flex-1 -mr-1 pr-1 mt-3">
             {news.length === 0 && (
@@ -385,13 +385,13 @@ export default async function DashboardPage() {
             )}
             {news.map((story, i) => (
               <div key={story.id} className={`flex gap-2.5 ${i === 0 ? "pb-2.5 mb-1 border-b border-[var(--border-panel)]/20" : ""}`}>
-                <span className="text-[9px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
+                <span className="text-[11px] text-[var(--text-muted)] w-8 shrink-0 pt-0.5 font-mono">
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-1.5">
                     {story.story_type && (
-                      <span className={`text-[8px] font-bold tracking-wider uppercase px-1.5 py-0.5 border shrink-0 mt-0.5 ${NEWS_TYPE_STYLES[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]"}`}>
+                      <span className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 border shrink-0 mt-0.5 ${NEWS_TYPE_STYLES[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]"}`}>
                         {story.story_type}
                       </span>
                     )}
@@ -418,7 +418,7 @@ export default async function DashboardPage() {
                           <Link
                             key={tag.player_id}
                             href={`/players/${tag.player_id}`}
-                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 bg-[var(--bg-pit)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 bg-[var(--bg-pit)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                             {tag.name}
@@ -436,11 +436,11 @@ export default async function DashboardPage() {
         {/* Right column: Fixtures + Market Movers + Trending */}
         <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
           {/* Fixtures */}
-          <div className="glass panel-accent-tactical p-3 sm:p-4 flex flex-col flex-1 min-h-0 max-h-[50vh] lg:max-h-none">
+          <div className="card-vibrant p-4 sm:p-5 flex flex-col flex-1 min-h-0 max-h-[50vh] lg:max-h-none">
             <SectionHeader
               label="Upcoming Fixtures"
               color="tactical"
-              action={<Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">All &rarr;</Link>}
+              action={<Link href="/fixtures" className="text-[11px] text-[var(--color-accent-tactical)] hover:underline">All &rarr;</Link>}
             />
             {fixtures.length === 0 ? (
               <p className="text-[11px] text-[var(--text-muted)] py-4 text-center mt-2">No upcoming fixtures.</p>
@@ -448,19 +448,19 @@ export default async function DashboardPage() {
               <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
                 {fixtures.map((f) => (
                   <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-2 sm:py-1.5 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                    <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
+                    <span className="text-[11px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
                       {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1 text-[11px]">
                         <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
-                        <span className="text-[var(--text-muted)] text-[9px]">v</span>
+                        <span className="text-[var(--text-muted)] text-[11px]">v</span>
                         <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[9px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</div>
-                      <div className="text-[8px] text-[var(--color-accent-tactical)] font-mono">{formatFixtureTime(f.utc_date)}</div>
+                      <div className="text-[11px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</div>
+                      <div className="text-[11px] text-[var(--color-accent-tactical)] font-mono">{formatFixtureTime(f.utc_date)}</div>
                     </div>
                   </Link>
                 ))}
@@ -470,7 +470,7 @@ export default async function DashboardPage() {
 
           {/* Market Movers — compact */}
           {marketMovers.length > 0 && (
-            <div className="glass panel-accent-physical p-3 shrink-0">
+            <div className="card-vibrant p-4 shrink-0">
               <SectionHeader label="Market Movers" color="physical" />
               <div className="space-y-1 mt-2">
                 {marketMovers.map((p) => {

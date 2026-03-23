@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase-server";
-import { POSITION_COLORS } from "@/lib/types";
 import type { PlayerCard as PlayerCardType } from "@/lib/types";
 import { prodFilter, isProduction } from "@/lib/env";
 import { LandingPage } from "@/components/LandingPage";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
+import { SectionHeader } from "@/components/SectionHeader";
 
 interface NewsStoryWithTags {
   id: string;
@@ -27,22 +27,6 @@ interface FixtureRow {
   home_team: string;
   away_team: string;
   venue: string | null;
-}
-
-interface ContractPlayer {
-  person_id: number;
-  name: string;
-  position: string | null;
-  club: string | null;
-  contract_expiry_date: string;
-}
-
-interface RisingStar {
-  person_id: number;
-  name: string;
-  position: string | null;
-  club: string | null;
-  trajectory: string;
 }
 
 interface MarketMover {
@@ -66,8 +50,6 @@ const FEATURED_COLS = "person_id, name, position, club, nation, nation_code, lev
 
 async function getDashboardData() {
   if (!supabaseServer) return null;
-
-  const sixMonthsOut = new Date(Date.now() + 180 * 86400000).toISOString().split("T")[0];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queries: PromiseLike<any>[] = [
@@ -93,7 +75,7 @@ async function getDashboardData() {
       .select("id, headline, url, published_at, summary, story_type")
       .order("published_at", { ascending: false })
       .limit(8),
-    // 3: Upcoming fixtures (next 14 days, enough to fill the panel)
+    // 3: Upcoming fixtures (next 14 days)
     supabaseServer
       .from("fixtures")
       .select("id, competition, competition_code, matchday, utc_date, home_team, away_team, venue")
@@ -102,23 +84,7 @@ async function getDashboardData() {
       .lte("utc_date", new Date(Date.now() + 14 * 86400000).toISOString())
       .order("utc_date", { ascending: true })
       .limit(15),
-    // 4: Contract watch — expiring within 6 months
-    supabaseServer
-      .from("people")
-      .select("id, name, contract_expiry_date, clubs(clubname), player_profiles(position)")
-      .not("contract_expiry_date", "is", null)
-      .lte("contract_expiry_date", sixMonthsOut)
-      .gte("contract_expiry_date", new Date().toISOString().split("T")[0])
-      .order("contract_expiry_date", { ascending: true })
-      .limit(3),
-    // 5: Rising stars — career trajectory
-    supabaseServer
-      .from("career_metrics")
-      .select("person_id, trajectory, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
-      .eq("trajectory", "rising")
-      .order("loyalty_score", { ascending: false })
-      .limit(3),
-    // 6: Market movers — biggest premium/discount
+    // 4: Market movers — biggest premium/discount
     supabaseServer
       .from("player_market")
       .select("person_id, market_premium, people!inner(name, club_id, clubs(clubname)), player_profiles!inner(position)")
@@ -129,7 +95,7 @@ async function getDashboardData() {
 
   const results = await Promise.all(queries);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [dofPicksResult, sentimentResult, newsResult, fixturesResult, contractResult, risingResult, marketResult] = results as any[];
+  const [dofPicksResult, sentimentResult, newsResult, fixturesResult, marketResult] = results as any[];
 
   // --- Featured player: tiered selection ---
   type FeaturedProfile = {
@@ -248,33 +214,6 @@ async function getDashboardData() {
   // Fixtures
   const fixtures = (fixturesResult.data ?? []) as FixtureRow[];
 
-  // Contract watch
-  const contractPlayers = ((contractResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
-    const clubs = r.clubs as Record<string, unknown> | null;
-    const profiles = r.player_profiles as Record<string, unknown> | null;
-    return {
-      person_id: r.id as number,
-      name: r.name as string,
-      position: (profiles?.position as string | null) ?? null,
-      club: (clubs?.clubname as string | null) ?? null,
-      contract_expiry_date: r.contract_expiry_date as string,
-    };
-  }) as ContractPlayer[];
-
-  // Rising stars
-  const risingStars = ((risingResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
-    const people = r.people as Record<string, unknown> | null;
-    const clubs = people?.clubs as Record<string, unknown> | null;
-    const profiles = r.player_profiles as Record<string, unknown> | null;
-    return {
-      person_id: r.person_id as number,
-      name: (people?.name as string) ?? "Unknown",
-      position: (profiles?.position as string | null) ?? null,
-      club: (clubs?.clubname as string | null) ?? null,
-      trajectory: r.trajectory as string,
-    };
-  }) as RisingStar[];
-
   // Market movers — take top 3 overpriced + top 3 undervalued
   const marketRaw = ((marketResult.data ?? []) as Array<Record<string, unknown>>).map((r) => {
     const people = r.people as Record<string, unknown> | null;
@@ -337,7 +276,7 @@ async function getDashboardData() {
       .filter((p): p is TrendingPlayer => p !== null);
   }
 
-  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers };
+  return { featured, featuredReason, featuredPool, news: newsWithTags, fixtures, marketMovers, trendingPlayers };
 }
 
 function timeAgo(dateStr: string | null): string {
@@ -361,15 +300,6 @@ function formatFixtureTime(iso: string): string {
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatExpiryDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
-}
-
-function daysUntil(dateStr: string): number {
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
-}
-
 const SENTIMENT_DOT: Record<string, string> = {
   positive: "bg-[var(--color-sentiment-positive)]",
   negative: "bg-[var(--color-sentiment-negative)]",
@@ -379,6 +309,15 @@ const SENTIMENT_DOT: Record<string, string> = {
 const COMP_SHORT: Record<string, string> = {
   "Premier League": "PL", "La Liga": "LL", "Serie A": "SA",
   "Bundesliga": "BL", "Ligue 1": "L1",
+};
+
+const NEWS_TYPE_STYLES: Record<string, string> = {
+  transfer: "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/20",
+  injury: "bg-[var(--color-sentiment-negative)]/10 text-[var(--color-sentiment-negative)] border-[var(--color-sentiment-negative)]/20",
+  contract: "bg-[var(--color-accent-mental)]/10 text-[var(--color-accent-mental)] border-[var(--color-accent-mental)]/20",
+  tactical: "bg-[var(--color-accent-physical)]/10 text-[var(--color-accent-physical)] border-[var(--color-accent-physical)]/20",
+  scouting: "bg-[var(--color-accent-personality)]/10 text-[var(--color-accent-personality)] border-[var(--color-accent-personality)]/20",
+  analysis: "bg-[var(--border-bright)]/10 text-[var(--border-bright)] border-[var(--border-bright)]/15",
 };
 
 async function getShowcasePlayers(): Promise<PlayerCardType[]> {
@@ -416,137 +355,36 @@ export default async function DashboardPage() {
     );
   }
 
-  const { featured, featuredReason, featuredPool, news, fixtures, contractPlayers, risingStars, marketMovers, trendingPlayers } = data;
+  const { featured, featuredReason, featuredPool, news, fixtures, marketMovers, trendingPlayers } = data;
 
   return (
     <div className="flex flex-col gap-2 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
-      {/* Row 1: Featured Player + Fixtures / League / Contracts */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0">
-        {/* Featured Player — 3 cols */}
-        <div className="lg:col-span-3">
-          {featured ? (
-            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
-          ) : (
-            <div className="glass p-4">
-              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Right column — Fixtures (fills space) + League + Contracts */}
-        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
-          {/* Upcoming Fixtures — expands to fill available space */}
-          <div className="glass p-2.5 flex flex-col flex-1 min-h-0">
-            <div className="flex items-center justify-between mb-1.5 shrink-0">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)]">Upcoming Fixtures</h3>
-              <Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">
-                All &rarr;
-              </Link>
-            </div>
-            {fixtures.length === 0 ? (
-              <p className="text-[10px] text-[var(--text-muted)] py-1 text-center">No upcoming fixtures.</p>
-            ) : (
-              <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1">
-                {fixtures.map((f) => (
-                  <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                    <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-5 shrink-0">
-                      {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 text-[11px]">
-                        <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
-                        <span className="text-[var(--text-muted)] text-[9px]">v</span>
-                        <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
-                      </div>
-                    </div>
-                    <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{formatFixtureDate(f.utc_date)}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* League + Contracts side by side */}
-          <div className="grid grid-cols-2 gap-2 shrink-0">
-            {/* League shortcuts */}
-            <div className="glass p-2.5">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-green-400 mb-1">League</h3>
-              <div className="space-y-0">
-                {["Premier League","La Liga","Serie A","Bundesliga","Ligue 1","Eredivisie","Primeira Liga","Super Lig"].map((league) => (
-                  <Link
-                    key={league}
-                    href={`/clubs?league=${encodeURIComponent(league)}`}
-                    className="block px-1 py-0.5 rounded text-[10px] hover:bg-green-500/10 text-[var(--text-secondary)] transition-colors truncate"
-                  >
-                    {league}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Contract Watch */}
-            {contractPlayers.length > 0 ? (
-              <div className="glass p-2.5">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)]">Contracts</h3>
-                  <Link href="/free-agents" className="text-[10px] text-[var(--color-accent-physical)] hover:underline">
-                    &rarr;
-                  </Link>
-                </div>
-                <div className="space-y-0.5">
-                  {contractPlayers.map((p) => {
-                    const days = daysUntil(p.contract_expiry_date);
-                    const urgent = days <= 60;
-                    return (
-                      <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
-                        <span className={`text-[9px] font-mono shrink-0 ${urgent ? "text-[var(--color-sentiment-negative)] font-bold" : "text-[var(--text-muted)]"}`}>
-                          {formatExpiryDate(p.contract_expiry_date)}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="glass p-2.5">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1">Contracts</h3>
-                <p className="text-[10px] text-[var(--text-muted)]">No expiring contracts</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: News + Rising Stars / Market Movers / Gaffer — fills remaining space */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
-        {/* News — 3 cols, scrollable within */}
-        <div className="lg:col-span-3 glass p-2.5 flex flex-col min-h-0">
-          <div className="flex items-center justify-between mb-1.5 shrink-0">
-            <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-              Latest News
-            </h2>
-            <Link href="/news" className="text-[10px] text-[var(--color-accent-personality)] hover:underline">
-              All stories &rarr;
-            </Link>
-          </div>
-          <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1">
+      {/* Row 1: News (3 cols) + Fixtures (2 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 shrink-0" style={{ maxHeight: "50vh" }}>
+        {/* News — top-left, 3 cols */}
+        <div className="lg:col-span-3 glass panel-accent-cyan p-3 flex flex-col min-h-0" style={{ maxHeight: "50vh" }}>
+          <SectionHeader
+            label="Latest News"
+            color="cyan"
+            action={<Link href="/news" className="text-[10px] text-[var(--border-bright)] hover:underline">All stories &rarr;</Link>}
+          />
+          <div className="space-y-1.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
             {news.length === 0 && (
               <p className="text-xs text-[var(--text-muted)] py-4 text-center">No stories yet. Run the news pipeline to ingest stories.</p>
             )}
             {news.map((story, i) => (
-              <div key={story.id} className={`flex gap-2 ${i === 0 ? "pb-1.5 border-b border-[var(--border-subtle)]" : ""}`}>
+              <div key={story.id} className={`flex gap-2 ${i === 0 ? "pb-2 border-b border-[var(--border-panel)]/20" : ""}`}>
                 <span className="text-[9px] text-[var(--text-muted)] w-7 shrink-0 pt-0.5 font-mono">
                   {timeAgo(story.published_at)}
                 </span>
                 <div className="min-w-0 flex-1">
                   {story.story_type && (
-                    <span className="text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 rounded bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] mr-1">
+                    <span className={`text-[8px] font-bold tracking-wider uppercase px-1 py-0.5 border mr-1 ${NEWS_TYPE_STYLES[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-subtle)]"}`}>
                       {story.story_type}
                     </span>
                   )}
                   {story.url ? (
-                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--color-accent-personality)] transition-colors ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
+                    <a href={story.url} target="_blank" rel="noopener noreferrer" className={`text-[var(--text-primary)] hover:text-[var(--border-bright)] transition-colors ${i === 0 ? "text-xs font-semibold" : "text-[11px]"}`}>
                       {story.headline}
                     </a>
                   ) : (
@@ -565,7 +403,7 @@ export default async function DashboardPage() {
                           <Link
                             key={tag.player_id}
                             href={`/players/${tag.player_id}`}
-                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 bg-[var(--bg-pit)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                             {tag.name}
@@ -580,54 +418,72 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Right column — Rising Stars + Market Movers side-by-side, Gaffer CTA at bottom */}
-        <div className="lg:col-span-2 flex flex-col gap-2 min-h-0">
-          {/* Intelligence: Rising Stars + Market Movers */}
-          {(risingStars.length > 0 || marketMovers.length > 0) && (
-            <div className="grid grid-cols-2 gap-2 flex-1 min-h-0">
-              {/* Rising Stars */}
-              {risingStars.length > 0 && (
-                <div className="glass p-2.5">
-                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-tactical)] mb-1.5">
-                    Rising Stars
-                  </h3>
-                  <div className="space-y-0.5">
-                    {risingStars.map((p) => (
-                      <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                        <span className="text-[var(--color-accent-tactical)] text-[9px] shrink-0">{"\u25B2"}</span>
-                        {p.position && (
-                          <span className={`text-[7px] font-bold tracking-wider px-1 py-0.5 rounded ${POSITION_COLORS[p.position] ?? "bg-zinc-700/60"} text-white`}>
-                            {p.position}
-                          </span>
-                        )}
-                        <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{p.name}</span>
-                      </Link>
-                    ))}
+        {/* Fixtures — top-right, 2 cols */}
+        <div className="lg:col-span-2 glass panel-accent-tactical p-3 flex flex-col min-h-0" style={{ maxHeight: "50vh" }}>
+          <SectionHeader
+            label="Upcoming Fixtures"
+            color="tactical"
+            action={<Link href="/fixtures" className="text-[10px] text-[var(--color-accent-tactical)] hover:underline">All &rarr;</Link>}
+          />
+          {fixtures.length === 0 ? (
+            <p className="text-[10px] text-[var(--text-muted)] py-4 text-center mt-2">No upcoming fixtures.</p>
+          ) : (
+            <div className="space-y-0.5 overflow-y-auto flex-1 -mr-1 pr-1 mt-2">
+              {fixtures.map((f) => (
+                <Link key={f.id} href={`/fixtures/${f.id}`} className="flex items-center gap-2 py-1 hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
+                  <span className="text-[8px] font-bold tracking-wider text-[var(--text-muted)] w-6 shrink-0">
+                    {COMP_SHORT[f.competition] ?? f.competition_code ?? ""}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <span className="font-medium text-[var(--text-primary)] truncate">{f.home_team}</span>
+                      <span className="text-[var(--text-muted)] text-[9px]">v</span>
+                      <span className="font-medium text-[var(--text-primary)] truncate">{f.away_team}</span>
+                    </div>
                   </div>
-                </div>
-              )}
+                  <div className="text-right shrink-0">
+                    <div className="text-[9px] text-[var(--text-muted)] font-mono">{formatFixtureDate(f.utc_date)}</div>
+                    <div className="text-[8px] text-[var(--color-accent-tactical)] font-mono">{formatFixtureTime(f.utc_date)}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
-              {/* Market Movers */}
-              {marketMovers.length > 0 && (
-                <div className="glass p-2.5">
-                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-physical)] mb-1.5">
-                    Market Movers
-                  </h3>
-                  <div className="space-y-0.5">
-                    {marketMovers.map((p) => {
-                      const isOver = p.market_premium > 0;
-                      return (
-                        <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 rounded hover:bg-[var(--bg-elevated)]/50 transition-colors px-1 -mx-1">
-                          <span className="text-[11px] font-medium text-[var(--text-primary)] truncate flex-1">{p.name}</span>
-                          <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
-                            {isOver ? "+" : ""}{p.market_premium}%
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+      {/* Row 2: Featured (2 cols) + Market Movers + Trending + Games (3 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 flex-1 min-h-0">
+        {/* Featured Player — 2 cols */}
+        <div className="lg:col-span-2">
+          {featured ? (
+            <FeaturedPlayer player={featured} reason={featuredReason} pool={featuredPool} />
+          ) : (
+            <div className="glass p-4">
+              <p className="text-sm text-[var(--text-muted)]">No featured players yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Browse column — 3 cols */}
+        <div className="lg:col-span-3 flex flex-col gap-2 min-h-0">
+          {/* Market Movers */}
+          {marketMovers.length > 0 && (
+            <div className="glass panel-accent-physical p-3">
+              <SectionHeader label="Market Movers" color="physical" />
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                {marketMovers.map((p) => {
+                  const isOver = p.market_premium > 0;
+                  return (
+                    <Link key={p.person_id} href={`/players/${p.person_id}`} className="flex items-center gap-1.5 py-0.5 hover:bg-[var(--bg-elevated)]/50 transition-colors">
+                      <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">{p.name}</span>
+                      <span className={`text-[10px] font-mono font-bold shrink-0 ${isOver ? "text-[var(--color-sentiment-negative)]" : "text-[var(--color-sentiment-positive)]"}`}>
+                        {isOver ? "+" : ""}{p.market_premium}%
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           )}
 

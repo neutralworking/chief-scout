@@ -206,8 +206,40 @@ def match_club(club_qid: str, club_label: str) -> int | None:
     return None
 
 
+# Wikidata P27 uses sovereign states; football uses FIFA associations.
+# Map common Wikidata citizenship labels to football nation names.
+WIKIDATA_NATION_ALIASES: dict[str, str | None] = {
+    # UK home nations — P27 returns "United Kingdom" but FIFA has 4 associations.
+    # We skip these here; the player's actual football nation is resolved via
+    # people.nation_id (set from RSG/FBRef/club data) or P1532 (country for sport).
+    "united kingdom of great britain and northern ireland": None,
+    "united kingdom": None,
+    # Common aliases
+    "republic of ireland": "ireland",
+    "korea, republic of": "south korea",
+    "republic of korea": "south korea",
+    "korea, democratic people's republic of": "north korea",
+    "china, people's republic of": "china",
+    "people's republic of china": "china",
+    "cote d'ivoire": "ivory coast",
+    "bosnia and herzegovina": "bosnia and herzegovina",
+    "democratic republic of the congo": "dr congo",
+    "congo, democratic republic of the": "dr congo",
+    "republic of the congo": "congo",
+    "czech republic": "czech republic",
+    "czechia": "czech republic",
+    "russian federation": "russia",
+}
+
+
 def match_nation(nation_label: str) -> int | None:
     norm = normalize(nation_label)
+    # Check aliases first (returns None to explicitly skip ambiguous entries like UK)
+    if norm in WIKIDATA_NATION_ALIASES:
+        alias = WIKIDATA_NATION_ALIASES[norm]
+        if alias is None:
+            return None  # Ambiguous — skip
+        norm = normalize(alias)
     if norm in nations_by_name:
         return nations_by_name[norm]
     for nname_norm, nid in nations_by_name.items():

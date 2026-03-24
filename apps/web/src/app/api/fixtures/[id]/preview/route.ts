@@ -1,6 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
-import { scorePlayerForRole, FORMATION_BLUEPRINTS, ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
+import { scorePlayerForRole, FORMATION_BLUEPRINTS, SLOT_POSITION_MAP } from "@/lib/formation-intelligence";
 import { generateStyleMatchup, formatClubStyle } from "@/lib/style-matchup";
 import { computeAge, POSITIONS } from "@/lib/types";
 
@@ -121,22 +121,22 @@ function predictXI(
       let bestPlayer: SquadPlayer | null = null;
       let bestScore = -Infinity;
 
-      const isGKSlot = position === "GK";
+      // Valid positions for this formation slot
+      const validPositions = SLOT_POSITION_MAP[position] ?? [];
 
       for (const player of squad) {
         if (used.has(player.person_id)) continue;
 
-        // Exclude injured/long-term players (case-insensitive)
+        // Exclude injured/long-term/injury-prone players (case-insensitive)
         const ft = (player.fitness_tag ?? "").toLowerCase();
-        if (ft === "injured" || ft === "long-term") continue;
+        if (ft === "injured" || ft === "long-term" || ft === "injury prone") continue;
 
         // Exclude suspended players via disciplinary_tag
         const dt = (player.disciplinary_tag ?? "").toLowerCase();
         if (dt === "suspended") continue;
 
-        // Position constraint: GKs only in GK slots, outfield only in outfield slots
-        if (isGKSlot && player.position !== "GK") continue;
-        if (!isGKSlot && player.position === "GK") continue;
+        // Position constraint: player must be valid for this slot position
+        if (!player.position || !validPositions.includes(player.position)) continue;
 
         const score = scorePlayerForRole(
           {

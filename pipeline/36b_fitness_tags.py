@@ -8,12 +8,11 @@ as "Injury Prone" including Haaland, Saka, Yamal. This script recalibrates using
 2. Recent availability from API-Football minutes (most recent season)
 3. Recent injury severity (injuries in most recent 2 seasons weighted more)
 
-Fitness tags:
-  Iron Man       — <10 games missed total AND >2500 min recent season
+Fitness tags (aligned with SACROSANCT validation):
   Fully Fit      — <25 games missed OR >2000 min recent season
-  Normal         — 25-50 games missed OR moderate availability
-  Moderate Risk  — 50-80 games missed AND <1500 min recent season
-  Injury Prone   — 80+ games missed AND <1000 min recent season (truly fragile)
+  Minor Knock    — 25-50 games missed OR moderate availability
+  Injured        — 50-80 games missed AND <1500 min recent season
+  Long-Term      — 80+ games missed AND <1000 min recent season (chronic)
 
 Usage:
     python 36b_fitness_tags.py                 # reassign tags
@@ -37,38 +36,38 @@ DRY_RUN = args.dry_run
 def compute_fitness_tag(total_missed, recent_mins):
     """Compute fitness tag from games missed + recent availability.
 
+    Uses SACROSANCT-aligned values: Fully Fit, Minor Knock, Injured, Long-Term.
+
     Args:
         total_missed: total games missed from injuries (5 seasons), None = no injury data
         recent_mins: minutes in most recent AF season, None = no data
     """
     # No injury data → use availability only
     if total_missed is None:
-        if recent_mins is not None and recent_mins >= 2500:
+        if recent_mins is not None and recent_mins >= 2000:
             return "Fully Fit"
-        return "Normal"
+        return "Fully Fit"  # no negative data = assume fit
 
     # No availability data → use injuries only
     if recent_mins is None:
-        if total_missed <= 10:
+        if total_missed <= 25:
             return "Fully Fit"
-        elif total_missed <= 30:
-            return "Normal"
-        elif total_missed <= 60:
-            return "Moderate Risk"
+        elif total_missed <= 50:
+            return "Minor Knock"
+        elif total_missed <= 80:
+            return "Injured"
         else:
-            return "Injury Prone"
+            return "Long-Term"
 
     # Both data sources available — cross-reference
-    if total_missed <= 10 and recent_mins >= 2500:
-        return "Iron Man"
-    elif total_missed <= 25 or recent_mins >= 2000:
+    if total_missed <= 25 or recent_mins >= 2000:
         return "Fully Fit"
     elif total_missed <= 50 or recent_mins >= 1500:
-        return "Normal"
+        return "Minor Knock"
     elif total_missed <= 80 or recent_mins >= 1000:
-        return "Moderate Risk"
+        return "Injured"
     else:
-        return "Injury Prone"
+        return "Long-Term"
 
 
 def main():
@@ -124,7 +123,7 @@ def main():
         updates.append((tag, pid))
 
     print(f"\n  Tag distribution:")
-    for tag in ["Iron Man", "Fully Fit", "Normal", "Moderate Risk", "Injury Prone"]:
+    for tag in ["Fully Fit", "Minor Knock", "Injured", "Long-Term"]:
         n = tag_counts.get(tag, 0)
         pct = n / max(len(updates), 1) * 100
         bar = "#" * int(pct / 2)

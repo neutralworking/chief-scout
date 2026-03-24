@@ -37,6 +37,7 @@ SELECT
   pp.archetype_tier,
   pp.legacy_tag,
   pp.behavioral_tag,
+  pp.legacy_score,
   pper.ei,
   pper.sn,
   pper.tf,

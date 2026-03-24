@@ -107,6 +107,89 @@ function advantageBadge(advantage: "home" | "away" | "even") {
   return <span className="text-[9px] font-bold text-[var(--text-muted)] ml-1">EVEN</span>;
 }
 
+// ── Prediction Section ──────────────────────────────────────────────────────
+
+interface FixturePrediction {
+  scoreline: { home: number; away: number };
+  homeXG: number;
+  awayXG: number;
+  homeWinProb: number;
+  drawProb: number;
+  awayWinProb: number;
+  confidence: number;
+}
+
+function PredictionSection({
+  prediction,
+  homeName,
+  awayName,
+}: {
+  prediction: FixturePrediction;
+  homeName: string;
+  awayName: string;
+}) {
+  const hPct = Math.round(prediction.homeWinProb * 100);
+  const dPct = Math.round(prediction.drawProb * 100);
+  const aPct = Math.round(prediction.awayWinProb * 100);
+  const confPct = Math.round(prediction.confidence * 100);
+
+  return (
+    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 mb-4">
+      <div className="mb-3">
+        <h2 className="text-sm font-bold text-[var(--text-primary)]">Score Prediction</h2>
+        <p className="text-[10px] text-[var(--text-muted)]">Poisson model based on team strength</p>
+      </div>
+
+      {/* Predicted scoreline */}
+      <div className="text-center mb-4">
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-right flex-1">
+            <span className="text-sm font-bold text-[var(--text-primary)]">{homeName}</span>
+          </div>
+          <div className="bg-[var(--bg-elevated)] rounded-xl px-5 py-3 border border-[var(--border-subtle)]">
+            <span className="text-2xl font-black text-[var(--text-primary)] tracking-tight">
+              {prediction.scoreline.home} - {prediction.scoreline.away}
+            </span>
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-bold text-[var(--text-primary)]">{awayName}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* W/D/L probability bar */}
+      <div className="mb-4">
+        <div className="flex h-3 rounded-full overflow-hidden gap-0.5 mb-1">
+          <div className="bg-emerald-500 rounded-l-full transition-all" style={{ width: `${hPct}%` }} />
+          <div className="bg-amber-400 transition-all" style={{ width: `${dPct}%` }} />
+          <div className="bg-rose-500 rounded-r-full transition-all" style={{ width: `${aPct}%` }} />
+        </div>
+        <div className="flex justify-between">
+          <span className="text-[10px] font-semibold text-emerald-400">Win {hPct}%</span>
+          <span className="text-[10px] font-semibold text-amber-300">Draw {dPct}%</span>
+          <span className="text-[10px] font-semibold text-rose-400">Win {aPct}%</span>
+        </div>
+      </div>
+
+      {/* xG + Confidence (premium feel, always shown) */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-[var(--bg-elevated)] rounded-lg p-2.5 text-center border border-[var(--border-subtle)]">
+          <div className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">xG Home</div>
+          <div className="text-sm font-bold text-emerald-400">{prediction.homeXG.toFixed(2)}</div>
+        </div>
+        <div className="bg-[var(--bg-elevated)] rounded-lg p-2.5 text-center border border-[var(--border-subtle)]">
+          <div className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">Confidence</div>
+          <div className="text-sm font-bold text-[var(--color-accent-tactical)]">{confPct}%</div>
+        </div>
+        <div className="bg-[var(--bg-elevated)] rounded-lg p-2.5 text-center border border-[var(--border-subtle)]">
+          <div className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">xG Away</div>
+          <div className="text-sm font-bold text-rose-400">{prediction.awayXG.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Section Components ───────────────────────────────────────────────────────
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -531,6 +614,7 @@ function KeyPlayersList({ label, players }: { label: string; players: any[] }) {
 export default function MatchPreviewPage() {
   const params = useParams();
   const [data, setData] = useState<PreviewData | null>(null);
+  const [prediction, setPrediction] = useState<FixturePrediction | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -544,7 +628,25 @@ export default function MatchPreviewPage() {
           setLoading(false);
           return;
         }
-        setData(await res.json());
+        const previewData = await res.json();
+        setData(previewData);
+
+        // Extract prediction if fixture has cached data, or compute client-side
+        const fix = previewData.fixture;
+        if (fix?.home_win_prob != null) {
+          setPrediction({
+            scoreline: {
+              home: Math.round(fix.predicted_home_goals ?? 0),
+              away: Math.round(fix.predicted_away_goals ?? 0),
+            },
+            homeXG: fix.predicted_home_goals ?? 0,
+            awayXG: fix.predicted_away_goals ?? 0,
+            homeWinProb: fix.home_win_prob,
+            drawProb: fix.draw_prob,
+            awayWinProb: fix.away_win_prob,
+            confidence: fix.prediction_confidence ?? 0.5,
+          });
+        }
       } catch (e) {
         setError(String(e));
       }
@@ -618,6 +720,15 @@ export default function MatchPreviewPage() {
           )}
         </div>
       </div>
+
+      {/* Section 0: Score Prediction */}
+      {prediction && (
+        <PredictionSection
+          prediction={prediction}
+          homeName={homeClub?.short_name ?? homeClub?.clubname ?? fixture.home_team}
+          awayName={awayClub?.short_name ?? awayClub?.clubname ?? fixture.away_team}
+        />
+      )}
 
       {/* Section 1: Tactical Overview */}
       <TacticalOverview data={data} />

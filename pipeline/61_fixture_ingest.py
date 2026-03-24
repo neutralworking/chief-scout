@@ -1,12 +1,14 @@
 """
-31_fixture_ingest.py — Fetch upcoming fixtures from football-data.org and push to Supabase.
+61_fixture_ingest.py — Fetch upcoming fixtures from football-data.org and push to Supabase.
 
 Usage:
-    python 31_fixture_ingest.py
-    python 31_fixture_ingest.py --competition PL       # one competition only
-    python 31_fixture_ingest.py --matchday 29           # specific matchday
-    python 31_fixture_ingest.py --dry-run               # preview only, no writes
-    python 31_fixture_ingest.py --force                 # re-sync existing fixtures
+    python 61_fixture_ingest.py
+    python 61_fixture_ingest.py --competition PL       # one competition only
+    python 61_fixture_ingest.py --competition CL       # Champions League
+    python 61_fixture_ingest.py --competition WC       # World Cup
+    python 61_fixture_ingest.py --matchday 29           # specific matchday
+    python 61_fixture_ingest.py --dry-run               # preview only, no writes
+    python 61_fixture_ingest.py --force                 # re-sync existing fixtures
 
 Requires FOOTBALL_DATA_API_KEY in .env / .env.local
 Free tier: 10 requests/minute — built-in throttle.
@@ -41,13 +43,24 @@ args = parser.parse_args()
 DRY_RUN = args.dry_run
 FORCE = args.force
 
-# Top 5 European leagues
+# ── Competition registry ───────────────────────────────────────────────────────
+# Each entry: code → (name, type)
+# Types: domestic, continental, international
+
 COMPETITIONS = {
-    "PL":  "Premier League",
-    "PD":  "La Liga",
-    "BL1": "Bundesliga",
-    "SA":  "Serie A",
-    "FL1": "Ligue 1",
+    # Domestic leagues (top 5)
+    "PL":  ("Premier League", "domestic"),
+    "PD":  ("La Liga", "domestic"),
+    "BL1": ("Bundesliga", "domestic"),
+    "SA":  ("Serie A", "domestic"),
+    "FL1": ("Ligue 1", "domestic"),
+    # Continental club competitions
+    "CL":  ("Champions League", "continental"),
+    "EL":  ("Europa League", "continental"),
+    "ECL": ("Conference League", "continental"),
+    # International
+    "WC":  ("World Cup", "international"),
+    "EC":  ("European Championship", "international"),
 }
 
 if args.competition:
@@ -55,6 +68,13 @@ if args.competition:
         print(f"ERROR: Unknown competition '{args.competition}'. Valid: {list(COMPETITIONS.keys())}")
         sys.exit(1)
     COMPETITIONS = {args.competition: COMPETITIONS[args.competition]}
+
+# Helpers to extract name/type from competition tuple
+def comp_name(code: str) -> str:
+    return COMPETITIONS[code][0]
+
+def comp_type(code: str) -> str:
+    return COMPETITIONS[code][1]
 
 # ── API key ────────────────────────────────────────────────────────────────────
 
@@ -243,6 +263,53 @@ def match_club(team_name: str, club_lookup: dict) -> int | None:
                 return club_id
     return None
 
+
+def load_nations():
+    """Load nations from Supabase for international fixture matching."""
+    result = sb.table("nations").select("id, name").execute()
+    nations = {}
+    for row in (result.data or []):
+        name = (row.get("name") or "").strip().lower()
+        if name:
+            nations[name] = row["id"]
+            # Also store ASCII-normalized version
+            ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+            if ascii_name and ascii_name != name:
+                nations[ascii_name] = row["id"]
+    return nations
+
+
+# Nation name aliases (football-data.org → DB name)
+NATION_ALIASES = {
+    "korea republic": "south korea",
+    "korea, republic of": "south korea",
+    "china pr": "china",
+    "ir iran": "iran",
+    "usa": "united states",
+    "czech republic": "czechia",
+    "ivory coast": "côte d'ivoire",
+    "cote d'ivoire": "côte d'ivoire",
+    "cape verde islands": "cape verde",
+    "dr congo": "congo dr",
+    "congo dr": "congo dr",
+}
+
+
+def match_nation(team_name: str, nation_lookup: dict) -> int | None:
+    """Try to match a football-data.org team name to a nations.id."""
+    raw = team_name.lower().strip()
+    if raw in nation_lookup:
+        return nation_lookup[raw]
+    # Try alias
+    aliased = NATION_ALIASES.get(raw, raw)
+    if aliased in nation_lookup:
+        return nation_lookup[aliased]
+    # ASCII-normalized
+    ascii_name = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
+    if ascii_name in nation_lookup:
+        return nation_lookup[ascii_name]
+    return None
+
 # ── Fetch fixtures ─────────────────────────────────────────────────────────────
 
 API_BASE = "https://api.football-data.org/v4"
@@ -274,29 +341,47 @@ def fetch_matches(competition_code: str, status: str = "SCHEDULED", matchday: in
 
 def main():
     club_lookup = load_clubs()
-    print(f"Loaded {len(club_lookup)} club name variants for matching\n")
+    nation_lookup = load_nations()
+    print(f"Loaded {len(club_lookup)} club name variants for matching")
+    print(f"Loaded {len(nation_lookup)} nation name variants for matching\n")
 
     total_inserted = 0
     total_updated = 0
     total_skipped = 0
     unmatched_teams = set()
 
-    for comp_code, comp_name in COMPETITIONS.items():
-        print(f"── {comp_name} ({comp_code}) ──")
-        matches = fetch_matches(comp_code, status=args.status, matchday=args.matchday)
+    for code, (cname, ctype) in COMPETITIONS.items():
+        print(f"── {cname} ({code}) [{ctype}] ──")
+        matches = fetch_matches(code, status=args.status, matchday=args.matchday)
         print(f"  Fetched {len(matches)} matches")
+
+        is_international = ctype == "international"
 
         for match in matches:
             external_id = match["id"]
             home_name = match["homeTeam"]["name"]
             away_name = match["awayTeam"]["name"]
-            home_club_id = match_club(home_name, club_lookup)
-            away_club_id = match_club(away_name, club_lookup)
 
-            if not home_club_id:
-                unmatched_teams.add(home_name)
-            if not away_club_id:
-                unmatched_teams.add(away_name)
+            # Match teams to clubs or nations depending on competition type
+            home_club_id = None
+            away_club_id = None
+            home_nation_id = None
+            away_nation_id = None
+
+            if is_international:
+                home_nation_id = match_nation(home_name, nation_lookup)
+                away_nation_id = match_nation(away_name, nation_lookup)
+                if not home_nation_id:
+                    unmatched_teams.add(f"[nation] {home_name}")
+                if not away_nation_id:
+                    unmatched_teams.add(f"[nation] {away_name}")
+            else:
+                home_club_id = match_club(home_name, club_lookup)
+                away_club_id = match_club(away_name, club_lookup)
+                if not home_club_id:
+                    unmatched_teams.add(home_name)
+                if not away_club_id:
+                    unmatched_teams.add(away_name)
 
             utc_date = match.get("utcDate")
             venue = match.get("venue")
@@ -307,13 +392,16 @@ def main():
 
             row = {
                 "external_id": external_id,
-                "competition": comp_name,
-                "competition_code": comp_code,
+                "competition": cname,
+                "competition_code": code,
+                "competition_type": ctype,
                 "matchday": matchday_num,
                 "status": status,
                 "utc_date": utc_date,
                 "home_club_id": home_club_id,
                 "away_club_id": away_club_id,
+                "home_nation_id": home_nation_id,
+                "away_nation_id": away_nation_id,
                 "home_team": home_name,
                 "away_team": away_name,
                 "home_score": home_score,
@@ -323,8 +411,12 @@ def main():
             }
 
             if DRY_RUN:
-                home_match = f"✓ ({home_club_id})" if home_club_id else "✗"
-                away_match = f"✓ ({away_club_id})" if away_club_id else "✗"
+                if is_international:
+                    home_match = f"✓ (n:{home_nation_id})" if home_nation_id else "✗"
+                    away_match = f"✓ (n:{away_nation_id})" if away_nation_id else "✗"
+                else:
+                    home_match = f"✓ ({home_club_id})" if home_club_id else "✗"
+                    away_match = f"✓ ({away_club_id})" if away_club_id else "✗"
                 print(f"  {home_name} {home_match} vs {away_name} {away_match} | MD{matchday_num} | {utc_date}")
                 total_skipped += 1
                 continue

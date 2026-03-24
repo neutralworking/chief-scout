@@ -45,6 +45,10 @@ export interface FeatureFlags {
   csvExport: boolean;
   /** REST API access */
   apiAccess: boolean;
+  /** Predicted scorelines + W/D/L probabilities (free for all) */
+  predictedScores: boolean;
+  /** Deep match analysis: xG, pillar comparison, key player impact (scout+) */
+  deepMatchAnalysis: boolean;
 }
 
 const DEFAULTS: FeatureFlags = {
@@ -65,6 +69,8 @@ const DEFAULTS: FeatureFlags = {
   network: false,
   csvExport: false,
   apiAccess: false,
+  predictedScores: true,
+  deepMatchAnalysis: false,
 };
 
 /**
@@ -90,6 +96,8 @@ export function getFeaturesForTier(tier: Tier): FeatureFlags {
     network: limits.network,
     csvExport: limits.csvExport,
     apiAccess: limits.apiAccess,
+    predictedScores: limits.predictedScores,
+    deepMatchAnalysis: limits.deepMatchAnalysis,
   };
 }
 
@@ -120,6 +128,8 @@ export function getFeatureFlags(
     network: Boolean(preferences.network ?? DEFAULTS.network),
     csvExport: Boolean(preferences.csvExport ?? DEFAULTS.csvExport),
     apiAccess: Boolean(preferences.apiAccess ?? DEFAULTS.apiAccess),
+    predictedScores: Boolean(preferences.predictedScores ?? DEFAULTS.predictedScores),
+    deepMatchAnalysis: Boolean(preferences.deepMatchAnalysis ?? DEFAULTS.deepMatchAnalysis),
   };
 }
 

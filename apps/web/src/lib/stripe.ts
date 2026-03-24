@@ -32,6 +32,8 @@ export const TIER_LIMITS = {
     squadBuilder: false,
     scoutPad: false,
     network: false,
+    predictedScores: true,
+    deepMatchAnalysis: false,
   },
   scout: {
     playerLimit: null,
@@ -52,6 +54,8 @@ export const TIER_LIMITS = {
     squadBuilder: false,
     scoutPad: false,
     network: false,
+    predictedScores: true,
+    deepMatchAnalysis: true,
   },
   pro: {
     playerLimit: null,
@@ -72,6 +76,8 @@ export const TIER_LIMITS = {
     squadBuilder: true,
     scoutPad: true,
     network: true,
+    predictedScores: true,
+    deepMatchAnalysis: true,
   },
 } as const;
 

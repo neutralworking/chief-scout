@@ -6,25 +6,46 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 // Matches pipeline/61_fixture_ingest.py COMPETITIONS
-// Extend as more competitions are ingested
 const COMPETITIONS = [
-  { code: "", label: "All Leagues" },
+  { code: "", label: "All" },
   { code: "PL", label: "Premier League" },
   { code: "PD", label: "La Liga" },
   { code: "BL1", label: "Bundesliga" },
   { code: "SA", label: "Serie A" },
   { code: "FL1", label: "Ligue 1" },
+  { code: "CL", label: "Champions League" },
+  { code: "EL", label: "Europa League" },
+  { code: "ECL", label: "Conference League" },
   { code: "ELC", label: "Championship" },
   { code: "DED", label: "Eredivisie" },
   { code: "PPL", label: "Primeira Liga" },
-  { code: "CL", label: "Champions League" },
+  { code: "WC", label: "World Cup" },
+  { code: "EC", label: "Euros" },
 ] as const;
+
+interface Prediction {
+  scoreline: { home: number; away: number };
+  homeXG: number;
+  awayXG: number;
+  homeWinProb: number;
+  drawProb: number;
+  awayWinProb: number;
+  confidence: number;
+}
+
+interface NationMeta {
+  id: number;
+  name: string;
+  fifa_rank: number | null;
+  fifa_points: number | null;
+}
 
 interface Fixture {
   id: number;
   external_id: number | null;
   competition: string;
   competition_code: string | null;
+  competition_type: string | null;
   matchday: number | null;
   status: string;
   utc_date: string;
@@ -35,6 +56,9 @@ interface Fixture {
   venue: string | null;
   home_club: ClubMeta | null;
   away_club: ClubMeta | null;
+  home_nation: NationMeta | null;
+  away_nation: NationMeta | null;
+  prediction: Prediction | null;
 }
 
 interface ClubMeta {
@@ -72,15 +96,61 @@ function StylePill({ label }: { label: string | null }) {
   );
 }
 
+/** W/D/L probability bar */
+function ProbabilityBar({ prediction }: { prediction: Prediction }) {
+  const { homeWinProb, drawProb, awayWinProb } = prediction;
+  const hPct = Math.round(homeWinProb * 100);
+  const dPct = Math.round(drawProb * 100);
+  const aPct = Math.round(awayWinProb * 100);
+
+  return (
+    <div className="mt-2">
+      <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
+        <div
+          className="bg-emerald-500 rounded-l-full"
+          style={{ width: `${hPct}%` }}
+        />
+        <div className="bg-amber-400" style={{ width: `${dPct}%` }} />
+        <div
+          className="bg-rose-500 rounded-r-full"
+          style={{ width: `${aPct}%` }}
+        />
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[9px] font-semibold text-emerald-400">
+          {hPct}%
+        </span>
+        <span className="text-[9px] font-semibold text-amber-300">
+          {dPct}%
+        </span>
+        <span className="text-[9px] font-semibold text-rose-400">{aPct}%</span>
+      </div>
+    </div>
+  );
+}
+
 function FixtureCard({ fixture }: { fixture: Fixture }) {
   const homeClub = fixture.home_club;
   const awayClub = fixture.away_club;
-  const hasPreview = homeClub && awayClub;
+  const isInternational = fixture.competition_type === "international";
+  const hasPreview = isInternational
+    ? fixture.home_nation && fixture.away_nation
+    : homeClub && awayClub;
+  const prediction = fixture.prediction;
+
+  const homeName = isInternational
+    ? fixture.home_nation?.name ?? fixture.home_team
+    : homeClub?.short_name ?? homeClub?.clubname ?? fixture.home_team;
+  const awayName = isInternational
+    ? fixture.away_nation?.name ?? fixture.away_team
+    : awayClub?.short_name ?? awayClub?.clubname ?? fixture.away_team;
 
   const card = (
     <div
       className={`bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 transition-all ${
-        hasPreview ? "hover:border-[var(--color-accent-tactical)] cursor-pointer" : ""
+        hasPreview
+          ? "hover:border-[var(--color-accent-tactical)] cursor-pointer"
+          : ""
       }`}
     >
       {/* Date & venue */}
@@ -88,38 +158,70 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
         <span className="text-[10px] font-semibold text-[var(--color-accent-tactical)] uppercase tracking-wider">
           {formatDate(fixture.utc_date)} · {formatTime(fixture.utc_date)}
         </span>
-        {fixture.matchday && (
-          <span className="text-[10px] text-[var(--text-muted)]">MD{fixture.matchday}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {fixture.competition_type &&
+            fixture.competition_type !== "domestic" && (
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-accent-tactical)]/10 text-[var(--color-accent-tactical)]">
+                {fixture.competition_type === "international"
+                  ? "INT"
+                  : "EUR"}
+              </span>
+            )}
+          {fixture.matchday && (
+            <span className="text-[10px] text-[var(--text-muted)]">
+              MD{fixture.matchday}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Teams */}
+      {/* Teams + predicted score */}
       <div className="flex items-center gap-3">
         {/* Home */}
         <div className="flex-1 text-right">
           <div className="text-sm font-bold text-[var(--text-primary)] mb-1">
-            {homeClub?.short_name ?? homeClub?.clubname ?? fixture.home_team}
+            {homeName}
           </div>
-          <div className="flex justify-end gap-1 flex-wrap">
-            <StylePill label={homeClub?.formation ?? null} />
-            <StylePill label={homeClub?.team_tactical_style ?? null} />
-          </div>
+          {!isInternational && (
+            <div className="flex justify-end gap-1 flex-wrap">
+              <StylePill label={homeClub?.formation ?? null} />
+              <StylePill label={homeClub?.team_tactical_style ?? null} />
+            </div>
+          )}
         </div>
 
-        {/* VS */}
-        <div className="text-[10px] font-bold text-[var(--text-muted)] px-2">vs</div>
+        {/* Predicted score or VS */}
+        {prediction ? (
+          <div className="text-center px-2 min-w-[52px]">
+            <div className="text-lg font-black text-[var(--text-primary)] tracking-tight">
+              {prediction.scoreline.home} - {prediction.scoreline.away}
+            </div>
+            <div className="text-[8px] font-medium text-[var(--color-accent-tactical)] uppercase tracking-wider">
+              predicted
+            </div>
+          </div>
+        ) : (
+          <div className="text-[10px] font-bold text-[var(--text-muted)] px-2">
+            vs
+          </div>
+        )}
 
         {/* Away */}
         <div className="flex-1">
           <div className="text-sm font-bold text-[var(--text-primary)] mb-1">
-            {awayClub?.short_name ?? awayClub?.clubname ?? fixture.away_team}
+            {awayName}
           </div>
-          <div className="flex gap-1 flex-wrap">
-            <StylePill label={awayClub?.formation ?? null} />
-            <StylePill label={awayClub?.team_tactical_style ?? null} />
-          </div>
+          {!isInternational && (
+            <div className="flex gap-1 flex-wrap">
+              <StylePill label={awayClub?.formation ?? null} />
+              <StylePill label={awayClub?.team_tactical_style ?? null} />
+            </div>
+          )}
         </div>
       </div>
+
+      {/* W/D/L probability bar */}
+      {prediction && <ProbabilityBar prediction={prediction} />}
 
       {/* Venue */}
       {fixture.venue && (
@@ -139,7 +241,7 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
     </div>
   );
 
-  if (hasPreview) {
+  if (hasPreview && !isInternational) {
     return <Link href={`/fixtures/${fixture.id}`}>{card}</Link>;
   }
   return card;
@@ -192,6 +294,9 @@ function FixturesContent() {
     };
   }, [competition]);
 
+  // Count predictions
+  const predictedCount = fixtures.filter((f) => f.prediction).length;
+
   // Group fixtures by date
   const byDate: Record<string, Fixture[]> = {};
   for (const f of fixtures) {
@@ -204,10 +309,13 @@ function FixturesContent() {
     <div>
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-lg font-bold tracking-tight mb-0.5">Fixtures & Match Previews</h1>
+        <h1 className="text-lg font-bold tracking-tight mb-0.5">
+          Fixtures & Predictions
+        </h1>
         <p className="text-[11px] text-[var(--text-secondary)]">
-          {loading ? "Loading..." : `${fixtures.length} upcoming matches`}
-          {" · Scouting-powered tactical previews"}
+          {loading
+            ? "Loading..."
+            : `${fixtures.length} upcoming matches${predictedCount > 0 ? ` · ${predictedCount} with predicted scores` : ""}`}
         </p>
       </div>
 
@@ -230,7 +338,9 @@ function FixturesContent() {
 
       {/* Error */}
       {error && (
-        <div className="text-sm text-red-400 bg-red-400/10 rounded-lg p-3 mb-4">{error}</div>
+        <div className="text-sm text-red-400 bg-red-400/10 rounded-lg p-3 mb-4">
+          {error}
+        </div>
       )}
 
       {/* Loading */}
@@ -243,7 +353,8 @@ function FixturesContent() {
       {/* Fixtures by date */}
       {!loading && fixtures.length === 0 && (
         <div className="text-sm text-[var(--text-muted)] py-8 text-center">
-          No upcoming fixtures found. Run the fixture ingestion pipeline to populate data.
+          No upcoming fixtures found. Run the fixture ingestion pipeline to
+          populate data.
         </div>
       )}
 

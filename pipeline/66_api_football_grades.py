@@ -53,8 +53,8 @@ METRIC_MAP = {
     "def_actions_p90":    {"attr": "awareness",     "positions": {"midfielder", "defender"}},
     # Duels
     "duel_win_pct":       {"attr": "duels",         "positions": {"attacker", "midfielder", "defender"}},
-    # Dribbling
-    "dribble_success_pct": {"attr": "take_ons",     "positions": {"attacker", "midfielder"}},
+    # Dribbling (volume of successful dribbles, not success %)
+    "dribbles_p90":         {"attr": "take_ons",     "positions": {"attacker", "midfielder"}},
     # Physical proxy
     "fouls_drawn_p90":    {"attr": "guile",         "positions": {"attacker", "midfielder"}},
     # Discipline (inverted — more cards = lower score)
@@ -95,7 +95,7 @@ def main():
             s.penalties_scored, s.penalties_missed,
             pp.position, s.league_name
         FROM api_football_player_stats s
-        JOIN player_profiles pp ON pp.person_id = s.person_id
+        LEFT JOIN player_profiles pp ON pp.person_id = s.person_id
         WHERE s.season = %s AND s.person_id IS NOT NULL AND s.minutes >= %s
     """, (args.season, MIN_MINUTES))
 
@@ -113,10 +113,25 @@ def main():
     player_positions = {}
     player_league_strength = {}
 
+    def infer_position_group(p):
+        """Infer attacker/midfielder/defender from stats when profile position is missing."""
+        pos = p.get("position")
+        if pos:
+            return get_position_group(pos)
+        # Heuristic: goals+assists heavy → attacker, tackles+interceptions heavy → defender
+        mins = p["minutes"] or 1
+        goals_assists_p90 = ((p["goals"] or 0) + (p["assists"] or 0)) / mins * 90
+        def_actions_p90 = ((p["tackles_total"] or 0) + (p["interceptions"] or 0) + (p["blocks"] or 0)) / mins * 90
+        if goals_assists_p90 >= 0.6:
+            return "attacker"
+        if def_actions_p90 >= 5.0 and goals_assists_p90 < 0.2:
+            return "defender"
+        return "midfielder"
+
     for p in players:
         pid = p["person_id"]
         mins = p["minutes"]
-        pos_group = get_position_group(p["position"]) or "midfielder"
+        pos_group = infer_position_group(p) or "midfielder"
         player_positions[pid] = pos_group
         player_league_strength[pid] = league_strength.get(p["league_name"], default_strength)
 
@@ -132,7 +147,7 @@ def main():
         metrics["interceptions_p90"] = per90(p["interceptions"], mins)
         metrics["def_actions_p90"] = per90((p["tackles_total"] or 0) + (p["interceptions"] or 0), mins)
         metrics["duel_win_pct"] = pct(p["duels_won"], p["duels_total"])
-        metrics["dribble_success_pct"] = pct(p["dribbles_success"], p["dribbles_attempted"])
+        metrics["dribbles_p90"] = per90(p["dribbles_success"], mins)
         metrics["fouls_drawn_p90"] = per90(p["fouls_drawn"], mins)
         total_cards = (p["cards_yellow"] or 0) + (p["cards_red"] or 0) * 2
         metrics["discipline"] = per90(total_cards, mins)
@@ -142,7 +157,10 @@ def main():
 
         player_metrics[pid] = metrics
 
-    # ── Percentile ranking with league strength scaling ───────────────────────
+    # ── Percentile ranking with league strength pre-scaling ─────────────────
+    # Strength is applied to raw metric values BEFORE ranking, so a PL player's
+    # 0.25 goals p90 × 1.15 = 0.29 competes fairly against a weak-league
+    # player's 0.40 × 0.50 = 0.20. This produces correct ordinals.
 
     groups = {"attacker": [], "midfielder": [], "defender": [], "gk": []}
     for pid, pos_group in player_positions.items():
@@ -162,15 +180,29 @@ def main():
             if len(pids_in_group) < 3:
                 continue
 
-            values = [(pid, player_metrics.get(pid, {}).get(metric_name))
-                      for pid in pids_in_group]
+            # Pre-scale raw values by league strength before ranking
+            values = []
+            for pid in pids_in_group:
+                raw_val = player_metrics.get(pid, {}).get(metric_name)
+                if raw_val is None:
+                    values.append((pid, None))
+                else:
+                    raw_val = float(raw_val)
+                    strength = player_league_strength.get(pid, 1.0)
+                    # For inverted metrics (discipline=cards), stronger league
+                    # should penalise LESS, so divide instead of multiply
+                    if is_inverted:
+                        adjusted = raw_val / max(strength, 0.3)
+                    else:
+                        adjusted = raw_val * strength
+                    values.append((pid, adjusted))
+
             ranks = percentile_rank(values)
 
             for pid, pct_val in ranks.items():
                 if is_inverted:
                     pct_val = 100 - pct_val
-                strength = player_league_strength.get(pid, 1.0)
-                score = percentile_to_score_10(pct_val * strength)
+                score = percentile_to_score_10(pct_val)
                 grades_to_write.append({
                     "player_id": pid,
                     "attribute": attr_name,

@@ -79,9 +79,9 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
 
 function IntelChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20 text-[11px]">
-      <span className="font-data text-[11px] font-bold uppercase tracking-[1.5px] opacity-50">{label}</span>
-      <span className="font-semibold text-[var(--text-secondary)]">{value}</span>
+    <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
+      <span className="font-data text-[10px] font-bold uppercase tracking-[1px] opacity-50">{label}</span>
+      <span className="text-[10px] font-semibold text-[var(--text-secondary)]">{value}</span>
     </div>
   );
 }
@@ -152,7 +152,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
       <div>
         {/* Position + Name + Overall */}
         <Link href={`/players/${player.person_id}`} className="group">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 max-w-2xl">
             <span className={`text-[11px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0`}>
               {player.position ?? "–"}
             </span>
@@ -201,21 +201,23 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
         )}
 
         {/* Pillar badges + Intel chips — inline row */}
-        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-          {hasPillars && PILLAR_KEYS.map((key) => {
-            const v = pillarScores[key];
-            if (v == null) return null;
-            return (
-              <div key={key} className={`flex items-center gap-1 px-2 py-0.5 border-l-2 ${PILLAR_BORDER[key]} bg-[var(--bg-pit)]`}>
-                <span className="text-[10px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
-                <span className="text-[10px] font-data font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
-              </div>
-            );
-          })}
-          {personality && (
-            <IntelChip label="Type" value={`${player.personality_type} ${personality.name}`} />
-          )}
-        </div>
+        {(hasPillars || personality) && (
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            {hasPillars && PILLAR_KEYS.map((key) => {
+              const v = pillarScores[key];
+              if (v == null) return null;
+              return (
+                <div key={key} className={`flex items-center gap-1 px-2 py-0.5 border-l-2 ${PILLAR_BORDER[key]} bg-[var(--bg-pit)]`}>
+                  <span className="text-[10px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
+                  <span className="text-[10px] font-data font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
+                </div>
+              );
+            })}
+            {personality && (
+              <IntelChip label="Type" value={`${player.personality_type} ${personality.name}`} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

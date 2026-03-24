@@ -129,9 +129,17 @@ async function getDashboardData() {
     return true;
   };
 
-  // Reject retired, clubless, or skeleton players
-  const isViableFeatured = (p: FeaturedProfile) =>
-    p.club && p.position && p.overall_pillar_score != null && hasQualityBio(p);
+  // Reject retired, clubless, skeleton, or too-old players
+  const isViableFeatured = (p: FeaturedProfile) => {
+    if (!p.club || !p.position || p.overall_pillar_score == null) return false;
+    if (!hasQualityBio(p)) return false;
+    // Age gate: skip players over 40 (semi-retired edge cases with active=true)
+    if (p.dob) {
+      const age = Math.floor((Date.now() - new Date(p.dob).getTime()) / 31557600000);
+      if (age > 40) return false;
+    }
+    return true;
+  };
 
   const dofCandidates = ((dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>)
     .filter(isViableFeatured);

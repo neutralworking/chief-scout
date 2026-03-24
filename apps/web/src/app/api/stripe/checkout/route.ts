@@ -4,7 +4,8 @@ import { createCheckoutSession } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseServer!;
+    if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+    const supabase = supabaseServer;
 
     // Get auth token from header
     const authHeader = request.headers.get("authorization");

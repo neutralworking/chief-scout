@@ -42,7 +42,8 @@ export interface PositionGroup {
 }
 
 export async function getSquadAssessment() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return { error: "Supabase not configured" };
+  const supabase = supabaseServer;
   // 1. Get club_name
   const { data: settingsData, error: settingsErr } = await supabase
     .from("club_settings")

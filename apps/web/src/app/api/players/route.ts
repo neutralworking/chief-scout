@@ -39,7 +39,8 @@ const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFir
 };
 
 export async function GET(req: Request) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { searchParams } = new URL(req.url);
   let limit      = parseInt(searchParams.get("limit")  ?? "60");
   let offset     = parseInt(searchParams.get("offset") ?? "0");
@@ -120,7 +121,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const body = await req.json();
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });

@@ -2,7 +2,8 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { data, error } = await supabase
     .from("tags")
     .select("id, tag_name, category, is_scout_only")

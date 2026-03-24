@@ -12,7 +12,8 @@ interface InferredNeed {
 }
 
 export async function POST() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   // 1. Get squad assessment
   const squad = await getSquadAssessment();
 

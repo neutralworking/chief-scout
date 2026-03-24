@@ -2,7 +2,8 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   // Get award contention tags
   const { data: tagData, error: tagErr } = await supabase
     .from("player_tags")

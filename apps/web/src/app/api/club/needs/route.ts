@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 const VALID_POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 
 export async function GET() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { data, error } = await supabase
     .from("club_needs")
     .select("*")
@@ -16,7 +17,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const body = await req.json();
   const { position, priority, min_mvt, preferred_archetype, preferred_foot, notes } = body;
 
@@ -50,7 +52,8 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const body = await req.json();
   const { id } = body;
 

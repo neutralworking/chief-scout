@@ -4,7 +4,8 @@ import { getUserTier } from "@/lib/stripe";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseServer!;
+    if (!supabaseServer) return NextResponse.json({ tier: "free" });
+    const supabase = supabaseServer;
 
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {

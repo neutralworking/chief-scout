@@ -12,7 +12,8 @@ function normalize(name: string): string {
 }
 
 export async function POST() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   try {
     // Load all people
     const { data: people, error: peopleErr } = await supabase

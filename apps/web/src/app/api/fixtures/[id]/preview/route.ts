@@ -42,7 +42,8 @@ interface PositionMatchup {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 async function fetchClubSquad(clubId: number): Promise<SquadPlayer[]> {
-  const sb = supabaseServer!;
+  if (!supabaseServer) return [];
+  const sb = supabaseServer;
 
   // Get player IDs for this club
   const { data: people } = await sb

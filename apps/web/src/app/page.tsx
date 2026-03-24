@@ -163,7 +163,8 @@ async function getDashboardData() {
 
   // Fetch API-Football stats for featured player
   async function enrichFeatured(fp: FeaturedProfile): Promise<FeaturedProfile & { af_appearances?: number; af_goals?: number; af_assists?: number; af_rating?: number | null }> {
-    const { data: afRows } = await supabaseServer!
+    if (!supabaseServer) return fp;
+    const { data: afRows } = await supabaseServer
       .from("api_football_player_stats")
       .select("appearances, goals, assists, rating")
       .eq("person_id", fp.person_id)

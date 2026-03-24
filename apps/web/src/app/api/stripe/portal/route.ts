@@ -4,7 +4,8 @@ import { getStripe } from "@/lib/stripe";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseServer!;
+    if (!supabaseServer) return NextResponse.redirect(new URL("/pricing", request.url));
+    const supabase = supabaseServer;
 
     const authHeader = request.headers.get("authorization");
     // Also check cookies for direct browser navigation

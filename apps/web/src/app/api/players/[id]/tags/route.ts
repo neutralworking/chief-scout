@@ -5,7 +5,8 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { id } = await params;
   const playerId = parseInt(id, 10);
   if (isNaN(playerId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -34,7 +35,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { id } = await params;
   const playerId = parseInt(id, 10);
   if (isNaN(playerId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -57,7 +59,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const { id } = await params;
   const playerId = parseInt(id, 10);
   if (isNaN(playerId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });

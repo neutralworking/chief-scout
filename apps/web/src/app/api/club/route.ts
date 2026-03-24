@@ -2,7 +2,8 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const [settingsRes, needsRes] = await Promise.all([
     supabase.from("club_settings").select("key, value"),
     supabase.from("club_needs").select("*").order("priority", { ascending: false }),
@@ -22,7 +23,8 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const supabase = supabaseServer!;
+  if (!supabaseServer) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const supabase = supabaseServer;
   const body = await req.json();
 
   if (!body || typeof body !== "object" || Array.isArray(body)) {

@@ -308,49 +308,8 @@ function SquadBuilderPage() {
     }
   }, [nationData, selectedIds, xiIds, formation]);
 
-  // ── Loading / Error ──────────────────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg-base)" }}
-      >
-        <div className="text-center">
-          <div className="animate-spin inline-block w-8 h-8 border-2 border-current border-t-transparent rounded-full mb-3" style={{ color: "var(--text-muted)" }} />
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Loading national pool...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !nationData) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg-base)" }}
-      >
-        <div className="text-center">
-          <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
-            {error ?? "No data available"}
-          </p>
-          <Link
-            href="/on-the-plane"
-            className="text-sm underline"
-            style={{ color: "var(--color-accent-personality)" }}
-          >
-            Back to nations
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Step 1: Pick Squad ───────────────────────────────────────────────────
-
   // ── Pitch layout helpers ──────────────────────────────────────────────────
+  // These hooks MUST be above the early returns to satisfy React's rules of hooks.
   // Map selected players to formation slots by position affinity
   const selectedPlayers = useMemo(() => {
     if (!nationData) return [];
@@ -399,6 +358,48 @@ function SquadBuilderPage() {
     }
     return rows;
   }, [pitchSlots, formation]);
+
+  // ── Loading / Error ──────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--bg-base)" }}
+      >
+        <div className="text-center">
+          <div className="animate-spin inline-block w-8 h-8 border-2 border-current border-t-transparent rounded-full mb-3" style={{ color: "var(--text-muted)" }} />
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            Loading national pool...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !nationData) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--bg-base)" }}
+      >
+        <div className="text-center">
+          <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>
+            {error ?? "No data available"}
+          </p>
+          <Link
+            href="/on-the-plane"
+            className="text-sm underline"
+            style={{ color: "var(--color-accent-personality)" }}
+          >
+            Back to nations
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 1: Pick Squad ───────────────────────────────────────────────────
 
   if (step === "pick-squad") {
     return (

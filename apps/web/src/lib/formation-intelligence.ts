@@ -340,6 +340,76 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
 };
 
 /**
+ * Maps blueprint role names (used in FORMATION_BLUEPRINTS) to ROLE_INTELLIGENCE keys.
+ * Blueprint roles use English descriptive names; ROLE_INTELLIGENCE uses tactical system names.
+ */
+const BLUEPRINT_ROLE_MAP: Record<string, string> = {
+  // GK
+  "Shot Stopper": "Shotstopper",
+  "Sweeper Keeper": "Sweeper Keeper",
+  // CD
+  "Ball-Playing CB": "Zagueiro",
+  "Stopper": "Vorstopper",
+  "Sweeper": "Sweeper",
+  // WD
+  "Inverted Full-Back": "Invertido",
+  "Overlapping Full-Back": "Lateral",
+  // DM
+  "Anchor": "Sentinelle",
+  "Ball-Winner": "Volante",
+  // CM
+  "Box-to-Box": "Tuttocampista",
+  "Deep Playmaker": "Metodista",
+  "Mezzala": "Mezzala",
+  // WM
+  "Wing-Back": "Tornante",
+  "Traditional Winger": "Winger",
+  "Wide Provider": "Winger",
+  "Wide Playmaker": "False Winger",
+  "Shuttler": "Shuttler",
+  // AM
+  "Advanced Playmaker": "Enganche",
+  "Trequartista": "Trequartista",
+  "Seconda Punta": "Seconda Punta",
+  // WF
+  "Inside Forward": "Inside Forward",
+  "Wide Forward": "Extremo",
+  "Inventor": "Inventor",
+  // CF
+  "Poacher": "Poacher",
+  "Falso Nove": "Falso Nove",
+  "Prima Punta": "Prima Punta",
+  "Regista": "Regista",
+  "Spearhead": "Spearhead",
+};
+
+/**
+ * Resolve a role name — checks ROLE_INTELLIGENCE directly first,
+ * then falls back to blueprint name mapping.
+ */
+export function resolveRoleName(roleName: string): string {
+  if (ROLE_INTELLIGENCE[roleName]) return roleName;
+  return BLUEPRINT_ROLE_MAP[roleName] ?? roleName;
+}
+
+/**
+ * Valid player positions for each formation slot position.
+ * Allows natural transitions (CM can play DM, WM can play AM) but prevents
+ * nonsensical assignments (CF in CD, GK in CM).
+ */
+export const SLOT_POSITION_MAP: Record<string, string[]> = {
+  GK: ["GK"],
+  CD: ["CD"],
+  WD: ["WD", "CD"],
+  DM: ["DM", "CM"],
+  CM: ["CM", "DM", "AM"],
+  WM: ["WM", "AM", "WF"],
+  AM: ["AM", "CM", "WF", "WM"],
+  WF: ["WF", "WM", "AM", "CF"],
+  CF: ["CF", "WF"],
+};
+
+/**
  * Score a player for a given tactical role using football intelligence.
  *
  * Scoring breakdown:
@@ -358,7 +428,9 @@ export function scorePlayerForRole(
   },
   roleName: string
 ): number {
-  const intel = ROLE_INTELLIGENCE[roleName];
+  // Resolve blueprint names to ROLE_INTELLIGENCE keys
+  const resolvedName = resolveRoleName(roleName);
+  const intel = ROLE_INTELLIGENCE[resolvedName];
   let score = player.level ?? 0;
 
   if (!intel) return score;

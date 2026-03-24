@@ -133,9 +133,8 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
   const homeClub = fixture.home_club;
   const awayClub = fixture.away_club;
   const isInternational = fixture.competition_type === "international";
-  const hasPreview = isInternational
-    ? fixture.home_nation && fixture.away_nation
-    : homeClub && awayClub;
+  // Club fixtures: clickable if both clubs matched. International: not yet (no preview route for nations)
+  const hasPreview = !isInternational && homeClub && awayClub;
   const prediction = fixture.prediction;
 
   const homeName = isInternational
@@ -149,7 +148,7 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
     <div
       className={`bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4 transition-all ${
         hasPreview
-          ? "hover:border-[var(--color-accent-tactical)] cursor-pointer"
+          ? "hover:border-[var(--color-accent-tactical)] active:border-[var(--color-accent-tactical)] active:bg-[var(--bg-elevated)] cursor-pointer"
           : ""
       }`}
     >
@@ -241,8 +240,12 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
     </div>
   );
 
-  if (hasPreview && !isInternational) {
-    return <Link href={`/fixtures/${fixture.id}`}>{card}</Link>;
+  if (hasPreview) {
+    return (
+      <Link href={`/fixtures/${fixture.id}`} className="block">
+        {card}
+      </Link>
+    );
   }
   return card;
 }

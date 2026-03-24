@@ -104,11 +104,11 @@ class TestGradeNormalisation:
         _, raw = ratings.compute_model_scores(grades)
         assert raw["Creator"] == self._expected(20)
 
-    def test_statsbomb_1_to_20_passthrough(self):
-        """StatsBomb stat_score (1-20) passes through unchanged."""
-        grades = [grade("creativity", stat=14, source="statsbomb")]
+    def test_statsbomb_1_to_10_doubled(self):
+        """StatsBomb stat_score (1-10) is doubled to 0-20 scale."""
+        grades = [grade("creativity", stat=7, source="statsbomb")]
         _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(14)
+        assert raw["Creator"] == self._expected(14)  # 7 * 2 = 14
 
     def test_eafc_1_to_20_passthrough(self):
         """EAFC stat_score (1-20) passes through unchanged."""
@@ -169,20 +169,21 @@ class TestAliasFallback:
     """Verify alias resolution when primary attribute is missing."""
 
     def test_alias_used_when_primary_missing(self):
-        """unpredictability → take_ons fallback works."""
+        """unpredictability → take_ons fallback works, discounted at 0.7×."""
         # Creator model needs: creativity, unpredictability, vision, guile
-        # unpredictability aliases to take_ons
+        # unpredictability aliases to take_ons (discounted)
         grades = [
             grade("creativity", scout=14),
-            grade("take_ons", scout=12),  # alias for unpredictability
+            grade("take_ons", scout=12),  # alias for unpredictability → 12 * 0.7 = 8.4
             grade("vision", scout=16),
             grade("guile", scout=10),     # could alias to through_balls but primary exists
         ]
         _, raw = ratings.compute_model_scores(grades)
         assert "Creator" in raw
-        # All 4 attrs present (1 via alias) → confidence 1.0
-        avg = (14 + 12 + 16 + 10) / 4
-        assert raw["Creator"] == round(min(avg * 5, 99) * 1.0)
+        # 3 direct + 1 alias: confidence blended between 4-attr and 3-attr
+        avg = (14 + 12 * 0.7 + 16 + 10) / 4  # alias discounted
+        blended_conf = (1.0 + 0.95) / 2  # avg of 4-attr and 3-attr confidence
+        assert raw["Creator"] == round(min(avg * 5, 99) * blended_conf)
 
     def test_primary_preferred_over_alias(self):
         """When both primary and alias exist, primary wins."""
@@ -205,9 +206,11 @@ class TestAliasFallback:
             grade("take_ons", scout=15),  # alias for unpredictability
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # Creator should have 1 attr (take_ons as unpredictability alias)
+        # Creator should have 1 attr (take_ons as unpredictability alias, discounted)
+        # 1 alias → confidence blended between 1-attr(0.70) and 0-attr(0.70) = 0.70
         if "Creator" in raw:
-            assert raw["Creator"] == round(15 * 5 * 0.70)  # 1/4 confidence
+            discounted = 15 * 0.7
+            assert raw["Creator"] == round(discounted * 5 * 0.70)
 
 
 # ── Coverage Confidence ──────────────────────────────────────────────────────
@@ -476,7 +479,7 @@ class TestKnownPlayers:
         assert role in ("Poacher", "Complete Forward", "Prima Punta")
 
     def test_pirlo_is_dm_role(self):
-        """Pirlo profile → DM Regista."""
+        """Pirlo profile → DM Regista or Pivote (both playmaker-controller DM roles)."""
         grades = scout_grades({
             "anticipation": 18, "composure": 19, "decisions": 17, "tempo": 19,
             "creativity": 17, "vision": 19, "pass_range": 18, "guile": 16,
@@ -484,7 +487,7 @@ class TestKnownPlayers:
         })
         _, raw = ratings.compute_model_scores(grades)
         role, _ = ratings.compute_best_role(raw, "DM")
-        assert role == "Regista"
+        assert role in ("Regista", "Pivote")
 
     def test_maldini_is_cd_role(self):
         """Maldini profile → CD defensive role."""

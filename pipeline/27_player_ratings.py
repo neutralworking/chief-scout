@@ -57,7 +57,15 @@ sb_client = get_supabase()
 # Base MODEL_ATTRIBUTES imported from lib.models.
 # Override GK model for ratings: uses positional/distribution attributes
 # rather than the standard reflex-based GK model used by radar/fingerprints.
-MODEL_ATTRIBUTES = {**_BASE_MODEL_ATTRIBUTES, "GK": ["positioning", "awareness", "pass_range", "throwing"]}
+MODEL_ATTRIBUTES = {
+    **_BASE_MODEL_ATTRIBUTES,
+    "GK": ["positioning", "awareness", "pass_range", "throwing"],
+    # Shotstopper: reflex/athletic shot-stopping — blocking, jumping, reactions, aerial.
+    "Shotstopper": ["blocking", "aerial_duels", "jumping", "reactions"],
+    # Organiser: commanding GK — composure, discipline, aerial authority, aggression.
+    # Uses attrs that exist in scout data (unlike Commander's leadership/communication).
+    "Organiser": ["composure", "discipline", "aerial_duels", "aggression"],
+}
 
 # Fallback aliases: when the primary attribute is missing, try these instead.
 # Only used if the primary has zero data. Keeps models functional with sparse data.
@@ -86,9 +94,18 @@ COMPOUND_MODELS = {
     "Mental":    ["Controller", "Commander", "Creator"],
 }
 
+# GK-specific compounds: only models that matter for goalkeepers.
+# Outfield models (Dribbler, Striker, Sprinter, etc.) are noise for GKs.
+GK_COMPOUND_MODELS = {
+    "Technical": ["GK", "Passer"],          # Shot-stopping + distribution
+    "Tactical":  ["Cover", "Commander"],     # Positioning + organisation
+    "Physical":  ["Sprinter", "Target"],     # Agility + aerial presence
+    "Mental":    ["Controller", "Commander"],  # Decision-making + leadership
+}
+
 # Position weights for role fit (mirrors radar route.ts)
 POSITION_WEIGHTS = {
-    "GK":  {"GK": 1.0, "Cover": 0.6, "Commander": 0.5, "Controller": 0.3},
+    "GK":  {"GK": 0.6, "Passer": 0.8, "Cover": 0.8, "Organiser": 0.8, "Shotstopper": 0.8, "Controller": 0.4},
     "CD":  {"Destroyer": 1.0, "Cover": 0.9, "Commander": 0.7, "Target": 0.5, "Powerhouse": 0.4, "Passer": 0.3},
     "WD":  {"Engine": 0.9, "Dribbler": 0.7, "Passer": 0.7, "Sprinter": 0.6, "Cover": 0.6, "Destroyer": 0.3},
     "DM":  {"Cover": 1.0, "Destroyer": 0.9, "Controller": 0.8, "Passer": 0.5, "Commander": 0.4, "Powerhouse": 0.3},
@@ -109,8 +126,8 @@ TACTICAL_ROLES = {
     "GK": [
         ("GK", "Passer",     "Libero GK"),        # Ederson, Ter Stegen: distribution specialist
         ("GK", "Cover",      "Sweeper Keeper"),    # Neuer, Alisson: high line, reads danger
-        ("GK", "Commander",  "Comandante"),        # Buffon, Casillas: organizer, commands area
-        ("GK", "Target",     "Shotstopper"),       # Kahn, Courtois: reflexes, presence
+        ("GK", "Organiser",  "Comandante"),        # Buffon, Casillas: organizer, commands area
+        ("GK", "Shotstopper","Shotstopper"),       # Kahn, Courtois: reflexes, shot-stopping
     ],
     "CD": [
         ("Passer", "Cover",        "Libero"),       # Beckenbauer, Stones: ball-playing CB
@@ -188,7 +205,7 @@ def _safe(val):
     return val
 
 
-def compute_model_scores(grades, level=None):
+def compute_model_scores(grades, level=None, position=None):
     """Compute model scores (0-100) from best-source attribute grades.
 
     scout_grade uses a 1-20 scale; stat_score uses a 1-10 scale.
@@ -206,25 +223,29 @@ def compute_model_scores(grades, level=None):
     for g in grades:
         source = g.get("source", "")
         attr = g["attribute"].lower().replace(" ", "_")
-        # Normalise to 0-20 scale regardless of source
-        # scout_grade: already 1-20
-        # stat_score scale varies by source:
-        #   - scout_assessment: scout_grade 1-20
-        #   - eafc_inferred: stat_score 1-20 (re-imported from EA FC 25)
-        #   - statsbomb/api_football/understat/computed/fbref: stat_score 1-10
+        # Normalise to 0-20 scale regardless of source.
+        # Only scout_assessment can reach 19-20; all stat sources cap at 18.
+        # This reserves the top of the scale for human assessment.
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
-            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20
+            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
+            # GK scout grades are assessed on a compressed scale (10-14 = elite).
+            # Light rescale: 14→16.8, 10→12. Keeps GK role scores in line with
+            # outfield players (~85-90 range) rather than inflating to 95+.
+            if position == "GK" and source == "scout_assessment":
+                score_20 = min(score_20 * 1.2, 20)
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
             if source == "eafc_inferred":
-                score_20 = min(g["stat_score"], 20)  # EA FC is genuinely 1-20
+                # EA FC 1-20 but cap at 18: inferred data shouldn't reach scout territory
+                score_20 = min(g["stat_score"], 18)
             elif source == "understat":
                 # Understat clusters high (9-10 for any decent player).
                 # Compress: 10→17, 8→14, 5→9. Prevents understat-only
                 # players from scoring as if they had elite scout grades.
                 score_20 = min(g["stat_score"] * 1.7, 17)
             else:
-                # StatsBomb, API-Football, computed, fbref: all 1-10 → 2-20
-                score_20 = min(g["stat_score"] * 2, 20)
+                # StatsBomb, API-Football, computed, fbref: 1-10 → 2-18
+                # Cap at 18: scores of 19-20 reserved for scout assessment
+                score_20 = min(g["stat_score"] * 2, 18)
         else:
             continue
         priority = SOURCE_PRIORITY.get(source, 0)
@@ -248,9 +269,11 @@ def compute_model_scores(grades, level=None):
     anchored_scores = {}
     raw_scores = {}
     for model, attrs in MODEL_ATTRIBUTES.items():
-        # Try each attribute, falling back to alias if primary is missing
-        # Track which underlying attrs we've used to prevent double-counting
+        # Try each attribute, falling back to alias if primary is missing.
+        # Aliases are proxies — discount them (0.7× weight) to prevent
+        # cross-model inflation (e.g. take_ons inflating both Dribbler and Creator).
         values = []
+        alias_count = 0
         used_attrs = set()
         for a in attrs:
             if a in best:
@@ -259,14 +282,20 @@ def compute_model_scores(grades, level=None):
             else:
                 alias = ATTRIBUTE_ALIASES.get(a)
                 if alias and alias in best and alias not in used_attrs:
-                    values.append(best[alias][0])
+                    values.append(best[alias][0] * 0.7)  # discount proxy
                     used_attrs.add(alias)
+                    alias_count += 1
         if values:
             avg = sum(values) / len(values)
             full_score = min(avg * 5, 99)
 
-            # Light coverage penalty — trust the data we have
+            # Coverage: aliases count as half for confidence purposes
+            effective_coverage = len(values) - alias_count * 0.5
             confidence = COVERAGE_CONFIDENCE.get(len(values), 0.70)
+            if alias_count > 0:
+                # Blend toward lower confidence when aliases pad the count
+                real_conf = COVERAGE_CONFIDENCE.get(len(values) - alias_count, 0.70)
+                confidence = (confidence + real_conf) / 2
             raw_score = full_score * confidence
             raw_scores[model] = round(raw_score)
 
@@ -280,10 +309,15 @@ def compute_model_scores(grades, level=None):
     return anchored_scores, raw_scores
 
 
-def compute_compound_scores(model_scores):
-    """Compute compound scores from model scores."""
+def compute_compound_scores(model_scores, position=None):
+    """Compute compound scores from model scores.
+
+    GKs use GK-specific compound groupings that exclude irrelevant
+    outfield models (Striker, Dribbler, etc.) which add noise.
+    """
+    compound_map = GK_COMPOUND_MODELS if position == "GK" else COMPOUND_MODELS
     compounds = {}
-    for compound, models in COMPOUND_MODELS.items():
+    for compound, models in compound_map.items():
         values = [model_scores[m] for m in models if m in model_scores]
         if values:
             compounds[compound] = round(sum(values) / len(values))
@@ -319,10 +353,11 @@ def compute_overall(compound_scores, position, level=None, peak=None, grade_coun
     technical_overall = weighted_sum / total_weight
 
     # Scale tech weight by data coverage: more grades → trust data more
-    # 40+ grades → tech_pct=0.50, 20 grades → 0.35, 10 grades → 0.20
-    # Clamp between 0.20 and 0.50
+    # 50+ grades → tech_pct=0.65, 20 grades → 0.40, 8 grades → 0.30
+    # Minimum 0.30 prevents level from dominating thin profiles.
+    # Maximum 0.65 ensures data-rich players are primarily data-driven.
     if level is not None:
-        tech_pct = min(0.50, max(0.20, grade_count / 80))
+        tech_pct = min(0.65, max(0.30, grade_count / 80))
         editorial_pct = 1.0 - tech_pct
         overall = technical_overall * tech_pct + level * editorial_pct
     else:
@@ -549,20 +584,36 @@ def main():
             stats["skipped_no_position"] += 1
             continue
 
-        anchored_scores, raw_scores = compute_model_scores(grades, level=profile.get("level"))
+        position = profile["position"]
+        level = profile.get("level")
+        peak = profile.get("peak")
+
+        anchored_scores, raw_scores = compute_model_scores(grades, level=level, position=position)
 
         if not has_differentiated_data(anchored_scores):
             stats["skipped_flat"] += 1
             continue
 
         # Anchored scores for compound/overall (tolerant of thin data)
-        compound_scores = compute_compound_scores(anchored_scores)
+        compound_scores = compute_compound_scores(anchored_scores, position=position)
 
-        position = profile["position"]
-        level = profile.get("level")
-        peak = profile.get("peak")
+        # For GKs, only count GK-relevant grades for coverage weighting.
+        # Outfield metrics (creativity=1, vision=1 from understat) are noise for GKs.
+        GK_RELEVANT_ATTRS = {
+            "agility", "footwork", "handling", "reactions", "positioning",
+            "awareness", "pass_range", "throwing", "aerial_duels", "close_range",
+            "jumping", "acceleration", "pace", "composure", "communication",
+        }
+        if position == "GK":
+            effective_grade_count = sum(
+                1 for g in grades
+                if g["attribute"].lower().replace(" ", "_") in GK_RELEVANT_ATTRS
+                or g.get("source") == "scout_assessment"
+            )
+        else:
+            effective_grade_count = len(grades)
 
-        overall = compute_overall(compound_scores, position, level, peak, grade_count=len(grades))
+        overall = compute_overall(compound_scores, position, level, peak, grade_count=effective_grade_count)
 
         if overall is None:
             continue
@@ -615,16 +666,8 @@ def main():
             level_floor = min(max(level - gap, 50), 90)
             best_role_score = max(best_role_score, level_floor)
 
-            # GK data gap: GK-specific attributes (positioning, throwing, etc.)
-            # are poorly captured by non-scout data sources.
-            # Only boost truly sparse unscouted GKs (<20 grades).
-            # GKs with 20+ grades from EAFC/StatsBomb/Understat have enough
-            # signal — let the data-density floor above handle them.
-            if position == "GK" and grade_count < 20:
-                has_scout = any(g.get("source") == "scout_assessment" for g in grades)
-                if not has_scout:
-                    gk_floor = min(level + 2, 90)
-                    best_role_score = max(best_role_score, gk_floor)
+            # GK boost removed: EAFC data now provides baseline GK grades,
+            # so the standard data-density floor above handles GKs correctly.
 
         results.append({
             "person_id": pid,

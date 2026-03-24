@@ -631,13 +631,14 @@ function PackReveal({
             </div>
           )}
 
-          {/* Cards */}
-          <div className="flex gap-5 items-end">
+          {/* Cards — smaller when more than 3 */}
+          <div className={`flex items-end justify-center ${cards.length > 3 ? 'gap-1 sm:gap-2 flex-wrap max-w-md' : 'gap-2 sm:gap-5'}`}>
             {cards.map((card, i) => {
               const isRevealed = i <= revealedIdx;
               const isPicked = i === pickedIdx;
               const isDiscarded = pickedIdx >= 0 && i !== pickedIdx;
               const rarityColor = RARITY_COLORS[card.rarity] ?? '#71717a';
+              const compactMode = cards.length > 3;
               const matchesWeakness = nextOpponentWeakness && card.archetype === nextOpponentWeakness;
               const unlockedSynergy = nearSynergies?.find(ns => card.tacticalRole === ns.missing);
 
@@ -668,10 +669,10 @@ function PackReveal({
                         onClick={() => phase === 'revealed' && handlePick(i)}
                         className={phase === 'revealed' ? 'cursor-pointer' : ''}
                       >
-                        <CardDisplay card={card} />
+                        <CardDisplay card={card} size={compactMode ? 'small' : 'normal'} />
                       </div>
-                      {/* Badges below card */}
-                      {isRevealed && phase === 'revealed' && (
+                      {/* Badges below card (pick mode only, not compact) */}
+                      {isRevealed && phase === 'revealed' && !compactMode && (
                         <div className="mt-2 space-y-1">
                           {matchesWeakness && (
                             <div className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-900/40 text-green-300 border border-green-700/30 text-center">
@@ -696,11 +697,11 @@ function PackReveal({
                         background: 'linear-gradient(135deg, #1a1a2e 0%, #0a0a18 100%)',
                         border: `2px solid ${rarityColor}`,
                         boxShadow: `0 0 20px ${rarityColor}40, 0 0 40px ${rarityColor}20`,
-                        width: 130,
-                        height: 170,
+                        width: compactMode ? 100 : 130,
+                        height: compactMode ? 125 : 170,
                       }}
                     >
-                      <div className="text-3xl animate-pulse" style={{ color: rarityColor }}>?</div>
+                      <div className={`${compactMode ? 'text-xl' : 'text-3xl'} animate-pulse`} style={{ color: rarityColor }}>?</div>
                     </div>
                   </div>
 
@@ -1265,7 +1266,7 @@ function SetupPhase({ onStart }: {
       </div>
 
       {/* Step indicator */}
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-1 sm:gap-2 items-center flex-wrap justify-center">
         {(['style', 'player_pack', 'tactical_pack', 'manager_pack', 'ready'] as SetupStep[]).map((s, i) => {
           const labels = ['Style', 'Squad', 'Tactics', 'Manager', 'Ready'];
           const active = s === step;
@@ -1381,7 +1382,7 @@ function SetupPhase({ onStart }: {
           <div className="animate-[slamIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)] text-center space-y-6">
             <div className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Formation</div>
             <div
-              className="text-7xl font-black"
+              className="text-5xl sm:text-7xl font-black"
               style={{
                 fontFamily: 'var(--font-display, "Clash Display", sans-serif)',
                 color: '#a855f7',

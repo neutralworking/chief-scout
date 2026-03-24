@@ -117,12 +117,24 @@ async function getDashboardData() {
   let featuredPool: FeaturedProfile[] = [];
 
   // Build a large pool: DOF picks up front (weighted), then broad Tier 1 discovery
-  // Filter for LLM-quality bios (80+ chars, contains a period = real sentences)
-  const hasQualityBio = (p: FeaturedProfile) =>
-    p.scouting_notes && p.scouting_notes.length >= 80 && p.scouting_notes.includes(".");
+  // Filter for pipeline-quality bios: 120+ chars, real sentences (period + space pattern),
+  // and reject Obsidian-style fragments (bullet points, markdown headers, short lines)
+  const hasQualityBio = (p: FeaturedProfile) => {
+    const n = p.scouting_notes;
+    if (!n || n.length < 120) return false;
+    // Must have proper sentences (period followed by space or end)
+    if (!/\.\s/.test(n)) return false;
+    // Reject Obsidian-style notes: bullet points, markdown headers, wiki links
+    if (/^[-*#]|\[\[|^>/.test(n.trim())) return false;
+    return true;
+  };
+
+  // Reject retired, clubless, or skeleton players
+  const isViableFeatured = (p: FeaturedProfile) =>
+    p.club && p.position && p.overall_pillar_score != null && hasQualityBio(p);
 
   const dofCandidates = ((dofPicksResult.data ?? []) as Array<FeaturedProfile & { pursuit_status: string }>)
-    .filter(hasQualityBio);
+    .filter(isViableFeatured);
   const dofIds = new Set(dofCandidates.map((p) => p.person_id));
 
   // Always fetch broad discovery pool (active players with quality bios)
@@ -136,7 +148,7 @@ async function getDashboardData() {
     .order("level", { ascending: false })
     .limit(500);
   const discoveryPlayers = ((discoveryData ?? []) as FeaturedProfile[])
-    .filter((p) => !dofIds.has(p.person_id) && hasQualityBio(p));
+    .filter((p) => !dofIds.has(p.person_id) && isViableFeatured(p));
 
   // DOF picks appear 3x in the pool for weighting, then discovery fills the rest
   const weightedPool: FeaturedProfile[] = [

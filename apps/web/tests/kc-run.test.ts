@@ -62,19 +62,22 @@ function makeCard(overrides: Partial<Card> = {}): Card {
 // ---------------------------------------------------------------------------
 
 describe("getFormationSlots", () => {
-  it("returns 5 slots for 4-3-3", () => {
+  it("returns 11 slots for 4-3-3", () => {
     const slots = getFormationSlots("4-3-3");
-    expect(slots).toEqual(["CD", "WD", "CM", "WF", "CF"]);
+    expect(slots).toHaveLength(11);
+    expect(slots[0]).toBe("GK");
   });
 
-  it("returns 5 slots for 4-4-2", () => {
+  it("returns 11 slots for 4-4-2", () => {
     const slots = getFormationSlots("4-4-2");
-    expect(slots).toEqual(["CD", "WM", "CM", "CM2", "CF"]);
+    expect(slots).toHaveLength(11);
+    expect(slots[0]).toBe("GK");
   });
 
-  it("returns 5 slots for 3-5-2", () => {
+  it("returns 11 slots for 3-5-2", () => {
     const slots = getFormationSlots("3-5-2");
-    expect(slots).toEqual(["CD", "DM", "CM", "WM", "CF"]);
+    expect(slots).toHaveLength(11);
+    expect(slots[0]).toBe("GK");
   });
 
   it("falls back to 4-3-3 for unknown formation", () => {
@@ -135,20 +138,17 @@ describe("getOpponent", () => {
 // ---------------------------------------------------------------------------
 
 describe("generateStarterDeck", () => {
-  it("returns exactly 8 cards (5 common + 2 rare + 1 epic)", () => {
+  it("returns 18 cards for a full squad", () => {
     const deck = generateStarterDeck(SEED);
-    expect(deck).toHaveLength(8);
+    expect(deck).toHaveLength(18);
   });
 
-  it("contains correct rarity distribution", () => {
+  it("contains at least 1 GK and 2 CD for position coverage", () => {
     const deck = generateStarterDeck(SEED);
-    const counts: Record<string, number> = {};
-    for (const c of deck) {
-      counts[c.rarity] = (counts[c.rarity] ?? 0) + 1;
-    }
-    expect(counts["Common"]).toBe(5);
-    expect(counts["Rare"]).toBe(2);
-    expect(counts["Epic"]).toBe(1);
+    const positions = deck.map(c => c.position);
+    expect(positions.filter(p => p === "GK").length).toBeGreaterThanOrEqual(1);
+    expect(positions.filter(p => p === "CD").length).toBeGreaterThanOrEqual(2);
+    expect(positions.filter(p => p === "CF" || p === "WF" || p === "AM").length).toBeGreaterThanOrEqual(2);
   });
 
   it("is deterministic — same seed produces same deck", () => {
@@ -189,9 +189,9 @@ describe("createRun", () => {
     expect(run.modifiers).toEqual([]);
   });
 
-  it("deck has 8 cards", () => {
+  it("deck has 18 cards", () => {
     const run = createRun("4-3-3", "Tiki-Taka", SEED);
-    expect(run.deck).toHaveLength(8);
+    expect(run.deck).toHaveLength(18);
   });
 
   it("bench equals deck at start (no lineup yet)", () => {
@@ -234,11 +234,10 @@ describe("startMatch", () => {
     expect(started.matchState).not.toBeNull();
   });
 
-  it("populates lineup with up to 5 slotted cards", () => {
+  it("populates lineup with 11 slotted cards", () => {
     const run = createRun("4-3-3", "Tiki-Taka", SEED);
     const started = startMatch(run);
-    expect(started.lineup.length).toBeLessThanOrEqual(5);
-    expect(started.lineup.length).toBeGreaterThan(0);
+    expect(started.lineup.length).toBe(11);
   });
 
   it("bench + lineup accounts for all deck cards", () => {
@@ -576,10 +575,10 @@ describe("upgradeAcademy", () => {
 // ---------------------------------------------------------------------------
 
 describe("shuffleAndSelectXI", () => {
-  it("XI has at most 5 cards (one per slot)", () => {
+  it("XI has 11 cards (one per slot)", () => {
     const deck = generateStarterDeck(SEED);
     const { xi } = shuffleAndSelectXI(deck, "4-3-3", SEED);
-    expect(xi.length).toBeLessThanOrEqual(5);
+    expect(xi.length).toBe(11);
   });
 
   it("no card appears in both XI and bench", () => {

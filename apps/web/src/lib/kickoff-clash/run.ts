@@ -26,9 +26,45 @@ import kcCharactersData from '../../../public/data/kc_characters.json';
 // Types
 // ---------------------------------------------------------------------------
 
+export interface ManagerCard {
+  id: string;
+  name: string;
+  description: string;
+  effect: {
+    styleBonusMultiplier?: number;   // Extra % per style-aligned card
+    cashBonus?: number;              // Extra starting cash
+    defenseBonus?: number;           // Flat opponent goal reduction
+    attackBonus?: number;            // Flat your goal boost
+    fanMultiplier?: number;          // Revenue multiplier
+    academyDiscount?: number;        // Academy cost reduction
+  };
+}
+
+export const MANAGER_CARDS: ManagerCard[] = [
+  { id: 'pep', name: 'The Perfectionist', description: 'Tiki-Taka bonus doubled', effect: { styleBonusMultiplier: 0.08 } },
+  { id: 'mourinho', name: 'The Pragmatist', description: 'Opponents score 5% less', effect: { defenseBonus: 0.05 } },
+  { id: 'klopp', name: 'The Motivator', description: 'Your team scores 5% more', effect: { attackBonus: 0.05 } },
+  { id: 'wenger', name: 'The Professor', description: 'Academy costs halved', effect: { academyDiscount: 0.5 } },
+  { id: 'fergie', name: 'The Hairdryer', description: '+50% gate revenue', effect: { fanMultiplier: 1.5 } },
+  { id: 'conte', name: 'The Drillmaster', description: '+£5,000 starting cash', effect: { cashBonus: 5000 } },
+  { id: 'ancelotti', name: 'The Diplomat', description: 'All bonuses slightly boosted', effect: { styleBonusMultiplier: 0.03, defenseBonus: 0.02, attackBonus: 0.02 } },
+  { id: 'bielsa', name: 'The Madman', description: '+10% attack, +5% concede', effect: { attackBonus: 0.10, defenseBonus: -0.05 } },
+];
+
+export function getRandomManager(seed: number): ManagerCard {
+  const idx = Math.floor(seededRandom(seed) * MANAGER_CARDS.length);
+  return MANAGER_CARDS[idx];
+}
+
+export function getRandomFormation(seed: number): string {
+  const idx = Math.floor(seededRandom(seed) * FORMATIONS.length);
+  return FORMATIONS[idx];
+}
+
 export interface RunState {
   formation: string;
   playingStyle: string;
+  manager: ManagerCard | null;
   deck: Card[];
   lineup: SlottedCard[];
   bench: Card[];
@@ -109,28 +145,40 @@ export interface DurabilityResult {
 }
 
 // ---------------------------------------------------------------------------
-// Formation Slots (5-slot prototype)
+// Formation Slots (full XI — 11 players)
 // ---------------------------------------------------------------------------
 
 const FORMATION_SLOTS: Record<string, string[]> = {
-  '4-3-3': ['CD', 'WD', 'CM', 'WF', 'CF'],
-  '4-4-2': ['CD', 'WM', 'CM', 'CM2', 'CF'],
-  '3-5-2': ['CD', 'DM', 'CM', 'WM', 'CF'],
+  '4-3-3': ['GK', 'CD_L', 'CD_R', 'WD_L', 'WD_R', 'CM_L', 'CM', 'CM_R', 'WF_L', 'WF_R', 'CF'],
+  '4-4-2': ['GK', 'CD_L', 'CD_R', 'WD_L', 'WD_R', 'WM_L', 'CM_L', 'CM_R', 'WM_R', 'CF_L', 'CF_R'],
+  '3-5-2': ['GK', 'CD_L', 'CD', 'CD_R', 'WM_L', 'DM', 'CM_L', 'CM_R', 'WM_R', 'CF_L', 'CF_R'],
+  '3-4-3': ['GK', 'CD_L', 'CD', 'CD_R', 'WM_L', 'CM_L', 'CM_R', 'WM_R', 'WF_L', 'WF_R', 'CF'],
+  '4-2-3-1': ['GK', 'CD_L', 'CD_R', 'WD_L', 'WD_R', 'DM_L', 'DM_R', 'AM_L', 'AM', 'AM_R', 'CF'],
+  '5-3-2': ['GK', 'CD_L', 'CD', 'CD_R', 'WD_L', 'WD_R', 'CM_L', 'CM', 'CM_R', 'CF_L', 'CF_R'],
 };
+
+/** All available formation names */
+export const FORMATIONS = Object.keys(FORMATION_SLOTS);
 
 export function getFormationSlots(formation: string): string[] {
   return FORMATION_SLOTS[formation] ?? FORMATION_SLOTS['4-3-3'];
 }
 
+/** Strip L/R suffix to get the base position for a slot */
+function slotBasePosition(slot: string): string {
+  return slot.replace(/_[LR]$/, '');
+}
+
 const SLOT_DISPLAY: Record<string, string> = {
-  CD: 'Centre-Back',
-  WD: 'Full-Back',
-  DM: 'Def. Mid',
-  CM: 'Central Mid',
-  CM2: 'Central Mid',
-  WM: 'Wide Mid',
-  WF: 'Winger',
-  CF: 'Striker',
+  GK: 'Goalkeeper',
+  CD: 'Centre-Back', CD_L: 'Left CB', CD_R: 'Right CB',
+  WD: 'Full-Back', WD_L: 'Left-Back', WD_R: 'Right-Back',
+  DM: 'Def. Mid', DM_L: 'Left DM', DM_R: 'Right DM',
+  CM: 'Central Mid', CM_L: 'Left CM', CM_R: 'Right CM',
+  WM: 'Wide Mid', WM_L: 'Left WM', WM_R: 'Right WM',
+  AM: 'Att. Mid', AM_L: 'Left AM', AM_R: 'Right AM',
+  WF: 'Winger', WF_L: 'Left Wing', WF_R: 'Right Wing',
+  CF: 'Striker', CF_L: 'Left ST', CF_R: 'Right ST',
 };
 
 export function getSlotDisplayName(slot: string): string {
@@ -139,25 +187,46 @@ export function getSlotDisplayName(slot: string): string {
 
 const SLOT_POSITIONS: Record<string, Record<string, { x: number; y: number }>> = {
   '4-3-3': {
-    CD: { x: 50, y: 78 },
-    WD: { x: 15, y: 65 },
-    CM: { x: 50, y: 50 },
-    WF: { x: 15, y: 28 },
-    CF: { x: 50, y: 15 },
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 35, y: 78 }, CD_R: { x: 65, y: 78 },
+    WD_L: { x: 10, y: 68 }, WD_R: { x: 90, y: 68 },
+    CM_L: { x: 30, y: 50 }, CM: { x: 50, y: 50 }, CM_R: { x: 70, y: 50 },
+    WF_L: { x: 15, y: 25 }, WF_R: { x: 85, y: 25 },
+    CF: { x: 50, y: 12 },
   },
   '4-4-2': {
-    CD: { x: 50, y: 78 },
-    WM: { x: 15, y: 55 },
-    CM: { x: 40, y: 50 },
-    CM2: { x: 60, y: 50 },
-    CF: { x: 50, y: 18 },
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 35, y: 78 }, CD_R: { x: 65, y: 78 },
+    WD_L: { x: 10, y: 68 }, WD_R: { x: 90, y: 68 },
+    WM_L: { x: 12, y: 48 }, CM_L: { x: 38, y: 50 }, CM_R: { x: 62, y: 50 }, WM_R: { x: 88, y: 48 },
+    CF_L: { x: 35, y: 15 }, CF_R: { x: 65, y: 15 },
   },
   '3-5-2': {
-    CD: { x: 50, y: 78 },
-    DM: { x: 35, y: 60 },
-    CM: { x: 65, y: 50 },
-    WM: { x: 15, y: 40 },
-    CF: { x: 50, y: 18 },
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 28, y: 78 }, CD: { x: 50, y: 80 }, CD_R: { x: 72, y: 78 },
+    WM_L: { x: 8, y: 50 }, DM: { x: 50, y: 60 }, CM_L: { x: 35, y: 45 }, CM_R: { x: 65, y: 45 }, WM_R: { x: 92, y: 50 },
+    CF_L: { x: 38, y: 15 }, CF_R: { x: 62, y: 15 },
+  },
+  '3-4-3': {
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 28, y: 78 }, CD: { x: 50, y: 80 }, CD_R: { x: 72, y: 78 },
+    WM_L: { x: 10, y: 48 }, CM_L: { x: 38, y: 50 }, CM_R: { x: 62, y: 50 }, WM_R: { x: 90, y: 48 },
+    WF_L: { x: 15, y: 22 }, WF_R: { x: 85, y: 22 }, CF: { x: 50, y: 12 },
+  },
+  '4-2-3-1': {
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 35, y: 78 }, CD_R: { x: 65, y: 78 },
+    WD_L: { x: 10, y: 68 }, WD_R: { x: 90, y: 68 },
+    DM_L: { x: 38, y: 56 }, DM_R: { x: 62, y: 56 },
+    AM_L: { x: 18, y: 35 }, AM: { x: 50, y: 35 }, AM_R: { x: 82, y: 35 },
+    CF: { x: 50, y: 12 },
+  },
+  '5-3-2': {
+    GK: { x: 50, y: 92 },
+    CD_L: { x: 28, y: 78 }, CD: { x: 50, y: 80 }, CD_R: { x: 72, y: 78 },
+    WD_L: { x: 8, y: 65 }, WD_R: { x: 92, y: 65 },
+    CM_L: { x: 30, y: 48 }, CM: { x: 50, y: 48 }, CM_R: { x: 70, y: 48 },
+    CF_L: { x: 38, y: 15 }, CF_R: { x: 62, y: 15 },
   },
 };
 
@@ -170,16 +239,15 @@ export function getSlotPosition(formation: string, slot: string): { x: number; y
 // ---------------------------------------------------------------------------
 
 const SLOT_ELIGIBLE_POSITIONS: Record<string, string[]> = {
-  GK:  ['GK'],
-  CD:  ['CD', 'DM'],
-  WD:  ['WD', 'WM'],
-  DM:  ['DM', 'CM', 'CD'],
-  CM:  ['CM', 'DM', 'AM'],
-  CM2: ['CM', 'DM', 'AM'],
-  WM:  ['WM', 'WD', 'WF'],
-  AM:  ['AM', 'CM', 'WF'],
-  WF:  ['WF', 'WM', 'AM'],
-  CF:  ['CF', 'AM', 'WF'],
+  GK:   ['GK'],
+  CD:   ['CD', 'DM'], CD_L: ['CD', 'DM'], CD_R: ['CD', 'DM'],
+  WD:   ['WD', 'WM'], WD_L: ['WD', 'WM'], WD_R: ['WD', 'WM'],
+  DM:   ['DM', 'CM', 'CD'], DM_L: ['DM', 'CM', 'CD'], DM_R: ['DM', 'CM', 'CD'],
+  CM:   ['CM', 'DM', 'AM'], CM_L: ['CM', 'DM', 'AM'], CM_R: ['CM', 'DM', 'AM'],
+  WM:   ['WM', 'WD', 'WF'], WM_L: ['WM', 'WD', 'WF'], WM_R: ['WM', 'WD', 'WF'],
+  AM:   ['AM', 'CM', 'WF'], AM_L: ['AM', 'CM', 'WF'], AM_R: ['AM', 'CM', 'WF'],
+  WF:   ['WF', 'WM', 'AM'], WF_L: ['WF', 'WM', 'AM'], WF_R: ['WF', 'WM', 'AM'],
+  CF:   ['CF', 'AM', 'WF'], CF_L: ['CF', 'AM', 'WF'], CF_R: ['CF', 'AM', 'WF'],
 };
 
 // ---------------------------------------------------------------------------
@@ -723,20 +791,59 @@ export const SAMPLE_ACTION_DECK: ActionCard[] = [
 // ---------------------------------------------------------------------------
 
 /**
- * Generate a starter deck: 5 common, 2 rare, 1 epic (seeded)
- * Ensures position coverage (at least 1 GK/CD, 1 CM, 1 CF/WF)
+ * Generate a starter deck: 18 cards (XI + 7 bench) with position coverage.
+ * Guarantees at least 1 GK, 2 CD, 2 WD, 3 CM, 2 WF/WM, 2 CF.
+ * Rarity: 8 Common, 6 Rare, 3 Epic, 1 Legendary.
  */
 export function generateStarterDeck(seed: number): Card[] {
   const pool = ALL_CARDS;
-  const commons = pool.filter(c => c.rarity === 'Common');
-  const rares = pool.filter(c => c.rarity === 'Rare');
-  const epics = pool.filter(c => c.rarity === 'Epic');
+  const picked: Card[] = [];
+  const usedIds = new Set<number>();
 
-  const picked: Card[] = [
-    ...seededShuffle(commons, seed).slice(0, 5),
-    ...seededShuffle(rares, seed + 100).slice(0, 2),
-    ...seededShuffle(epics, seed + 200).slice(0, 1),
+  // Helper: pick one card matching position filter
+  const pickOne = (filter: (c: Card) => boolean, s: number): Card | null => {
+    const eligible = seededShuffle(pool.filter(c => filter(c) && !usedIds.has(c.id)), s);
+    if (eligible.length === 0) return null;
+    usedIds.add(eligible[0].id);
+    return eligible[0];
+  };
+
+  // Phase 1: Guarantee position coverage (12 cards)
+  const posNeeds: [string[], number][] = [
+    [['GK'], seed + 1],
+    [['CD'], seed + 2], [['CD'], seed + 3],
+    [['WD'], seed + 4], [['WD'], seed + 5],
+    [['CM', 'DM'], seed + 6], [['CM', 'DM'], seed + 7], [['CM', 'DM'], seed + 8],
+    [['WF', 'WM'], seed + 9], [['WF', 'WM'], seed + 10],
+    [['CF'], seed + 11], [['CF', 'WF', 'AM'], seed + 12],
   ];
+  for (const [positions, s] of posNeeds) {
+    const card = pickOne(c => positions.includes(c.position), s);
+    if (card) picked.push(card);
+  }
+
+  // Phase 2: Fill to 18 with rarity targets (cap at 18 total)
+  const rarityTargets: [string, number][] = [
+    ['Legendary', 1], ['Epic', 3], ['Rare', 6], ['Common', 8],
+  ];
+  for (const [rarity, target] of rarityTargets) {
+    if (picked.length >= 18) break;
+    const current = picked.filter(c => c.rarity === rarity).length;
+    const need = Math.min(Math.max(0, target - current), 18 - picked.length);
+    const extras = seededShuffle(pool.filter(c => c.rarity === rarity && !usedIds.has(c.id)), seed + 50 + target)
+      .slice(0, need);
+    for (const c of extras) {
+      usedIds.add(c.id);
+      picked.push(c);
+    }
+  }
+
+  // Phase 3: If still under 18, fill with any remaining
+  while (picked.length < 18) {
+    const card = pickOne(() => true, seed + 900 + picked.length);
+    if (!card) break;
+    picked.push(card);
+  }
 
   return seededShuffle(picked, seed + 300);
 }
@@ -749,22 +856,32 @@ export function generateStarterActionDeck(seed: number): ActionCard[] {
 }
 
 /**
- * Initialize a new run
+ * Initialize a new run from starter pack results.
+ * Formation comes from tactical pack, manager from manager pack, deck from player pack.
  */
-export function createRun(formation: string, style: string, seed?: number): RunState {
+export function createRun(
+  formation: string,
+  style: string,
+  seed?: number,
+  manager?: ManagerCard | null,
+  starterDeck?: Card[],
+): RunState {
   const runSeed = seed ?? Math.floor(Math.random() * 1000000);
-  const deck = generateStarterDeck(runSeed);
+  const deck = starterDeck ?? generateStarterDeck(runSeed);
   const actionDeck = generateStarterActionDeck(runSeed + 500);
+  const mgr = manager ?? null;
+  const baseCash = 10000 + (mgr?.effect.cashBonus ?? 0);
 
   return {
     formation,
     playingStyle: style,
+    manager: mgr,
     deck,
     lineup: [],
     bench: [...deck],
     actionDeck,
     hand: [],
-    cash: 10000,
+    cash: baseCash,
     stadiumTier: 1,
     ticketPriceBonus: 0,
     academyTier: 1,

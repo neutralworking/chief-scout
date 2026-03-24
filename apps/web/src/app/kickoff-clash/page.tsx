@@ -10,8 +10,10 @@ import {
   analyzeDeck,
   ALL_CARDS, loadCardsFromDB,
   createSubCards, executeSubstitution,
+  generateStarterDeck, getRandomFormation, getRandomManager,
+  FORMATIONS, MANAGER_CARDS,
 } from '@/lib/kickoff-clash/run';
-import type { OpponentBuild, OpponentPlayer } from '@/lib/kickoff-clash/run';
+import type { OpponentBuild, OpponentPlayer, ManagerCard } from '@/lib/kickoff-clash/run';
 import {
   PLAYING_STYLES, type Card, type SlottedCard, type Durability,
   type MatchState, type RoundResult,
@@ -392,12 +394,14 @@ function PackReveal({
   onCancel,
   nextOpponentWeakness,
   nearSynergies,
+  isRevealOnly = false,
 }: {
   cards: Card[];
   onPick: (card: Card) => void;
   onCancel: () => void;
   nextOpponentWeakness?: string;
   nearSynergies?: { name: string; missing: string }[];
+  isRevealOnly?: boolean;
 }) {
   const [phase, setPhase] = useState<PackPhase>('sealed');
   const [revealedIdx, setRevealedIdx] = useState(-1);
@@ -716,7 +720,7 @@ function PackReveal({
           </div>
 
           {/* Instructions */}
-          {phase === 'revealed' && (
+          {phase === 'revealed' && !isRevealOnly && (
             <div className="text-white/60 text-sm font-bold uppercase tracking-widest">
               Pick a card to sign
             </div>
@@ -734,8 +738,18 @@ function PackReveal({
             </div>
           )}
 
-          {/* Cancel */}
-          {phase === 'revealed' && (
+          {/* Reveal-only: dismiss button instead of pick */}
+          {phase === 'revealed' && isRevealOnly && (
+            <button
+              onClick={onCancel}
+              className="px-8 py-3 rounded-lg font-bold uppercase bg-[var(--color-accent-primary)] text-white hover:brightness-110 active:scale-95 transition-all"
+            >
+              Continue
+            </button>
+          )}
+
+          {/* Cancel (pick mode only) */}
+          {phase === 'revealed' && !isRevealOnly && (
             <button
               onClick={onCancel}
               className="text-sm text-white/30 hover:text-white/60 transition-colors mt-2"
@@ -1211,74 +1225,269 @@ function formatEffect(card: ActionCard): string {
 // 1. Setup Phase
 // ---------------------------------------------------------------------------
 
-function SetupPhase({ onStart }: { onStart: (formation: string, style: string) => void }) {
-  const [formation, setFormation] = useState<string | null>(null);
+type SetupStep = 'style' | 'player_pack' | 'tactical_pack' | 'manager_pack' | 'ready';
+
+function SetupPhase({ onStart }: {
+  onStart: (formation: string, style: string, manager: ManagerCard, deck: Card[]) => void;
+}) {
+  const [step, setStep] = useState<SetupStep>('style');
   const [style, setStyle] = useState<string | null>(null);
-  const formations = ['4-3-3', '4-4-2', '3-5-2'];
+  const [seed] = useState(() => Date.now());
+
+  // Pack contents (generated once from seed)
+  const [starterDeck] = useState(() => generateStarterDeck(seed));
+  const [formation] = useState(() => getRandomFormation(seed + 777));
+  const [manager] = useState(() => getRandomManager(seed + 888));
+
+  // Pack reveal state
+  const [showPlayerPack, setShowPlayerPack] = useState(false);
+  const [showTacticalReveal, setShowTacticalReveal] = useState(false);
+  const [showManagerReveal, setShowManagerReveal] = useState(false);
+
+  // Split starter deck into 3 packs of 6 for reveal
+  const playerPacks = [
+    starterDeck.slice(0, 6),
+    starterDeck.slice(6, 12),
+    starterDeck.slice(12, 18),
+  ];
+  const [currentPackIdx, setCurrentPackIdx] = useState(0);
 
   return (
-    <div className="phase-setup flex flex-col items-center justify-center min-h-screen text-center space-y-10 p-6">
+    <div className="phase-setup flex flex-col items-center justify-center min-h-screen text-center space-y-8 p-6">
       <div>
-        <h1 className="text-6xl font-black tracking-tight uppercase mb-2">
+        <h1 className="text-5xl font-black tracking-tight uppercase mb-2">
           <span className="text-[var(--color-accent-primary)]">Kickoff</span>{' '}
           <span className="text-[var(--color-accent-secondary)]">Clash</span>
         </h1>
-        <p className="text-[var(--color-text-secondary)] text-lg">
+        <p className="text-[var(--color-text-secondary)]">
           Build your squad. Play your cards. Win the season.
         </p>
       </div>
 
-      {/* Formation */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Formation</h3>
-        <div className="flex gap-3">
-          {formations.map(f => (
-            <button key={f} onClick={() => setFormation(f)}
-              className={`px-6 py-3 rounded-lg font-bold text-lg transition-all border-2
-                ${formation === f
-                  ? 'border-[var(--color-accent-primary)] bg-[var(--color-accent-primary)]/20 text-white scale-105'
-                  : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-secondary)]'
-                }`}
-            >{f}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Style */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Playing Style</h3>
-        <div className="flex flex-wrap justify-center gap-3 max-w-xl">
-          {Object.entries(PLAYING_STYLES).map(([key, ps]) => (
-            <button key={key} onClick={() => setStyle(key)}
-              className={`px-4 py-3 rounded-lg transition-all text-left border-2 min-w-[160px]
-                ${style === key
-                  ? 'border-[var(--color-accent-primary)] bg-[var(--color-accent-primary)]/20 text-white scale-105'
-                  : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-secondary)]'
-                }`}
-            >
-              <div className="font-bold text-sm">{ps.name}</div>
-              <div className="text-[10px] text-[var(--color-text-muted)] mt-1">
-                {ps.bonusArchetypes.length > 0
-                  ? `+${(ps.multiplier * 100).toFixed(0)}% for ${ps.bonusArchetypes.join(', ')}`
-                  : `+${(ps.multiplier * 100).toFixed(0)}% flat per card`
-                }
+      {/* Step indicator */}
+      <div className="flex gap-2 items-center">
+        {(['style', 'player_pack', 'tactical_pack', 'manager_pack', 'ready'] as SetupStep[]).map((s, i) => {
+          const labels = ['Style', 'Squad', 'Tactics', 'Manager', 'Ready'];
+          const active = s === step;
+          const done = (['style', 'player_pack', 'tactical_pack', 'manager_pack', 'ready'] as SetupStep[]).indexOf(step) > i;
+          return (
+            <div key={s} className="flex items-center gap-2">
+              {i > 0 && <div className={`w-6 h-0.5 ${done ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--color-border-subtle)]'}`} />}
+              <div className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded
+                ${active ? 'text-white bg-[var(--color-accent-primary)]/30 border border-[var(--color-accent-primary)]'
+                  : done ? 'text-[var(--color-accent-primary)]' : 'text-[var(--color-text-muted)]'}`}>
+                {labels[i]}
               </div>
-            </button>
-          ))}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
-      <button
-        disabled={!formation || !style}
-        onClick={() => formation && style && onStart(formation, style)}
-        className={`px-10 py-4 rounded-lg text-lg font-black uppercase tracking-wide transition-all
-          ${formation && style
-            ? 'bg-[var(--color-accent-primary)] text-white hover:brightness-110 hover:scale-105 active:scale-95 shadow-lg shadow-[var(--color-accent-primary)]/30'
-            : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] cursor-not-allowed'
-          }`}
-      >
-        Kick Off
-      </button>
+      {/* === Step 1: Pick Style === */}
+      {step === 'style' && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Choose Your Playing Style</h3>
+          <div className="flex flex-wrap justify-center gap-3 max-w-xl">
+            {Object.entries(PLAYING_STYLES).map(([key, ps]) => (
+              <button key={key} onClick={() => setStyle(key)}
+                className={`px-4 py-3 rounded-lg transition-all text-left border-2 min-w-[160px]
+                  ${style === key
+                    ? 'border-[var(--color-accent-primary)] bg-[var(--color-accent-primary)]/20 text-white scale-105'
+                    : 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-secondary)]'
+                  }`}
+              >
+                <div className="font-bold text-sm">{ps.name}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] mt-1">
+                  {ps.bonusArchetypes.length > 0
+                    ? `+${(ps.multiplier * 100).toFixed(0)}% for ${ps.bonusArchetypes.join(', ')}`
+                    : `+${(ps.multiplier * 100).toFixed(0)}% flat per card`
+                  }
+                </div>
+              </button>
+            ))}
+          </div>
+          <button
+            disabled={!style}
+            onClick={() => style && setStep('player_pack')}
+            className={`px-8 py-3 rounded-lg font-black uppercase tracking-wide transition-all
+              ${style
+                ? 'bg-[var(--color-accent-primary)] text-white hover:brightness-110 active:scale-95'
+                : 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] cursor-not-allowed'
+              }`}
+          >
+            Open Starter Packs
+          </button>
+        </div>
+      )}
+
+      {/* === Step 2: Player Packs (3 packs of 6) === */}
+      {step === 'player_pack' && !showPlayerPack && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Starter Squad — Pack {currentPackIdx + 1} of 3
+          </h3>
+          <p className="text-xs text-[var(--color-text-secondary)]">
+            18 players for your squad. Open all 3 packs.
+          </p>
+          <button
+            onClick={() => setShowPlayerPack(true)}
+            className="px-8 py-4 rounded-lg font-black uppercase tracking-wide bg-gradient-to-r from-[#e91e8c] to-[#ff6b35] text-white hover:brightness-110 active:scale-95 transition-all shadow-lg"
+          >
+            Open Pack {currentPackIdx + 1}
+          </button>
+          {/* Show previously opened cards */}
+          {currentPackIdx > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center max-w-lg">
+              {starterDeck.slice(0, currentPackIdx * 6).map(card => (
+                <CardDisplay key={card.id} card={card} size="mini" />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {showPlayerPack && (
+        <PackReveal
+          cards={playerPacks[currentPackIdx]}
+          onPick={() => {
+            // All cards added — no pick needed, just reveal
+          }}
+          onCancel={() => {
+            setShowPlayerPack(false);
+            if (currentPackIdx < 2) {
+              setCurrentPackIdx(currentPackIdx + 1);
+            } else {
+              setStep('tactical_pack');
+            }
+          }}
+          isRevealOnly
+        />
+      )}
+
+      {/* === Step 3: Tactical Pack (formation reveal) === */}
+      {step === 'tactical_pack' && !showTacticalReveal && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Tactical Pack</h3>
+          <p className="text-xs text-[var(--color-text-secondary)]">Your formation for this run.</p>
+          <button
+            onClick={() => setShowTacticalReveal(true)}
+            className="px-8 py-4 rounded-lg font-black uppercase tracking-wide bg-gradient-to-r from-[#a855f7] to-[#6366f1] text-white hover:brightness-110 active:scale-95 transition-all shadow-lg"
+          >
+            Open Tactical Pack
+          </button>
+        </div>
+      )}
+      {showTacticalReveal && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
+          <div className="animate-[slamIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)] text-center space-y-6">
+            <div className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Formation</div>
+            <div
+              className="text-7xl font-black"
+              style={{
+                fontFamily: 'var(--font-display, "Clash Display", sans-serif)',
+                color: '#a855f7',
+                textShadow: '0 0 30px rgba(168,85,247,0.5), 0 0 60px rgba(168,85,247,0.2)',
+              }}
+            >
+              {formation}
+            </div>
+            <div className="text-xs text-[var(--color-text-secondary)]">
+              {getFormationSlots(formation).length} players — {getFormationSlots(formation).filter(s => s.startsWith('CD')).length} CB,{' '}
+              {getFormationSlots(formation).filter(s => s.startsWith('CM') || s.startsWith('DM') || s.startsWith('AM')).length} Mid,{' '}
+              {getFormationSlots(formation).filter(s => s.startsWith('CF') || s.startsWith('WF')).length} Att
+            </div>
+            <button
+              onClick={() => { setShowTacticalReveal(false); setStep('manager_pack'); }}
+              className="px-8 py-3 rounded-lg font-bold uppercase bg-[var(--color-accent-primary)] text-white hover:brightness-110 active:scale-95 transition-all"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* === Step 4: Manager Pack === */}
+      {step === 'manager_pack' && !showManagerReveal && (
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Manager Pack</h3>
+          <p className="text-xs text-[var(--color-text-secondary)]">Your gaffer for this run. Their style shapes your season.</p>
+          <button
+            onClick={() => setShowManagerReveal(true)}
+            className="px-8 py-4 rounded-lg font-black uppercase tracking-wide bg-gradient-to-r from-[#f59e0b] to-[#ef4444] text-white hover:brightness-110 active:scale-95 transition-all shadow-lg"
+          >
+            Open Manager Pack
+          </button>
+        </div>
+      )}
+      {showManagerReveal && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
+          <div className="animate-[slamIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)] text-center space-y-6">
+            <div className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Your Manager</div>
+            <div
+              className="text-5xl font-black"
+              style={{
+                fontFamily: 'var(--font-display, "Clash Display", sans-serif)',
+                color: '#f59e0b',
+                textShadow: '0 0 20px rgba(245,158,11,0.5)',
+              }}
+            >
+              {manager.name}
+            </div>
+            <div className="text-base text-[var(--color-text-secondary)] italic">
+              &ldquo;{manager.description}&rdquo;
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Object.entries(manager.effect).filter(([, v]) => v !== 0 && v !== undefined).map(([k, v]) => (
+                <div key={k} className="px-2 py-1 rounded text-[10px] font-bold bg-[var(--color-bg-elevated)] text-[var(--color-accent-gold)] border border-[var(--color-accent-gold)]/30">
+                  {k.replace(/([A-Z])/g, ' $1').trim()}: {typeof v === 'number' && v > 0 ? '+' : ''}{typeof v === 'number' ? (v < 1 && v > -1 ? `${(v * 100).toFixed(0)}%` : v.toLocaleString()) : v}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => { setShowManagerReveal(false); setStep('ready'); }}
+              className="px-8 py-3 rounded-lg font-bold uppercase bg-[var(--color-accent-primary)] text-white hover:brightness-110 active:scale-95 transition-all"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* === Step 5: Ready to go === */}
+      {step === 'ready' && style && (
+        <div className="space-y-6">
+          <div className="bg-[var(--color-bg-surface)] rounded-lg p-6 border border-[var(--color-border-subtle)] max-w-md space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="text-left">
+                <div className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)]">Formation</div>
+                <div className="text-2xl font-black">{formation}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)]">Style</div>
+                <div className="text-lg font-bold">{PLAYING_STYLES[style]?.name ?? style}</div>
+              </div>
+            </div>
+            <div className="border-t border-[var(--color-border-subtle)] pt-3">
+              <div className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Manager</div>
+              <div className="font-bold text-[var(--color-accent-gold)]">{manager.name}</div>
+              <div className="text-[10px] text-[var(--color-text-secondary)]">{manager.description}</div>
+            </div>
+            <div className="border-t border-[var(--color-border-subtle)] pt-3">
+              <div className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Squad ({starterDeck.length} players)</div>
+              <div className="flex flex-wrap gap-1 justify-center">
+                {starterDeck.map(card => (
+                  <CardDisplay key={card.id} card={card} size="mini" />
+                ))}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => onStart(formation, style, manager, starterDeck)}
+            className="px-10 py-4 rounded-lg text-lg font-black uppercase tracking-wide bg-[var(--color-accent-primary)] text-white hover:brightness-110 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[var(--color-accent-primary)]/30"
+          >
+            Kick Off
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2912,10 +3121,10 @@ export default function Home() {
     setActiveMatchState(saved.activeMatchState);
   }, []);
 
-  // 1. Setup -> create run, prepare pre-match
-  const handleStart = useCallback((formation: string, style: string) => {
+  // 1. Setup -> create run from starter packs, prepare pre-match
+  const handleStart = useCallback((formation: string, style: string, manager: ManagerCard, deck: Card[]) => {
     const seed = Date.now();
-    const run = createRun(formation, style, seed);
+    const run = createRun(formation, style, seed, manager, deck);
     // Immediately start match to populate XI
     const withMatch = startMatch(run);
     setRunState(withMatch);

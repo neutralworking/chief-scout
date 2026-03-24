@@ -136,7 +136,7 @@ function SquadBuilderPage() {
   const [xiIds, setXiIds] = useState<Set<number>>(new Set());
 
   // Filters
-  const [posFilter, setPosFilter] = useState<string | null>(null);
+  const [posFilter, setPosFilter] = useState<string | null>("GK");
   const [catFilter, setCatFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<"level" | "age" | "name">("level");
@@ -580,11 +580,11 @@ function SquadBuilderPage() {
 
         {/* ── Filters ── */}
         <div className="max-w-5xl mx-auto px-4 pt-2 pb-2 space-y-2">
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            <button onClick={() => setPosFilter(null)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: !posFilter ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>All</button>
+          <div className="flex gap-1 overflow-x-auto pb-1">
             {POSITIONS.map((pos) => (
-              <button key={pos} onClick={() => setPosFilter(posFilter === pos ? null : pos)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: posFilter === pos ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{pos}</button>
+              <button key={pos} onClick={() => setPosFilter(posFilter === pos ? null : pos)} className="px-2 py-1 rounded-full text-[9px] font-medium shrink-0 cursor-pointer" style={{ background: posFilter === pos ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{pos}</button>
             ))}
+            <button onClick={() => setPosFilter(null)} className="px-2 py-1 rounded-full text-[9px] font-medium shrink-0 cursor-pointer" style={{ background: !posFilter ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>All</button>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {POOL_CATEGORIES.map((cat) => (

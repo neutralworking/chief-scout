@@ -8,7 +8,7 @@ import {
   getOpponent, getOpponentBuild, getShopCards, addCardToDeck, sellCard,
   buyShopItem, buyAcademyPlayer, upgradeAcademy,
   analyzeDeck,
-  ALL_CARDS,
+  ALL_CARDS, loadCardsFromDB,
   createSubCards, executeSubstitution,
 } from '@/lib/kickoff-clash/run';
 import type { OpponentBuild, OpponentPlayer } from '@/lib/kickoff-clash/run';
@@ -26,6 +26,7 @@ import {
 import { type ActionCard, canPlayAction } from '@/lib/kickoff-clash/actions';
 import { findConnections } from '@/lib/kickoff-clash/chemistry';
 import { seededRandom } from '@/lib/kickoff-clash/scoring';
+import { dbCreateRun, dbUpdateRun, dbSaveMatch, dbEndRun } from '@/lib/kickoff-clash/db-sync';
 
 // ---------------------------------------------------------------------------
 // Visual Constants
@@ -103,8 +104,687 @@ function DurabilityBadge({ durability, small = false }: { durability: Durability
   );
 }
 
+// ---------------------------------------------------------------------------
+// Procedural Card Art — deterministic generative backgrounds from card data
+// ---------------------------------------------------------------------------
+
+// Hash string to number for seeded randomness
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// Seeded float 0-1
+function srand(seed: number, offset: number = 0): number {
+  const x = Math.sin((seed + offset) * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
+
+// Archetype → shape motif
+const ARCHETYPE_SHAPES: Record<string, 'circles' | 'diamonds' | 'lines' | 'triangles' | 'hexagons'> = {
+  Striker: 'triangles', Creator: 'circles', Engine: 'lines', Destroyer: 'diamonds',
+  Cover: 'hexagons', Controller: 'circles', Commander: 'diamonds', Passer: 'lines',
+  Sprinter: 'triangles', Target: 'hexagons', Powerhouse: 'diamonds', Dribbler: 'circles',
+  GK: 'hexagons',
+};
+
+// Theme → accent palette (2 colors for gradient stops)
+const THEME_ART_COLORS: Record<string, [string, string]> = {
+  General:   ['#334155', '#475569'],
+  Catalyst:  ['#7c2d12', '#9a3412'],
+  Maestro:   ['#1e3a2f', '#2d5a3f'],
+  Captain:   ['#4c1d3b', '#6b2654'],
+  Professor: ['#1e293b', '#2a3f5f'],
+};
+
+// Rarity → shimmer intensity
+const RARITY_SHIMMER: Record<string, number> = {
+  Common: 0, Rare: 0.06, Epic: 0.12, Legendary: 0.2,
+};
+
+function CardArt({ card, width, height }: { card: Card; width: number; height: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const seed = hashStr(card.name);
+    const shape = ARCHETYPE_SHAPES[card.archetype] ?? 'circles';
+    const [c1, c2] = THEME_ART_COLORS[card.personalityTheme ?? 'General'] ?? THEME_ART_COLORS.General;
+    const shimmer = RARITY_SHIMMER[card.rarity] ?? 0;
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, c1);
+    grad.addColorStop(1, c2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Geometric pattern layer
+    const count = 6 + Math.floor(srand(seed, 0) * 8);
+    ctx.globalAlpha = 0.12 + srand(seed, 99) * 0.08;
+
+    for (let i = 0; i < count; i++) {
+      const x = srand(seed, i * 7) * width;
+      const y = srand(seed, i * 13) * height;
+      const size = 8 + srand(seed, i * 19) * 30;
+      const rotation = srand(seed, i * 23) * Math.PI * 2;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.strokeStyle = `rgba(255,255,255,${0.15 + srand(seed, i * 31) * 0.2})`;
+      ctx.lineWidth = 1;
+
+      switch (shape) {
+        case 'circles':
+          ctx.beginPath();
+          ctx.arc(0, 0, size, 0, Math.PI * 2);
+          ctx.stroke();
+          if (srand(seed, i * 37) > 0.5) {
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          break;
+        case 'diamonds':
+          ctx.beginPath();
+          ctx.moveTo(0, -size);
+          ctx.lineTo(size * 0.7, 0);
+          ctx.lineTo(0, size);
+          ctx.lineTo(-size * 0.7, 0);
+          ctx.closePath();
+          ctx.stroke();
+          break;
+        case 'triangles':
+          ctx.beginPath();
+          ctx.moveTo(0, -size);
+          ctx.lineTo(size * 0.87, size * 0.5);
+          ctx.lineTo(-size * 0.87, size * 0.5);
+          ctx.closePath();
+          ctx.stroke();
+          break;
+        case 'hexagons':
+          ctx.beginPath();
+          for (let j = 0; j < 6; j++) {
+            const a = (Math.PI / 3) * j - Math.PI / 6;
+            const hx = Math.cos(a) * size;
+            const hy = Math.sin(a) * size;
+            j === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          break;
+        case 'lines':
+          ctx.beginPath();
+          ctx.moveTo(-size, -size * 0.3);
+          ctx.lineTo(size, size * 0.3);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.5, size * 0.5);
+          ctx.lineTo(size * 0.5, -size * 0.5);
+          ctx.stroke();
+          break;
+      }
+      ctx.restore();
+    }
+
+    // Power-scaled central motif (larger shape, centered)
+    const motifSize = 15 + (card.power / 100) * 35;
+    ctx.globalAlpha = 0.06 + (card.power / 100) * 0.06;
+    ctx.save();
+    ctx.translate(width / 2, height * 0.45);
+
+    const rarityColor = RARITY_COLORS[card.rarity] ?? '#888';
+    ctx.strokeStyle = rarityColor;
+    ctx.lineWidth = 1.5;
+
+    // Central emblem — always the archetype shape but big
+    if (shape === 'circles') {
+      ctx.beginPath();
+      ctx.arc(0, 0, motifSize, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, motifSize * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (shape === 'diamonds') {
+      ctx.beginPath();
+      ctx.moveTo(0, -motifSize);
+      ctx.lineTo(motifSize * 0.7, 0);
+      ctx.lineTo(0, motifSize);
+      ctx.lineTo(-motifSize * 0.7, 0);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (shape === 'triangles') {
+      ctx.beginPath();
+      ctx.moveTo(0, -motifSize);
+      ctx.lineTo(motifSize * 0.87, motifSize * 0.5);
+      ctx.lineTo(-motifSize * 0.87, motifSize * 0.5);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (shape === 'hexagons') {
+      ctx.beginPath();
+      for (let j = 0; j < 6; j++) {
+        const a = (Math.PI / 3) * j - Math.PI / 6;
+        const hx = Math.cos(a) * motifSize;
+        const hy = Math.sin(a) * motifSize;
+        j === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    } else {
+      // Lines — crossing pattern
+      for (let j = 0; j < 3; j++) {
+        const angle = (Math.PI / 3) * j;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * -motifSize, Math.sin(angle) * -motifSize);
+        ctx.lineTo(Math.cos(angle) * motifSize, Math.sin(angle) * motifSize);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // Rarity shimmer — diagonal highlight stripe
+    if (shimmer > 0) {
+      ctx.globalAlpha = shimmer;
+      const shGrad = ctx.createLinearGradient(0, 0, width, height);
+      shGrad.addColorStop(0, 'transparent');
+      shGrad.addColorStop(0.35, 'transparent');
+      shGrad.addColorStop(0.5, `rgba(255,255,255,${shimmer * 2})`);
+      shGrad.addColorStop(0.65, 'transparent');
+      shGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = shGrad;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Vignette
+    ctx.globalAlpha = 1;
+    const vig = ctx.createRadialGradient(width / 2, height / 2, width * 0.25, width / 2, height / 2, width * 0.8);
+    vig.addColorStop(0, 'transparent');
+    vig.addColorStop(1, 'rgba(0,0,0,0.4)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, width, height);
+
+  }, [card.name, card.archetype, card.personalityTheme, card.rarity, card.power, width, height]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      className="absolute inset-0 rounded-lg"
+    />
+  );
+}
+
 // Context for card detail inspection — avoids prop-drilling through every phase
 const InspectCardContext = createContext<((card: Card) => void) | null>(null);
+
+// ---------------------------------------------------------------------------
+// Pack Opening — Full Spectacle
+// ---------------------------------------------------------------------------
+
+type PackPhase = 'sealed' | 'ripping' | 'cascade' | 'revealed' | 'picking' | 'done';
+
+interface Particle {
+  x: number; y: number; vx: number; vy: number;
+  size: number; color: string; life: number; maxLife: number;
+  type: 'sparkle' | 'confetti' | 'ring';
+}
+
+function ParticleCanvas({ particles, width, height }: { particles: Particle[]; width: number; height: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<Particle[]>(particles);
+  frameRef.current = particles;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      for (const p of frameRef.current) {
+        const alpha = Math.max(0, p.life / p.maxLife);
+        ctx.globalAlpha = alpha;
+        if (p.type === 'confetti') {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size * 2, p.size);
+        } else if (p.type === 'ring') {
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * (1 - alpha) * 40, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [width, height]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      className="absolute inset-0 pointer-events-none z-50"
+    />
+  );
+}
+
+function PackReveal({
+  cards,
+  onPick,
+  onCancel,
+  nextOpponentWeakness,
+  nearSynergies,
+}: {
+  cards: Card[];
+  onPick: (card: Card) => void;
+  onCancel: () => void;
+  nextOpponentWeakness?: string;
+  nearSynergies?: { name: string; missing: string }[];
+}) {
+  const [phase, setPhase] = useState<PackPhase>('sealed');
+  const [revealedIdx, setRevealedIdx] = useState(-1);
+  const [pickedIdx, setPickedIdx] = useState(-1);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [shake, setShake] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Cleanup timers
+  useEffect(() => {
+    return () => timerRef.current.forEach(t => clearTimeout(t));
+  }, []);
+
+  // Best rarity in pack (for beam color)
+  const bestRarity = cards.reduce((best, c) => {
+    const order = ['Common', 'Rare', 'Epic', 'Legendary'];
+    return order.indexOf(c.rarity) > order.indexOf(best) ? c.rarity : best;
+  }, 'Common');
+  const beamColor = RARITY_COLORS[bestRarity] ?? '#fff';
+
+  // Particle spawner
+  const spawnBurst = useCallback((cx: number, cy: number, color: string, count: number, type: Particle['type'] = 'sparkle') => {
+    const newP: Particle[] = Array.from({ length: count }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 4;
+      return {
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed * (type === 'confetti' ? 1.5 : 1),
+        vy: Math.sin(angle) * speed - (type === 'confetti' ? 2 : 0),
+        size: type === 'confetti' ? 3 + Math.random() * 4 : 2 + Math.random() * 3,
+        color,
+        life: 40 + Math.random() * 30,
+        maxLife: 70,
+        type,
+      };
+    });
+    setParticles(prev => [...prev, ...newP]);
+  }, []);
+
+  // Tick particles
+  useEffect(() => {
+    if (particles.length === 0) return;
+    const iv = setInterval(() => {
+      setParticles(prev =>
+        prev
+          .map(p => ({
+            ...p,
+            x: p.x + p.vx,
+            y: p.y + p.vy + (p.type === 'confetti' ? 0.3 : 0),
+            vy: p.vy + (p.type === 'confetti' ? 0.08 : 0.02),
+            life: p.life - 1,
+          }))
+          .filter(p => p.life > 0)
+      );
+    }, 16);
+    return () => clearInterval(iv);
+  }, [particles.length > 0]);
+
+  // Phase: rip the pack
+  const handleRip = useCallback(() => {
+    if (phase !== 'sealed') return;
+    setPhase('ripping');
+    setShake(true);
+
+    // Beam particles
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cx = rect ? rect.width / 2 : 200;
+    const cy = rect ? rect.height / 2 : 300;
+    spawnBurst(cx, cy, beamColor, 30);
+    spawnBurst(cx, cy, '#fff', 15);
+
+    // Ring shockwave
+    setParticles(prev => [...prev, {
+      x: cx, y: cy, vx: 0, vy: 0, size: 1, color: beamColor,
+      life: 30, maxLife: 30, type: 'ring',
+    }]);
+
+    timerRef.current.push(setTimeout(() => setShake(false), 400));
+    timerRef.current.push(setTimeout(() => {
+      setPhase('cascade');
+      // Start cascade — reveal cards one by one
+      cards.forEach((card, i) => {
+        timerRef.current.push(setTimeout(() => {
+          setRevealedIdx(i);
+          // Shake on landing
+          setShake(true);
+          timerRef.current.push(setTimeout(() => setShake(false), 150));
+
+          // Rarity-specific effects
+          const cardCx = cx - 150 + i * 150;
+          const cardCy = cy;
+
+          if (card.rarity === 'Legendary') {
+            setFlash(true);
+            timerRef.current.push(setTimeout(() => setFlash(false), 150));
+            spawnBurst(cardCx, cardCy, '#f59e0b', 40);
+            spawnBurst(cardCx, cardCy, '#fbbf24', 25);
+            spawnBurst(cardCx, cardCy - 50, '#f59e0b', 20, 'confetti');
+            spawnBurst(cardCx, cardCy, '#fff', 10);
+            // Ring
+            setParticles(prev => [...prev, {
+              x: cardCx, y: cardCy, vx: 0, vy: 0, size: 1, color: '#f59e0b',
+              life: 40, maxLife: 40, type: 'ring',
+            }]);
+          } else if (card.rarity === 'Epic') {
+            spawnBurst(cardCx, cardCy, '#a855f7', 25);
+            spawnBurst(cardCx, cardCy, '#c084fc', 15);
+          } else if (card.rarity === 'Rare') {
+            spawnBurst(cardCx, cardCy, '#3b82f6', 12);
+          } else {
+            spawnBurst(cardCx, cardCy, '#aaa', 6);
+          }
+
+          // Last card → transition to revealed
+          if (i === cards.length - 1) {
+            timerRef.current.push(setTimeout(() => setPhase('revealed'), 600));
+          }
+        }, i * 500));
+      });
+    }, 800));
+  }, [phase, cards, beamColor, spawnBurst]);
+
+  // Pick a card
+  const handlePick = useCallback((idx: number) => {
+    if (phase !== 'revealed') return;
+    setPickedIdx(idx);
+    setPhase('picking');
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cx = rect ? rect.width / 2 : 200;
+    const cy = rect ? rect.height / 2 : 300;
+    spawnBurst(cx, cy, RARITY_COLORS[cards[idx].rarity] ?? '#fff', 20);
+
+    timerRef.current.push(setTimeout(() => {
+      setPhase('done');
+      onPick(cards[idx]);
+    }, 800));
+  }, [phase, cards, onPick, spawnBurst]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden
+        ${shake ? 'animate-[shake_0.3s_ease-in-out]' : ''}
+      `}
+      style={{ background: 'rgba(0,0,0,0.92)' }}
+    >
+      {/* Flash overlay */}
+      {flash && (
+        <div className="absolute inset-0 z-[110] pointer-events-none bg-white/30 animate-[flash_0.15s_ease-out]" />
+      )}
+
+      {/* Particle layer */}
+      <ParticleCanvas particles={particles} width={typeof window !== 'undefined' ? window.innerWidth : 800} height={typeof window !== 'undefined' ? window.innerHeight : 600} />
+
+      {/* Light beam (during rip) */}
+      {(phase === 'ripping' || phase === 'cascade') && (
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-16 pointer-events-none animate-[beam_1s_ease-out_forwards]"
+          style={{
+            height: '100%',
+            background: `linear-gradient(to top, ${beamColor}00 0%, ${beamColor}40 30%, ${beamColor}80 50%, ${beamColor}40 70%, ${beamColor}00 100%)`,
+            filter: 'blur(20px)',
+          }}
+        />
+      )}
+
+      {/* === SEALED PACK === */}
+      {phase === 'sealed' && (
+        <div className="flex flex-col items-center gap-6 cursor-pointer" onClick={handleRip}>
+          <div
+            className="w-40 h-56 rounded-xl flex items-center justify-center animate-[packFloat_2s_ease-in-out_infinite] relative"
+            style={{
+              background: 'linear-gradient(135deg, #e91e8c, #ff6b35, #fbbf24)',
+              boxShadow: `0 0 40px ${beamColor}60, 0 0 80px ${beamColor}30`,
+            }}
+          >
+            {/* Orbiting dots */}
+            <div className="absolute inset-0 animate-[spin_4s_linear_infinite]">
+              <div className="absolute top-0 left-1/2 w-2 h-2 rounded-full bg-white/60" style={{ transform: 'translate(-50%, -8px)' }} />
+            </div>
+            <div className="absolute inset-0 animate-[spin_6s_linear_infinite_reverse]">
+              <div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 rounded-full bg-white/40" style={{ transform: 'translate(-50%, 8px)' }} />
+            </div>
+
+            <div className="text-center text-white">
+              <div className="text-4xl mb-2">{'\u26bd'}</div>
+              <div className="font-black text-xs uppercase tracking-[0.3em]">Kickoff</div>
+              <div className="font-black text-xs uppercase tracking-[0.3em]">Clash</div>
+            </div>
+          </div>
+          <div className="text-white/60 text-sm font-bold uppercase tracking-widest animate-pulse">
+            Tap to open
+          </div>
+        </div>
+      )}
+
+      {/* === RIPPING (brief transition) === */}
+      {phase === 'ripping' && (
+        <div
+          className="w-40 h-56 rounded-xl animate-[packRip_0.6s_ease-in_forwards] relative"
+          style={{
+            background: 'linear-gradient(135deg, #e91e8c, #ff6b35, #fbbf24)',
+            boxShadow: `0 0 60px ${beamColor}80`,
+          }}
+        >
+          <div className="absolute inset-0 bg-white/30 animate-[flash_0.3s_ease-out]" />
+        </div>
+      )}
+
+      {/* === CASCADE + REVEALED + PICKING === */}
+      {(phase === 'cascade' || phase === 'revealed' || phase === 'picking') && (
+        <div className="flex flex-col items-center gap-6">
+          {/* Rarity label for legendary */}
+          {revealedIdx >= 0 && cards.some((c, i) => i <= revealedIdx && c.rarity === 'Legendary') && (
+            <div
+              className="text-3xl font-black uppercase tracking-[0.2em] animate-[slamIn_0.4s_cubic-bezier(0.34,1.56,0.64,1)]"
+              style={{
+                fontFamily: 'var(--font-display, "Clash Display", sans-serif)',
+                color: '#f59e0b',
+                textShadow: '0 0 20px rgba(245,158,11,0.6), 0 0 40px rgba(245,158,11,0.3)',
+              }}
+            >
+              Legendary!
+            </div>
+          )}
+
+          {/* Cards */}
+          <div className="flex gap-5 items-end">
+            {cards.map((card, i) => {
+              const isRevealed = i <= revealedIdx;
+              const isPicked = i === pickedIdx;
+              const isDiscarded = pickedIdx >= 0 && i !== pickedIdx;
+              const rarityColor = RARITY_COLORS[card.rarity] ?? '#71717a';
+              const matchesWeakness = nextOpponentWeakness && card.archetype === nextOpponentWeakness;
+              const unlockedSynergy = nearSynergies?.find(ns => card.tacticalRole === ns.missing);
+
+              return (
+                <div
+                  key={card.id}
+                  className={`relative transition-all duration-500 ${
+                    !isRevealed ? 'translate-y-[-200%] opacity-0' : 'translate-y-0 opacity-100'
+                  } ${isPicked ? 'scale-[1.3] z-20' : ''} ${isDiscarded ? 'opacity-20 scale-75 blur-sm' : ''}`}
+                  style={{
+                    transitionDelay: isRevealed ? `${i * 100}ms` : '0ms',
+                    animation: isRevealed && !isPicked && !isDiscarded ? 'cardFloat 3s ease-in-out infinite' : undefined,
+                    animationDelay: `${i * 0.5}s`,
+                  }}
+                >
+                  {/* Face-down → face-up flip */}
+                  <div
+                    className="relative transition-transform duration-500"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: isRevealed ? 'rotateY(0deg)' : 'rotateY(180deg)',
+                      transitionDelay: isRevealed ? '200ms' : '0ms',
+                    }}
+                  >
+                    {/* Front face (revealed card) */}
+                    <div style={{ backfaceVisibility: 'hidden' }}>
+                      <div
+                        onClick={() => phase === 'revealed' && handlePick(i)}
+                        className={phase === 'revealed' ? 'cursor-pointer' : ''}
+                      >
+                        <CardDisplay card={card} />
+                      </div>
+                      {/* Badges below card */}
+                      {isRevealed && phase === 'revealed' && (
+                        <div className="mt-2 space-y-1">
+                          {matchesWeakness && (
+                            <div className="px-2 py-0.5 rounded text-[9px] font-bold bg-green-900/40 text-green-300 border border-green-700/30 text-center">
+                              {'\u26a1'} Exploits weakness
+                            </div>
+                          )}
+                          {unlockedSynergy && (
+                            <div className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-900/40 text-blue-300 border border-blue-700/30 text-center">
+                              {'\ud83d\udd17'} Unlocks {unlockedSynergy.name}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Back face (face-down) */}
+                    <div
+                      className="absolute inset-0 rounded-lg flex items-center justify-center"
+                      style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                        background: 'linear-gradient(135deg, #1a1a2e 0%, #0a0a18 100%)',
+                        border: `2px solid ${rarityColor}`,
+                        boxShadow: `0 0 20px ${rarityColor}40, 0 0 40px ${rarityColor}20`,
+                        width: 130,
+                        height: 170,
+                      }}
+                    >
+                      <div className="text-3xl animate-pulse" style={{ color: rarityColor }}>?</div>
+                    </div>
+                  </div>
+
+                  {/* Persistent aura for Epic/Legendary */}
+                  {isRevealed && (card.rarity === 'Legendary' || card.rarity === 'Epic') && !isDiscarded && (
+                    <div
+                      className="absolute -inset-2 rounded-xl pointer-events-none animate-pulse"
+                      style={{
+                        background: `radial-gradient(circle, ${rarityColor}15 0%, transparent 70%)`,
+                        boxShadow: `0 0 30px ${rarityColor}30`,
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Instructions */}
+          {phase === 'revealed' && (
+            <div className="text-white/60 text-sm font-bold uppercase tracking-widest">
+              Pick a card to sign
+            </div>
+          )}
+          {phase === 'picking' && (
+            <div
+              className="text-2xl font-black uppercase tracking-[0.15em] animate-[slamIn_0.3s_cubic-bezier(0.34,1.56,0.64,1)]"
+              style={{
+                fontFamily: 'var(--font-display, "Clash Display", sans-serif)',
+                color: '#34d399',
+                textShadow: '0 0 15px rgba(52,211,153,0.5)',
+              }}
+            >
+              Signed!
+            </div>
+          )}
+
+          {/* Cancel */}
+          {phase === 'revealed' && (
+            <button
+              onClick={onCancel}
+              className="text-sm text-white/30 hover:text-white/60 transition-colors mt-2"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Keyframe styles (injected once) */}
+      <style>{`
+        @keyframes packFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes packRip {
+          0% { transform: scale(1); clip-path: inset(0); }
+          50% { transform: scale(1.1); clip-path: inset(0 0 0 0); }
+          100% { transform: scale(1.3); clip-path: inset(50% 0 50% 0); opacity: 0; }
+        }
+        @keyframes beam {
+          0% { opacity: 0; transform: translateX(-50%) scaleY(0); }
+          30% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+          100% { opacity: 0; transform: translateX(-50%) scaleY(1); }
+        }
+        @keyframes flash {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-6px) rotate(-1deg); }
+          40% { transform: translateX(6px) rotate(1deg); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(4px); }
+        }
+        @keyframes slamIn {
+          0% { transform: scale(3); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes cardFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function CardDisplay({
   card, size = 'normal', onClick, onInspect, selected = false, sellMode = false, subbed = false,
@@ -121,14 +801,15 @@ function CardDisplay({
   const inspect = onInspect ?? contextInspect;
   const rarityColor = RARITY_COLORS[card.rarity] ?? '#71717a';
   const glow = RARITY_GLOW[card.rarity] ?? 'none';
-  const bg = THEME_GRADIENTS[card.personalityTheme ?? 'General'] ?? THEME_GRADIENTS.General;
 
   const isMini = size === 'mini';
   const isSmall = size === 'small';
 
-  // Fix 3: Mini cards are landscape-oriented pills (wider, shorter)
-  const w = isMini ? 'w-[100px]' : isSmall ? 'w-[100px]' : 'w-[130px]';
-  const h = isMini ? 'h-[44px]' : isSmall ? 'h-[125px]' : 'h-[170px]';
+  // Pixel dimensions for CardArt canvas
+  const pxW = isMini ? 100 : isSmall ? 100 : 130;
+  const pxH = isMini ? 44 : isSmall ? 125 : 170;
+  const w = `w-[${pxW}px]`;
+  const h = `h-[${pxH}px]`;
 
   return (
     <div
@@ -140,11 +821,14 @@ function CardDisplay({
         ${card.injured ? 'opacity-50 grayscale' : ''}
       `}
       style={{
-        background: bg,
         border: `2px solid ${rarityColor}`,
         boxShadow: selected ? `0 0 16px rgba(231,76,60,0.5), ${glow}` : glow,
       }}
     >
+      {/* Procedural card art background (skip for mini — too small) */}
+      {!isMini && <CardArt card={card} width={pxW} height={pxH} />}
+      {isMini && <div className="absolute inset-0" style={{ background: THEME_GRADIENTS[card.personalityTheme ?? 'General'] ?? THEME_GRADIENTS.General }} />}
+
       {isMini ? (
         <>
           {/* Mini: landscape pill layout — position | name | power inline */}
@@ -1406,46 +2090,18 @@ function ShopPhase({
         </div>
       </div>
 
-      {/* Card pick modal */}
+      {/* Pack opening ceremony */}
       {showCardPick && (
-        <div className="bg-[var(--color-bg-elevated)] rounded-xl p-6 border-2 border-[var(--color-accent-secondary)]">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-4 text-center">Pick 1 of 3</h3>
-          <div className="flex gap-4 justify-center">
-            {(showCardPick === 'rare' ? rareCards : shopCards).map(card => {
-              // Check if this card matches next opponent weakness
-              const matchesWeakness = nextOpponent && card.archetype === nextOpponent.weaknessArchetype;
-              // Check if this card unlocks a near-synergy
-              const unlockedSynergy = nextDeckAnalysis?.nearSynergies.find(
-                ns => card.tacticalRole === ns.missing
-              );
-
-              return (
-                <div key={card.id} className="text-center">
-                  <CardDisplay card={card}
-                    onClick={() => {
-                      onBuyCard(card, showCardPick === 'rare' ? rarePickCost : cardPickCost);
-                      setShowCardPick(null);
-                    }}
-                  />
-                  {matchesWeakness && (
-                    <div className="mt-1 px-1 py-0.5 rounded text-[8px] font-bold bg-green-900/30 text-green-300 border border-green-700/30">
-                      {'\u26a1'} Exploits weakness
-                    </div>
-                  )}
-                  {unlockedSynergy && (
-                    <div className="mt-1 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-900/30 text-blue-300 border border-blue-700/30">
-                      {'\ud83d\udd17'} Unlocks {unlockedSynergy.name}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <button onClick={() => setShowCardPick(null)}
-            className="mt-4 text-sm text-[var(--color-text-muted)] hover:text-white transition-colors block mx-auto">
-            Cancel
-          </button>
-        </div>
+        <PackReveal
+          cards={showCardPick === 'rare' ? rareCards : shopCards}
+          onPick={(card) => {
+            onBuyCard(card, showCardPick === 'rare' ? rarePickCost : cardPickCost);
+            setShowCardPick(null);
+          }}
+          onCancel={() => setShowCardPick(null)}
+          nextOpponentWeakness={nextOpponent?.weaknessArchetype}
+          nearSynergies={nextDeckAnalysis?.nearSynergies}
+        />
       )}
 
       {/* Transfer Market */}
@@ -2223,10 +2879,12 @@ export default function Home() {
   const [detailCard, setDetailCard] = useState<Card | null>(null);
   // Track the last matchState before it was cleared (for finalizeMatch)
   const lastMatchStateRef = useRef<MatchState | null>(null);
+  const dbRunIdRef = useRef<string | null>(null);
   const [hasSavedRun, setHasSavedRun] = useState(false);
 
-  // Check for saved run on mount
+  // Load cards from DB + check for saved run on mount
   useEffect(() => {
+    loadCardsFromDB();
     const saved = loadRunFromStorage();
     setHasSavedRun(!!saved);
   }, []);
@@ -2263,6 +2921,8 @@ export default function Home() {
     setRunState(withMatch);
     setActiveMatchState(withMatch.matchState);
     setPhase('pre_match');
+    // Fire-and-forget DB create
+    dbCreateRun(formation, style).then(id => { dbRunIdRef.current = id; });
   }, []);
 
   // 2. Pre-match -> enter match
@@ -2336,6 +2996,11 @@ export default function Home() {
       setLastDurabilityResult(durabilityResult);
       setActiveMatchState(null);
       setPhase('post_match');
+      // Fire-and-forget DB sync
+      if (dbRunIdRef.current) {
+        dbSaveMatch(dbRunIdRef.current, matchResult);
+        dbUpdateRun(dbRunIdRef.current, finalState);
+      }
     } else {
       // Match continues -- newRunState.matchState has updated goals, new hand, etc.
       setRunState(newRunState);
@@ -2348,6 +3013,10 @@ export default function Home() {
     if (!runState) return;
     if (runState.status === 'won' || runState.status === 'lost') {
       setPhase('end');
+      // Fire-and-forget DB end
+      if (dbRunIdRef.current) {
+        dbEndRun(dbRunIdRef.current, runState.status, runState);
+      }
     } else {
       setPhase('shop');
     }
@@ -2408,6 +3077,12 @@ export default function Home() {
         result: runState.status === 'won' ? 'won' : runState.status === 'lost' ? 'lost' : 'abandoned',
         timestamp: Date.now(),
       });
+      // Fire-and-forget DB end (abandon if still active)
+      if (dbRunIdRef.current) {
+        const status = runState.status === 'won' ? 'won' : runState.status === 'lost' ? 'lost' : 'abandoned';
+        dbEndRun(dbRunIdRef.current, status, runState);
+        dbRunIdRef.current = null;
+      }
     }
     clearRunStorage();
     setRunState(null);

@@ -617,13 +617,66 @@ export function applyDurabilityResults(deck: Card[], result: DurabilityResult): 
 }
 
 // ---------------------------------------------------------------------------
-// Card Pool (500 characters from kc_characters.json)
+// Card Pool — starts with static JSON, upgraded to DB cards on mount
 // ---------------------------------------------------------------------------
 
-export const ALL_CARDS: Card[] = transformAllCharacters(kcCharactersData as KCCharacter[]);
+const STATIC_CARDS: Card[] = transformAllCharacters(kcCharactersData as KCCharacter[]);
+
+/** Mutable card pool — initially static JSON, replaced by DB fetch via setCardPool() */
+export let ALL_CARDS: Card[] = STATIC_CARDS;
+
+/** Replace the card pool with DB-sourced cards */
+export function setCardPool(cards: Card[]): void {
+  if (cards.length > 0) ALL_CARDS = cards;
+}
+
+/** Fetch cards from /api/kc-cards and update the pool */
+export async function loadCardsFromDB(): Promise<Card[]> {
+  try {
+    const res = await fetch('/api/kc-cards');
+    if (!res.ok) return ALL_CARDS;
+    const rows: DbCard[] = await res.json();
+    const cards: Card[] = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      position: r.position,
+      archetype: r.archetype,
+      secondaryArchetype: r.secondary_archetype ?? undefined,
+      tacticalRole: r.tactical_role ?? undefined,
+      personalityType: r.personality_type ?? undefined,
+      personalityTheme: r.personality_theme ?? undefined,
+      power: r.power,
+      rarity: r.rarity,
+      gatePull: r.gate_pull,
+      durability: r.durability as Durability,
+      bio: r.bio ?? undefined,
+    }));
+    setCardPool(cards);
+    return cards;
+  } catch {
+    return ALL_CARDS;
+  }
+}
+
+interface DbCard {
+  id: number;
+  name: string;
+  bio: string | null;
+  position: string;
+  archetype: string;
+  secondary_archetype: string | null;
+  tactical_role: string | null;
+  personality_type: string | null;
+  personality_theme: string | null;
+  power: number;
+  rarity: string;
+  art_seed: string | null;
+  gate_pull: number;
+  durability: string;
+}
 
 /** @deprecated Alias for backward compat — use ALL_CARDS */
-export const SAMPLE_CARDS = ALL_CARDS;
+export const SAMPLE_CARDS = STATIC_CARDS;
 
 // ---------------------------------------------------------------------------
 // Sample Action Deck (~30 cards for prototype)

@@ -2,7 +2,7 @@
 
 ## Continue Today (from yesterday's session)
 - [ ] **Wave 1 UI polish** — merged to main (64e21ec), but likely needs QA pass on dashboard, player list, player detail
-- [ ] **Kickoff Clash v4** — game loop wired, shop/match/pack phases built. Needs: migration 036, DB wiring, testing
+- [x] **Kickoff Clash v4** — migration 036 applied, 500 cards in DB, API wired, 201 tests, rarity rebalanced, DB run persistence
 - [ ] **Legends polish** — trait pills, similar players, editable archetypes all shipped. Review quality of legend-to-active scoring
 
 ## High Priority
@@ -12,10 +12,10 @@
 - [ ] **Product polish** — glass consistency, archetype styling
 
 ### Data & Pipeline
-- [ ] **Materialized view auto-refresh** — trigger after pipeline scripts
+- [ ] **Investigate player_intelligence_card performance** — regular VIEW with 6-table join. Check if materialized view needed. Dead `refresh_intelligence_cards` RPC exists with no backing function
 - [ ] **Add `API_FOOTBALL_KEY` to Vercel env** — needed for automated pipeline runs
 - [ ] **Valuation integration** — feed four-pillar scores into valuation engine (Phase 5)
-- [ ] **Fix script 04** (`refine_players.py`) — crashes on news_sentiment_agg `story_types` (string not dict)
+- [x] **Fix script 04** (`refine_players.py`) — string-to-dict guard already in place (lines 376-382)
 
 ### Monetization
 - [ ] **Stripe integration QA** — billing tier system added (416e23a), needs end-to-end testing
@@ -29,11 +29,11 @@
 - [x] ~~Supporting screens: title, setup, postmatch, shop, end~~
 - [x] ~~v4: pack opening, match phase, shop phase, formations, tactics~~
 - [x] ~~500 fake characters from Airtable + LLM bios~~
-- [ ] **Apply migration 036** — 7 KC tables not yet in Supabase
-- [ ] **Wire DB cards** — replace hardcoded SAMPLE_CARDS with kc_cards fetch
-- [ ] **Run persistence** — currently all client-side state, lost on refresh
-- [ ] **Rarity bracket rebalance** — 70% Epic at min-level 50, needs wider bands
-- [ ] **Game engine tests** — 5,600+ lines untested
+- [x] **Apply migration 036** — 7 KC tables created in Supabase
+- [x] **Wire DB cards** — 500 cards in kc_cards, API route + loadCardsFromDB()
+- [x] **Run persistence** — DB sync via kc_runs/kc_matches + localStorage dual-write
+- [x] **Rarity bracket rebalance** — thresholds shifted (76/81/87), distribution now 12%/42%/30%/16%
+- [x] **Game engine tests** — 201 tests across 6 files (scoring, run, economy, actions, chemistry, transform)
 
 ### Punter's Pad (future)
 - [ ] **Fixture data feed** — pipeline 61 fixtures → exportable format

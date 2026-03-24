@@ -155,9 +155,9 @@ function derivePersonalityType(name: string, theme: string): string {
 // ---------------------------------------------------------------------------
 
 function levelToRarity(level: number): string {
-  if (level >= 89) return 'Legendary';
-  if (level >= 83) return 'Epic';
-  if (level >= 77) return 'Rare';
+  if (level >= 87) return 'Legendary';
+  if (level >= 81) return 'Epic';
+  if (level >= 76) return 'Rare';
   return 'Common';
 }
 

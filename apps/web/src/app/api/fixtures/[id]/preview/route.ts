@@ -17,6 +17,7 @@ interface SquadPlayer {
   squad_role: string | null;
   overall: number | null;
   fitness_tag: string | null;
+  disciplinary_tag: string | null;
   scouting_notes: string | null;
 }
 
@@ -63,7 +64,7 @@ async function fetchClubSquad(clubId: number): Promise<SquadPlayer[]> {
   // Fetch status
   const { data: statuses } = await sb
     .from("player_status")
-    .select("person_id, squad_role, fitness_tag, scouting_notes")
+    .select("person_id, squad_role, fitness_tag, disciplinary_tag, scouting_notes")
     .in("person_id", personIds);
 
   const statusMap = new Map<number, any>();
@@ -84,6 +85,7 @@ async function fetchClubSquad(clubId: number): Promise<SquadPlayer[]> {
       overall: c.overall,
       squad_role: status?.squad_role ?? null,
       fitness_tag: status?.fitness_tag ?? null,
+      disciplinary_tag: status?.disciplinary_tag ?? null,
       scouting_notes: status?.scouting_notes ?? null,
     };
   });
@@ -119,10 +121,22 @@ function predictXI(
       let bestPlayer: SquadPlayer | null = null;
       let bestScore = -Infinity;
 
+      const isGKSlot = position === "GK";
+
       for (const player of squad) {
         if (used.has(player.person_id)) continue;
-        // Exclude players with injury fitness tag
-        if (player.fitness_tag === "injured" || player.fitness_tag === "suspended") continue;
+
+        // Exclude injured/long-term players (case-insensitive)
+        const ft = (player.fitness_tag ?? "").toLowerCase();
+        if (ft === "injured" || ft === "long-term") continue;
+
+        // Exclude suspended players via disciplinary_tag
+        const dt = (player.disciplinary_tag ?? "").toLowerCase();
+        if (dt === "suspended") continue;
+
+        // Position constraint: GKs only in GK slots, outfield only in outfield slots
+        if (isGKSlot && player.position !== "GK") continue;
+        if (!isGKSlot && player.position === "GK") continue;
 
         const score = scorePlayerForRole(
           {

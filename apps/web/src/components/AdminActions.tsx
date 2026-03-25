@@ -46,6 +46,8 @@ export function AdminActions() {
   const [newsResult, setNewsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [pipelineRunning, setPipelineRunning] = useState("");
   const [pipelineResult, setPipelineResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [cardsRefreshing, setCardsRefreshing] = useState(false);
+  const [cardsResult, setCardsResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [valForce, setValForce] = useState(false);
   const [valLimit, setValLimit] = useState("");
 
@@ -402,6 +404,22 @@ export function AdminActions() {
               className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-emerald-500 transition-colors cursor-pointer">
               {newsRefreshing ? "Refreshing..." : "Refresh News"}
             </button>
+            <button
+              onClick={async () => {
+                setCardsRefreshing(true);
+                setCardsResult(null);
+                try {
+                  const res = await fetch("/api/cron/refresh-cards", { headers: { "x-admin": "1" } });
+                  const data = await res.json();
+                  if (data.ok) setCardsResult({ type: "success", text: `Cards refreshed in ${data.ms}ms` });
+                  else setCardsResult({ type: "error", text: data.error ?? "Failed" });
+                } catch (e) { setCardsResult({ type: "error", text: String(e) }); }
+                setCardsRefreshing(false);
+              }}
+              disabled={cardsRefreshing}
+              className="px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-semibold disabled:opacity-40 hover:bg-cyan-500 transition-colors cursor-pointer">
+              {cardsRefreshing ? "Refreshing..." : "Refresh Cards"}
+            </button>
             <div className="w-px h-6 bg-[var(--border-subtle)]" />
             <button
               onClick={async () => {
@@ -516,6 +534,9 @@ export function AdminActions() {
           )}
           {pipelineResult && (
             <p className={`mt-2 text-xs ${pipelineResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-teal-400"}`}>{pipelineResult.text}</p>
+          )}
+          {cardsResult && (
+            <p className={`mt-2 text-xs ${cardsResult.type === "error" ? "text-[var(--color-sentiment-negative)]" : "text-cyan-400"}`}>{cardsResult.text}</p>
           )}
         </div>
       )}

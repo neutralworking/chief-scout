@@ -181,6 +181,28 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ── Step 4: Refresh materialized view ─────────────────────────────────────
+
+  {
+    const start = Date.now();
+    try {
+      const { error } = await supabaseServer.rpc("refresh_intelligence_card");
+      results.push({
+        step: "refresh_cards",
+        status: error ? "error" : "success",
+        ms: Date.now() - start,
+        detail: error ? { error: error.message } : { message: "Materialized view refreshed" },
+      });
+    } catch (e) {
+      results.push({
+        step: "refresh_cards",
+        status: "error",
+        ms: Date.now() - start,
+        detail: { error: e instanceof Error ? e.message : String(e) },
+      });
+    }
+  }
+
   // ── Log to cron_log ────────────────────────────────────────────────────────
 
   const totalMs = results.reduce((s, r) => s + r.ms, 0);

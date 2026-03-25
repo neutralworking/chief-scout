@@ -91,7 +91,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Leadership", "Tackling", "Heading", "Communication"],
     reference: "The Thiago Silva role — commanding CB who leads by example and organises the backline",
   },
-  "Vorstopper": {
+  "Stopper": {
     archetypes: ["Powerhouse", "Destroyer", "Cover"],
     personalities: ["ANSC", "INSC", "AXSC"],
     minLevel: 11,
@@ -143,7 +143,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
     keyAttributes: ["Tempo", "Vision", "Pass Range", "Composure"],
     reference: "The Pirlo role — deep-lying orchestrator who dictates the tempo of the game",
   },
-  "Sentinelle": {
+  "Anchor": {
     archetypes: ["Cover", "Destroyer", "Controller"],
     personalities: ["ANSC", "ANLC", "INSC"],
     minLevel: 12,
@@ -349,13 +349,13 @@ const BLUEPRINT_ROLE_MAP: Record<string, string> = {
   "Sweeper Keeper": "Sweeper Keeper",
   // CD
   "Ball-Playing CB": "Zagueiro",
-  "Stopper": "Vorstopper",
+  "Stopper": "Stopper",
   "Sweeper": "Sweeper",
   // WD
   "Inverted Full-Back": "Invertido",
   "Overlapping Full-Back": "Lateral",
   // DM
-  "Anchor": "Sentinelle",
+  "Anchor": "Anchor",
   "Ball-Winner": "Volante",
   // CM
   "Box-to-Box": "Tuttocampista",

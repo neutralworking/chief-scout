@@ -2,7 +2,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
 const SOURCE_FIELDS =
-  "person_id, name, position, archetype, earned_archetype, overall, best_role, best_role_score, technical_score, physical_score, personality_type, preferred_foot, side, club, nation, image_url, pursuit_status, active, peak" as const;
+  "person_id, name, position, level, archetype, earned_archetype, overall, best_role, best_role_score, technical_score, physical_score, personality_type, preferred_foot, side, club, nation, image_url, pursuit_status, active, peak" as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Player = Record<string, any>;
@@ -51,6 +51,14 @@ function scoreLegendToActive(
     };
     if ((adj[src.position] ?? []).includes(p.position)) score += 8;
   }
+
+  // 10. Level/quality bonus (max 25pts) — legends should match recognisable names
+  // Graduated: lvl 92+ = 25pts, 90 = 20pts, 88 = 15pts, 86 = 10pts, below = 0
+  const lvl = p.level ?? p.best_role_score ?? 0;
+  if (lvl >= 92) score += 25;
+  else if (lvl >= 90) score += 20;
+  else if (lvl >= 88) score += 15;
+  else if (lvl >= 86) score += 10;
 
   return score;
 }

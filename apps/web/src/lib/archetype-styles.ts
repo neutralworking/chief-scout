@@ -23,7 +23,8 @@ export type ArchetypeCategory =
   | "defensive"
   | "role_player"
   | "mid_tier"
-  | "goalkeeper";
+  | "goalkeeper"
+  | "legend_culture";
 
 interface ArchetypeStyle {
   /** Category grouping */
@@ -52,7 +53,7 @@ const ARCHETYPE_STYLES: Record<string, ArchetypeStyle> = {
   // ── Physical / Combative ─────────────────────────────────
   Goliath:   { category: "physical", color: "#d97706", bgClass: "bg-amber-600/15",   textClass: "text-amber-500" },
   Warrior:   { category: "physical", color: "#b45309", bgClass: "bg-amber-700/15",   textClass: "text-amber-600" },
-  Bastion:   { category: "physical", color: "#d97706", bgClass: "bg-amber-600/15",   textClass: "text-amber-500" },
+  Sentinel:  { category: "physical", color: "#d97706", bgClass: "bg-amber-600/15",   textClass: "text-amber-500" },
   Terrier:   { category: "physical", color: "#ca8a04", bgClass: "bg-yellow-600/15",  textClass: "text-yellow-500" },
 
   // ── Direct ───────────────────────────────────────────────
@@ -61,6 +62,7 @@ const ARCHETYPE_STYLES: Record<string, ArchetypeStyle> = {
 
   // ── Defensive ────────────────────────────────────────────
   Fortress:  { category: "defensive", color: "#94a3b8", bgClass: "bg-slate-400/15",  textClass: "text-slate-300" },
+  Rock:      { category: "defensive", color: "#64748b", bgClass: "bg-slate-500/15",  textClass: "text-slate-400" },
   Lockdown:  { category: "defensive", color: "#64748b", bgClass: "bg-slate-500/15",  textClass: "text-slate-400" },
   Reader:    { category: "defensive", color: "#94a3b8", bgClass: "bg-slate-400/15",  textClass: "text-slate-300" },
 
@@ -81,6 +83,16 @@ const ARCHETYPE_STYLES: Record<string, ArchetypeStyle> = {
   // ── Goalkeepers ──────────────────────────────────────────
   Wall:      { category: "goalkeeper", color: "#4ade80", bgClass: "bg-green-500/15",  textClass: "text-green-400" },
   Sweeper:   { category: "goalkeeper", color: "#22c55e", bgClass: "bg-green-600/15",  textClass: "text-green-500" },
+
+  // ── Football-culture (legend nicknames) ─────────────────
+  "Fenômeno":  { category: "legend_culture", color: "#f43f5e", bgClass: "bg-rose-500/15",    textClass: "text-rose-400" },
+  Kaiser:      { category: "legend_culture", color: "#a1a1aa", bgClass: "bg-zinc-400/15",    textClass: "text-zinc-300" },
+  Pendolino:   { category: "legend_culture", color: "#34d399", bgClass: "bg-emerald-400/15", textClass: "text-emerald-300" },
+  Tractor:     { category: "legend_culture", color: "#34d399", bgClass: "bg-emerald-400/15", textClass: "text-emerald-300" },
+  Arrow:       { category: "legend_culture", color: "#fbbf24", bgClass: "bg-yellow-400/15",  textClass: "text-yellow-300" },
+  Bomber:      { category: "legend_culture", color: "#f43f5e", bgClass: "bg-rose-500/15",    textClass: "text-rose-400" },
+  Pitbull:     { category: "legend_culture", color: "#b45309", bgClass: "bg-amber-700/15",   textClass: "text-amber-600" },
+  Metronome:   { category: "legend_culture", color: "#818cf8", bgClass: "bg-indigo-500/15",  textClass: "text-indigo-400" },
 };
 
 const DEFAULT_STYLE: ArchetypeStyle = {

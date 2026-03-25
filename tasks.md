@@ -49,8 +49,10 @@
 - [ ] **Wave 3 UI** — compare, formations, squad builder, gaffer (mockups in `.stitch/designs/`)
 - [ ] **Product polish** — glass consistency
 - [ ] **Recent Transfers feature** — schema, pipeline, API, frontend (see `docs/plans/recent-transfers.md`). Branch preserved: `claude/transfers-supabase-feature-mmBSP`
-- [ ] **Tactical philosophies** — seed pipeline 83, club assignments, philosophy detail page (see `docs/plans/tactical-philosophies.md`)
+- [x] ~~Tactical philosophies~~ — 10 seeded, 22 clubs assigned, /tactics/[slug] detail page, SystemFit on player detail, formation badge links
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15% (was 7%)
+- [ ] **Secondary model enrichment** — 71% of active lvl 85+ players have single-model compounds → bad archetype assignments. Pipeline 04 needs to assign secondary models.
+- [ ] **Remove Clutch/Lifer/Globetrotter from pipeline 37** — definitions still in code, will re-assign on next run
 - [ ] **Free agent grader** — ranked shortlists
 - [ ] **Scouting radar** — statistical alert system
 - [ ] **News-driven alerts** on player list
@@ -93,8 +95,21 @@
 - [x] ~~React #310 fix~~ — spread before .sort() on useMemo array
 - [x] ~~Squad picker redesign~~ — split layout: pitch + additions + player list
 - [x] ~~Ideal squad computation~~ — cron endpoint `/api/cron/otp-squads` computes all 48 nations. 41 computed, 7 skipped (thin pools)
-- [ ] **Remove error boundary** — temporary debug wrapper, remove once stable
-- [ ] **Submit flow** — depends on ideal squad for comparison scoring
+- [x] ~~Remove error boundary~~ — removed debug wrapper from squad builder page
+- [x] ~~Submit flow~~ — was already built (submit endpoint + reveal UI + scoring). Added: RPC stats function, graceful fallback for thin-pool nations, disabled unplayable nation cards
+- [ ] **Thin-pool nation data** — 7 nations (Iran, Iraq, DR Congo, Honduras, Qatar, Indonesia, Panama) need more players scouted before they're playable
+
+## Completed (2026-03-25, session 23 — legend scoring + OTP squads)
+- [x] OTP ideal squad pipeline: `/api/cron/otp-squads`, 41/48 nations computed
+- [x] Legend similar player scoring: level bonus (max 25pts), `level` added to SOURCE_FIELDS
+- [x] Pipeline 37b: legend archetype inference — 313 legends assigned via compound mapping
+- [x] Football-culture archetypes: Fenômeno, Kaiser, Pendolino, Tractor, Metronome, Arrow, Bomber, Pitbull
+- [x] Player overrides: Di Stéfano→Arrow, Müller→Bomber, Davids→Pitbull, Mbappé→Fenômeno, Hakimi→Pendolino, Messi→Virtuoso
+- [x] Active player archetypes: 1,291 lvl 85+ assigned (Palmer→Marksman, KDB→Architect, etc.)
+- [x] Tags cleared: Clutch (40), Lifer (106), Globetrotter (145)
+- [x] Archetype styling: 8 new labels in `archetype-styles.ts` with `legend_culture` category
+- [x] Davids secondary model fixed: Engine-Powerhouse → Engine-Destroyer
+- [x] GK mapping fixed: Casillas/van der Sar/Banks → Wall (not Sweeper)
 
 ## Completed (2026-03-25, session 22 — KC launch + OTP)
 - [x] Kickoff Clash launched: 500 characters, data bridge, card detail, title screen, persistence

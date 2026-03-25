@@ -23,6 +23,7 @@ Usage:
     python 31_cs_value.py --force            # overwrite existing values
 """
 import argparse
+import logging
 import math
 import sys
 from datetime import date
@@ -72,26 +73,27 @@ sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 # Level → base value curve (millions EUR)
 # "What would the fee be if they moved tomorrow?"
 # Calibrated 2026-03-19 against 10 DoF-anchored values.
-# L92=146, L91=126, L90=106, L89=91, L88=76, L85=40, L80=15, L75=5
+# Recalibrated 2026-03-25 — lifted upper tiers to match real market.
+# Anchors: L92 peak-age=€180m, L90=€125m, L88=€85m, L85=€50m, L80=€18m, L75=€6m
 def level_to_base_value(level: int) -> float:
     """Convert scouting level (1-99) to base value in millions EUR."""
     if level < 65:
         return 0.1
     if level < 70:
-        return 0.5 + (level - 65) * 0.3
+        return 0.5 + (level - 65) * 0.4
     if level < 75:
-        return 2.0 + (level - 70) * 0.6
+        return 2.5 + (level - 70) * 0.7
     if level < 80:
-        return 5.0 + (level - 75) * 2.0    # 5 - 15m
+        return 6.0 + (level - 75) * 2.4    # 6 - 18m
     if level < 85:
-        return 15.0 + (level - 80) * 5.0   # 15 - 40m
+        return 18.0 + (level - 80) * 6.4   # 18 - 50m
     if level < 88:
-        return 40.0 + (level - 85) * 12.0  # 40, 52, 64
+        return 50.0 + (level - 85) * 11.7  # 50, 62, 74
     if level < 90:
-        return 76.0 + (level - 88) * 15.0  # 76, 91
+        return 85.0 + (level - 88) * 20.0  # 85, 105
     if level < 92:
-        return 106.0 + (level - 90) * 20.0  # 106, 126
-    return 146.0 + (level - 92) * 25.0      # 146, 171, 196
+        return 125.0 + (level - 90) * 27.5 # 125, 153
+    return 180.0 + (level - 92) * 30.0     # 180, 210, 240
 
 
 def age_modifier(age: int | None, level: int = 80) -> float:
@@ -166,16 +168,16 @@ TRAJECTORY_MODIFIER = {
 
 
 def buyer_pool_modifier(level: int, age: int | None, position: str | None) -> float:
-    """Buyer pool discount — fewer clubs = lower fee."""
+    """Buyer pool discount — fewer clubs = lower fee. Softened to avoid double-stacking."""
     if age is None:
         age = 27
     pool = 1.0
     if level >= 92:
-        pool = 0.90
+        pool = 0.94  # only 2-3 buyers, but they pay premium
     elif level >= 90:
-        pool = 0.94
+        pool = 0.97
     if age >= 31:
-        pool *= 0.90
+        pool *= 0.93  # softer age penalty (age_modifier already discounts)
     if position == "GK" and level >= 85:
         pool *= 0.93
     return pool
@@ -210,6 +212,46 @@ def compute_cs_value(
     return max(1, round(base))
 
 
+def blend_with_comps(base_value, person_id, position, level, age, archetype, trajectory, conn):
+    """Blend formula value with transfer comparable evidence (Approach B)."""
+    from lib.comparables import find_comparables, compute_similarity, recency_weight, weighted_median
+
+    try:
+        comps = find_comparables(conn, person_id, position, level, age, archetype, trajectory)
+    except Exception as e:
+        logging.debug(f"Comparables lookup failed for {person_id}: {e}")
+        return base_value
+
+    if len(comps) < 5:
+        return base_value
+
+    # Score each comp and compute weighted median
+    fees = []
+    weights = []
+    for comp in comps:
+        sim = compute_similarity(
+            target={"position": position, "level": level, "age": age, "archetype": archetype, "trajectory": trajectory},
+            comp=comp,
+        )
+        rw = recency_weight(comp.get("transfer_date"))
+        # Contract years adjustment: short contract = discounted fee
+        fee = float(comp["fee_eur_m"])
+        if comp.get("contract_years") and comp["contract_years"] <= 1:
+            fee *= 0.6  # short contract discount
+        fees.append(fee)
+        weights.append(sim * rw)
+
+    comp_value = weighted_median(fees, weights)
+    n = len(comps)
+    comp_weight = min(0.35, 0.15 + (n - 5) * 0.04)  # 5→15%, 10→35%
+    blended = base_value * (1.0 - comp_weight) + comp_value * comp_weight
+
+    # Safety cap: don't let comps shift value more than 50% in either direction
+    blended = max(base_value * 0.65, min(base_value * 1.5, blended))
+
+    return round(blended)
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -237,6 +279,7 @@ def main():
             pp.level,
             pp.overall,
             pp.position::text as position,
+            pp.earned_archetype,
             pm.market_value_eur,
             pm.transfer_fee_eur,
             cm.trajectory
@@ -276,6 +319,13 @@ def main():
             position=row["position"],
             trajectory=row["trajectory"],
             tm_value_eur=row["market_value_eur"],
+        )
+
+        # Blend with transfer comparables (Approach B)
+        cs_value = blend_with_comps(
+            cs_value, row["person_id"], row["position"],
+            effective_level, age,
+            row.get("earned_archetype"), row.get("trajectory"), conn
         )
 
         updates.append({

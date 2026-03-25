@@ -130,73 +130,98 @@ export default function OnThePlanePage() {
           </p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {filtered.map((nation) => (
-              <Link
-                key={nation.nation_id}
-                href={`/on-the-plane/${nation.slug}`}
-                className="block rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{
-                  background: "var(--bg-surface)",
-                  border: "1px solid var(--border-subtle)",
-                }}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-2xl">{nation.kit_emoji}</span>
-                  <span
-                    className="text-xs font-mono px-1.5 py-0.5 rounded"
-                    style={{
-                      background: "var(--bg-elevated)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    #{nation.fifa_ranking}
-                  </span>
-                </div>
-                <h3
-                  className="text-sm font-semibold mb-1 truncate"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {nation.name}
-                </h3>
-                <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                  <span>{nation.confederation}</span>
-                  <span>·</span>
-                  <span>{nation.player_count} players</span>
-                </div>
-                {nation.strength !== null && (
-                  <div className="mt-2">
-                    <div
-                      className="h-1.5 rounded-full overflow-hidden"
-                      style={{ background: "var(--bg-elevated)" }}
+            {filtered.map((nation) => {
+              const thinPool = nation.player_count < 11;
+              const cardContent = (
+                <>
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-2xl">{nation.kit_emoji}</span>
+                    <span
+                      className="text-xs font-mono px-1.5 py-0.5 rounded"
+                      style={{
+                        background: "var(--bg-elevated)",
+                        color: "var(--text-muted)",
+                      }}
                     >
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${nation.strength}%`,
-                          background: strengthColor(nation.strength),
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                        Squad Strength
-                      </span>
-                      <span
-                        className="text-[10px] font-mono"
-                        style={{ color: strengthColor(nation.strength) }}
-                      >
-                        {nation.strength}
-                      </span>
-                    </div>
+                      #{nation.fifa_ranking}
+                    </span>
                   </div>
-                )}
-                {nation.total_entries > 0 && (
-                  <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>
-                    {nation.total_entries} squad{nation.total_entries !== 1 ? "s" : ""} picked
-                  </p>
-                )}
-              </Link>
-            ))}
+                  <h3
+                    className="text-sm font-semibold mb-1 truncate"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {nation.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                    <span>{nation.confederation}</span>
+                    <span>·</span>
+                    <span>{nation.player_count} players</span>
+                  </div>
+                  {thinPool && (
+                    <p className="text-[10px] mt-2" style={{ color: "var(--color-accent-physical)" }}>
+                      Not enough scouted players yet
+                    </p>
+                  )}
+                  {nation.strength !== null && (
+                    <div className="mt-2">
+                      <div
+                        className="h-1.5 rounded-full overflow-hidden"
+                        style={{ background: "var(--bg-elevated)" }}
+                      >
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${nation.strength}%`,
+                            background: strengthColor(nation.strength),
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                          Squad Strength
+                        </span>
+                        <span
+                          className="text-[10px] font-mono"
+                          style={{ color: strengthColor(nation.strength) }}
+                        >
+                          {nation.strength}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {nation.total_entries > 0 && (
+                    <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>
+                      {nation.total_entries} squad{nation.total_entries !== 1 ? "s" : ""} picked
+                    </p>
+                  )}
+                </>
+              );
+
+              return thinPool ? (
+                <div
+                  key={nation.nation_id}
+                  className="block rounded-xl p-4 opacity-50 cursor-not-allowed"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-subtle)",
+                  }}
+                >
+                  {cardContent}
+                </div>
+              ) : (
+                <Link
+                  key={nation.nation_id}
+                  href={`/on-the-plane/${nation.slug}`}
+                  className="block rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-subtle)",
+                  }}
+                >
+                  {cardContent}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

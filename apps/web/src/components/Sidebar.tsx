@@ -37,6 +37,7 @@ const ALL_NAV_CATEGORIES: NavCategory[] = [
       { label: "Clubs", href: "/clubs" },
       { label: "Leagues", href: "/leagues" },
       { label: "Tactics", href: "/tactics" },
+      { label: "Transfers", href: "/transfers" },
       { label: "Fixtures", href: "/fixtures" },
       { label: "News", href: "/news" },
     ],

@@ -1,41 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
-
-// Error boundary to catch and display the actual error message
-class OTPErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { error: Error | null }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { error: null };
-  }
-  static getDerivedStateFromError(error: Error) {
-    return { error };
-  }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{ padding: 20, color: "#ff6b6b", background: "#1e1e1e", margin: 16, borderRadius: 8, fontFamily: "monospace", fontSize: 12 }}>
-          <div style={{ fontWeight: "bold", marginBottom: 8 }}>OTP Error</div>
-          <div>{this.state.error.message}</div>
-          <pre style={{ marginTop: 8, fontSize: 10, color: "#808080", whiteSpace: "pre-wrap" }}>
-            {this.state.error.stack}
-          </pre>
-          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 12, padding: "4px 12px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: 4, cursor: "pointer" }}>
-            Retry
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -112,15 +81,7 @@ const FORMATION_SLOTS: Record<string, string[]> = {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export default function SquadBuilderPageWrapper() {
-  return (
-    <OTPErrorBoundary>
-      <SquadBuilderPage />
-    </OTPErrorBoundary>
-  );
-}
-
-function SquadBuilderPage() {
+export default function SquadBuilderPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.nationSlug as string;
@@ -807,6 +768,17 @@ function SquadBuilderPage() {
         <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
           The Results Are In
         </h1>
+
+        {!comparison && (
+          <div className="px-4 py-6 rounded-xl mb-4" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
+            <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
+              Our scouts haven&apos;t finished analysing this nation yet.
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              Your squad has been saved. Come back once we&apos;ve computed the ideal squad to see your score.
+            </p>
+          </div>
+        )}
 
         {comparison && (
           <>

@@ -147,78 +147,93 @@ function FreeAgentsContent() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-3">
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agency</h1>
-        <p className="text-[11px] text-[var(--text-secondary)] mb-1">
+        <p className="text-[10px] text-[var(--text-muted)] font-mono mb-1">
           {loading ? "Loading..." : `${players.length} players`}
           {avgScore != null && !loading && ` · avg score ${avgScore}`}
         </p>
-        <p className="text-[11px] text-[var(--text-muted)]">
-          Summer 2026 window: who&apos;s available on a Bosman? Scouting intelligence for every expiring contract across Europe&apos;s top 5 leagues.
+        <p className="text-[10px] text-[var(--text-muted)]">
+          Summer 2026: Bosman targets across Europe&apos;s top leagues.
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-3">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => updateParam("tab", t.key === "free" ? "" : t.key)}
-            className={`text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-              tab === t.key
-                ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30"
-                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Tabs + Position pills + Sort */}
+      <div className="mb-3 space-y-2">
+        {/* Tabs */}
+        <div className="flex gap-0.5">
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => updateParam("tab", t.key === "free" ? "" : t.key)}
+                className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 transition-colors"
+                style={{
+                  background: active ? "rgba(153,89,182,0.15)" : "var(--bg-surface)",
+                  color: active ? "var(--color-accent-tactical)" : "var(--text-muted)",
+                  border: `1px solid ${active ? "rgba(153,89,182,0.4)" : "var(--border-subtle)"}`,
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Position pills */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        <button onClick={() => updateParam("position", "")}
-          className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
-            !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-              : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-          }`}>
-          All
-        </button>
-        {POSITIONS.map((pos) => (
-          <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
-            className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
-              position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-            }`}>
-            {pos}
-          </button>
-        ))}
-      </div>
-
-      {/* Sort */}
-      <div className="card rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
-        <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
-          className="px-3 py-1.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm">
-          <option value="overall">Sort: Rating</option>
-          <option value="rating">Sort: AF Rating</option>
-          <option value="age">Sort: Age</option>
-          <option value="value">Sort: Value</option>
-          <option value="name">Sort: Name</option>
-        </select>
-        {position && (
+        {/* Position pills */}
+        <div className="flex flex-wrap gap-1">
           <button onClick={() => updateParam("position", "")}
-            className="px-3 py-1.5 rounded border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-            Clear filter
+            className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+            style={{
+              background: !position ? "rgba(111,195,223,0.12)" : "var(--bg-surface)",
+              color: !position ? "var(--border-bright)" : "var(--text-muted)",
+              border: `1px solid ${!position ? "rgba(111,195,223,0.3)" : "var(--border-subtle)"}`,
+            }}
+          >
+            All
           </button>
-        )}
+          {POSITIONS.map((pos) => (
+            <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
+              className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+              style={{
+                background: position === pos ? "rgba(111,195,223,0.12)" : "var(--bg-surface)",
+                color: position === pos ? "var(--border-bright)" : "var(--text-muted)",
+                border: `1px solid ${position === pos ? "rgba(111,195,223,0.3)" : "var(--border-subtle)"}`,
+              }}
+            >
+              {pos}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort */}
+        <div className="flex gap-2">
+          <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
+            className="px-2 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] text-xs">
+            <option value="overall">Sort: Rating</option>
+            <option value="rating">Sort: AF Rating</option>
+            <option value="age">Sort: Age</option>
+            <option value="value">Sort: Value</option>
+            <option value="name">Sort: Name</option>
+          </select>
+          {position && (
+            <button onClick={() => updateParam("position", "")}
+              className="px-2 py-1.5 text-[9px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              style={{ border: "1px solid var(--border-subtle)" }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Desktop table */}
       {!loading && !error && players.length > 0 && (
-        <div className="card rounded-xl overflow-hidden hidden sm:block">
-          <table className="w-full text-sm">
+        <div className="hidden sm:block border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+          <table className="w-full text-xs">
             <thead>
-              <tr className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+              <tr className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest border-b border-[var(--border-subtle)]">
                 <th className="text-left py-2 px-4 font-medium w-12">Pos</th>
                 <th className="text-left py-2 px-4 font-medium">Player</th>
                 <th className="text-left py-2 px-4 font-medium">{isFreeTab ? "Last Club" : "Club"}</th>
@@ -247,7 +262,8 @@ function FreeAgentsContent() {
                 const radarColor = RADAR_COLORS[theme];
 
                 return (
-                  <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/30 hover:bg-[var(--bg-elevated)]/30 transition-colors">
+                  <tr key={player.person_id} className="border-b border-[var(--border-subtle)]/20 hover:bg-[rgba(111,195,223,0.04)] transition-colors"
+                    style={{ borderLeft: `2px solid ${isFreeTab ? 'var(--color-accent-tactical)' : 'var(--border-subtle)'}` }}>
                     <td className="py-2 px-4">
                       <span className={`text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ${posColor} text-white`}>
                         {posWithSide(player.position, player.side)}
@@ -397,24 +413,21 @@ function FreeAgentsContent() {
 
       {/* Loading */}
       {loading && (
-        <div className="card rounded-xl py-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">Loading...</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] py-12 text-center">
+          <p className="text-xs text-[var(--text-muted)]">Loading...</p>
         </div>
       )}
 
-      {/* Error */}
       {error && (
-        <div className="card rounded-xl p-4 mt-4">
-          <p className="text-sm text-[var(--color-sentiment-negative)]">{error}</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-4 mt-2">
+          <p className="text-xs text-[var(--color-sentiment-negative)]">{error}</p>
         </div>
       )}
 
-      {/* Empty */}
       {!loading && !error && players.length === 0 && (
-        <div className="card rounded-xl py-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] py-12 text-center">
+          <p className="text-xs text-[var(--text-muted)]">
             {isFreeTab ? "No free agents found." : `No contracts expiring in ${tab}.`}
-            {" "}Contract data may not be fully populated.
           </p>
         </div>
       )}

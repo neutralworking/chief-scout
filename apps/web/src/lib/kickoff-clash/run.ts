@@ -413,10 +413,10 @@ export function analyzeDeck(deck: Card[], opponent: OpponentBuild): DeckAnalysis
   const roleSet = new Set(deck.map(c => c.tacticalRole).filter(Boolean));
   const ROLE_COMBOS_LIST = [
     { name: 'The Pirlo-Barella', role1: 'Regista', role2: 'Mezzala' },
-    { name: 'Shield & Sword', role1: 'Sentinelle', role2: 'Trequartista' },
+    { name: 'Shield & Sword', role1: 'Anchor', role2: 'Trequartista' },
     { name: 'Overlap', role1: 'Lateral', role2: 'Inside Forward' },
     { name: 'The Guardiola', role1: 'Falso Nove', role2: 'Winger' },
-    { name: 'The Double Pivot', role1: 'Sentinelle', role2: 'Volante' },
+    { name: 'The Double Pivot', role1: 'Anchor', role2: 'Volante' },
     { name: 'Counter Punch', role1: 'Volante', role2: 'Extremo' },
     { name: 'Total Control', role1: 'Metodista', role2: 'Regista' },
     { name: 'The Wall', role1: 'Stopper', role2: 'Zagueiro' },

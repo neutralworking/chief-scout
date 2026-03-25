@@ -307,7 +307,7 @@ ROLE_ABILITIES = {
     "Carrilero":        ("Lane Runner",     "+20% in WD slot, +5% per Sprinter in lineup"),
     "Fluidificante":    ("Fluid Motion",    "+15% when lineup has 3+ different archetypes"),
     # DM roles
-    "Sentinelle":       ("The Shield",      "Lowest-scoring card gets +30%"),
+    "Anchor":       ("The Shield",      "Lowest-scoring card gets +30%"),
     "Regista":          ("Metronome",       "Boosts every other card's connection bonus by 5%"),
     "Volante":          ("Tackle & Go",     "Reduces opponent score by 15%"),
     # CM roles

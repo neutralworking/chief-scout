@@ -48,7 +48,7 @@ export default async function PhilosophyDetailPage({ params }: Props) {
       // Top players for fit scoring
       supabaseServer
         .from("player_intelligence_card")
-        .select("person_id, name, position, club, level, archetype, personality_type")
+        .select("person_id, name, position, club, level, archetype, personality_type, earned_archetype")
         .not("archetype", "is", null)
         .order("level", { ascending: false })
         .limit(200),

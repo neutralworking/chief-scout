@@ -154,7 +154,7 @@
 
 ### Role Suitability
 - High Passer + Controller → **Regista** (Pirlo type: deep creator, dictates play with passing range)
-- High Cover + Destroyer → **Sentinelle** (Makelele type: pure shield, intercepts, guards the space)
+- High Cover + Destroyer → **Anchor** (Makelele type: pure shield, intercepts, guards the space)
 - High Controller + Cover → **Pivote** (Rodri type: the brain, organizes shape, reads everything)
 - High Powerhouse + Destroyer → **Volante** (Kante type: aggressive ball-winner, disrupts and recycles)
 

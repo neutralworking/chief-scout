@@ -75,7 +75,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   flamboyant: {
     "Trequartista": 8, "Inside Forward": 5, "Inventor": 5, "Falso Nove": 4,
     "False Winger": 4, "Shuttler": 3,
-    "Sentinelle": -5, "Stopper": -4, "Volante": -3,
+    "Anchor": -5, "Stopper": -4, "Volante": -3,
   },
   direct: {
     "Shuttler": 8, "Extremo": 7, "Inside Forward": 6, "Spearhead": 5,
@@ -84,7 +84,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   patient: {
     "Regista": 7, "Metodista": 7, "Libero": 5, "Enganche": 6,
-    "Sentinelle": 5, "Pivote": 5, "Invertido": 5, "Controller": 6,
+    "Anchor": 5, "Pivote": 5, "Invertido": 5, "Controller": 6,
     "Shuttler": -4, "Spearhead": -3,
   },
   elegant: {
@@ -105,14 +105,14 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   progressive_carrier: {
     "Libero": 10, "Mezzala": 8, "Invertido": 7, "Tuttocampista": 6,
     "False Winger": 5, "Inside Forward": 5, "Shuttler": 4,
-    "Sentinelle": -3, "Pivote": -3, "Poacher": -2,
+    "Anchor": -3, "Pivote": -3, "Poacher": -2,
   },
   set_piece_specialist: {
     "Wide Provider": 8, "Enganche": 6, "Metodista": 5,
     "Prima Punta": 5, "Poacher": 3,
   },
   positional_discipline: {
-    "Sentinelle": 10, "Pivote": 10, "Sweeper": 8, "Stopper": 7, "Cover": 7,
+    "Anchor": 10, "Pivote": 10, "Sweeper": 8, "Stopper": 7, "Cover": 7,
     "Libero": 6, "Invertido": 6, "Shotstopper": 5, "Comandante": 5,
     "Trequartista": -4, "Raumdeuter": -3,
   },
@@ -129,7 +129,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   build_up_contributor: {
     "Libero": 8, "Libero GK": 7, "Sweeper Keeper": 7,
     "Regista": 6, "Invertido": 6, "Metodista": 5,
-    "Sentinelle": 4, "Pivote": 4,
+    "Anchor": 4, "Pivote": 4,
   },
   big_game_player: {
     "Poacher": 7, "Prima Punta": 6,
@@ -137,7 +137,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Regista": 4, "Enganche": 4,
   },
   inconsistent: {
-    "Sentinelle": -8, "Pivote": -8, "Stopper": -6, "Sweeper": -6, "Libero": -5,
+    "Anchor": -8, "Pivote": -8, "Stopper": -6, "Sweeper": -6, "Libero": -5,
     "Regista": -5, "Metodista": -5, "Shotstopper": -5, "Comandante": -5,
     "Trequartista": -2, // mercurial players tolerated here
   },
@@ -147,12 +147,12 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   hot_headed: {
     "Volante": -2, // tolerated for destroyers
-    "Sentinelle": -8, "Pivote": -8, "Regista": -6, "Libero": -5,
+    "Anchor": -8, "Pivote": -8, "Regista": -6, "Libero": -5,
     "Sweeper": -5, "Metodista": -5,
     "Stopper": 2, // controlled aggression can help
   },
   quiet_leader: {
-    "Sweeper": 7, "Libero": 6, "Sentinelle": 6, "Pivote": 6, "Regista": 5,
+    "Sweeper": 7, "Libero": 6, "Anchor": 6, "Pivote": 6, "Regista": 5,
     "Metodista": 5, "Poacher": 4, "Sweeper Keeper": 4, "Libero GK": 4,
     "Comandante": 5,
   },

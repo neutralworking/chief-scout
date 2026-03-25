@@ -111,7 +111,7 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
     },
     # ── DM ────────────────────────────────────────────────
     "DM": {
-        "Sentinelle": [
+        "Anchor": [
             ("tackles_p90", "very_high"),
             ("interceptions_p90", "high"),
             ("duels_won_pct", "high"),

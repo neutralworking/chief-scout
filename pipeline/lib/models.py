@@ -94,7 +94,7 @@ MODEL_LABELS: dict[str, str] = {
     # ── Creator (Mental) primary ─────────────────────────────────────────────
     "Creator-Cover":          "Quarterback CB",     # Bonucci — starts attacks from defence
     "Creator-Destroyer":      "Regista",            # Vidal — wins ball and creates chances
-    "Creator-Dribbler":       "Magician",           # Ronaldinho — dribbles to open lanes
+    "Creator-Dribbler":       "Conjurer",           # Ronaldinho — dribbles to open lanes
     "Creator-Engine":         "Catalyst",           # Bruno Fernandes — roaming playmaker
     "Creator-Passer":         "Maestro",            # Özil — controls game with passing
     "Creator-Powerhouse":     "Power Playmaker",    # Pogba — holds off players to slip pass
@@ -169,7 +169,7 @@ MODEL_LABELS: dict[str, str] = {
     "Striker-Controller":       "Ice Man",          # Bergkamp — controls then finishes
     "Striker-Cover":            "Poacher",          # reads where the ball will drop
     "Striker-Creator":          "Assassin",         # Totti — artist forward, vision for shots
-    "Striker-Destroyer":        "Pressing Forward", # Tevez — wins ball high, shoots immediately
+    "Striker-Destroyer":        "Spearhead",         # Tevez — wins ball high, shoots immediately
     "Striker-Engine":           "Workhorse",        # Keane — runs channels all game + finishes
     "Striker-Powerhouse":       "Rifle",            # Batistuta — holds off defenders to shoot
     "Striker-Sprinter":         "Rocket",           # Bale — pace to get a shot away

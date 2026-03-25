@@ -14,7 +14,7 @@ const TACTICAL_ROLES = [
   // WD
   "Lateral", "Fluidificante", "Invertido", "Corredor",
   // DM
-  "Regista", "Sentinelle", "Pivote", "Volante",
+  "Regista", "Anchor", "Pivote", "Volante",
   // CM
   "Mezzala", "Tuttocampista", "Metodista", "Relayeur",
   // WM

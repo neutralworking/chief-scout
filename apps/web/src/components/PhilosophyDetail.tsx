@@ -43,6 +43,7 @@ interface Player {
   level: number | null;
   archetype: string | null;
   personality_type: string | null;
+  earned_archetype: string | null;
 }
 
 interface Props {
@@ -229,9 +230,9 @@ export function PhilosophyDetail({
                   </span>
                   <span className="text-[var(--text-primary)] font-medium truncate flex-1">{p.name}</span>
                   <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">{p.club}</span>
-                  {p.archetype && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] hidden sm:inline">
-                      {p.archetype}
+                  {p.earned_archetype && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] hidden sm:inline">
+                      {p.earned_archetype}
                     </span>
                   )}
                   <span

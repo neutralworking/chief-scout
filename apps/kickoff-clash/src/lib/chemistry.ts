@@ -50,10 +50,10 @@ export const ROLE_COMBOS: {
   multiplier: number;
 }[] = [
   { name: "The Pirlo-Barella", role1: "Regista", role2: "Mezzala", multiplier: 1.3 },
-  { name: "Shield & Sword", role1: "Sentinelle", role2: "Trequartista", multiplier: 1.3 },
+  { name: "Shield & Sword", role1: "Anchor", role2: "Trequartista", multiplier: 1.3 },
   { name: "Overlap", role1: "Lateral", role2: "Inside Forward", multiplier: 1.2 },
   { name: "The Guardiola", role1: "Falso Nove", role2: "Winger", multiplier: 1.2 },
-  { name: "The Double Pivot", role1: "Sentinelle", role2: "Volante", multiplier: 1.2 },
+  { name: "The Double Pivot", role1: "Anchor", role2: "Volante", multiplier: 1.2 },
   { name: "Counter Punch", role1: "Volante", role2: "Extremo", multiplier: 1.2 },
   { name: "Total Control", role1: "Metodista", role2: "Regista", multiplier: 1.3 },
   { name: "The Wall", role1: "Stopper", role2: "Zagueiro", multiplier: 1.2 },

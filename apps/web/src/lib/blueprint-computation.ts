@@ -22,7 +22,7 @@ export const BLUEPRINT_VOCABULARY: Record<string, string[]> = {
   GK: ["Shot-Stopper", "Sweeper Keeper", "Commanding Keeper"],
   CD: ["Libero", "Modern CB", "Traditional CB", "Aggressive CB", "Progressor CB"],
   WD: ["Invertido", "Lateral", "Fluidificante", "Attacking Full-Back", "Playmaking Full-Back"],
-  DM: ["Sentinelle", "Deep-Lying Playmaker", "Volante", "Regista", "Box-to-Box Anchor"],
+  DM: ["Anchor", "Deep-Lying Playmaker", "Volante", "Regista", "Box-to-Box Anchor"],
   CM: ["Metronome", "Tuttocampista", "Mezzala", "Deep-Lying Playmaker", "Driver"],
   WM: ["False Winger", "Shuttler", "Wide Provider", "Work-Rate Winger"],
   AM: ["No.10", "Seconda Punta", "Trequartista", "Pressing Playmaker"],
@@ -103,17 +103,17 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
     maestro: "Regista",       // the archetype — quietly brilliant orchestrator (Pirlo)
     professor: "Regista",     // cerebral tempo-setter (Jorginho)
   },
-  // Sentinelle (Anchor): shields back four, positional (Busquets)
-  "Sentinelle": {
-    default: "Sentinelle",
+  // Anchor (Anchor): shields back four, positional (Busquets)
+  "Anchor": {
+    default: "Anchor",
     catalyst: "Volante",       // aggressive anchor → ball winner (Casemiro)
     professor: "Deep-Lying Playmaker",  // cerebral anchor → DLP tendency
   },
   // Volante (Ball-Winner): aggressive pressing, disrupts (Kanté)
   "Volante": {
     default: "Volante",
-    maestro: "Sentinelle",     // composed disruptor → positional anchor
-    professor: "Sentinelle",
+    maestro: "Anchor",     // composed disruptor → positional anchor
+    professor: "Anchor",
   },
   // Destroyer-Creator: tackles AND creates (Vieira / Yaya Touré)
   "Destroyer-Creator": {

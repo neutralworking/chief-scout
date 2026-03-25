@@ -66,7 +66,7 @@ ROLE_AXES = {
     "Invertido":          ["Cover", "Passer", "Controller", "Engine"],
     "Corredor":           ["Engine", "Dribbler", "Sprinter", "Passer"],
     # DM
-    "Sentinelle":         ["Cover", "Destroyer", "Controller", "Commander"],
+    "Anchor":         ["Cover", "Destroyer", "Controller", "Commander"],
     "Regista":            ["Controller", "Passer", "Creator", "Cover"],
     "Volante":            ["Destroyer", "Engine", "Cover", "Powerhouse"],
     "Pivote":             ["Cover", "Destroyer", "Controller", "Commander"],

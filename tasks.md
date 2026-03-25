@@ -26,8 +26,8 @@
 - [x] ~~Attribute grade backfill~~ — pipelines 66 (API-Football), 56 (EAFC), 30 (Understat) rerun. Top 250 avg grades 16→28.8. GKs in top 250 dropped 138→85.
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables for meaningful grades
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling (low priority since role score is primary)
-- [ ] **Role distribution tuning** — CM Tuttocampista 62%, WM Winger 82%, DM Sentinelle 71% still dominant. Root cause: data coverage gaps (Sprinter 0%, Engine 5-17%). Needs more real pace/pressing data or smarter proxy rules
-- [ ] **Sentinelle→Anchor rename** — memory says this was done in a previous session but pipeline 27 still uses Sentinelle. Reconcile.
+- [ ] **Role distribution tuning** — CM Tuttocampista 62%, WM Winger 82%, DM Anchor 71% still dominant. Root cause: data coverage gaps (Sprinter 0%, Engine 5-17%). Needs more real pace/pressing data or smarter proxy rules
+- [x] ~~Sentinelle→Anchor rename~~ — renamed across 29 files, 154 DB records, pipeline 27 + tactical_roles updated
 - [ ] **Top-end role score compression** — Mbappe 87 vs target 91-95. Level floor caps elite players. May need richer grade data or adjusted floor logic
 - [x] ~~Position audit (level 80+)~~ — 18 fixes applied (Worrall→CD, Alisson→GK, Militao→CD, Griezmann→CF, etc.). 6 got secondary positions. Ratings recomputed.
 - [ ] **Scouting notes gap** — 46 of top 250 missing. Run LLM profiling (pipeline 72) targeted at top 250

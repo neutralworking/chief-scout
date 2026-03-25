@@ -58,7 +58,7 @@ export const MODEL_LABELS: Record<string, string> = {
   "Commander-Striker": "Figurehead", "Commander-Target": "Air King",
   // Creator primary
   "Creator-Cover": "Quarterback CB", "Creator-Destroyer": "Regista",
-  "Creator-Dribbler": "Magician", "Creator-Engine": "Catalyst",
+  "Creator-Dribbler": "Conjurer", "Creator-Engine": "Catalyst",
   "Creator-Passer": "Maestro", "Creator-Powerhouse": "Power Playmaker",
   "Creator-Sprinter": "Counter King", "Creator-Striker": "Fantasista",
   "Creator-Target": "Target Playmaker",
@@ -98,7 +98,7 @@ export const MODEL_LABELS: Record<string, string> = {
   // Striker primary
   "Striker-Commander": "Talisman", "Striker-Controller": "Ice Man",
   "Striker-Cover": "Poacher", "Striker-Creator": "Assassin",
-  "Striker-Destroyer": "Pressing Forward", "Striker-Engine": "Workhorse",
+  "Striker-Destroyer": "Spearhead", "Striker-Engine": "Workhorse",
   "Striker-Powerhouse": "Rifle", "Striker-Sprinter": "Rocket",
   "Striker-Target": "Hitman",
   // Target primary

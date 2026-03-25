@@ -35,7 +35,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Corredor":        { models: ["Sprinter", "Engine", "Cover", "Dribbler"],             labels: [] },
   // ── DM ──
   "Regista":         { models: ["Passer", "Controller", "Creator", "Cover"],            labels: [] },
-  "Sentinelle":      { models: ["Cover", "Destroyer", "Controller", "Commander"],       labels: [] },
+  "Anchor":      { models: ["Cover", "Destroyer", "Controller", "Commander"],       labels: [] },
   "Pivote":          { models: ["Controller", "Cover", "Passer", "Commander"],          labels: [] },
   "Volante":         { models: ["Powerhouse", "Destroyer", "Engine", "Cover"],          labels: [] },
   // ── CM ──

@@ -87,7 +87,7 @@ export function getPhilosophyColor(slug: string): string {
 
 // ── Player-philosophy fit scoring ────────────────────────────────────────────
 
-interface ScoringPlayer {
+export interface ScoringPlayer {
   archetype: string | null;
   personality_type: string | null;
   level: number | null;
@@ -95,7 +95,10 @@ interface ScoringPlayer {
 
 /**
  * Score a player's fit against a philosophy (0-100).
- * Simplified port of valuation_core/fit/system_fit.py
+ *
+ * Archetype field is a compound skillset (e.g. "Cover-Passer").
+ * We split into primary/secondary models and check each against
+ * the philosophy's archetype_requirements (keyed by model name).
  */
 export function scorePlayerForPhilosophy(
   player: ScoringPlayer,
@@ -103,7 +106,7 @@ export function scorePlayerForPhilosophy(
 ): number {
   const archetypeFit = computeArchetypeFit(player, philosophy);
   const personalityFit = computePersonalityFit(player, philosophy);
-  const levelBonus = (player.level ?? 0) / 20; // 0-1 from level 0-20
+  const levelBonus = Math.min(1.0, (player.level ?? 0) / 95); // 0-1, capped at 95
 
   // Weighted: archetype 40%, personality 30%, level 30%
   const raw = archetypeFit * 0.4 + personalityFit * 0.3 + levelBonus * 0.3;
@@ -115,17 +118,28 @@ function computeArchetypeFit(
   philosophy: TacticalPhilosophy,
 ): number {
   const requirements = philosophy.archetype_requirements;
-  if (!requirements || !player.archetype) return 0.5;
+  if (!requirements || !player.archetype) return 0.3;
 
-  // Check if the player's primary archetype is one of the required ones
-  const archetypes = Object.keys(requirements);
-  if (archetypes.includes(player.archetype)) {
-    // Higher threshold = more important → better fit
-    const threshold = requirements[player.archetype];
-    return Math.min(1.0, 0.7 + (threshold / 100) * 0.3);
+  // Split compound skillset (e.g. "Cover-Passer") into individual models
+  const models = player.archetype.split("-");
+  const reqKeys = Object.keys(requirements);
+
+  // Find the best matching model
+  let bestFit = 0;
+  for (const model of models) {
+    if (reqKeys.includes(model)) {
+      const threshold = requirements[model];
+      const fit = Math.min(1.0, 0.7 + (threshold / 100) * 0.3);
+      bestFit = Math.max(bestFit, fit);
+    }
   }
 
-  return 0.3; // archetype not required by this philosophy
+  // Both models match = even better
+  if (models.length === 2 && models.every((m) => reqKeys.includes(m))) {
+    bestFit = Math.min(1.0, bestFit + 0.1);
+  }
+
+  return bestFit || 0.3; // 0.3 = no model match
 }
 
 function computePersonalityFit(

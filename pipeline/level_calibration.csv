@@ -64,7 +64,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10604,Emanuel Pogatetz,CD,42,66,-24,44,66,Stopper,20,LASK,
 15505,Nani,WF,48,71,-23,55,71,Inside Forward,34,Adana Demirspor,
 15063,Michael Dawson,CD,46,69,-23,47,69,Stopper,29,Nottingham Forest,Premier League
-18566,Xabi Alonso,DM,46,69,-23,51,69,Sentinelle,29,Bayern Munich,Bundesliga
+18566,Xabi Alonso,DM,46,69,-23,51,69,Anchor,29,Bayern Munich,Bundesliga
 8437,Andrea Barzagli,CD,44,67,-23,46,67,Stopper,29,Juventus,Serie A
 11002,Fernando Meira,CD,44,67,-23,47,67,Stopper,20,,
 9789,Cristian Chivu,CD,44,67,-23,47,67,Stopper,20,,
@@ -160,9 +160,9 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 3821,Keisuke Honda,AM,54,69,-15,58,69,Trequartista,29,,
 5861,Per Mertesacker,CD,53,68,-15,52,68,Stopper,29,Arsenal,Premier League
 15733,Nikola Kalinić,CF,51,66,-15,51,66,Poacher,13,HNK Hajduk Split,Croatian Football League
-9960,Daniele De Rossi,DM,51,66,-15,55,66,Sentinelle,29,Boca Juniors,Liga de Voleibol Argentina – Serie A1
+9960,Daniele De Rossi,DM,51,66,-15,55,66,Anchor,29,Boca Juniors,Liga de Voleibol Argentina – Serie A1
 10127,David Villa,CF,45,60,-15,49,60,Poacher,20,Vissel Kobe,J1 League
-11300,Gennaro Gattuso,DM,44,59,-15,47,59,Sentinelle,20,,
+11300,Gennaro Gattuso,DM,44,59,-15,47,59,Anchor,20,,
 15252,Miroslav Klose,CF,44,59,-15,51,59,Poacher,29,Lazio,Serie A
 1331,Claudio Pizarro,CF,44,59,-15,50,59,Poacher,29,Werder Bremen,Bundesliga
 4605,Marco Borriello,CF,43,58,-15,48,58,Poacher,29,SPAL 2013,
@@ -183,7 +183,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17166,Santi Cazorla,CM,43,57,-14,50,57,Mezzala,51,Real Oviedo,Segunda División
 2745,Graziano Pellè,CF,43,57,-14,51,57,Poacher,43,Parma,Serie A
 9067,Billy Sharp,CF,42,56,-14,48,56,Poacher,43,Los Angeles Galaxy,
-4078,Kyle Beckerman,DM,42,56,-14,45,56,Sentinelle,20,,
+4078,Kyle Beckerman,DM,42,56,-14,45,56,Anchor,20,,
 11125,Francis Benali,WD,41,55,-14,47,55,Carrilero,32,,
 2707,Gökdeniz Karadeniz,CF,40,54,-14,46,54,Poacher,29,Rubin Kazan,Russian Premier League
 14505,Marek Hamšík,AM,61,74,-13,64,74,Trequartista,29,Trabzonspor,Süper Lig
@@ -204,14 +204,14 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 2587,Geoffrey Mujangi Bia,WF,56,68,-12,57,68,Inside Forward,20,,
 10483,Edin Džeko,CF,52,64,-12,58,64,Poacher,43,Fiorentina,Serie A
 12432,Jason Puncheon,AM,52,64,-12,54,64,Trequartista,29,Anorthosis Famagusta FC,Cypriot First Division
-7493,Wilson Palacios,DM,50,62,-12,53,62,Sentinelle,20,,
+7493,Wilson Palacios,DM,50,62,-12,53,62,Anchor,20,,
 14338,Makoto Hasebe,CD,48,60,-12,50,60,Stopper,29,Eintracht Frankfurt,Bundesliga
 17125,Samuel Eto'o,CF,45,57,-12,52,57,Poacher,29,Qatar SC,Qatar Stars League
 13855,Leonardo Ulloa,CF,44,56,-12,48,56,Poacher,29,Rayo Vallecano,La Liga
 4612,Marco Di Vaio,CF,43,55,-12,46,55,Poacher,20,,
 5225,Mirko Vučinić,CF,43,55,-12,47,55,Poacher,20,,
 16087,Pape Sarr,CM,42,54,-12,53,54,Metodista,60,Tottenham Hotspur,Premier League
-16847,Rory Delap,DM,42,54,-12,45,54,Sentinelle,20,Stoke City,Championship
+16847,Rory Delap,DM,42,54,-12,45,54,Anchor,20,Stoke City,Championship
 3432,Joey Barton,CM,42,54,-12,47,54,Mezzala,29,Burnley,Championship
 3547,Jonathan Walters,CF,42,54,-12,47,54,Poacher,29,Ipswich Town,Premier League
 6238,Rodrigo Palacio,CF,42,54,-12,49,54,Poacher,29,Brescia,Serie B
@@ -299,7 +299,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 8862,Baily Cargill,CD,79,69,10,72,69,Zagueiro,32,Forest Green Rovers,League Two
 12446,Javi Galán,WD,79,69,10,74,69,Lateral,42,Atlético Madrid,La Liga
 18782,Zidane Iqbal,CM,79,69,10,73,69,Metodista,32,Utrecht,
-15896,Oliver Skipp,DM,79,69,10,68,69,Sentinelle,55,Leicester City,Premier League
+15896,Oliver Skipp,DM,79,69,10,68,69,Anchor,55,Leicester City,Premier League
 17847,Telasco Segovia,CM,79,69,10,66,69,Metodista,46,Inter Miami CF,Major League Soccer
 17368,Shadrach Ogie,CD,79,69,10,72,69,Zagueiro,32,Gillingham,League Two
 12943,Jordan Zemura,CD,79,69,10,67,69,Zagueiro,50,Udinese,Serie A
@@ -307,7 +307,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 9915,Daniel Edelman,CM,79,69,10,65,69,Metodista,47,New York Red Bulls,
 12006,Isaac Hutchinson,CM,79,69,10,73,69,Metodista,32,Brighton,Premier League
 22224,D. Kruse,CM,79,69,10,70,69,Metodista,47,IFK Göteborg,Allsvenskan
-17343,Sergio Busquets,DM,79,69,10,67,69,Sentinelle,48,Inter Miami CF,Major League Soccer
+17343,Sergio Busquets,DM,79,69,10,67,69,Anchor,48,Inter Miami CF,Major League Soccer
 9634,Chukwubuikem Ikwuemesi,CF,79,69,10,66,69,Poacher,52,Oud-Heverlee Leuven,Belgian Pro League
 10764,Erik Sviatchenko,CD,79,69,10,67,69,Stopper,40,Houston Dynamo FC,Major League Soccer
 12115,Jack Earing,CM,79,69,10,72,69,Metodista,32,Bolton Wanderers,
@@ -352,7 +352,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 15831,Odysseus Velanas,CM,79,69,10,73,69,Metodista,32,PEC Zwolle,Eredivisie
 19593,Rafał Kurzawa,WM,79,69,10,68,69,Winger,47,,
 15260,Mitch Clark,WD,79,69,10,72,69,Carrilero,32,Aston Villa,Premier League
-22164,Lü Zhuoyi,DM,79,69,10,70,69,Sentinelle,46,,
+22164,Lü Zhuoyi,DM,79,69,10,70,69,Anchor,46,,
 15300,Mohamed Sherif,CM,79,69,10,73,69,Metodista,32,Wadi Degla,
 14653,Martin Olsson,CM,79,69,10,67,69,Mezzala,46,Malmö FF,Allsvenskan
 12669,João Ferreira,WD,79,69,10,68,69,Carrilero,41,AS Saint-Étienne,Ligue 1
@@ -413,7 +413,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 13769,Lazaros Lamprou,CM,79,69,10,69,69,Metodista,47,Fortuna Sittard,Eredivisie
 9294,Callum Camps,CM,79,69,10,73,69,Metodista,32,,
 9236,Bruno Jordão,CM,79,69,10,67,69,Metodista,47,Radomiak Radom,Ekstraklasa
-13434,Kenny McLean,DM,79,69,10,71,69,Sentinelle,56,Norwich City,Championship
+13434,Kenny McLean,DM,79,69,10,71,69,Anchor,56,Norwich City,Championship
 10609,Emeka Eneli,CM,79,69,10,66,69,Metodista,46,Real Salt Lake,Major League Soccer
 14054,Luca Garritano,CM,79,69,10,74,69,Metodista,32,Frosinone,Serie B
 9693,Cody Drameh,WD,79,69,10,71,69,Carrilero,41,Hull City,Championship
@@ -502,7 +502,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10496,Eduard Löwen,CD,79,69,10,67,69,Stopper,50,St. Louis City SC,Major League Soccer
 14356,Malick Mbaye,CD,79,69,10,70,69,Stopper,32,Metz,Ligue 2
 3226,Javi Márquez,CM,79,69,10,69,69,Metodista,35,,
-4832,Marvin Chávez,DM,79,69,10,72,69,Sentinelle,35,AZ,
+4832,Marvin Chávez,DM,79,69,10,72,69,Anchor,35,AZ,
 3599,José Ángel,WD,79,69,10,73,69,Lateral,34,,
 9549,Chris Durkin,CD,79,69,10,66,69,Stopper,40,D.C. United,Major League Soccer
 16464,Ramazan Civelek,CM,79,69,10,67,69,Mezzala,47,Kayserispor,Süper Lig
@@ -540,7 +540,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 9311,Callum Slattery,CM,79,69,10,69,69,Metodista,47,Motherwell,
 19683,Gustav Svensson,CM,79,69,10,67,69,Metodista,46,IFK Göteborg,Allsvenskan
 21374,D. Murkin,AM,79,69,10,70,69,Trequartista,42,Derby County,Championship
-21375,Gustavo Garcia,DM,79,69,10,71,69,Sentinelle,45,Famalicão,
+21375,Gustavo Garcia,DM,79,69,10,71,69,Anchor,45,Famalicão,
 23187,E. Kahl,CM,79,69,10,70,69,Metodista,46,AGF Aarhus,
 23196,N. Wojtuszek,CM,79,69,10,68,69,Metodista,47,Jagiellonia Białystok,Ekstraklasa
 19071,Josip Brekalo,WM,79,69,10,69,69,Winger,56,Real Oviedo,Segunda División
@@ -577,7 +577,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 952,Bruno Cesar,CM,79,69,10,69,69,Mezzala,32,Penafiel,
 17851,Tennai Watson,CD,79,69,10,72,69,Zagueiro,32,Reading,League One
 22384,B. Kurtulus,CM,79,69,10,66,69,Metodista,46,Halmstads BK,Allsvenskan
-18351,Victor Wanyama,DM,79,69,10,71,69,Sentinelle,41,CF Montréal,Major League Soccer
+18351,Victor Wanyama,DM,79,69,10,71,69,Anchor,41,CF Montréal,Major League Soccer
 22652,J. Taaje,CM,79,69,10,67,69,Metodista,47,OM,Ligue 1
 22379,S. Findlay,CM,79,69,10,67,69,Metodista,47,Heart of Midlothian FC,
 11614,Halil Akbunar,CM,79,69,10,69,69,Metodista,47,Pendikspor,TFF First League
@@ -597,11 +597,11 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 18230,Tyrhys Dolan,WF,79,69,10,70,69,Inside Forward,47,Espanyol,La Liga
 25289,F. Tingager,CM,79,69,10,68,69,Metodista,46,AGF Aarhus,
 25328,T. Wójtowicz,CM,79,69,10,69,69,Tuttocampista,46,Lechia Gdańsk,
-25355,Miguel Silva,DM,79,69,10,70,69,Sentinelle,46,Universitatea Cluj,
+25355,Miguel Silva,DM,79,69,10,70,69,Anchor,46,Universitatea Cluj,
 25393,Gao Zhunyi,CM,79,69,10,69,69,Metodista,46,,
 8893,Bart van Rooij,WD,79,69,10,69,69,Carrilero,41,FC Twente,Vrouwen Eredivisie
 25469,D. Janošek,CM,79,69,10,71,69,Metodista,47,OL,
-25538,K. Rüegg,DM,79,69,10,71,69,Sentinelle,47,FC Basel 1893,Swiss Super League
+25538,K. Rüegg,DM,79,69,10,71,69,Anchor,47,FC Basel 1893,Swiss Super League
 25697,M. Rundić,CM,79,69,10,67,69,Metodista,45,Slovácko,
 8887,Barrie McKay,CM,79,69,10,72,69,Metodista,32,Livingston FC,
 25722,Daniel Penha,AM,79,69,10,70,69,Trequartista,42,,
@@ -635,7 +635,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10374,Doğukan Sinik,CM,79,69,10,67,69,Mezzala,47,Antalyaspor,Süper Lig
 19250,Rafael Obrador,CD,78,68,10,71,68,Zagueiro,32,Benfica,Liga Portugal
 19457,Aziz Eraltay Behich,WM,78,68,10,66,68,Winger,47,,
-19520,Josh Risdon,DM,78,68,10,65,68,Sentinelle,46,,
+19520,Josh Risdon,DM,78,68,10,65,68,Anchor,46,,
 19651,Dylan Daniel Mahmoud Bronn,CM,78,68,10,66,68,Mezzala,54,,
 19993,Walker Zimmerman,CM,78,68,10,66,68,Metodista,46,,
 12608,Jesús David Murillo,CM,78,68,10,65,68,Metodista,45,LAFC,
@@ -682,7 +682,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 14929,Maxi Moralez,CM,78,68,10,65,68,Metodista,46,New York City FC,Major League Soccer
 9612,Christophe Hérelle,CD,78,68,10,68,68,Stopper,41,Metz,Ligue 2
 9619,Christopher McVey,CD,78,68,10,71,68,Zagueiro,32,IF Elfsborg,Allsvenskan
-16698,Robert Andrich,DM,78,68,10,71,68,Sentinelle,56,Bayer Leverkusen,Bundesliga
+16698,Robert Andrich,DM,78,68,10,71,68,Anchor,56,Bayer Leverkusen,Bundesliga
 10115,David Ruiz,CM,78,68,10,64,68,Metodista,46,Inter Miami CF,Major League Soccer
 14174,Luizão,CD,78,68,10,71,68,Zagueiro,32,,
 9867,Dan Jones,CD,78,68,10,71,68,Zagueiro,32,,
@@ -783,7 +783,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22076,F. Ottosson,CM,78,68,10,68,68,Metodista,47,Sandefjord Football,
 14511,Maren Haile-Selassie,CM,78,68,10,65,68,Mezzala,46,FC Zürich,Swiss Super League
 22091,D. Ulvestad,CM,78,68,10,65,68,Metodista,46,Kristiansund BK,Eliteserien
-20457,K. Mac Allister,DM,78,68,10,72,68,Sentinelle,47,Unión,
+20457,K. Mac Allister,DM,78,68,10,72,68,Anchor,47,Unión,
 11904,İbrahim Pehlivan,WD,78,68,10,71,68,Lateral,32,Ankaragücü,
 14628,Martim Fernandes,WD,78,68,10,68,68,Lateral,41,FC Porto,Liga Portugal
 20471,K. Danois,WM,78,68,10,70,68,Fantasista,47,Auxerre,Ligue 1
@@ -905,7 +905,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 21148,T. Strata,WM,78,68,10,68,68,Winger,46,Vitória Guimarães,
 9255,Bryan Limbombe,CM,78,68,10,69,68,Mezzala,47,Heracles,
 17714,Sultan Faqihi,CD,78,68,10,71,68,Zagueiro,32,Damac,
-17788,Taras Stepanenko,DM,78,68,10,70,68,Sentinelle,45,,
+17788,Taras Stepanenko,DM,78,68,10,70,68,Anchor,45,,
 17697,Stuart Armstrong,AM,78,68,10,72,68,Trequartista,41,Aberdeen,
 22378,A. Manneh,WM,78,68,10,68,68,Winger,46,Mjällby AIF,Allsvenskan
 22383,Matheus Jussa,CM,78,68,10,69,68,Metodista,47,,
@@ -946,7 +946,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 19027,Isak Bergmann Jóhannesson,CM,78,68,10,69,68,Mezzala,50,1. FC Köln,Bundesliga
 7656,Aaron Hayden,CD,78,68,10,70,68,Zagueiro,32,Wolverhampton Wanderers,Premier League
 10963,Federico Macheda,CF,78,68,10,70,68,Prima Punta,31,,
-12928,Jordan Rossiter,DM,78,68,10,71,68,Sentinelle,32,Bristol Rovers,
+12928,Jordan Rossiter,DM,78,68,10,71,68,Anchor,32,Bristol Rovers,
 9354,Capita,CM,78,68,10,67,68,Metodista,47,Hapoel Jerusalem,
 22515,Zhu Chenjie,CM,78,68,10,68,68,Metodista,46,Shanghai Shenhua,
 22519,D. Pospelov,CM,78,68,10,66,68,Metodista,46,AFC UTA Arad,
@@ -1266,7 +1266,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24419,S. Czyż,CM,78,68,10,68,68,Mezzala,47,Widzew Łódz,
 24433,H. Ibrahim,CM,78,68,10,69,68,Metodista,46,GAIS,Allsvenskan
 24435,T. Ayari,WM,78,68,10,67,68,Winger,46,AIK,
-24515,Denny Wang Yi,DM,78,68,10,66,68,Sentinelle,45,Wuhan Three Towns F.C.,
+24515,Denny Wang Yi,DM,78,68,10,66,68,Anchor,45,Wuhan Three Towns F.C.,
 24516,Bai Yang,CM,78,68,10,64,68,Metodista,45,Beijing Guoan,
 24519,Yang Yihu,CM,78,68,10,68,68,Mezzala,45,,
 24598,F. Knudsen,CM,78,68,10,64,68,Metodista,45,SK Brann,Eliteserien
@@ -1379,7 +1379,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 8559,Angus MacDonald,CD,78,68,10,69,68,Zagueiro,32,Aberdeen,
 8933,Ben Barclay,CD,78,68,10,70,68,Zagueiro,32,Stockport County,League One
 17076,Sam Kersten,CD,78,68,10,67,68,Stopper,41,Heerenveen,
-8684,Arif Boşluk,DM,78,68,10,70,68,Sentinelle,32,Trabzonspor,Süper Lig
+8684,Arif Boşluk,DM,78,68,10,70,68,Anchor,32,Trabzonspor,Süper Lig
 16965,Ryan Nyambe,WD,78,68,10,72,68,Carrilero,32,Derby County,Championship
 14901,Max Cleworth,CM,78,68,10,68,68,Metodista,47,Wrexham,
 9077,Bjørn Inge Utvik,CD,78,68,10,64,68,Stopper,41,,
@@ -1470,7 +1470,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 15595,Neill Byrne,CD,78,68,10,69,68,Zagueiro,34,Bradford City,League One
 15837,Oğulcan Ülgün,CM,78,68,10,68,68,Metodista,47,Gençlerbirligi,
 15395,Moses Ebiye,CM,78,68,10,71,68,Metodista,32,Motherwell,
-15635,Nick Fichtinger,DM,78,68,10,70,68,Sentinelle,45,PEC Zwolle,Eredivisie
+15635,Nick Fichtinger,DM,78,68,10,70,68,Anchor,45,PEC Zwolle,Eredivisie
 15751,Nilton Varela,CD,78,68,10,73,68,Zagueiro,32,Estrela da Amadora,
 15738,Nikola Petković,CM,78,68,10,71,68,Metodista,32,Charlotte FC,Major League Soccer
 16036,Owen Bevan,CD,78,68,10,69,68,Zagueiro,32,Bournemouth,Premier League
@@ -1490,7 +1490,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 18432,Vontae Daley-Campbell,WD,78,68,10,70,68,Carrilero,32,Cardiff City,Championship
 10587,Ellis Iandolo,CM,78,68,10,71,68,Metodista,32,Swindon Town,
 18766,Zé Carlos,CM,78,68,10,68,68,Tuttocampista,45,Gil Vicente,
-18702,Yunus Emre Konak,DM,78,68,10,70,68,Sentinelle,32,Oxford United,Championship
+18702,Yunus Emre Konak,DM,78,68,10,70,68,Anchor,32,Oxford United,Championship
 18590,Yan Dhanda,WD,78,68,10,67,68,Lateral,41,Dundee,
 18726,Zac McGraw,CD,78,68,10,71,68,Zagueiro,32,Portland Timbers,Major League Soccer
 7768,Abdullah Matuq,WM,78,68,10,67,68,Winger,32,Al-Shabab,
@@ -1614,7 +1614,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 14875,Matty Virtue,CM,78,68,10,72,68,Metodista,32,Liverpool,Premier League
 14867,Matty Jacob,WD,78,68,10,75,68,Carrilero,32,Hull City,Championship
 2868,Héctor Mancilla,CM,78,68,10,64,68,Tuttocampista,47,,
-15677,Nicolas Höfler,DM,78,68,10,70,68,Sentinelle,43,Freiburg,Bundesliga
+15677,Nicolas Höfler,DM,78,68,10,70,68,Anchor,43,Freiburg,Bundesliga
 18113,Tomáš Vlček,CD,78,68,10,71,68,Stopper,41,Slavia Prague,
 18373,Vincent Sasso,CD,78,68,10,70,68,Zagueiro,32,Boavista,
 18455,Warmed Omari,CD,78,68,10,69,68,Zagueiro,50,Hamburger SV,2. Bundesliga
@@ -1655,9 +1655,9 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10535,Eliaquim Mangala,CD,78,68,10,68,68,Zagueiro,43,Estoril,
 12997,José Luis Palomino,CD,78,68,10,62,68,Stopper,50,Metz,Ligue 2
 14670,Márton Dárdai,CM,78,68,10,68,68,Metodista,41,Hertha BSC,2. Bundesliga
-8818,Axel Witsel,DM,78,68,10,72,68,Sentinelle,62,Girona,La Liga
+8818,Axel Witsel,DM,78,68,10,72,68,Anchor,62,Girona,La Liga
 9047,Beto,CF,78,68,10,67,68,Poacher,52,Everton,Premier League
-8775,Asier Illarramendi,DM,78,68,10,74,68,Sentinelle,32,FC Dallas,Major League Soccer
+8775,Asier Illarramendi,DM,78,68,10,74,68,Anchor,32,FC Dallas,Major League Soccer
 12759,Joël Monteiro,WF,78,68,10,69,68,Inside Forward,43,Young Boys,
 9477,Chadi Riad,CD,78,68,10,68,68,Stopper,41,Crystal Palace,Premier League
 14403,Manuel Lazzari,WD,78,68,10,67,68,Carrilero,50,Lazio,Serie A
@@ -1725,7 +1725,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20802,Jean-Baptiste Gorby,CM,77,67,10,67,67,Metodista,47,Braga,Liga Portugal
 18132,Tommy Conway,CF,77,67,10,67,67,Poacher,44,Middlesbrough,Championship
 9005,Benjamin Tetteh,CF,77,67,10,71,67,Poacher,32,Metz,Ligue 2
-25950,D. Sîrbu,DM,77,67,10,66,67,Sentinelle,46,Farul Constanța,
+25950,D. Sîrbu,DM,77,67,10,66,67,Anchor,46,Farul Constanța,
 20782,Justin Quincy Hubner,CM,77,67,10,66,67,Mezzala,46,Fortuna Sittard,Eredivisie
 11475,Gökhan Töre,CF,77,67,10,70,67,Poacher,34,Konyaspor,Süper Lig
 23384,Jiang Guangtai,CM,77,67,10,66,67,Metodista,45,,
@@ -1755,7 +1755,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 9820,Curtis Ofori,CD,77,67,10,69,67,Zagueiro,32,New York Red Bulls,
 22143,L. Cornic,WD,77,67,10,67,67,Carrilero,40,OM,Ligue 1
 24127,A. Cigaņiks,CM,77,67,10,68,67,Tuttocampista,45,FC Luzern,Swiss Super League
-24173,S. Ottiger,DM,77,67,10,68,67,Sentinelle,47,FC Luzern,Swiss Super League
+24173,S. Ottiger,DM,77,67,10,68,67,Anchor,47,FC Luzern,Swiss Super League
 24174,K. Tshiembe,CM,77,67,10,65,67,Metodista,44,Vålerenga,
 21039,J. Rankin-Costello,CM,77,67,10,67,67,Metodista,46,Charlton Athletic,League One
 9856,Damion Lowe,CD,77,67,10,70,67,Zagueiro,32,Philadelphia Union,Major League Soccer
@@ -1926,7 +1926,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20889,A. Carlén,CM,77,67,10,67,67,Tuttocampista,45,Excelsior,
 16028,Oussama El Azzouzi,CM,77,67,10,69,67,Metodista,46,Auxerre,Ligue 1
 9703,Cole Stockton,CF,77,67,10,71,67,Poacher,32,Morecambe,League Two
-10285,Diego Demme,DM,77,67,10,71,67,Sentinelle,41,Napoli,Serie A
+10285,Diego Demme,DM,77,67,10,71,67,Anchor,41,Napoli,Serie A
 13731,Latif Blessing,CF,77,67,10,73,67,Poacher,32,Sporting Kansas City,Major League Soccer
 5640,Pablo García,CF,77,67,10,70,67,Poacher,34,Real Betis,La Liga
 3381,Jo Inge Berget,CF,77,67,10,67,67,Poacher,44,Malmö FF,Allsvenskan
@@ -2195,7 +2195,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17795,Tarik Scott,CD,76,66,10,67,66,Zagueiro,32,FC Dallas,Major League Soccer
 13546,Kike Pérez,CM,76,66,10,62,66,Mezzala,55,Venezia FC,Serie A
 13259,Kabongo Tshimanga,CF,76,66,10,70,66,Poacher,32,Peterborough United,League One
-20651,K. Van de Perre,DM,76,66,10,66,66,Sentinelle,46,Unión,
+20651,K. Van de Perre,DM,76,66,10,66,66,Anchor,46,Unión,
 20317,A. Emakhu,WM,76,66,10,67,66,Winger,47,Millwall,Championship
 17060,Sam Cosgrove,CF,76,66,10,65,66,Poacher,43,Birmingham City,Championship
 20647,César Tárrega,CM,76,66,10,65,66,Mezzala,47,Valencia,La Liga
@@ -2258,7 +2258,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20596,N. Opoku,CM,76,66,10,64,66,Metodista,45,Kasımpaşa,
 14219,Luke Berry,CM,76,66,10,66,66,Mezzala,46,Charlton Athletic,League One
 12452,Javi Muñoz,CM,76,66,10,62,66,Mezzala,55,Getafe,La Liga
-21999,F. Ibarra,DM,76,66,10,64,66,Sentinelle,46,Rosario Central,
+21999,F. Ibarra,DM,76,66,10,64,66,Anchor,46,Rosario Central,
 22156,J. Komar,CM,76,66,10,63,66,Metodista,45,Rosario Central,
 17603,Stefano Vecchia,CF,76,66,10,71,66,Poacher,32,Brommapojkarna,
 18207,Tyler Hall,CD,76,66,10,68,66,Zagueiro,32,Inter Miami CF,Major League Soccer
@@ -2275,7 +2275,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 16224,Pedrinho,CF,76,66,10,65,66,Prima Punta,51,Konyaspor,Süper Lig
 7733,Abdulfattah Adam,CF,76,66,10,69,66,Poacher,32,Al Taawoun,
 7927,Ahmed Abdullahi,CF,76,66,10,69,66,Poacher,32,Sunderland,Championship
-20358,J. Aramburu,DM,76,66,10,69,66,Sentinelle,47,Real Sociedad,La Liga
+20358,J. Aramburu,DM,76,66,10,69,66,Anchor,47,Real Sociedad,La Liga
 23899,R. Kitto,CM,76,66,10,65,66,Tuttocampista,47,Adelaide United,A-League Women
 25059,Daniel Podence,AM,76,66,10,69,66,Trequartista,43,OL,
 25062,A. Ljungberg,WM,76,66,10,64,66,Winger,46,Sirius,
@@ -2517,7 +2517,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 16109,Patric,CD,76,66,10,71,66,Zagueiro,43,Lazio,Serie A
 24080,A. Roaldsøy,CM,76,66,10,66,66,Metodista,46,,
 8199,Alexis Flips,CF,76,66,10,71,66,Poacher,41,Anderlecht,Belgian Pro League
-21090,Erick,DM,76,66,10,69,66,Sentinelle,46,Cercle Brugge,
+21090,Erick,DM,76,66,10,69,66,Anchor,46,Cercle Brugge,
 21089,F. Vázquez,WM,76,66,10,71,66,Fantasista,47,Cremonese,
 22952,Jorge Félix,WM,76,66,10,67,66,Winger,47,Piast Gliwice,Ekstraklasa
 24093,L. Ambros,WM,76,66,10,64,66,Winger,47,Górnik Zabrze,Ekstraklasa
@@ -2532,7 +2532,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24113,A. Murgia,CM,76,66,10,64,66,Mezzala,47,Universitatea Cluj,
 25539,D. Stojinović,CM,76,66,10,62,66,Metodista,45,Jagiellonia Białystok,Ekstraklasa
 24117,A. Fábry,CM,76,66,10,66,66,Mezzala,47,Universitatea Cluj,
-23164,C. Graciano,DM,76,66,10,62,66,Sentinelle,46,Deportivo Cali,Categoría Primera A
+23164,C. Graciano,DM,76,66,10,62,66,Anchor,46,Deportivo Cali,Categoría Primera A
 23166,J. Gammelby,CM,76,66,10,65,66,Mezzala,47,Silkeborg,
 17320,Serdar Dursun,CF,76,66,10,71,66,Poacher,32,Fatih Karagümrük,
 25605,R. Kumar,CM,76,66,10,65,66,Metodista,46,NK Istra 1961,Croatian Football League
@@ -2628,7 +2628,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 ",
 22606,L. Fomba,WM,76,66,10,68,66,Winger,47,Servette,
 23035,A. Llinás,CM,76,66,10,63,66,Metodista,45,Millonarios,Categoría Primera A
-26252,T. Magnin,DM,76,66,10,66,66,Sentinelle,46,Servette,
+26252,T. Magnin,DM,76,66,10,66,66,Anchor,46,Servette,
 23527,I. Fossum,CM,76,66,10,68,66,Metodista,46,Rosenborg,
 16862,Ross Graham,CD,76,66,10,64,66,Zagueiro,41,Dundee United FC,
 26267,Chi Zhongguo,CM,76,66,10,67,66,Tuttocampista,45,Beijing Guoan,
@@ -2642,7 +2642,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24391,Octavian Popescu,WM,76,66,10,67,66,Winger,47,FCSB,Liga I
 15242,Milutin Osmajic,CF,76,66,10,66,66,Poacher,43,Preston North End,Championship
 22641,Yang Zihao,CM,76,66,10,62,66,Relayeur,45,,
-8391,Ander Herrera,DM,76,66,10,67,66,Sentinelle,56,Athletic Bilbao,La Liga
+8391,Ander Herrera,DM,76,66,10,67,66,Anchor,56,Athletic Bilbao,La Liga
 22569,Zhang Chengdong,CM,76,66,10,65,66,Mezzala,45,,
 15597,Nélson Oliveira,CF,76,66,10,66,66,Poacher,43,Vitória Guimarães,
 24415,Hugo Vallejo,AM,76,66,10,66,66,Trequartista,43,Piast Gliwice,Ekstraklasa
@@ -2682,7 +2682,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 14698,Mason Bennett,CF,76,66,10,71,66,Poacher,32,Burton Albion,League One
 20010,Vincent Janssen,CF,76,66,10,69,66,Poacher,44,Royal Antwerp,
 26922,J. Urbančič,CM,76,66,10,65,66,Metodista,45,Víkingur,
-18701,Yunus Emre Çift,DM,76,66,10,66,66,Sentinelle,45,Samsunspor,
+18701,Yunus Emre Çift,DM,76,66,10,66,66,Anchor,45,Samsunspor,
 11124,Francis Amuzu,CF,76,66,10,70,66,Poacher,42,Anderlecht,Belgian Pro League
 23593,A. Nguiamba,CM,76,66,10,65,66,Mezzala,45,MZKS Arka Gdynia,
 23594,M. Divković,CM,76,66,10,67,66,Metodista,47,,
@@ -3059,7 +3059,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24454,A. Kabashi,CM,75,65,10,64,65,Metodista,45,Botev Vratsa,
 24462,Turki Al Ammar,WF,75,65,10,64,65,Inside Forward,43,,
 24464,Mohammed Yousef,CD,75,65,10,62,65,Stopper,41,Al-Ahli,Saudi Pro League
-24467,N. Garayalde,DM,75,65,10,64,65,Sentinelle,45,,
+24467,N. Garayalde,DM,75,65,10,64,65,Anchor,45,,
 24475,W. Mazzantti,WM,75,65,10,64,65,Winger,46,Huracán,
 24476,R. Cabral,WM,75,65,10,64,65,Winger,46,Huracán,
 24477,M. Braida,WM,75,65,10,66,65,Winger,46,Sportivo San Lorenzo,
@@ -3210,7 +3210,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25655,F. Gino,CM,75,65,10,62,65,Metodista,46,Aldosivi,
 25657,M. Catalán,CM,75,65,10,65,65,Mezzala,45,Ba,
 21761,M. Torres,CM,75,65,10,62,65,Metodista,46,OL,
-25691,P. Retre,DM,75,65,10,62,65,Sentinelle,46,Wellington Phoenix,A-League Men
+25691,P. Retre,DM,75,65,10,62,65,Anchor,46,Wellington Phoenix,A-League Men
 25692,L. D'Arrigo,CM,75,65,10,66,65,Mezzala,46,Melbourne Victory,
 25696,C. Timmins,CM,75,65,10,63,65,Mezzala,46,Perth Glory,A-League Men
 25699,F. Conchie,CM,75,65,10,63,65,Tuttocampista,46,Wellington Phoenix,A-League Men
@@ -3792,7 +3792,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 11253,Gaetano Oristanio,CM,74,64,10,66,64,Mezzala,56,Parma,Serie A
 17491,Skelly Alvero,CM,74,64,10,69,64,Metodista,32,Werder Bremen,Bundesliga
 13008,Joseba Zaldúa,WD,74,64,10,70,64,Lateral,32,Cadiz,Segunda División
-9124,Boubacar Traore,DM,74,64,10,67,64,Sentinelle,56,Metz,Ligue 2
+9124,Boubacar Traore,DM,74,64,10,67,64,Anchor,56,Metz,Ligue 2
 13419,Ken Sema,WD,74,64,10,67,64,Carrilero,41,Watford,Championship
 17083,Sam Morsy,CM,74,64,10,62,64,Mezzala,54,Bristol City,Championship
 12810,John Lundstram,CM,74,64,10,65,64,Tuttocampista,56,Hull City,Championship
@@ -3862,7 +3862,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10389,Dominic Sadi,CM,73,63,10,65,63,Metodista,47,Carlisle United,League One
 13285,Kaiky,CD,72,62,10,67,62,Zagueiro,32,Almeria,Segunda División
 12238,Jake Garrett,CM,72,62,10,67,62,Metodista,32,Blackburn Rovers,Championship
-17574,Stefan Bajcetic,DM,72,62,10,66,62,Sentinelle,41,Liverpool,Premier League
+17574,Stefan Bajcetic,DM,72,62,10,66,62,Anchor,41,Liverpool,Premier League
 11024,Filip Kostić,WM,72,62,10,72,62,Winger,56,Juventus,Serie A
 11891,Ibou Sané,WM,72,62,10,63,62,Winger,47,Metz,Ligue 2
 12585,Jérôme Roussillon,WD,72,62,10,68,62,Carrilero,41,Union Berlin,Bundesliga
@@ -3881,7 +3881,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 7843,Adam Obert,CD,72,62,10,65,62,Stopper,50,Cagliari,Serie A
 8538,Ange Caumenan N'Guessan,CD,72,62,10,64,62,Stopper,41,Torino,Serie A
 17495,Slobodan Rubežić,CM,72,62,10,61,62,Tuttocampista,46,Aberdeen,
-9004,Benjamin Tahirović,DM,72,62,10,64,62,Sentinelle,47,Ajax,Derde Divisie
+9004,Benjamin Tahirović,DM,72,62,10,64,62,Anchor,47,Ajax,Derde Divisie
 9003,Benjamin Stambouli,CM,72,62,10,64,62,Metodista,43,Metz,Ligue 2
 16493,Rareș Burnete,CF,72,62,10,65,62,Poacher,32,Lecce,Serie A
 8289,Alois Confais,CM,72,62,10,62,62,Metodista,41,Le Havre,Ligue 1
@@ -3895,7 +3895,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 12852,Jonas Martin,CM,72,62,10,67,62,Metodista,43,Boulogne,
 18479,Wesley,CF,72,62,10,68,62,Prima Punta,30,AS Roma,Serie A
 17645,Steve Kapuadi,CM,72,62,10,58,62,Relayeur,46,Inter Milan,Serie A
-12450,Javi Martínez,DM,72,62,10,67,62,Sentinelle,43,,
+12450,Javi Martínez,DM,72,62,10,67,62,Anchor,43,,
 10889,Fabio Tavares,CF,72,62,10,67,62,Poacher,32,AOK Kerkyra,
 9122,Botond Balogh,CD,72,62,10,61,62,Stopper,50,,
 16123,Patrick Gamble,CD,72,62,10,65,62,Zagueiro,32,Blackburn Rovers,Championship
@@ -4129,7 +4129,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 13409,Kellen Fisher,WD,66,56,10,60,56,Carrilero,41,Norwich City,Championship
 14787,Matt Doherty,WD,66,56,10,62,56,Lateral,52,Wolverhampton Wanderers,Premier League
 14987,Mehdi Loune,CM,66,56,10,62,56,Metodista,32,Eintracht Frankfurt,Bundesliga
-10280,Diego Chará,DM,66,56,10,61,56,Sentinelle,47,Portland Timbers,Major League Soccer
+10280,Diego Chará,DM,66,56,10,61,56,Anchor,47,Portland Timbers,Major League Soccer
 11228,Gabriel Moscardo,CM,66,56,10,64,56,Metodista,32,Braga,Liga Portugal
 17891,Thérence Koudou,WD,66,56,10,58,56,Lateral,41,KV Mechelen,Belgian Pro League
 18542,Willy Kambwala,CD,66,56,10,59,56,Zagueiro,41,Villarreal,La Liga
@@ -4155,14 +4155,14 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 9170,Brandon Khela,CM,65,55,10,60,55,Metodista,32,Ross County,
 10538,Elias Baum,WD,65,55,10,62,55,Carrilero,32,Eintracht Frankfurt,Bundesliga
 12421,Jasmin Kurtić,CM,65,55,10,63,55,Metodista,43,CS Universitatea Craiova,Liga I
-14313,Mahamadou Susoho,DM,65,55,10,62,55,Sentinelle,32,Livingston FC,
+14313,Mahamadou Susoho,DM,65,55,10,62,55,Anchor,32,Livingston FC,
 18201,Tygo Land,CM,65,55,10,63,55,Metodista,32,PSV,Eredivisie
 12145,Jack Panayotou,CM,65,55,10,60,55,Metodista,32,New England Revolution,Major League Soccer
 13525,Kian Taylor,CM,65,55,10,60,55,Metodista,32,Preston North End,Championship
 8216,Alfie Taylor,CD,65,55,10,59,55,Zagueiro,32,Hull City,Championship
 8687,Arijon Ibrahimović,CF,65,55,10,60,55,Poacher,36,Bayern Munich,Bundesliga
 9725,Connor O'Riordan,CD,65,55,10,61,55,Zagueiro,32,Blackburn Rovers,Championship
-4363,Lucas Leiva,DM,64,54,10,61,54,Sentinelle,43,,
+4363,Lucas Leiva,DM,64,54,10,61,54,Anchor,43,,
 14559,Marius Courcoul,CM,64,54,10,57,54,Metodista,32,Angers,Ligue 1
 14772,Matija Popović,CF,64,54,10,61,54,Poacher,32,Monza,Serie A
 10863,Fabian Holland,WD,64,54,10,60,54,Carrilero,41,Darmstadt,Bundesliga
@@ -4196,7 +4196,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 18667,Yoram Zague,WD,62,52,10,60,52,Carrilero,32,"FC Copenhagen
 ",
 12448,Javi Hernández,WD,62,52,10,58,52,Carrilero,50,Al-Arabi,Jordan Premier League
-11917,Idrissa Gueye,DM,62,72,-10,63,72,Sentinelle,56,Metz,Ligue 2
+11917,Idrissa Gueye,DM,62,72,-10,63,72,Anchor,56,Metz,Ligue 2
 14474,Marco Ribeiro,CM,62,52,10,58,52,Metodista,32,Boavista,
 8041,Albin Ekdal,CM,62,52,10,59,52,Mezzala,55,Spezia,Serie B
 9577,Christian Benteke,CF,62,52,10,55,52,Prima Punta,52,D.C. United,Major League Soccer
@@ -4217,7 +4217,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 7516,Yacine Brahimi,WF,58,68,-10,58,68,Inside Forward,20,Al-Gharafa,
 11271,Gary Cahill,CD,58,68,-10,57,68,Stopper,29,Bournemouth,Premier League
 8224,Alfredo Di Stéfano,CF,48,58,-10,53,58,Poacher,32,,
-4882,Mathieu Flamini,DM,46,56,-10,48,56,Sentinelle,29,Getafe,La Liga
+4882,Mathieu Flamini,DM,46,56,-10,48,56,Anchor,29,Getafe,La Liga
 10275,Didier Drogba,CF,46,56,-10,50,56,Poacher,20,,
 8637,Antonio Cassano,CF,44,54,-10,51,54,Poacher,43,Sampdoria,Serie B
 15672,Nicolas Anelka,CF,44,54,-10,47,54,Poacher,20,West Bromwich Albion,Championship
@@ -4244,7 +4244,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 897,Bradley Wright-Phillips,CF,40,50,-10,42,50,Poacher,20,,
 1185,Chris Iwelumo,CF,40,50,-10,42,50,Poacher,20,Watford,Championship
 14743,Matheus Pereira,WM,79,70,9,72,69,Winger,55,CD Santa Clara,
-4409,Luiz Gustavo,DM,79,70,9,67,69,Sentinelle,41,Al-Nassr,Saudi Pro League
+4409,Luiz Gustavo,DM,79,70,9,67,69,Anchor,41,Al-Nassr,Saudi Pro League
 23346,T. Pettersson,WD,79,70,9,70,69,Lateral,40,Mjällby AIF,Allsvenskan
 8868,Bamba Dieng,CF,78,69,9,68,69,Poacher,43,Lorient,Ligue 2
 12560,Jérémie Boga,WF,78,69,9,73,69,Inside Forward,52,Nice,
@@ -4252,7 +4252,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 12546,Jens Petter Hauge,WF,78,69,9,69,68,Inside Forward,52,Bodø/Glimt,
 22195,Bruno Xadas,AM,78,69,9,69,68,Trequartista,43,,
 17266,Sebastian Berhalter,CM,78,69,9,66,68,Metodista,47,Columbus Crew,Major League Soccer
-21078,M. Leonard,DM,78,69,9,73,68,Sentinelle,45,Birmingham City,Championship
+21078,M. Leonard,DM,78,69,9,73,68,Anchor,45,Birmingham City,Championship
 22403,Gao Tianyi,AM,78,69,9,70,68,Trequartista,42,Shanghai Shenhua,
 13110,Jota Silva,WF,78,69,9,75,69,Inside Forward,32,Nottingham Forest,Premier League
 8317,Alvyn Sanches,WF,78,69,9,72,68,Inside Forward,43,BSC Young Boys,Swiss Super League
@@ -4303,7 +4303,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 2378,Fraizer Campbell,CF,48,57,-9,49,57,Poacher,29,Huddersfield Town,Championship
 72,Ádám Szalai,CF,48,57,-9,51,57,Poacher,29,FC Basel 1893,Swiss Super League
 16052,Pablo Aimar,AM,46,55,-9,50,55,Trequartista,34,Johor Darul Ta'zim FC,
-8449,Andrea Pirlo,DM,46,55,-9,50,55,Sentinelle,29,New York City FC,Major League Soccer
+8449,Andrea Pirlo,DM,46,55,-9,50,55,Anchor,29,New York City FC,Major League Soccer
 11216,Gabriel Agbonlahor,CF,44,53,-9,48,53,Poacher,29,Aston Villa,Premier League
 12358,Jamie Vardy,CF,44,53,-9,48,53,Poacher,52,Cremonese,
 16692,Robbie Keane,CF,44,53,-9,47,53,Poacher,20,,
@@ -4331,7 +4331,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22247,Bruno Nazário,AM,78,70,8,71,68,Trequartista,43,,
 22885,Z. Tripić,AM,78,70,8,71,68,Trequartista,43,Víkingur,
 16432,Rafael Tolói,CD,78,70,8,74,70,Zagueiro,49,Atalanta,Serie A
-18465,Wataru Endo,DM,77,69,8,73,69,Sentinelle,41,Liverpool,Premier League
+18465,Wataru Endo,DM,77,69,8,73,69,Anchor,41,Liverpool,Premier League
 8583,Ansu Fati,WF,77,69,8,70,69,Extremo,44,Monaco,Ligue 1
 5984,Rafa,WF,77,69,8,73,69,Inside Forward,54,Benfica,Liga Portugal
 15655,Niclas Füllkrug,CF,76,68,8,72,68,Poacher,41,West Ham United,Premier League
@@ -4364,7 +4364,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17971,Tim Drexler,CD,63,55,8,61,55,Zagueiro,41,Nürnberg,
 19377,Odeluga Offiah,CD,62,54,8,59,54,Zagueiro,41,Preston North End,Championship
 12887,Jonny Howson,CM,62,54,8,60,54,Metodista,41,Middlesbrough,Championship
-12392,Jan Ziółkowski,DM,62,70,-8,59,70,Sentinelle,45,AS Roma,Serie A
+12392,Jan Ziółkowski,DM,62,70,-8,59,70,Anchor,45,AS Roma,Serie A
 14349,Malcolm Fry,WF,61,53,8,58,53,Inside Forward,32,New England Revolution,Major League Soccer
 6346,Ruben Yttergård Jenssen,CM,60,52,8,56,52,Metodista,49,Tromsø IL,Eliteserien
 5317,Nacer Chadli,WF,60,68,-8,61,68,Inside Forward,29,KVC Westerlo,
@@ -4401,7 +4401,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10165,Dean Whitehead,CM,42,50,-8,45,50,Mezzala,20,Huddersfield Town,Championship
 10076,David Dunn,CM,42,50,-8,45,50,Mezzala,20,,
 13788,Lee Bowyer,CM,42,50,-8,45,50,Mezzala,20,,
-1296,Christopher Poulsen,DM,42,50,-8,44,50,Sentinelle,20,,
+1296,Christopher Poulsen,DM,42,50,-8,44,50,Anchor,20,,
 10164,Dean Marney,CM,42,50,-8,43,50,Mezzala,29,Fleetwood Town,League Two
 9987,Danny Butterfield,WD,42,50,-8,44,50,,20,Exeter City,League One
 1350,Clinton Morrison,CF,42,50,-8,44,50,Poacher,20,,
@@ -4511,7 +4511,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 13910,Lewis Trickett,WF,59,52,7,55,52,Inside Forward,32,Accrington Stanley,League Two
 1115,Charlie Austin,CF,58,65,-7,57,65,Poacher,29,Swindon Town,
 15803,Norman Theuerkauf,CM,58,51,7,56,51,Metodista,43,Heidenheim,Bundesliga
-12457,Javier Mascherano,DM,58,65,-7,59,65,Sentinelle,20,,
+12457,Javier Mascherano,DM,58,65,-7,59,65,Anchor,20,,
 10424,Dries Mertens,CF,57,50,7,58,50,Poacher,53,Galatasaray,Süper Lig
 17393,Shaun Whalley,CM,57,50,7,56,50,Metodista,32,Shrewsbury Town,League One
 14635,Martín Cáceres,WD,57,50,7,57,50,Lateral,43,Los Angeles Galaxy,
@@ -4643,7 +4643,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 387,André-Pierre Gignac,CF,44,50,-6,44,50,Poacher,40,Tigres UANL,Liga MX
 947,Bruno Alves,CD,44,50,-6,45,50,Stopper,37,Apollon Smyrnis,
 1079,Cédric Carrasso,GK,44,50,-6,42,50,Torwart,18,Galatasaray,Süper Lig
-20962,G. Yah,DM,79,84,-5,78,84,Sentinelle,18,Volendam,
+20962,G. Yah,DM,79,84,-5,78,84,Anchor,18,Volendam,
 9464,Cengiz Ünder,WF,78,73,5,74,73,Inside Forward,41,Fenerbahçe,
 12996,José Luis Morales,WF,77,72,5,73,72,Inside Forward,41,Levante,Segunda División
 11606,Hakim Ziyech,WF,76,71,5,73,71,Inside Forward,41,Wydad Casablanca,
@@ -4824,7 +4824,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 21196,A. Heaven,CM,85,82,3,81,82,Metodista,17,Manchester United,Premier League
 14479,Marco Sportiello,GK,85,88,-3,77,88,Ball-Playing GK,20,Atalanta,Serie A
 18666,Yohei Takaoka,GK,85,88,-3,81,88,Torwart,10,Yokohama FC,J1 League
-11987,Iñigo Ruiz de Galarreta,DM,85,82,3,82,82,Sentinelle,16,Athletic Bilbao,La Liga
+11987,Iñigo Ruiz de Galarreta,DM,85,82,3,82,82,Anchor,16,Athletic Bilbao,La Liga
 10120,David Soria,GK,85,88,-3,76,88,Ball-Playing GK,21,Getafe,La Liga
 15478,Nabil Fekir,CF,85,82,3,83,82,Poacher,13,Real Betis,La Liga
 17374,Shamar Nicholson,CF,85,82,3,82,82,Poacher,13,Club Tijuana,Liga MX
@@ -4845,7 +4845,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17987,Timi Max Elšnik,CM,85,82,3,81,82,Metodista,19,Olimpija Ljubljana,
 17102,Samet Akaydin,CD,85,82,3,82,82,Zagueiro,13,Rizespor,
 12644,Jindřich Staněk,GK,85,88,-3,81,88,Torwart,10,Viktoria Plzeň,
-13776,Leandro Barreiro,DM,85,82,3,80,82,Sentinelle,28,Benfica,Liga Portugal
+13776,Leandro Barreiro,DM,85,82,3,80,82,Anchor,28,Benfica,Liga Portugal
 12876,Jonathan Rowe,WF,85,82,3,81,82,Inside Forward,24,Marseille,Ligue 1
 16911,Rui Silva,GK,85,88,-3,77,88,Ball-Playing GK,20,"Sporting CP
 ",Liga Portugal
@@ -4944,7 +4944,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 13201,Julio Cesar,GK,84,87,-3,81,87,Torwart,23,,
 8653,Antonio Sivera,GK,84,87,-3,75,87,Ball-Playing GK,21,Alavés,La Liga
 8988,Benito Ramírez,WF,84,81,3,79,81,Inside Forward,15,Las Palmas,LaLiga 2
-25614,Rubens,DM,83,80,3,82,80,Sentinelle,18,,
+25614,Rubens,DM,83,80,3,82,80,Anchor,18,,
 15795,Norbert Gyömbér,CD,83,80,3,75,80,Zagueiro,22,Salernitana,Serie B
 9177,Brandon Williams,WD,83,80,3,79,80,Lateral,12,Ipswich Town,Premier League
 11285,Gauthier Gallon,GK,83,86,-3,75,86,Ball-Playing GK,20,Dender EH,
@@ -4967,7 +4967,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17144,Samuele Perisan,GK,83,86,-3,80,86,Torwart,11,Empoli FC,Serie A
 9278,Cafú,CM,83,80,3,77,80,Mezzala,19,Kasımpaşa,
 12012,Isaac Success,WF,83,80,3,81,80,Inside Forward,13,Udinese,Serie A
-11126,Francis Coquelin,DM,83,80,3,79,80,Sentinelle,12,Nantes,Ligue 1
+11126,Francis Coquelin,DM,83,80,3,79,80,Anchor,12,Nantes,Ligue 1
 17897,Thiago Silva,CD,83,80,3,77,80,Zagueiro,29,FC Porto,Liga Portugal
 17087,Sam Slocombe,GK,83,86,-3,80,86,Torwart,14,Oxford United,Championship
 9600,Christian Walton,GK,83,86,-3,79,86,Torwart,11,Ipswich Town,Premier League
@@ -5225,7 +5225,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 3058,Ivan Obradović,WD,80,77,3,77,77,,20,,
 2586,Geoffrey Jourdren,GK,80,83,-3,73,83,Torwart,18,Nancy,Ligue 2
 2497,Gabriel Wüthrich,CM,80,77,3,74,77,Metodista,23,,
-2271,Fabrice Muamba,DM,80,77,3,78,77,Sentinelle,20,,
+2271,Fabrice Muamba,DM,80,77,3,78,77,Anchor,20,,
 2279,Fagner,WD,80,77,3,76,77,Invertido,28,,
 2078,Efraín Juárez,CM,80,77,3,77,77,Mezzala,20,,
 1943,Diogo Ferreira,GK,80,83,-3,76,83,Torwart,20,,
@@ -5241,7 +5241,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20213,N. Madsen,CM,80,77,3,77,77,Metodista,19,Queens Park Rangers,Championship
 20253,Igor Jesus,CM,80,77,3,78,77,Metodista,18,Nottingham Forest,Premier League
 10321,Dimitry Bertaud,GK,80,83,-3,72,83,Ball-Playing GK,20,Montpellier,Ligue 1
-8387,Anatoliy Tymoshchuk,DM,80,77,3,78,77,Sentinelle,20,Kairat Almaty,
+8387,Anatoliy Tymoshchuk,DM,80,77,3,78,77,Anchor,20,Kairat Almaty,
 20299,R. James,CM,80,77,3,79,77,Metodista,19,Chelsea,Premier League
 21980,Éverton Ribeiro,WM,80,77,3,77,77,Fantasista,18,Bahia,
 6642,Serigne Kara,CD,80,77,3,78,77,Stopper,20,,
@@ -5271,7 +5271,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17100,Samba Camara,CD,80,77,3,78,77,Zagueiro,13,Sivasspor,TFF First League
 7350,Valon Behrami,CM,80,77,3,78,77,Mezzala,20,,
 9605,Christie Ward,GK,80,83,-3,72,83,Torwart,32,Wycombe Wanderers,
-22131,G. Escobar,DM,80,77,3,77,77,Sentinelle,18,Santos,
+22131,G. Escobar,DM,80,77,3,77,77,Anchor,18,Santos,
 22132,A. Canobbio,WM,80,77,3,77,77,Fantasista,18,Fluminense,
 9593,Christian Olivares,GK,80,83,-3,71,83,Torwart,32,St. Louis City SC,Major League Soccer
 11248,Gael Clichy,WD,80,77,3,75,77,Lateral,29,Servette,
@@ -5327,7 +5327,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25723,D. Donát,CM,80,77,3,77,77,Mezzala,17,Mladá Boleslav,
 25718,Colby Donovan,CM,80,77,3,77,77,Metodista,18,Celtic,Scottish Premiership
 25695,T. Solil,CM,80,77,3,77,77,Metodista,18,FK Pardubice,Czech First League
-25665,Gregore,DM,80,77,3,78,77,Sentinelle,18,Botafogo,Campeonato Brasileiro Série A
+25665,Gregore,DM,80,77,3,78,77,Anchor,18,Botafogo,Campeonato Brasileiro Série A
 25617,R. Fernandes,CM,80,77,3,77,77,Metodista,19,FC Luzern,Swiss Super League
 22351,K. Keresztes,CM,80,77,3,76,77,Metodista,19,Dundee,
 25579,Tsui Wang Kit,WD,80,77,3,78,77,Invertido,12,,
@@ -5338,7 +5338,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25465,I. Coulibaly,CM,80,77,3,77,77,Metodista,18,LASK Linz,Austrian Bundesliga
 25441,A. Frías,CM,80,77,3,77,77,Metodista,16,Santos,
 25428,G. Mercado,CM,80,77,3,76,77,Metodista,17,Internacional,Campeonato Gaúcho
-25398,Alexsander,DM,80,77,3,77,77,Sentinelle,18,,
+25398,Alexsander,DM,80,77,3,77,77,Anchor,18,,
 25128,Philipp Maybach,CM,80,77,3,77,77,Mezzala,18,Austria Vienna,
 25089,L. Lurvink,CM,80,77,3,76,77,Metodista,18,FK Pardubice,Czech First League
 25070,J. Mulder,CM,80,77,3,76,77,Metodista,19,Slovácko,
@@ -5395,8 +5395,8 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 23274,S. Trémoulet,CM,80,77,3,76,77,Metodista,19,FK Radnik Surdulica,Serbian SuperLiga
 23271,Sergi Domínguez,CM,80,77,3,76,77,Metodista,19,Dinamo Zagreb,Croatian Football League
 23270,Gabriel Menino,CM,80,77,3,77,77,Metodista,18,,
-1329,Cláudio Maldonado,DM,80,77,3,77,77,Sentinelle,20,,
-23226,J. Jessen,DM,80,77,3,77,77,Sentinelle,19,,
+1329,Cláudio Maldonado,DM,80,77,3,77,77,Anchor,20,,
+23226,J. Jessen,DM,80,77,3,77,77,Anchor,19,,
 21326,C. Mawissa Elebi,CM,80,77,3,78,77,Metodista,18,Monaco,Ligue 1
 21358,G. Sazdagi,CM,80,77,3,77,77,Metodista,17,Kayserispor,Süper Lig
 23205,Vitor Hugo,CM,80,77,3,77,77,Metodista,18,,
@@ -5448,7 +5448,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20887,Alexsandro Amorim,CM,79,76,3,76,76,Metodista,19,,
 20879,W. Ould-Chikh,WM,79,76,3,77,76,Raumdeuter,19,Heracles,
 12559,Jérémie Bela,AM,79,76,3,74,76,Trequartista,20,Clermont Foot,Ligue 2
-21511,Omar Fayed,DM,79,76,3,76,76,Sentinelle,18,Arouca,
+21511,Omar Fayed,DM,79,76,3,76,76,Anchor,18,Arouca,
 22220,M. Siltanen,CM,79,76,3,75,76,Metodista,19,Djurgårdens IF,
 20761,N. Bukala,CD,79,76,3,77,76,Zagueiro,13,Volendam,
 719,Barry Robson,CM,79,76,3,76,76,Mezzala,20,Aberdeen,
@@ -5469,7 +5469,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 10311,Dimas,WD,79,76,3,69,76,Invertido,28,,
 20544,Kaiky Naves,CM,79,76,3,75,76,Metodista,19,,
 2570,Gavin Gunning,CD,79,76,3,75,76,Stopper,20,Swindon Town,
-2503,Gaby Mudingayi,DM,79,76,3,77,76,Sentinelle,20,Pisa,Serie B
+2503,Gaby Mudingayi,DM,79,76,3,77,76,Anchor,20,Pisa,Serie B
 884,Botía,CD,79,76,3,77,76,Stopper,20,,
 26,Abdoulaye Faye,CD,79,76,3,73,76,Stopper,29,Lorient,Ligue 2
 22109,A. Bernabéi,WM,79,76,3,76,76,Fantasista,18,Internacional,Campeonato Gaúcho
@@ -5477,20 +5477,20 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 7908,Adrien Silva,CM,79,76,3,72,76,Mezzala,29,Rio Ave,
 23064,D. Morris,CM,79,76,3,75,76,Metodista,18,,
 8176,Alexandr Sojka,CM,79,76,3,75,76,Metodista,19,Viktoria Plzeň,
-9609,Christoph Kramer,DM,79,76,3,71,76,Sentinelle,29,Borussia Mönchengladbach,Bundesliga
+9609,Christoph Kramer,DM,79,76,3,71,76,Anchor,29,Borussia Mönchengladbach,Bundesliga
 7925,Ahmad Abu Rasen,GK,79,82,-3,69,82,Torwart,32,Al-Hilal,
 3330,Jermaine Jones,CM,79,76,3,77,76,Mezzala,20,Los Angeles Galaxy,
 19283,Ronaldo,GK,79,82,-3,76,82,Ball-Playing GK,12,,
-3552,Jonathon Hogg,DM,79,76,3,76,76,Sentinelle,20,,
+3552,Jonathon Hogg,DM,79,76,3,76,76,Anchor,20,,
 12854,Jonas Olsson,CD,79,76,3,72,76,Stopper,29,Wigan Athletic,Championship
-2170,Eric Djemba-Djemba,DM,79,76,3,77,76,Sentinelle,20,,
+2170,Eric Djemba-Djemba,DM,79,76,3,77,76,Anchor,20,,
 12845,Jon Pacheco,CD,79,76,3,75,76,Sweeper,12,Alavés,La Liga
 10979,Felippe Cardoso,CF,79,76,3,77,76,Poacher,15,Casa Pia AC,Liga Portugal
 20398,M. Young,CM,79,76,3,76,76,Metodista,19,Sparta Rotterdam,Eredivisie
 22636,B. Doucouré,CM,79,76,3,75,76,Metodista,19,Javor,
 22010,Eric Ramires,CM,79,76,3,76,76,Metodista,18,Braga,Liga Portugal
 22007,Matheuzinho,CM,79,76,3,76,76,Metodista,18,Corinthians,
-23054,Cristian Salvador,DM,79,76,3,75,76,Sentinelle,18,,
+23054,Cristian Salvador,DM,79,76,3,75,76,Anchor,18,,
 8831,Aynsley Pears,GK,79,82,-3,75,82,Torwart,10,Blackburn Rovers,Championship
 21993,D. Bobadilla,CM,79,76,3,76,76,Metodista,18,São Paulo,
 20328,J. Hardeveld,CM,79,76,3,77,76,Metodista,19,,
@@ -5571,11 +5571,11 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24785,F. Čihák,CM,79,76,3,76,76,Metodista,18,Hradec Králové,
 24803,Lee Kang-Hee,CM,79,76,3,75,76,Metodista,19,Austria Vienna,
 14447,Marcelo,WD,79,76,3,75,76,Invertido,23,,
-24892,L. Scipioni,DM,79,76,3,75,76,Sentinelle,19,Tigre,
-24990,M. Nasraoui,DM,79,76,3,75,76,Sentinelle,18,NK Istra 1961,Croatian Football League
+24892,L. Scipioni,DM,79,76,3,75,76,Anchor,19,Tigre,
+24990,M. Nasraoui,DM,79,76,3,75,76,Anchor,18,NK Istra 1961,Croatian Football League
 22649,F. Ambina,CM,79,76,3,76,76,Metodista,18,Vålerenga,
 25179,S. Leković,CM,79,76,3,74,76,Metodista,18,FK Crvena zvezda,Serbian SuperLiga
-25202,L. Selahi,DM,79,76,3,76,76,Sentinelle,17,Widzew Łódz,
+25202,L. Selahi,DM,79,76,3,76,76,Anchor,17,Widzew Łódz,
 25276,J. Noslin,CM,79,76,3,75,76,Metodista,18,FK Pardubice,Czech First League
 25363,Lucas Barros,CM,79,76,3,75,76,Metodista,18,Vojvodina,
 25818,E. Addo,CM,79,76,3,76,76,Metodista,18,OFK Beograd,Serbian SuperLiga
@@ -5587,7 +5587,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 26251,D. Ulrich,CM,79,76,3,75,76,Metodista,19,Winterthur,
 26448,D. Lischka,CM,79,76,3,75,76,Metodista,18,Baník Ostrava,
 26461,A. Đurić,CM,79,76,3,76,76,Metodista,17,Malmö FF,Allsvenskan
-26511,L. Mikulic,DM,79,76,3,76,76,Sentinelle,18,Grasshoppers,
+26511,L. Mikulic,DM,79,76,3,76,76,Anchor,18,Grasshoppers,
 26822,M. Frame,WM,79,76,3,76,76,Fantasista,18,Aberdeen,
 27095,S. Köhler,CM,79,76,3,76,76,Metodista,17,Grasshoppers,
 4454,Lulinha,CM,79,76,3,76,76,Mezzala,20,,
@@ -5612,7 +5612,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 15592,Neil Etheridge,GK,78,81,-3,71,81,Torwart,18,Birmingham City,Championship
 9002,Benjamin Siegrist,GK,78,81,-3,76,81,Torwart,14,Genoa,Serie A
 464,Andrew Taylor,WD,78,75,3,74,75,,20,Bolton Wanderers,
-9523,Cheikhou Kouyaté,DM,78,75,3,72,75,Sentinelle,29,Nottingham Forest,Premier League
+9523,Cheikhou Kouyaté,DM,78,75,3,72,75,Anchor,29,Nottingham Forest,Premier League
 1800,Davide Santon,WD,78,75,3,73,75,Lateral,29,AS Roma,Serie A
 8719,Aron Gunnarsson,CM,78,75,3,70,75,Mezzala,29,Al-Arabi,Jordan Premier League
 554,Anthony Ujah,CF,78,75,3,73,75,Poacher,29,Eintracht Braunschweig,3. Liga
@@ -5713,7 +5713,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 1426,Cristian Montano,WD,78,75,3,70,75,Invertido,29,Livingston FC,
 20872,R. Yalçın,CM,78,75,3,75,75,Metodista,18,,
 20875,J. Mokio,CM,78,75,3,76,75,Metodista,19,Ajax,Derde Divisie
-20891,T. Nikitscher,DM,78,75,3,76,75,Sentinelle,19,Rio Ave,
+20891,T. Nikitscher,DM,78,75,3,76,75,Anchor,19,Rio Ave,
 20903,J. Kayembe,CM,78,75,3,75,75,Metodista,18,Genk,
 20904,A. Santos,CD,78,75,3,76,75,Zagueiro,13,Sparta Rotterdam,Eredivisie
 2496,Gabriel Tamaş,CD,78,75,3,75,75,Stopper,20,,
@@ -5725,7 +5725,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22268,L. Sadriu,CM,78,75,3,73,75,Metodista,19,Argeș Pitești,
 22272,R. Shein,WM,78,75,3,75,75,Fantasista,18,Fredrikstad,
 2203,Etienne Didot,CM,78,75,3,72,75,Mezzala,29,,
-3470,John Obi Mikel,DM,78,75,3,73,75,Sentinelle,29,,
+3470,John Obi Mikel,DM,78,75,3,73,75,Anchor,29,,
 20950,R. Daal,WM,78,75,3,75,75,Raumdeuter,19,AZ,
 20934,L. Realpe,CM,78,75,3,75,75,Metodista,18,Famalicão,
 20947,S. Baidoo,CM,78,75,3,76,75,Metodista,19,Lens,Ligue 1
@@ -5758,7 +5758,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17508,Sokratis Papastathopoulos,CD,78,75,3,75,75,Stopper,20,,
 22368,H. Milne,WM,78,75,3,74,75,Fantasista,19,Heart of Midlothian FC,
 21167,A. Arous,CM,78,75,3,75,75,Metodista,17,Kasımpaşa,
-21180,A. Bulatović,DM,78,75,3,76,75,Sentinelle,19,Lens,Ligue 1
+21180,A. Bulatović,DM,78,75,3,76,75,Anchor,19,Lens,Ligue 1
 21194,J. Canvot,CM,78,75,3,75,75,Metodista,17,Crystal Palace,Premier League
 22395,Chan Shinichi,WM,78,75,3,74,75,Raumdeuter,18,Shanghai Shenhua,
 22397,Tony Yogane,WM,78,75,3,74,75,Fantasista,19,Dundee,
@@ -5767,9 +5767,9 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22419,D. Edvardsson,CM,78,75,3,74,75,Metodista,18,OM,Ligue 1
 21240,Sean Steur,CM,78,75,3,75,75,Metodista,19,Ajax,Derde Divisie
 3763,Kakhaber Kaladze,CD,78,75,3,75,75,Stopper,20,,
-21243,J. Cardoso,DM,78,75,3,75,75,Sentinelle,18,Atlético Madrid,La Liga
+21243,J. Cardoso,DM,78,75,3,75,75,Anchor,18,Atlético Madrid,La Liga
 21255,J. Martínez,CM,78,75,3,72,75,Metodista,18,,
-21247,O. Scarles,DM,78,75,3,76,75,Sentinelle,18,West Ham United,Premier League
+21247,O. Scarles,DM,78,75,3,76,75,Anchor,18,West Ham United,Premier League
 22439,E. Skoglund,WM,78,75,3,74,75,Fantasista,19,Hammarby,
 22441,E. Kartsev,WM,78,75,3,74,75,Raumdeuter,18,,
 22446,K. Ciubotaru,CM,78,75,3,73,75,Metodista,19,,
@@ -5913,7 +5913,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 16942,Ryan Flynn,CM,78,75,3,74,75,Mezzala,20,St Mirren,
 10363,Djimi Traore,WD,78,75,3,75,75,,20,,
 23063,M. Vichos,CM,78,75,3,74,75,Metodista,19,Levadiakos,
-23140,Mao Weijie,DM,78,75,3,74,75,Sentinelle,18,,
+23140,Mao Weijie,DM,78,75,3,74,75,Anchor,18,,
 18763,Zdeněk Grygera,CD,78,75,3,75,75,Stopper,20,,
 23150,D. Dongmo,CM,78,75,3,74,75,Metodista,19,Petrolul Ploieşti,
 23154,Marc Navarro,CM,78,75,3,74,75,Metodista,19,MZKS Arka Gdynia,
@@ -6002,7 +6002,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 23930,M. Jevtić,CM,78,75,3,73,75,Metodista,18,,
 23954,Lee Han-Beom,CM,78,75,3,74,75,Metodista,18,FC Midtjylland,Danish Superliga
 23969,Matheus Fernandes,CM,78,75,3,75,75,Metodista,18,Braga,Liga Portugal
-23972,A. Kadušić,DM,78,75,3,74,75,Sentinelle,19,NK Istra 1961,Croatian Football League
+23972,A. Kadušić,DM,78,75,3,74,75,Anchor,19,NK Istra 1961,Croatian Football League
 23973,R. Al Hajj,WM,78,75,3,74,75,Raumdeuter,19,Silkeborg,
 23988,M. Vuk,WM,78,75,3,74,75,Raumdeuter,19,NK Varaždin,
 24022,Jin Pengxiang,CM,78,75,3,74,75,Metodista,16,,
@@ -6020,7 +6020,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24187,A. Bačanin,CM,78,75,3,75,75,Metodista,18,FC Basel 1893,Swiss Super League
 24196,J. Cissé,CM,78,75,3,73,75,Metodista,17,Universitatea Cluj,
 24235,J. Magnússon,CM,78,75,3,74,75,Metodista,18,IF Elfsborg,Allsvenskan
-24239,Y. Bojang,DM,78,75,3,74,75,Sentinelle,17,Odense BK,
+24239,Y. Bojang,DM,78,75,3,74,75,Anchor,17,Odense BK,
 24265,J. Filipović,CM,78,75,3,73,75,Metodista,18,HNK Gorica,Croatian Football League
 24270,M. Gobeljić,CM,78,75,3,74,75,Metodista,19,OFK Beograd,Serbian SuperLiga
 24280,L. Škaričić,CM,78,75,3,74,75,Metodista,18,NK Varaždin,
@@ -6075,7 +6075,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24757,E. Hunál,CM,78,75,3,74,75,Metodista,18,Dukla Praha,
 24766,M. Rasner,CM,78,75,3,75,75,Metodista,17,SV Ried,Austrian Bundesliga
 24780,Karel Spáčil,CM,78,75,3,74,75,Metodista,18,Plzeň,
-24782,D. Jovančić,DM,78,75,3,75,75,Sentinelle,18,Čukarički,
+24782,D. Jovančić,DM,78,75,3,75,75,Anchor,18,Čukarički,
 24793,V. Đurđević,CM,78,75,3,74,75,Metodista,18,FK Partizan,Serbian SuperLiga
 24801,A. Yusif,CM,78,75,3,74,75,Metodista,18,,
 24856,Richardson,CM,78,75,3,74,75,Metodista,16,Ceará SC,
@@ -6130,7 +6130,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25719,Zhang Aihui,CM,78,75,3,75,75,Metodista,16,,
 25727,J. Peterka,CM,78,75,3,74,75,Metodista,19,Dukla Praha,
 25775,Steve Furtado,CM,78,75,3,75,75,Metodista,18,Farul Constanța,
-25782,M. Mantini,DM,78,75,3,74,75,Sentinelle,18,Grasshoppers,
+25782,M. Mantini,DM,78,75,3,74,75,Anchor,18,Grasshoppers,
 25809,H. Hilvenius,CM,78,75,3,75,75,Metodista,17,BK Häcken,Allsvenskan
 25849,C. Cuesta,CM,78,75,3,74,75,Metodista,16,Vasco da Gama,
 25852,R. Jurišić,CM,78,75,3,74,75,Metodista,18,NK Osijek,Croatian Football League
@@ -6162,12 +6162,12 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 26417,D. Kozel,CM,78,75,3,74,75,Metodista,19,Mladá Boleslav,
 26471,Brooklyn Kabongolo,WD,78,75,3,75,75,Invertido,13,Livingston FC,
 26472,N. Serafimov,CM,78,75,3,74,75,Metodista,17,Levski Sofia,
-26500,G. Dumitru,DM,78,75,3,74,75,Sentinelle,19,,
+26500,G. Dumitru,DM,78,75,3,74,75,Anchor,19,,
 26517,D. Bumberger,AM,78,75,3,75,75,Trequartista,15,,
-26531,M. Coco,DM,78,75,3,75,75,Sentinelle,18,,
+26531,M. Coco,DM,78,75,3,75,75,Anchor,18,,
 26547,B. Kovačević,CD,78,75,3,75,75,Zagueiro,13,Larisa Ael,
 26619,R. Lauritsen,CM,78,75,3,73,75,Metodista,18,,
-26656,M. Ngom,DM,78,75,3,74,75,Sentinelle,18,Grasshoppers,
+26656,M. Ngom,DM,78,75,3,74,75,Anchor,18,Grasshoppers,
 26695,J. Segura,CM,78,75,3,74,75,Metodista,18,FC Zürich,Swiss Super League
 26710,A. Montgomery,CM,78,75,3,75,75,Metodista,17,Livingston FC,
 26745,D. Reiter,WM,78,75,3,75,75,Raumdeuter,18,,
@@ -6245,11 +6245,11 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 2618,Gerardo Torrado,CM,78,75,3,75,75,Mezzala,20,,
 2639,Giandomenico Mesto,WD,78,75,3,76,75,,20,,
 2637,Giampiero Pinzi,CM,78,75,3,71,75,Mezzala,29,,
-2592,George Boateng,DM,78,75,3,75,75,Sentinelle,20,,
+2592,George Boateng,DM,78,75,3,75,75,Anchor,20,,
 2622,Germán Herrera,GK,78,81,-3,75,81,Torwart,20,,
 2717,Gonzalo Pineda,CD,78,75,3,75,75,Stopper,20,,
 6946,Steven Caulker,CD,78,75,3,71,75,Stopper,29,Wigan Athletic,Championship
-2864,Hayden Mullins,DM,78,75,3,75,75,Sentinelle,20,,
+2864,Hayden Mullins,DM,78,75,3,75,75,Anchor,20,,
 3010,Iñigo Calderón,WD,78,75,3,75,75,,20,,
 4878,Mathieu Coutadeur,CM,78,75,3,70,75,Mezzala,29,AC Ajaccio,
 3176,Jan Kirchhoff,CD,78,75,3,71,75,Stopper,29,,
@@ -6302,8 +6302,8 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 3337,Jeroen Zoet,GK,78,81,-3,69,81,Torwart,23,AZ,
 404,Andrea Lazzari,WD,78,75,3,76,75,,20,,
 5032,Michael Ball,WD,78,75,3,75,75,,20,,
-3220,Javad Nekounam,DM,78,75,3,76,75,Sentinelle,20,,
-2874,Hedwiges Maduro,DM,78,75,3,75,75,Sentinelle,20,Omonia Nicosia,
+3220,Javad Nekounam,DM,78,75,3,76,75,Anchor,20,,
+2874,Hedwiges Maduro,DM,78,75,3,75,75,Anchor,20,Omonia Nicosia,
 4751,Mark Yeates,WM,78,75,3,75,75,Raumdeuter,20,,
 2771,Grétar Steinsson,WD,78,75,3,75,75,,20,Kayserispor,Süper Lig
 1022,Carl Jenkinson,WD,78,75,3,70,75,Carrilero,29,Newcastle United Jets,
@@ -6353,7 +6353,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25061,Rafael Bilu,WM,77,74,3,74,74,Raumdeuter,18,EC Juventude,
 20568,R. Halhal,CM,77,74,3,73,74,Metodista,19,KV Mechelen,Belgian Pro League
 24623,Ben Brannan,WD,77,74,3,74,74,Invertido,13,Kilmarnock,
-22936,Lee Soon-Min,DM,77,74,3,72,74,Sentinelle,17,Daejeon Citizen,
+22936,Lee Soon-Min,DM,77,74,3,72,74,Anchor,17,Daejeon Citizen,
 21157,Yuri Ribeiro,CM,77,74,3,74,74,Metodista,17,Blackburn Rovers,Championship
 18025,Tochukwu Nnadi,CM,77,74,3,74,74,Metodista,17,Marseille,Ligue 1
 24628,S. Urošević,CM,77,74,3,72,74,Metodista,19,Ba,
@@ -6488,10 +6488,10 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 23392,S. Cueni,CD,77,74,3,74,74,Stopper,13,Winterthur,
 21338,João Afonso,CM,77,74,3,74,74,Metodista,17,Tondela,
 25540,Shaylon,CM,77,74,3,73,74,Metodista,18,OL,
-20686,P. Masini,DM,77,74,3,75,74,Sentinelle,19,Genoa,Serie A
+20686,P. Masini,DM,77,74,3,75,74,Anchor,19,Genoa,Serie A
 6153,Rio Antonio Mavuba,CM,77,74,3,69,74,Mezzala,29,,
 2062,Edson Braafheid,WD,77,74,3,71,74,Lateral,29,,
-6570,Sebastián Sosa,DM,77,74,3,70,74,Sentinelle,24,,
+6570,Sebastián Sosa,DM,77,74,3,70,74,Anchor,24,,
 23990,D. Marešić,CM,77,74,3,73,74,Metodista,18,NK Istra 1961,Croatian Football League
 20998,A. Maamar,CM,77,74,3,74,74,Metodista,18,Anderlecht,Belgian Pro League
 13499,Kevin Wimmer,CD,77,74,3,73,74,Sweeper,12,,
@@ -6545,10 +6545,10 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25600,A. Stojanović,WM,77,74,3,73,74,Fantasista,18,Čukarički,
 6423,Salvatore Aronica,WD,77,74,3,74,74,,20,,
 23499,I. Iovu,CM,77,74,3,72,74,Metodista,18,Dundee,
-20871,Makaya Ibrahima Diaby,DM,77,74,3,74,74,Sentinelle,19,Cercle Brugge,
+20871,Makaya Ibrahima Diaby,DM,77,74,3,74,74,Anchor,19,Cercle Brugge,
 992,Callum Davidson,WD,77,74,3,73,74,,20,St Johnstone,
 14391,Manssita Traoré,CM,77,74,3,72,74,Metodista,17,PSG Women,
-26515,Cesar Garza Cantu,DM,77,74,3,73,74,Sentinelle,17,,
+26515,Cesar Garza Cantu,DM,77,74,3,73,74,Anchor,17,,
 5529,Nyron Nosworthy,CD,77,74,3,74,74,Stopper,20,,
 6112,Ricardo Rocha,CD,77,74,3,74,74,Stopper,20,Vitória Guimarães,
 25475,Branimir Mlačić,CM,77,74,3,73,74,Metodista,17,HNK Hajduk Split,Croatian Football League
@@ -6633,7 +6633,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 13088,Joshua Brenet,WD,76,73,3,73,73,Lateral,22,Kayserispor,Süper Lig
 22663,D. Samko,WM,76,73,3,72,73,Raumdeuter,19,MFK Karviná,Czech First League
 20221,A. Phillips,CM,76,73,3,71,73,Metodista,18,Stoke City,Championship
-20857,Alejandro Rego,DM,76,73,3,73,73,Sentinelle,19,Athletic Bilbao,La Liga
+20857,Alejandro Rego,DM,76,73,3,73,73,Anchor,19,Athletic Bilbao,La Liga
 22430,Ferreira,WF,76,73,3,74,73,Inside Forward,14,São Paulo,
 1093,César Delgado,CF,76,73,3,74,73,Poacher,20,,
 21849,L. Jetten,CM,76,73,3,71,73,Metodista,17,Ajax,Derde Divisie
@@ -6652,7 +6652,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 6113,Ricardo Vaz Tê,CF,76,73,3,73,73,Poacher,20,Portimonense,
 11925,Igor Akinfeev,GK,76,79,-3,70,79,Torwart,18,CSKA,
 24800,M. Hlavatý,CM,76,73,3,72,73,Metodista,19,Slovan Liberec,
-23758,Y. Salas,DM,76,73,3,70,73,Sentinelle,19,Ba,
+23758,Y. Salas,DM,76,73,3,70,73,Anchor,19,Ba,
 24807,S. Kitano,WF,76,73,3,74,73,Inverted Winger,15,Red Bull Salzburg,
 20809,Abdulay Bah,CM,76,73,3,72,73,Metodista,19,Nice,
 24811,R. Creţ,CM,76,73,3,71,73,Metodista,18,Botoşani,
@@ -6791,7 +6791,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25020,A. Varjačić,WM,76,73,3,71,73,Fantasista,19,FK Mladost Lučani,Serbian SuperLiga
 22157,I. Tona,CM,76,73,3,70,73,Metodista,19,Club Tijuana,Liga MX
 23141,C. Gravius,CM,76,73,3,72,73,Metodista,17,Degerfors IF,Allsvenskan
-25026,A. Max,DM,76,73,3,71,73,Sentinelle,17,,
+25026,A. Max,DM,76,73,3,71,73,Anchor,17,,
 23881,V. Patrák,WM,76,73,3,71,73,Fantasista,19,FK Pardubice,Czech First League
 23260,D. Bukvic,WM,76,73,3,71,73,Raumdeuter,19,NK Osijek,Croatian Football League
 354,Amauri,CF,76,73,3,74,73,Poacher,20,,
@@ -6880,7 +6880,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 2690,Giuseppe Mascara,CF,76,73,3,75,73,Poacher,20,,
 20478,N. Dismas,CM,76,73,3,72,73,Metodista,19,Göztepe AŞ,
 20511,M. Baradji,CM,76,73,3,73,73,Metodista,19,Blackburn Rovers,Championship
-10824,Étienne Capoue,DM,76,73,3,71,73,Sentinelle,29,Villarreal,La Liga
+10824,Étienne Capoue,DM,76,73,3,71,73,Anchor,29,Villarreal,La Liga
 23963,S. DavidoviÄ,WM,76,73,3,71,73,Raumdeuter,19,Korona Kielce,Ekstraklasa
 23304,Samuel Teles,WM,76,73,3,71,73,Fantasista,19,Universitatea Craiova,
 21239,R. Messali,CM,76,73,3,72,73,Metodista,18,Toulouse,
@@ -6989,7 +6989,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25430,D. Mejía,CM,76,73,3,72,73,Metodista,18,,
 6662,Shane Long,CF,76,73,3,74,73,Poacher,20,,
 25434,N. Savić,CM,76,73,3,72,73,Metodista,17,Slavia Sofia,
-23002,H. Imourane,DM,76,73,3,72,73,Sentinelle,19,Grasshoppers,
+23002,H. Imourane,DM,76,73,3,72,73,Anchor,19,Grasshoppers,
 23366,Kang Joon-Hyuck,CM,76,73,3,72,73,Metodista,17,Gangwon FC,K League 1
 25451,J. Portillo,CM,76,73,3,70,73,Metodista,19,Ba,
 22498,Gustavo Ferrareis,CM,76,73,3,71,73,Metodista,19,Atlas,
@@ -7002,7 +7002,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 3311,Jérémie Aliadiere,CF,76,73,3,73,73,Poacher,20,FC Lorient,
 23375,Moteb Al Harbi,CM,76,73,3,71,73,Metodista,19,Al-Hilal,
 25492,M. Leš,CM,76,73,3,71,73,Mezzala,17,HNK Gorica,Croatian Football League
-24095,L. Verstraete,DM,76,73,3,70,73,Sentinelle,19,Auckland City,
+24095,L. Verstraete,DM,76,73,3,70,73,Anchor,19,Auckland City,
 23046,V. Kerchev,CM,76,73,3,71,73,Metodista,19,,
 24097,B. van Hoeven,WM,76,73,3,72,73,Fantasista,18,,
 23377,Son,CM,76,73,3,71,73,Metodista,19,Ludogorets,First Professional Football League
@@ -7028,7 +7028,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25577,J. Abu Hanna,CM,76,73,3,71,73,Metodista,17,Levadiakos,
 22353,P. Strand,WM,76,73,3,72,73,Raumdeuter,18,Vålerenga,
 24128,A. Padula,WM,76,73,3,71,73,Fantasista,19,AFC UTA Arad,
-24132,Dylan Scicluna,DM,76,73,3,71,73,Sentinelle,18,Western Sydney Wanderers,A-League Women
+24132,Dylan Scicluna,DM,76,73,3,71,73,Anchor,18,Western Sydney Wanderers,A-League Women
 25593,N. Alho,CM,76,73,3,72,73,Metodista,17,Asteras Tripolis,
 21867,Beau Leroux,CM,76,73,3,71,73,Metodista,18,San Jose Earthquakes,Major League Soccer
 23043,S. Sandberg,CM,76,73,3,70,73,Metodista,18,Sirius,
@@ -7152,7 +7152,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 4975,Maurizio Domizzi,CD,76,73,3,70,73,Stopper,29,Venezia FC,Serie A
 21272,R. Kluivert,CM,76,73,3,73,73,Mezzala,17,Lyon,Ligue 1
 24313,L. Faravelli,CM,76,73,3,71,73,Mezzala,19,Cruz Azul,
-26099,D. Gallapeni,DM,76,73,3,72,73,Sentinelle,18,Widzew Łódz,
+26099,D. Gallapeni,DM,76,73,3,72,73,Anchor,18,Widzew Łódz,
 7414,Vladimir Weiss,WF,76,73,3,74,73,Inside Forward,20,,
 22330,S. Salles-Lamonge,AM,76,73,3,72,73,Trequartista,15,Atlético San Luis,
 23508,N. Krstić,WD,76,73,3,72,73,Invertido,13,,
@@ -7766,7 +7766,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24157,G. Balzi,WF,75,72,3,72,72,Inverted Winger,15,Levadiakos,
 24160,O. Kamdem,WM,75,72,3,70,72,Raumdeuter,18,Levski Sofia,
 24164,G. Kostadinov,CM,75,72,3,70,72,Metodista,17,Levski Sofia,
-24166,D. Flores,DM,75,72,3,69,72,Sentinelle,18,Toronto FC,Major League Soccer
+24166,D. Flores,DM,75,72,3,69,72,Anchor,18,Toronto FC,Major League Soccer
 15878,Olimpiu Moruțan,WF,75,72,3,72,72,Inside Forward,15,Ankaragücü,
 24172,R. Cecchini,CM,75,72,3,69,72,Metodista,18,Sportivo San Lorenzo,
 24176,F. Acosta,CM,75,72,3,69,72,Metodista,17,Nacional,
@@ -7774,7 +7774,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22592,A. Vukanović,WM,75,72,3,70,72,Fantasista,19,Vojvodina,
 22994,Y. Barbet,CM,75,72,3,70,72,Metodista,19,,
 24189,A. Ladstatter,WM,75,72,3,69,72,Raumdeuter,18,Sportivo San Lorenzo,
-24197,C. Baeza,DM,75,72,3,70,72,Sentinelle,17,Vélez Sarsfield,
+24197,C. Baeza,DM,75,72,3,70,72,Anchor,17,Vélez Sarsfield,
 24207,Juan Francisco Bauza,AM,75,72,3,70,72,Trequartista,14,Atlético Nacional,Categoría Primera A
 24208,Ahmed Al Julaydan,WM,75,72,3,70,72,Fantasista,18,Al-Ittihad,Saudi Pro League
 24210,C. Auzqui,CM,75,72,3,69,72,Metodista,18,Atlético Tucumán,Argentine Primera División
@@ -7856,7 +7856,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 24472,Maeng Seong-Ung,CM,75,72,3,70,72,Metodista,19,Gimcheon Sangmu FC,K League 1
 21187,K. Osundina,WF,75,72,3,72,72,Inside Forward,14,Casa Pia AC,Liga Portugal
 24478,J. Lázaro,WM,75,72,3,69,72,Raumdeuter,18,Ba,
-24484,L. Godoy,DM,75,72,3,70,72,Sentinelle,18,Atlético Tucumán,Argentine Primera División
+24484,L. Godoy,DM,75,72,3,70,72,Anchor,18,Atlético Tucumán,Argentine Primera División
 22974,S. Reyes,CM,75,72,3,70,72,Mezzala,19,León,
 24490,M. Braithwaite,CF,75,72,3,73,72,Poacher,15,Grêmio,
 21182,A. Hountondji,WF,75,72,3,72,72,Inside Forward,15,FC St. Pauli,Bundesliga
@@ -8227,7 +8227,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 25762,P. Dahl,WF,75,72,3,72,72,Inside Forward,15,Rapid,
 21068,Rodrigo Mendoza,WM,75,72,3,70,72,Fantasista,19,Elche,
 25772,Muhannad Al Qaydhi,CM,75,72,3,70,72,Metodista,17,,
-25773,A. Alvarado,DM,75,72,3,69,72,Sentinelle,18,San Diego Wave,
+25773,A. Alvarado,DM,75,72,3,69,72,Anchor,18,San Diego Wave,
 25774,Abdul Aziz Sulaiman Al Dhuwayhi,WF,75,72,3,70,72,Inside Forward,15,AZ,
 25781,A. Boutouil,CM,75,72,3,70,72,Metodista,17,AZ,
 25783,João Gabriel e Costa Cesco,WD,75,72,3,70,72,Invertido,13,Al-Ettifaq,
@@ -8441,7 +8441,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 22312,B. Labeau,AM,75,72,3,71,72,Trequartista,15,FC Thun,Swiss Super League
 20984,S. Karakoc,WM,75,72,3,71,72,Fantasista,18,Antalyaspor,Süper Lig
 20980,Louis Leroux,WM,75,72,3,72,72,Fantasista,18,Nantes,Ligue 1
-18604,Yann M'Vila,DM,75,72,3,74,72,Sentinelle,20,West Bromwich Albion,Championship
+18604,Yann M'Vila,DM,75,72,3,74,72,Anchor,20,West Bromwich Albion,Championship
 21724,L. Sandoval,AM,75,72,3,69,72,Trequartista,14,Independiente Medellín,
 2798,Güiza,CF,75,72,3,73,72,Poacher,20,,
 20983,E. Dasa,CM,75,72,3,71,72,Metodista,19,NEC,
@@ -8614,7 +8614,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 20638,Landerson,WM,75,72,3,68,72,Fantasista,17,Moreirense,
 22174,E. Meichtry,WF,75,72,3,72,72,Inside Forward,15,FC Thun,Swiss Super League
 14555,Marisa García,CF,75,72,3,70,72,Seconda Punta,14,Real Madrid Femenino,Primera División Femenina
-15291,Mohamed Elneny,DM,75,72,3,72,72,Sentinelle,12,Arsenal,Premier League
+15291,Mohamed Elneny,DM,75,72,3,72,72,Anchor,12,Arsenal,Premier League
 22170,J. Moya,CM,75,72,3,69,72,Metodista,18,CS Deportivo Pereira,
 22166,Shin Min-Ha,CM,75,72,3,69,72,Metodista,17,Gangwon FC,K League 1
 22165,E. Patoulidis,WF,75,72,3,72,72,Inside Forward,14,Sandefjord Football,
@@ -8704,7 +8704,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 14014,Lorenzo Montipò,GK,75,78,-3,68,78,Ball-Playing GK,20,Verona,Serie A
 22709,Lee Jin-Hyun,AM,75,72,3,70,72,Trequartista,14,Ulsan,
 22711,Yuri Alberto,CF,75,72,3,73,72,Poacher,15,Corinthians,
-13,Aaron Mooy,DM,75,72,3,70,72,Sentinelle,29,Celtic,Scottish Premiership
+13,Aaron Mooy,DM,75,72,3,70,72,Anchor,29,Celtic,Scottish Premiership
 22105,M. Pittón,CM,75,72,3,70,72,Metodista,18,Unión Santa Fe,
 22879,S. Afolabi,WF,75,72,3,72,72,Inside Forward,15,Slovan Liberec,
 22878,L. Mašek,CF,75,72,3,71,72,Poacher,15,Slovan Liberec,
@@ -8821,7 +8821,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 21987,M. Reali,WM,75,72,3,69,72,Fantasista,18,Sportivo San Lorenzo,
 20312,F. Esposito,CF,75,72,3,73,72,Poacher,15,Inter Milan,Serie A
 21985,E. Valencia,AM,75,72,3,70,72,Trequartista,14,OL,
-17286,Sebastian Rode,DM,75,72,3,71,72,Sentinelle,29,Eintracht Frankfurt,Bundesliga
+17286,Sebastian Rode,DM,75,72,3,71,72,Anchor,29,Eintracht Frankfurt,Bundesliga
 13598,Koki Saito,CF,75,72,3,72,72,Poacher,15,Queens Park Rangers,Championship
 11955,Ilias Iliadis,CM,75,72,3,70,72,Metodista,19,CF Montréal,Major League Soccer
 22838,F. Abdi,CM,75,72,3,69,72,Metodista,19,OM,Ligue 1
@@ -8935,7 +8935,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 21820,Y. Rosales,CM,75,72,3,69,72,Metodista,18,Alianza,
 21821,Lim Chai-Min,CM,75,72,3,69,72,Metodista,16,Jeju United,
 21844,Eo Jeong-Won,CM,75,72,3,69,72,Metodista,18,Pohang Steelers,K League 1
-13721,Lassana Diarra,DM,74,71,3,73,71,Sentinelle,20,Paris Saint-Germain,Ligue 1
+13721,Lassana Diarra,DM,74,71,3,73,71,Anchor,20,Paris Saint-Germain,Ligue 1
 18416,Vladimír Darida,CM,74,71,3,71,71,Metodista,28,Hradec Králové,
 14646,Martin Kelly,CD,74,71,3,68,71,Stopper,29,West Bromwich Albion,Championship
 12953,Jores Okore,CD,74,71,3,70,71,Sweeper,12,Changchun Yatai,
@@ -8960,7 +8960,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 14547,Mario Mitaj,WD,74,71,3,68,71,Lateral,22,Lokomotiv Moscow,
 11144,Franco Israel,GK,74,77,-3,71,77,Torwart,10,Torino,Serie A
 8680,Aridane Hernández,CD,74,71,3,70,71,Sweeper,12,Rayo Vallecano,La Liga
-12224,Jairo Riedewald,DM,74,71,3,69,71,Sentinelle,28,Sheffield United,Championship
+12224,Jairo Riedewald,DM,74,71,3,69,71,Anchor,28,Sheffield United,Championship
 2432,François Affolter,CD,73,70,3,71,70,Stopper,20,,
 8771,Ashley Williams,CD,73,70,3,68,70,Stopper,29,Bristol City,Championship
 14990,Mehdi Zeffane,WD,73,70,3,70,70,Lateral,12,Clermont Foot,Ligue 2
@@ -8979,7 +8979,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 17729,Sven Ulreich,GK,73,76,-3,66,76,Torwart,23,Bayern Munich,Bundesliga
 7676,Aaron Ramsey,CM,73,70,3,69,70,Metodista,32,Burnley,Championship
 12353,Jamie Paterson,AM,72,69,3,68,69,Trequartista,20,Huddersfield Town,Championship
-12240,Jake Livermore,DM,72,69,3,67,69,Sentinelle,29,West Bromwich Albion,Championship
+12240,Jake Livermore,DM,72,69,3,67,69,Anchor,29,West Bromwich Albion,Championship
 10719,Enzo Roco,CD,72,69,3,68,69,Zagueiro,13,Fatih Karagümrük,
 18618,Yaroslav Rakitskiy,CD,72,69,3,70,69,Sweeper,12,,
 18329,Vicente Guaita,GK,72,75,-3,65,75,Ball-Playing GK,20,Parma,Serie A
@@ -9094,7 +9094,7 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 8094,Alessandro Sorrentino,GK,67,70,-3,64,70,Torwart,11,Monza,Serie A
 9978,Danilo Soares,WD,67,64,3,64,64,Lateral,12,VfL Bochum,Bundesliga
 12504,Jean-Louis Leca,GK,67,70,-3,62,70,Torwart,18,Lens,Ligue 1
-13792,Lee Cattermole,DM,67,64,3,64,64,Sentinelle,29,VVV-Venlo,Eerste Divisie
+13792,Lee Cattermole,DM,67,64,3,64,64,Anchor,29,VVV-Venlo,Eerste Divisie
 13214,Junior Hoilett,WF,67,64,3,64,64,Inside Forward,13,Hibernian,
 12616,Jewison Bennette,WF,67,64,3,63,64,Inside Forward,32,Sunderland,Championship
 4548,Marc Muniesa,WD,66,63,3,62,63,Lateral,12,Lyngby,
@@ -9121,18 +9121,18 @@ person_id,name,position,current_level,suggested_level,gap,overall,role_score,rol
 556,Anthony Vanden Borre,CD,65,62,3,65,62,Stopper,20,,
 18510,Will Lankshear,CF,65,62,3,62,62,Poacher,15,Oxford United,Championship
 10875,Fabio Borini,WF,65,68,-3,64,68,Inside Forward,43,Sampdoria,Serie B
-2329,Fernando Gago,DM,65,62,3,64,62,Sentinelle,20,Vélez Sarsfield,
+2329,Fernando Gago,DM,65,62,3,64,62,Anchor,20,Vélez Sarsfield,
 17449,Šime Vrsaljko,WD,65,62,3,62,62,Lateral,13,Olympiacos,
 14432,Marc-Aurèle Caillard,GK,65,68,-3,60,68,Ball-Playing GK,12,Lille,Ligue 1
 11425,Giorgi Loria,GK,65,68,-3,60,68,Ball-Playing GK,12,Dinamo Tbilisi,
 13416,Kelvin Mellor,WD,64,61,3,60,61,,20,Plymouth Argyle,Championship
-1333,Claudio Yacob,DM,64,61,3,60,61,Sentinelle,29,Universitario de Deportes,
+1333,Claudio Yacob,DM,64,61,3,60,61,Anchor,29,Universitario de Deportes,
 8595,Anthony Knockaert,WF,64,61,3,63,61,Inverted Winger,13,Fulham,Premier League
 13126,Juan Cuadrado,WF,64,61,3,64,61,Inside Forward,13,Pisa,Serie B
 3739,Junior Stanislas,CM,64,61,3,63,61,Mezzala,29,Bournemouth,Premier League
 16310,Philipp Pentke,GK,64,67,-3,62,67,Torwart,11,1. FC Köln,Bundesliga
 12112,Jack Cork,CM,64,61,3,60,61,Mezzala,29,Burnley,Championship
-15161,Miguel Veloso,DM,64,61,3,64,61,Sentinelle,29,Verona,Serie A
+15161,Miguel Veloso,DM,64,61,3,64,61,Anchor,29,Verona,Serie A
 13017,Joselu,CF,64,61,3,61,61,Poacher,29,Getafe,La Liga
 7572,Younès Belhanda,AM,64,67,-3,64,67,Trequartista,29,Al-Shamal SC,
 2130,Emiliano Viviano,GK,64,67,-3,60,67,Torwart,18,Ascoli,Serie B

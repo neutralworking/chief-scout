@@ -653,7 +653,7 @@ LEGEND_SEEDS = {
     ),  # Cesc Fàbregas
 
     9661: (
-        "Destroyer-Passer", "Sentinelle", 91,
+        "Destroyer-Passer", "Anchor", 91,
         "The position was named after him — the ultimate ball-winning shield in front of the back four. "
         "Won possession and recycled it simply, allowing the artists ahead of him to create."
     ),  # Claude Makélélé
@@ -773,7 +773,7 @@ LEGEND_SEEDS = {
     ),  # James Rodríguez
 
     12457: (
-        "Destroyer-Commander", "Sentinelle", 91,
+        "Destroyer-Commander", "Anchor", 91,
         "Ferocious ball-winner who could play as a defensive midfielder or emergency centre-back. "
         "Combined aggressive tackling with intelligent positioning and selfless tactical discipline."
     ),  # Javier Mascherano

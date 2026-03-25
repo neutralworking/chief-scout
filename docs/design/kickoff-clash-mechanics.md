@@ -58,7 +58,7 @@ The XI generates **base strength** each round. This comes from:
 1. **Sum of player power** in the XI
 2. **Chemistry bonuses** — archetype pairs, role combos, personality resonance
 3. **Style alignment** — how many XI players match your playing style
-4. **Role abilities** — passive effects from tactical roles (Regista boosts connections, Sentinelle protects weak link, etc.)
+4. **Role abilities** — passive effects from tactical roles (Regista boosts connections, Anchor protects weak link, etc.)
 
 The XI recalculates when subs are made — a sub can trigger or break synergies.
 
@@ -276,10 +276,10 @@ Three = **Trio** (+25% each).
 | Combo | Roles | Multiplier |
 |-------|-------|-----------|
 | The Pirlo-Barella | Regista + Mezzala | ×1.3 |
-| Shield & Sword | Sentinelle + Trequartista | ×1.3 |
+| Shield & Sword | Anchor + Trequartista | ×1.3 |
 | Overlap | Lateral + Inside Forward | ×1.2 |
 | The Guardiola | Falso Nove + Winger | ×1.2 |
-| The Double Pivot | Sentinelle + Volante | ×1.2 |
+| The Double Pivot | Anchor + Volante | ×1.2 |
 | Counter Punch | Volante + Extremo | ×1.2 |
 | Total Control | Metodista + Regista | ×1.3 |
 | The Wall | Stopper + Zagueiro | ×1.2 |
@@ -322,7 +322,7 @@ Each tactical role contributes a passive ability to the XI:
 |------|---------|---------------|
 | Regista | Metronome | +5% to all connection bonuses |
 | Volante | Tackle & Go | -5% opponent goal chance per round |
-| Sentinelle | The Shield | Weakest XI player gets +30% power |
+| Anchor | The Shield | Weakest XI player gets +30% power |
 | Trequartista | Moment of Genius | 30% chance of doubling own power each round |
 | Poacher | Box Presence | +15% goal chance when you play attacking cards |
 | Tuttocampista | Box to Box | +3% per different archetype in XI |

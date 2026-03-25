@@ -67,7 +67,7 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 ### DM
 | Role | Primary | Secondary | Formula |
 |------|---------|-----------|---------|
-| Sentinelle | Cover | Destroyer | Cover×0.6 + Destroyer×0.4 |
+| Anchor | Cover | Destroyer | Cover×0.6 + Destroyer×0.4 |
 | Regista | Controller | Passer | Controller×0.6 + Passer×0.4 |
 | Volante | Destroyer | Engine | Destroyer×0.6 + Engine×0.4 |
 

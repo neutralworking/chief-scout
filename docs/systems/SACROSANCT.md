@@ -223,7 +223,7 @@ Each role's **primary model** determines its pillar alignment:
 | WD | Invertido | Mental | Controller | Passer | Inverted FB — reads when to tuck inside, becomes midfielder | Lahm (2013) → Cancelo → Rico Lewis |
 | WD | Corredor | Physical | Sprinter | Engine | Pace-based fullback — explosive in transition | Walker → Theo Hernandez → Alphonso Davies |
 | DM | Regista | Technical | Passer | Controller | Deep playmaker — dictates tempo with passing quality | Gerson (1970) → Pirlo → Jorginho |
-| DM | Sentinelle | Tactical | Cover | Destroyer | Shield — positions, intercepts, guards the gate | Makelele → Busquets → Casemiro |
+| DM | Anchor | Tactical | Cover | Destroyer | Shield — positions, intercepts, guards the gate | Makelele → Busquets → Casemiro |
 | DM | Pivote | Mental | Controller | Cover | Midfield brain — organizes shape, reads everything | Busquets → Rodri → Fernandinho |
 | DM | Volante | Physical | Powerhouse | Destroyer | Ball-winner — aggressive, physical, disrupts | Gattuso → Kante → Caicedo |
 | CM | Mezzala | Technical | Passer | Creator | Half-space creator — technical quality between the lines | Barella → Kovacic → Modric |

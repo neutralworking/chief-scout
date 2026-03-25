@@ -29,7 +29,7 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Corredor',        'WD', 'Pace-based fullback — explosive in transition',                       'Sprinter',   'Engine',     'physical'),
   -- DM
   ('Regista',         'DM', 'Deep playmaker — dictates tempo with passing quality',                'Passer',     'Controller', 'technical'),
-  ('Sentinelle',      'DM', 'Shield — positions, intercepts, guards the gate',                     'Cover',      'Destroyer',  'tactical'),
+  ('Anchor',      'DM', 'Shield — positions, intercepts, guards the gate',                     'Cover',      'Destroyer',  'tactical'),
   ('Pivote',          'DM', 'Midfield brain — organizes shape, reads everything',                  'Controller', 'Cover',      'mental'),
   ('Volante',         'DM', 'Ball-winner — aggressive, physical, disrupts',                        'Powerhouse', 'Destroyer',  'physical'),
   -- CM
@@ -68,7 +68,7 @@ DELETE FROM tactical_roles WHERE name NOT IN (
   'Libero GK', 'Sweeper Keeper', 'Comandante', 'Shotstopper',
   'Libero', 'Sweeper', 'Zagueiro', 'Stopper',
   'Lateral', 'Fluidificante', 'Invertido', 'Corredor',
-  'Regista', 'Sentinelle', 'Pivote', 'Volante',
+  'Regista', 'Anchor', 'Pivote', 'Volante',
   'Mezzala', 'Tuttocampista', 'Metodista', 'Relayeur',
   'Winger', 'Tornante', 'False Winger', 'Shuttler',
   'Trequartista', 'Seconda Punta', 'Enganche', 'Boxcrasher',

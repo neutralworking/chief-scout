@@ -32,7 +32,7 @@ const PIPELINE_TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   ],
   DM: [
     ["Passer", "Controller", "Regista"],
-    ["Cover", "Destroyer", "Sentinelle"],
+    ["Cover", "Destroyer", "Anchor"],
     ["Controller", "Cover", "Pivote"],
     ["Powerhouse", "Destroyer", "Volante"],
   ],

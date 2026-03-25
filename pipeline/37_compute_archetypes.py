@@ -56,7 +56,7 @@ POSITIONAL_ARCHETYPES = {
         "personality": None,
         "tier_elite": lambda s: s.get("goals", 0) >= 25 or s.get("gp90", 0) >= 0.65,
     },
-    "Conjurer": {
+    "Magician": {
         "positions": {"WD", "CM", "WM", "WF", "AM", "CF"},  # elite dribble-creator
         "check": lambda s, p: (s.get("ap90", 0) >= 0.3 and s.get("drib_att_p90", 0) >= 3 and s.get("drib_pct", 0) >= 50),
         "personality": None,
@@ -85,15 +85,23 @@ POSITIONAL_ARCHETYPES = {
         "check": lambda s, p: (s.get("kp90", 0) >= 2.0 and (s.get("gp90", 0) >= 0.15 or s.get("ap90", 0) >= 0.15)),
         "personality": None,
     },
-    "Pulse": {
+    "Heartbeat": {
         "positions": {"DM", "CM", "AM"},  # midfielders — tempo-setter, dictates play
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 89 and s.get("passes_p90", 0) >= 45),
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 75),
         "personality": None,
-        "tier_elite": lambda s: s.get("pass_acc", 0) >= 92,
+        "tier_elite": lambda s: s.get("pass_acc", 0) >= 90 and s.get("passes_p90", 0) >= 80,
+    },
+
+    # ── BALL-PLAYING DEFENCE / GK ─────────────────────────────────
+    "Distributor": {
+        "positions": {"CD", "WD", "GK"},  # builds from the back — high pass accuracy + volume
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 40),
+        "personality": None,
+        "tier_elite": lambda s: s.get("pass_acc", 0) >= 88 and s.get("passes_p90", 0) >= 55,
     },
 
     # ── PHYSICAL / COMBATIVE ─────────────────────────────────────
-    "Goliath": {
+    "Colossus": {
         "positions": None,  # any — dominant physical presence, wins aerial/ground duels
         "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("height", 0) >= 185),
         "personality": None,
@@ -171,7 +179,7 @@ POSITIONAL_ARCHETYPES = {
     # ── MID-TIER / CATCH-ALL ────────────────────────────────────
     "Connector": {
         "positions": {"CM", "DM", "AM"},  # midfielders — links play, keeps possession moving
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 35),
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 45),
         "personality": None,
     },
     "Battering Ram": {
@@ -198,12 +206,13 @@ POSITIONAL_ARCHETYPES = {
     # ── GOALKEEPERS ──────────────────────────────────────────────
     "Wall": {
         "positions": {"GK"},
-        "check": lambda s, p: (s.get("rating", 0) >= 6.95 and s.get("minutes", 0) >= 1500),
+        "check": lambda s, p: (s.get("rating", 0) >= 6.8 and s.get("minutes", 0) >= 1500),
         "personality": None,
+        "tier_elite": lambda s: s.get("rating", 0) >= 6.95,
     },
     "Sweeper": {
         "positions": {"GK"},
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 60 and s.get("rating", 0) >= 6.7 and s.get("minutes", 0) >= 1500),
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 80 and s.get("passes_p90", 0) >= 25 and s.get("rating", 0) >= 6.7 and s.get("minutes", 0) >= 1500),
         "personality": None,
     },
 }
@@ -211,13 +220,13 @@ POSITIONAL_ARCHETYPES = {
 # Priority order: first match wins (elite archetypes first)
 ARCHETYPE_PRIORITY = [
     # Elite (rare, prestigious)
-    "Marksman", "Conjurer", "Virtuoso", "Hunter",
+    "Marksman", "Magician", "Virtuoso", "Hunter",
     # Creative / Authority
     "Architect", "Marshal", "Fulcrum", "Artisan",
     # Tempo / Control
-    "Pulse", "Fortress",
+    "Heartbeat", "Distributor", "Fortress",
     # Physical / Combative
-    "Goliath", "Warrior", "Sentinel", "Terrier",
+    "Colossus", "Warrior", "Sentinel", "Terrier",
     # Direct
     "Outlet", "Fox",
     # Defensive
@@ -305,6 +314,7 @@ def main():
     # ── Load data ─────────────────────────────────────────────────────────
 
     # AF stats (most recent season per player)
+    # Two tiers: full (900+ mins) = eligible for all tiers, thin (450-899) = aspiring only
     print("  Loading AF stats...")
     player_filter = f"AND s.person_id = {args.player}" if args.player else ""
     cur.execute(f"""
@@ -321,7 +331,8 @@ def main():
         ORDER BY s.person_id, s.season DESC
     """)
     af_stats = {r["person_id"]: r for r in cur.fetchall()}
-    print(f"  {len(af_stats)} players with AF stats")
+    thin_sample = {pid for pid, r in af_stats.items() if (r["minutes"] or 0) < 900}
+    print(f"  {len(af_stats)} players with AF stats ({len(af_stats) - len(thin_sample)} full, {len(thin_sample)} thin)")
 
     # Profiles
     cur.execute(f"""
@@ -384,6 +395,23 @@ def main():
 
     print(f"  {len(profiles)} profiles, {len(personalities)} personalities, {len(careers)} careers, {len(xp)} with XP")
 
+    # ── Build similar-player archetype lookup ────────────────────────────
+    # Most common earned archetype per (position, skillset) from existing DB data
+    cur.execute("""
+        SELECT position, archetype, earned_archetype, count(*) as cnt
+        FROM player_profiles
+        WHERE earned_archetype IS NOT NULL AND archetype IS NOT NULL AND position IS NOT NULL
+        AND archetype_tier IN ('elite', 'established')
+        GROUP BY position, archetype, earned_archetype
+        ORDER BY position, archetype, cnt DESC
+    """)
+    similar_archetypes = {}  # (pos, skillset) → most common earned archetype
+    for r in cur.fetchall():
+        key = (r["position"], r["archetype"])
+        if key not in similar_archetypes:
+            similar_archetypes[key] = r["earned_archetype"]
+    print(f"  {len(similar_archetypes)} position+skillset → archetype mappings for inference")
+
     # ── Compute ───────────────────────────────────────────────────────────
 
     print("  Computing archetypes...")
@@ -392,6 +420,7 @@ def main():
     tier_counts = {"elite": 0, "established": 0, "aspiring": 0, "unclassified": 0}
     legacy_counts = {}
     behavioral_counts = {}
+    inferred_count = 0
 
     all_pids = set(profiles.keys())
     if args.player:
@@ -430,12 +459,16 @@ def main():
             # Check stat threshold
             if defn["check"](stats, pers):
                 earned = arch_name
-                # Check if elite
-                elite_fn = defn.get("tier_elite")
-                if elite_fn and elite_fn(stats):
-                    tier = "elite"
+                # Thin sample (450-899 mins) = aspiring only
+                if pid in thin_sample:
+                    tier = "aspiring"
                 else:
-                    tier = "established"
+                    # Check if elite
+                    elite_fn = defn.get("tier_elite")
+                    if elite_fn and elite_fn(stats):
+                        tier = "elite"
+                    else:
+                        tier = "established"
                 break
 
         # If no archetype earned, check for aspiring (within 80% of thresholds)
@@ -448,12 +481,21 @@ def main():
                 if defn["personality"] is not None:
                     if not pers_type or not pers_matches(pers_type, defn["personality"]):
                         continue
-                # Create relaxed stats (multiply numeric thresholds by 0.8)
-                relaxed = {k: v * 1.25 if isinstance(v, (int, float)) else v for k, v in stats.items()}
+                # Create relaxed stats (multiply rate thresholds by 1.25, keep fixed attrs)
+                fixed_keys = {"height", "age", "minutes", "goals", "assists", "pace_grade"}
+                relaxed = {k: v * 1.25 if isinstance(v, (int, float)) and k not in fixed_keys else v for k, v in stats.items()}
                 if defn["check"](relaxed, pers):
                     earned = arch_name
                     tier = "aspiring"
                     break
+
+        # ── Inferred from similar players (last resort) ──────────────
+        if not earned and pos and prof.get("archetype"):
+            key = (pos, prof["archetype"])
+            if key in similar_archetypes:
+                earned = similar_archetypes[key]
+                tier = "aspiring"
+                inferred_count += 1
 
         # ── Legacy tag ────────────────────────────────────────────────
         legacy = None
@@ -493,7 +535,7 @@ def main():
     # ── Summary ───────────────────────────────────────────────────────────
 
     total = len(results)
-    print(f"\n  Processed {total} players")
+    print(f"\n  Processed {total} players ({inferred_count} inferred from similar)")
     print(f"\n  Tier distribution:")
     for t in ["elite", "established", "aspiring", "unclassified"]:
         n = tier_counts[t]

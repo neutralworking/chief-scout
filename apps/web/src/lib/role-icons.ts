@@ -224,8 +224,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Passing range", "Tempo control", "Vision", "Composure"],
   },
 
-  Sentinelle: {
-    role: "Sentinelle",
+  Anchor: {
+    role: "Anchor",
     origin: "French",
     position: "DM",
     iconPlayer: "Sergio Busquets",

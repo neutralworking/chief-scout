@@ -285,7 +285,7 @@ function applyRoleAbilities(
         addEffect(i, 'Tackle & Go', '-5% opponent goal chance per round', 0);
         break;
       }
-      case 'Sentinelle': {
+      case 'Anchor': {
         let lowestIdx = 0;
         let lowestPower = Infinity;
         for (let j = 0; j < cards.length; j++) {

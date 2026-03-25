@@ -126,7 +126,7 @@ LEGEND_EARNED = {
     "Striker-Powerhouse":   "Marksman",       # Puskás, Shearer, Batistuta — power
     "Striker-Controller":   "Marksman",       # Van Basten, Bergkamp — clinical
     "Striker-Engine":       "Virtuoso",       # fallback for non-CM (CM gated to Marshal); versatile scorer
-    "Striker-Cover":        "Fox",            # poacher instinct
+    "Striker-Cover":        "Assassin",       # poacher instinct
     "Striker-Target":       "Marksman",       # Ibrahimović — aerial + power
     "Striker-Destroyer":    "Warrior",        # Tévez — combative scorer
     "Striker-Dribbler":     "Virtuoso",       # goals + flair = complete

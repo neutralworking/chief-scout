@@ -97,7 +97,7 @@ export const MODEL_LABELS: Record<string, string> = {
   "Passer-Target": "Quarterback",
   // Striker primary
   "Striker-Commander": "Talisman", "Striker-Controller": "Ice Man",
-  "Striker-Cover": "Poacher", "Striker-Creator": "Assassin",
+  "Striker-Cover": "Poacher", "Striker-Creator": "Finisher",
   "Striker-Destroyer": "Spearhead", "Striker-Engine": "Workhorse",
   "Striker-Powerhouse": "Rifle", "Striker-Sprinter": "Rocket",
   "Striker-Target": "Hitman",

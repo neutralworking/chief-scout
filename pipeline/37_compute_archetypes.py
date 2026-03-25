@@ -95,9 +95,9 @@ POSITIONAL_ARCHETYPES = {
     # ── BALL-PLAYING DEFENCE / GK ─────────────────────────────────
     "Distributor": {
         "positions": {"CD", "WD", "GK"},  # builds from the back — high pass accuracy + volume
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 40),
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 87 and s.get("passes_p90", 0) >= 50),
         "personality": None,
-        "tier_elite": lambda s: s.get("pass_acc", 0) >= 88 and s.get("passes_p90", 0) >= 55,
+        "tier_elite": lambda s: s.get("pass_acc", 0) >= 90 and s.get("passes_p90", 0) >= 65,
     },
 
     # ── PHYSICAL / COMBATIVE ─────────────────────────────────────
@@ -134,8 +134,8 @@ POSITIONAL_ARCHETYPES = {
         "check": lambda s, p: (s.get("gp90", 0) >= 0.45 and s.get("shot_conv", 0) >= 20),
         "personality": None,
     },
-    "Fox": {
-        "positions": {"CF"},  # poacher — scores without dribbling
+    "Assassin": {
+        "positions": {"CF"},  # clinical finisher — scores without dribbling
         "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("drib_att_p90", 0) < 2),
         "personality": None,
     },
@@ -228,7 +228,7 @@ ARCHETYPE_PRIORITY = [
     # Physical / Combative
     "Colossus", "Warrior", "Sentinel", "Terrier",
     # Direct
-    "Outlet", "Fox",
+    "Outlet", "Assassin",
     # Defensive
     "Lockdown", "Reader",
     # Role players

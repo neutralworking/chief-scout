@@ -168,7 +168,7 @@ MODEL_LABELS: dict[str, str] = {
     "Striker-Commander":        "Talisman",         # Cantona — inspires with crucial goals
     "Striker-Controller":       "Ice Man",          # Bergkamp — controls then finishes
     "Striker-Cover":            "Poacher",          # reads where the ball will drop
-    "Striker-Creator":          "Assassin",         # Totti — artist forward, vision for shots
+    "Striker-Creator":          "Finisher",          # Totti — artist forward, vision for shots
     "Striker-Destroyer":        "Spearhead",         # Tevez — wins ball high, shoots immediately
     "Striker-Engine":           "Workhorse",        # Keane — runs channels all game + finishes
     "Striker-Powerhouse":       "Rifle",            # Batistuta — holds off defenders to shoot

@@ -4,13 +4,12 @@ import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import { computeAge, POSITION_COLORS } from "@/lib/types";
 import { getPersonalityFullName } from "@/lib/personality";
-import { PersonalityBadge } from "@/components/PersonalityBadge";
 import { CareerAndMoments } from "@/components/CareerAndMoments";
 import type { KeyMoment, XpMilestone } from "@/components/CareerAndMoments";
 import { PlayerNews } from "@/components/PlayerNews";
 import type { NewsStory } from "@/components/PlayerNews";
-import { NewsHeadlines } from "@/components/NewsHeadlines";
 import { PlayerStats } from "@/components/PlayerStats";
+import { PlayerTabGroup } from "@/components/PlayerTabGroup";
 import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { AddToShortlist } from "@/components/AddToShortlist";
@@ -22,11 +21,9 @@ import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import { SystemFit } from "@/components/SystemFit";
-import { TransferComps } from "@/components/TransferComps";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
-import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
-import { SectionHeader } from "@/components/SectionHeader";
+
 
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
@@ -144,12 +141,6 @@ interface ApiFootballStat {
   fouls_committed: number | null;
   cards_yellow: number | null;
   cards_red: number | null;
-}
-
-function formatVal(v: number): string {
-  if (v >= 1_000_000) return `€${(v / 1_000_000).toFixed(1)}m`;
-  if (v >= 1_000) return `€${(v / 1_000).toFixed(0)}k`;
-  return `€${v}`;
 }
 
 // ── SEO: Dynamic metadata + OG image ────────────────────────────────────
@@ -459,29 +450,6 @@ export default async function PlayerDetailPage({
               </div>
             )}
 
-            {valuation?.market_value_p50 != null && (
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Val</span>
-                <span className="text-[11px] font-data font-bold text-[var(--color-accent-tactical)]">
-                  {formatVal(valuation.market_value_p50)}
-                </span>
-                <span className={`w-1.5 h-1.5 ${
-                  valuation.overall_confidence === "high" ? "bg-green-400" :
-                  valuation.overall_confidence === "medium" ? "bg-amber-400" :
-                  "bg-red-400"
-                }`} />
-              </div>
-            )}
-
-            {player.market_value_eur != null && (
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">TM</span>
-                <span className="text-[11px] font-data font-bold text-[var(--text-secondary)]">
-                  {formatVal(player.market_value_eur)}
-                </span>
-              </div>
-            )}
-
             {player.legacy_score != null && player.legacy_score > 0 && (
               <div className="flex items-center gap-1">
                 <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Legacy</span>
@@ -537,67 +505,15 @@ export default async function PlayerDetailPage({
           </div>
         </div>
 
-        {/* News headlines — slim strip */}
-        {news.length > 0 && <NewsHeadlines news={news} />}
-
         {/* Assessment — full width */}
         <FourPillarDashboard playerId={player.person_id} storedBestRole={player.best_role} storedBestRoleScore={player.best_role_score} />
       </div>
 
-      {/* ── Two-column body — fills remaining viewport, each col scrolls ── */}
+      {/* ── Two-column body — fills remaining viewport, no scroll ── */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Left: Radar + Personality + Stats */}
-        <div className="lg:overflow-y-auto space-y-3 pr-1">
+        {/* Left: Radar + System Fit + Tab group (Career / Stats / News) */}
+        <div className="flex flex-col gap-2 min-h-0">
           <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
-
-          {(player.ei != null || player.personality_type) && (
-            <div className="card card-pillar-personality p-3">
-              <SectionHeader label="Personality" color="personality" />
-              <PersonalityBadge
-                personalityType={player.personality_type}
-                ei={player.ei}
-                sn={player.sn}
-                tf={player.tf}
-                jp={player.jp}
-                competitiveness={player.competitiveness}
-                coachability={player.coachability}
-                size="hero"
-                showDimensions={player.ei != null}
-              />
-            </div>
-          )}
-
-          {player.best_role && (
-            <div className="card card-pillar-tactical p-3">
-              <SectionHeader label="Best Roles" color="tactical" />
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[var(--text-secondary)] w-32 truncate">{player.best_role}</span>
-                  <div className="flex-1 h-1.5 bg-[var(--bg-pit)]">
-                    <div className="h-full bg-[var(--color-accent-tactical)]" style={{ width: `${player.best_role_score ?? 0}%` }} />
-                  </div>
-                  <span className="font-data text-[12px] font-bold text-[var(--color-accent-tactical)] w-8 text-right">
-                    {player.best_role_score}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {(fbrefStats.length > 0 || afStats.length > 0) && (
-            <PlayerStats fbrefStats={fbrefStats} afStats={afStats} />
-          )}
-        </div>
-
-        {/* Right: Valuation + Career + Similar + News + Shortlists */}
-        <div className="lg:overflow-y-auto space-y-3 pl-1">
-          {valuation && <ValuationPanel valuation={valuation} />}
-
-          {valuation && <TransferComps playerId={player.person_id} />}
-
-          <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
-
-          <SimilarPlayers playerId={player.person_id} />
 
           <SystemFit
             clubId={player.club_id}
@@ -606,9 +522,38 @@ export default async function PlayerDetailPage({
             level={player.level}
           />
 
-          {news.length > 0 && <PlayerNews news={news} />}
+          <PlayerTabGroup tabs={[
+            ...(careerEntries.length > 0 ? [{
+              label: "Career",
+              content: <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} hideXp />,
+            }] : []),
+            ...((fbrefStats.length > 0 || afStats.length > 0) ? [{
+              label: "Stats",
+              content: <PlayerStats fbrefStats={fbrefStats} afStats={afStats} />,
+            }] : []),
+            ...(news.length > 0 ? [{
+              label: "News",
+              content: <PlayerNews news={news} />,
+            }] : []),
+          ]} />
+        </div>
 
-          <PlayerShortlists personId={player.person_id} />
+        {/* Right: Valuation + Similar Players + Tab group (Shortlists / Career XP) */}
+        <div className="flex flex-col gap-2 min-h-0">
+          {valuation && <ValuationPanel valuation={valuation} playerId={player.person_id} />}
+
+          <SimilarPlayers playerId={player.person_id} limit={5} />
+
+          <PlayerTabGroup tabs={[
+            ...(xpMilestones.length > 0 ? [{
+              label: "Career XP",
+              content: <CareerAndMoments entries={[]} metrics={null} moments={moments} xpMilestones={xpMilestones} />,
+            }] : []),
+            {
+              label: "Shortlists",
+              content: <PlayerShortlists personId={player.person_id} />,
+            },
+          ]} />
         </div>
       </div>
     </div>

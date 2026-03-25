@@ -30,7 +30,7 @@ function simColor(s: number): string {
   return "bg-[var(--text-muted)]";
 }
 
-export function TransferComps({ playerId }: { playerId: number }) {
+export function TransferComps({ playerId, embedded = false }: { playerId: number; embedded?: boolean }) {
   const [data, setData] = useState<CompsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +44,7 @@ export function TransferComps({ playerId }: { playerId: number }) {
 
   if (loading) {
     return (
-      <div className="card p-3 sm:p-4 space-y-2 animate-pulse">
+      <div className={`${embedded ? "" : "card p-3 sm:p-4"} space-y-2 animate-pulse`}>
         <div className="h-3 w-40 bg-[var(--bg-elevated)] rounded" />
         <div className="h-8 w-24 bg-[var(--bg-elevated)] rounded" />
         <div className="space-y-2">
@@ -59,9 +59,9 @@ export function TransferComps({ playerId }: { playerId: number }) {
   if (!data || data.comp_count === 0) return null;
 
   return (
-    <div className="card p-3 sm:p-4 space-y-3">
+    <div className={`${embedded ? "" : "card p-3 sm:p-4"} space-y-3`}>
       <div className="flex items-center justify-between">
-        <SectionHeader label="Transfer Comparables" color="tactical" />
+        {!embedded && <SectionHeader label="Transfer Comparables" color="tactical" />}
         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-muted)]">
           {data.comp_count} comps
         </span>

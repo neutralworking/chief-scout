@@ -51,6 +51,7 @@ interface Props {
   metrics: CareerMetrics | null;
   moments: KeyMoment[];
   xpMilestones?: XpMilestone[];
+  hideXp?: boolean;
 }
 
 // ── XP Level System ─────────────────────────────────────────────────────────
@@ -154,9 +155,9 @@ type Tab = "career" | "xp";
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [] }: Props) {
+export function CareerAndMoments({ entries, metrics, moments, xpMilestones = [], hideXp = false }: Props) {
   const hasCareer = entries.length > 0;
-  const hasXp = xpMilestones.length > 0;
+  const hasXp = !hideXp && xpMilestones.length > 0;
   const [tab, setTab] = useState<Tab>(hasCareer ? "career" : "xp");
   const [xpFilter, setXpFilter] = useState<string | null>(null);
 

@@ -29,7 +29,7 @@ interface LegendComp {
   similarity: number;
 }
 
-export function SimilarPlayers({ playerId }: { playerId: number }) {
+export function SimilarPlayers({ playerId, limit }: { playerId: number; limit?: number }) {
   const [players, setPlayers] = useState<SimilarPlayer[]>([]);
   const [legendComps, setLegendComps] = useState<LegendComp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ export function SimilarPlayers({ playerId }: { playerId: number }) {
 
       <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Similar Players</h3>
       <div className="space-y-0.5">
-        {players.map((p) => {
+        {(limit ? players.slice(0, limit) : players).map((p) => {
           const posColor = POSITION_COLORS[p.position ?? ""] ?? "bg-zinc-700/60";
           return (
             <Link

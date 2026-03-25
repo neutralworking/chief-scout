@@ -1,6 +1,7 @@
 "use client";
 
 import type { PlayerValuation } from "@/lib/types";
+import { TransferComps } from "@/components/TransferComps";
 
 function formatEur(value: number | null | undefined): string {
   if (value == null) return "–";
@@ -18,7 +19,7 @@ const CONFIDENCE_STYLES: Record<string, { dot: string; label: string }> = {
 
 import { useState } from "react";
 
-export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
+export function ValuationPanel({ valuation, playerId }: { valuation: PlayerValuation; playerId?: number }) {
   const [expanded, setExpanded] = useState(false);
   const conf = CONFIDENCE_STYLES[valuation.overall_confidence ?? "low"] ?? CONFIDENCE_STYLES.low;
   const p50 = valuation.market_value_p50;
@@ -189,6 +190,14 @@ export function ValuationPanel({ valuation }: { valuation: PlayerValuation }) {
       {valuation.narrative && (
         <div className="pt-2 border-t border-[var(--border-subtle)]">
           <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">{valuation.narrative}</p>
+        </div>
+      )}
+
+      {/* Transfer Comparables */}
+      {playerId && (
+        <div className="pt-2 border-t border-[var(--border-subtle)]">
+          <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] block mb-1.5">Transfer Comparables</span>
+          <TransferComps playerId={playerId} embedded />
         </div>
       )}
 

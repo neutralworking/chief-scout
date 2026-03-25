@@ -46,6 +46,8 @@ GAFFER_CATEGORIES = [
     ("dressing-room", "Dressing Room", "Man-management, captaincy, squad dynamics", "👔", 6),
     ("press", "Press Conference", "How you handle media, controversy, pressure", "🎤", 7),
     ("dream-xi", "Dream XI", "Best-ever debates, era comparisons, all-time picks", "⭐", 8),
+    ("negotiations", "Contract Talks", "Agent drama, wage demands, release clauses", "📝", 9),
+    ("international", "International Duty", "Club vs country, tournament management", "🌍", 10),
 ]
 
 # Upsert categories
@@ -79,8 +81,9 @@ if deleted:
     print(f"  Removed {deleted} old categories")
 
 # ── Questions data ────────────────────────────────────────────────────────────
-# Format: (category_slug, question_text, subtitle, difficulty, tags, options)
+# Format: (category_slug, question_text, subtitle, difficulty, tags, options[, pick_count])
 # Options: (name, subtitle, dimension_weights) — all questions get weights
+# pick_count defaults to 1 if omitted
 
 QUESTIONS = [
     # ══════════════════════════════════════════════════════════════════════════
@@ -89,25 +92,26 @@ QUESTIONS = [
 
     ("dugout", "The clock hits 70 minutes. You need two goals or the season is over. Who are you bringing off the bench?",
      None, 2, ["pressure", "clutch"],
-     [("Zlatan Ibrahimović", "The ego, the presence, the chaos",
-       {"flair_vs_function": 15, "youth_vs_experience": -15, "attack_vs_defense": 15}),
-      ("Erling Haaland", "Pure goals. Nothing else matters.",
+     [("Erling Haaland", "Pure goals. Nothing else matters.",
        {"flair_vs_function": -10, "stats_vs_eye_test": 15, "attack_vs_defense": 15}),
-      ("Steven Gerrard", "Drags teams through by sheer will",
+      ("Vinícius Jr", "Electric, unpredictable, changes the game in a heartbeat",
+       {"flair_vs_function": 15, "youth_vs_experience": 10, "attack_vs_defense": 15}),
+      ("Bruno Fernandes", "Drags teams through by sheer will and creativity",
        {"loyalty_vs_ambition": 15, "stats_vs_eye_test": -10, "flair_vs_function": 10}),
-      ("Ole Gunnar Solskjær", "The baby-faced assassin. Supersub.",
-       {"stats_vs_eye_test": -10, "youth_vs_experience": -10, "flair_vs_function": -5})]),
+      ("Lamine Yamal", "17 and already decisive. Fearless off the bench.",
+       {"youth_vs_experience": 20, "flair_vs_function": 15, "stats_vs_eye_test": -10})],
+     2),  # pick_count=2 — bring two off the bench
 
     ("dugout", "You're 2-1 up in the semi-final. They've just brought Mbappé on. What's your call?",
      None, 2, ["tactical", "pressure"],
      [("Bring on another centre-back", "Shut up shop. Protect the lead.",
-       {"attack_vs_defense": -20, "flair_vs_function": -10}),
+       {"attack_vs_defense": -20, "flair_vs_function": -10, "control_vs_chaos": 15}),
       ("Match them — bring on your fastest winger", "Fight fire with fire",
-       {"attack_vs_defense": 10, "flair_vs_function": 10}),
+       {"attack_vs_defense": 10, "flair_vs_function": 10, "control_vs_chaos": -10}),
       ("Change nothing — trust your shape", "The system got you here",
-       {"flair_vs_function": -10, "loyalty_vs_ambition": 10}),
+       {"flair_vs_function": -10, "loyalty_vs_ambition": 10, "control_vs_chaos": 15}),
       ("Push higher — press them into mistakes", "Courage. They won't expect it.",
-       {"attack_vs_defense": 15, "flair_vs_function": 15})]),
+       {"attack_vs_defense": 15, "flair_vs_function": 15, "control_vs_chaos": -15})]),
 
     ("dugout", "Your number 10 has been invisible all night. CL final, 0-0, 55th minute. Do you hook him?",
      None, 3, ["pressure", "man-management"],
@@ -123,13 +127,13 @@ QUESTIONS = [
     ("dugout", "It's 0-0 at half-time. Your centre-forward has had zero touches in the box. What do you change?",
      None, 2, ["tactical"],
      [("Switch to a false 9 — drag their centre-backs out", "Create the space yourself",
-       {"flair_vs_function": 15, "stats_vs_eye_test": 10}),
+       {"flair_vs_function": 15, "stats_vs_eye_test": 10, "control_vs_chaos": 10}),
       ("Throw on a second striker — overload the box", "More bodies, more chances",
-       {"attack_vs_defense": 15, "flair_vs_function": -5}),
+       {"attack_vs_defense": 15, "flair_vs_function": -5, "control_vs_chaos": -5}),
       ("Tell the full-backs to bomb forward — width wins games", "Stretch them",
-       {"attack_vs_defense": 10, "flair_vs_function": 10}),
+       {"attack_vs_defense": 10, "flair_vs_function": 10, "control_vs_chaos": -10}),
       ("Stay patient — one chance is all you need", "The game comes to you",
-       {"flair_vs_function": -10, "attack_vs_defense": -10})]),
+       {"flair_vs_function": -10, "attack_vs_defense": -10, "control_vs_chaos": 15})]),
 
     ("dugout", "Injury crisis. Your first-choice keeper is out. Academy kid or a veteran free agent for the cup final?",
      None, 2, ["pressure", "youth"],
@@ -140,7 +144,7 @@ QUESTIONS = [
       ("Play the reserve keeper — he's next in line", "Trust the squad",
        {"loyalty_vs_ambition": 10, "flair_vs_function": -5}),
       ("Outfield player in goal — go full chaos", "Fortune favours the brave",
-       {"flair_vs_function": 20, "stats_vs_eye_test": -15})]),
+       {"flair_vs_function": 20, "stats_vs_eye_test": -15, "control_vs_chaos": -20})]),
 
     ("dugout", "Last 15 minutes, you're chasing the game. The opposition are parking the bus. Who do you throw on?",
      None, 2, ["tactical", "pressure"],
@@ -161,8 +165,8 @@ QUESTIONS = [
      "See who else is available on our free agent list", 2, ["transfer", "free-agent"],
      [("Bernardo Silva", "Proven at the highest level. Consistent.",
        {"flair_vs_function": -5, "youth_vs_experience": -10, "stats_vs_eye_test": 10}),
-      ("Neymar", "Genius level talent. Baggage included.",
-       {"flair_vs_function": 20, "youth_vs_experience": -15, "stats_vs_eye_test": -15}),
+      ("Dani Olmo", "Euro 2024 Golden Ball winner. Proven at the top level.",
+       {"flair_vs_function": 10, "youth_vs_experience": -5, "stats_vs_eye_test": 10}),
       ("Julian Brandt", "Underrated. Smart. Low drama.",
        {"flair_vs_function": 5, "stats_vs_eye_test": 10, "domestic_vs_global": -10}),
       ("Harry Wilson", "Homegrown, knows the league, pennies on the pound",
@@ -204,13 +208,13 @@ QUESTIONS = [
     ("transfer", "Your rivals just signed your number one target. Plan B time. What do you do?",
      None, 2, ["transfer", "philosophy"],
      [("Overpay for the next-best option — you can't go into the season short", "Desperation spend",
-       {"flair_vs_function": -10, "stats_vs_eye_test": -10, "loyalty_vs_ambition": -5}),
+       {"flair_vs_function": -10, "stats_vs_eye_test": -10, "loyalty_vs_ambition": -5, "control_vs_chaos": -15}),
       ("Look at a different league for a hidden gem", "Trust your scouting network",
-       {"domestic_vs_global": -15, "stats_vs_eye_test": 10, "flair_vs_function": 5}),
+       {"domestic_vs_global": -15, "stats_vs_eye_test": 10, "flair_vs_function": 5, "control_vs_chaos": 5}),
       ("Promote from within — give a young player the chance", "Opportunity from adversity",
-       {"youth_vs_experience": 20, "loyalty_vs_ambition": 10}),
+       {"youth_vs_experience": 20, "loyalty_vs_ambition": 10, "control_vs_chaos": -5}),
       ("Wait. Don't panic buy. Reassess in January.", "Patience is a strategy",
-       {"flair_vs_function": -10, "stats_vs_eye_test": 15})]),
+       {"flair_vs_function": -10, "stats_vs_eye_test": 15, "control_vs_chaos": 15})]),
 
     ("transfer", "A 35-year-old club legend wants a new two-year deal. He's lost a yard of pace but the fans love him. What do you do?",
      None, 2, ["transfer", "loyalty"],
@@ -370,13 +374,13 @@ QUESTIONS = [
     ("scouting", "Your data team says sign him — elite xG, top-percentile progressive carries. Your chief scout says 'I've watched him ten times and he goes missing in big games.' Who do you trust?",
      None, 3, ["scouting", "data"],
      [("The data — the eye lies, numbers don't", "Modern football is analytics",
-       {"stats_vs_eye_test": 20, "flair_vs_function": -10}),
+       {"stats_vs_eye_test": 20, "flair_vs_function": -10, "control_vs_chaos": 15}),
       ("The scout — context matters more than spreadsheets", "Football can't be reduced to numbers",
-       {"stats_vs_eye_test": -20, "flair_vs_function": 10}),
+       {"stats_vs_eye_test": -20, "flair_vs_function": 10, "control_vs_chaos": -10}),
       ("Send another scout — one opinion isn't enough", "Due diligence over dogma",
-       {"stats_vs_eye_test": 5, "flair_vs_function": -5}),
+       {"stats_vs_eye_test": 5, "flair_vs_function": -5, "control_vs_chaos": 10}),
       ("Watch him yourself — you're the gaffer, own the decision", "Trust your own judgement",
-       {"stats_vs_eye_test": -10, "loyalty_vs_ambition": 10})]),
+       {"stats_vs_eye_test": -10, "loyalty_vs_ambition": 10, "control_vs_chaos": -5})]),
 
     ("scouting", "30 goals in the Eredivisie. You backing him to do it in the Prem?",
      None, 2, ["scouting", "transfer"],
@@ -389,16 +393,16 @@ QUESTIONS = [
       ("Depends on the fee — cheap enough, it's worth the punt", "Risk management",
        {"stats_vs_eye_test": 10, "flair_vs_function": -10})]),
 
-    ("scouting", "A player is available at 50% of his market value. Elite ability, but two ACL injuries. Do you take the risk?",
-     None, 2, ["scouting", "transfer"],
-     [("Absolutely — talent at that price is rare", "Calculated risk for massive upside",
-       {"flair_vs_function": 10, "stats_vs_eye_test": -10}),
-      ("No chance — you're buying someone else's problem", "Availability is the best ability",
-       {"stats_vs_eye_test": 10, "flair_vs_function": -10}),
-      ("Only on a heavily incentivised deal — low base, high bonuses", "Protect the downside",
-       {"stats_vs_eye_test": 15, "flair_vs_function": -5}),
-      ("Sign him and build a team around protecting him", "Genius is worth accommodating",
-       {"flair_vs_function": 15, "loyalty_vs_ambition": 10})]),
+    ("scouting", "A player is available at 50% of his market value. Elite ability, two ACL injuries — and he wants to be captain. Your current captain is the heart and soul of the dressing room. Do you sign him?",
+     None, 3, ["scouting", "transfer", "man-management"],
+     [("Sign him and give him the armband — talent this good sets the terms", "Genius demands accommodation",
+       {"flair_vs_function": 15, "loyalty_vs_ambition": -20, "stats_vs_eye_test": -10}),
+      ("Sign him but the captaincy is non-negotiable — earn it here", "Talent yes, authority no",
+       {"flair_vs_function": 5, "loyalty_vs_ambition": 10, "stats_vs_eye_test": 5}),
+      ("Walk away — that personality plus injury history is a dressing room bomb", "Availability AND attitude are abilities",
+       {"stats_vs_eye_test": 10, "flair_vs_function": -10, "loyalty_vs_ambition": 15}),
+      ("Only on a short-term deal with behaviour clauses — protect the culture", "Risk management with a safety net",
+       {"stats_vs_eye_test": 15, "flair_vs_function": -5, "control_vs_chaos": -10})]),
 
     ("scouting", "Two number 10s available. Same price. One is a metronomic press-resistant creator. The other dribbles through lines like they don't exist. Who transforms your team?",
      None, 2, ["scouting", "style"],
@@ -573,13 +577,13 @@ QUESTIONS = [
     ("dugout", "Your team has won three on the bounce playing ugly. Do you change the style?",
      None, 2, ["philosophy", "tactical"],
      [("No — winning is the only style that matters", "Results breed confidence",
-       {"flair_vs_function": -15, "stats_vs_eye_test": 10}),
+       {"flair_vs_function": -15, "stats_vs_eye_test": 10, "control_vs_chaos": 10}),
       ("Yes — this isn't sustainable and it's not who we are", "Identity over points",
-       {"flair_vs_function": 15, "stats_vs_eye_test": -10}),
+       {"flair_vs_function": 15, "stats_vs_eye_test": -10, "control_vs_chaos": -5}),
       ("Tweak it — add some flair while keeping the solidity", "Evolution, not revolution",
-       {"flair_vs_function": 5, "stats_vs_eye_test": 5}),
+       {"flair_vs_function": 5, "stats_vs_eye_test": 5, "control_vs_chaos": 5}),
       ("Let the players decide — they're the ones on the pitch", "Empower the squad",
-       {"loyalty_vs_ambition": 10, "flair_vs_function": 5})]),
+       {"loyalty_vs_ambition": 10, "flair_vs_function": 5, "control_vs_chaos": -10})]),
 
     # ══════════════════════════════════════════════════════════════════════════
     # MORE TRANSFER — budget games
@@ -588,13 +592,13 @@ QUESTIONS = [
     ("transfer", "£150m to spend. How do you allocate it?",
      None, 2, ["transfer", "squad-building"],
      [("One Mbappé — a single superstar changes everything", "Galáctico mentality",
-       {"flair_vs_function": 15, "loyalty_vs_ambition": -10, "stats_vs_eye_test": -5}),
+       {"flair_vs_function": 15, "loyalty_vs_ambition": -10, "stats_vs_eye_test": -5, "control_vs_chaos": -10}),
       ("Five £30m players — depth wins titles", "Squad quality over individual brilliance",
-       {"stats_vs_eye_test": 15, "flair_vs_function": -10}),
+       {"stats_vs_eye_test": 15, "flair_vs_function": -10, "control_vs_chaos": 10}),
       ("Three £50m starters — quality across the spine", "Balance is key",
-       {"flair_vs_function": 0, "stats_vs_eye_test": 5}),
+       {"flair_vs_function": 0, "stats_vs_eye_test": 5, "control_vs_chaos": 5}),
       ("£100m on two + £50m for the academy", "Win now AND build for later",
-       {"youth_vs_experience": 10, "loyalty_vs_ambition": 10})]),
+       {"youth_vs_experience": 10, "loyalty_vs_ambition": 10, "control_vs_chaos": 5})]),
 
     # ══════════════════════════════════════════════════════════════════════════
     # MORE SCOUTING — deeper dilemmas
@@ -617,13 +621,13 @@ QUESTIONS = [
 
     ("dressing-room", "Your squad is fractured after a bad run. One signing to unite the dressing room. Who?",
      None, 2, ["squad", "man-management"],
-     [("James Milner", "Professional. Standards. Every single day.",
+     [("Declan Rice", "Professional. Standards. Every single day.",
        {"flair_vs_function": -15, "loyalty_vs_ambition": 15}),
-      ("David Silva", "Quiet genius. Leads by example.",
+      ("Bernardo Silva", "Quiet genius. Leads by example.",
        {"flair_vs_function": 10, "loyalty_vs_ambition": 10}),
       ("Luka Modrić", "Grace under pressure. Universally respected.",
        {"flair_vs_function": 15, "loyalty_vs_ambition": 10, "domestic_vs_global": -10}),
-      ("Jordan Henderson", "Vocal, commanding, grabs the collar",
+      ("Virgil van Dijk", "Vocal, commanding, presence that lifts everyone",
        {"loyalty_vs_ambition": 15, "domestic_vs_global": 15, "flair_vs_function": -10})]),
 
     ("dressing-room", "New job. Your first signing sets the culture. What kind of player do you bring in?",
@@ -792,13 +796,13 @@ QUESTIONS = [
     ("scouting", "Moneyball in football — genius or nonsense?",
      None, 2, ["scouting", "data", "philosophy"],
      [("Genius — Brentford proved it works", "Data democratises football",
-       {"stats_vs_eye_test": 20, "flair_vs_function": -10, "domestic_vs_global": -10}),
+       {"stats_vs_eye_test": 20, "flair_vs_function": -10, "domestic_vs_global": -10, "control_vs_chaos": 15}),
       ("Nonsense — football is too chaotic for spreadsheets", "You can't quantify heart",
-       {"stats_vs_eye_test": -20, "flair_vs_function": 15}),
+       {"stats_vs_eye_test": -20, "flair_vs_function": 15, "control_vs_chaos": -15}),
       ("It works for recruitment, not for coaching", "The right tool for the right job",
-       {"stats_vs_eye_test": 10, "flair_vs_function": 5}),
+       {"stats_vs_eye_test": 10, "flair_vs_function": 5, "control_vs_chaos": 5}),
       ("It works up to a point — then you need the eye", "Data gets you 80%, talent spotting gets the rest",
-       {"stats_vs_eye_test": 5, "flair_vs_function": 5})]),
+       {"stats_vs_eye_test": 5, "flair_vs_function": 5, "control_vs_chaos": 0})]),
 
     ("scouting", "You're building a scouting department from zero. First hire?",
      None, 2, ["scouting", "squad-building"],
@@ -858,13 +862,13 @@ QUESTIONS = [
     ("scouting", "Transfer deadline day. Your chief scout has been tracking a player for six months. The data team just found a statistically better option, but there's been no live scouting. Clock's ticking. Who do you sign?",
      None, 3, ["scouting", "data", "pressure"],
      [("The scouted player — six months of due diligence trumps everything", "Process wins",
-       {"stats_vs_eye_test": -10, "flair_vs_function": 5}),
+       {"stats_vs_eye_test": -10, "flair_vs_function": 5, "control_vs_chaos": 10}),
       ("The data pick — the numbers are objectively better", "Trust the model",
-       {"stats_vs_eye_test": 20, "flair_vs_function": -10}),
+       {"stats_vs_eye_test": 20, "flair_vs_function": -10, "control_vs_chaos": 15}),
       ("Neither — don't panic buy", "Deadline day deals are usually bad deals",
-       {"stats_vs_eye_test": 10, "loyalty_vs_ambition": 5}),
+       {"stats_vs_eye_test": 10, "loyalty_vs_ambition": 5, "control_vs_chaos": 15}),
       ("Both — if you can afford it, why not?", "More options, more competition",
-       {"stats_vs_eye_test": 5, "flair_vs_function": 5, "loyalty_vs_ambition": -10})]),
+       {"stats_vs_eye_test": 5, "flair_vs_function": 5, "loyalty_vs_ambition": -10, "control_vs_chaos": -10})]),
 
     # ── PRESS — media handling, mind games, deflection ───────────────────────
 
@@ -1051,24 +1055,24 @@ QUESTIONS = [
     ("dugout", "Pre-season. You inherit a squad that plays 4-4-2 but you're a 4-3-3 man. How fast do you change it?",
      None, 2, ["tactical", "philosophy"],
      [("Immediately — my way from day one", "The system doesn't bend to the players",
-       {"flair_vs_function": 10, "loyalty_vs_ambition": -10}),
+       {"flair_vs_function": 10, "loyalty_vs_ambition": -10, "control_vs_chaos": 15}),
       ("Gradually — introduce it over the first two months", "Evolution, not revolution",
-       {"flair_vs_function": 5, "stats_vs_eye_test": 5}),
+       {"flair_vs_function": 5, "stats_vs_eye_test": 5, "control_vs_chaos": 10}),
       ("Stick with 4-4-2 this season — win first, then transform", "Pragmatism before ideology",
-       {"flair_vs_function": -15, "loyalty_vs_ambition": 10}),
+       {"flair_vs_function": -15, "loyalty_vs_ambition": 10, "control_vs_chaos": -5}),
       ("Play both — rotate formations based on the opponent", "Tactical flexibility is the system",
-       {"stats_vs_eye_test": 10, "flair_vs_function": 5})]),
+       {"stats_vs_eye_test": 10, "flair_vs_function": 5, "control_vs_chaos": -10})]),
 
     ("dugout", "You're playing away to a side two leagues below you in the cup. They've got a plastic pitch. How do you approach it?",
      None, 1, ["tactical", "cupset"],
      [("Full strength — respect every opponent, take no chances", "Cups are won by taking them seriously",
-       {"flair_vs_function": -10, "stats_vs_eye_test": 10}),
+       {"flair_vs_function": -10, "stats_vs_eye_test": 10, "control_vs_chaos": 15}),
       ("Rotate the squad — rest the big names, give fringe players a chance", "Squad depth is for nights like these",
-       {"youth_vs_experience": 10, "loyalty_vs_ambition": 5}),
+       {"youth_vs_experience": 10, "loyalty_vs_ambition": 5, "control_vs_chaos": 5}),
       ("Match their intensity — long balls, physical, scrap for it", "When in Rome",
-       {"flair_vs_function": -15, "attack_vs_defense": -5}),
+       {"flair_vs_function": -15, "attack_vs_defense": -5, "control_vs_chaos": -15}),
       ("Play the kids — it's a great learning experience", "Every game is a classroom",
-       {"youth_vs_experience": 20, "flair_vs_function": 5})]),
+       {"youth_vs_experience": 20, "flair_vs_function": 5, "control_vs_chaos": -10})]),
 
     ("dugout", "Derby day. Your centre-back picks up a yellow in the 20th minute. He's rash at the best of times. What do you do?",
      None, 2, ["tactical", "pressure"],
@@ -1095,13 +1099,13 @@ QUESTIONS = [
     ("dugout", "Your team plays better without your best player. The stats prove it. Do you drop him?",
      None, 3, ["tactical", "data", "man-management"],
      [("Drop him — the team is bigger than any individual", "Data doesn't lie",
-       {"stats_vs_eye_test": 20, "flair_vs_function": -15, "loyalty_vs_ambition": -10}),
+       {"stats_vs_eye_test": 20, "flair_vs_function": -15, "loyalty_vs_ambition": -10, "control_vs_chaos": 15}),
       ("Never — he's the best player, you build around him", "Genius deserves accommodation",
-       {"flair_vs_function": 15, "stats_vs_eye_test": -15}),
+       {"flair_vs_function": 15, "stats_vs_eye_test": -15, "control_vs_chaos": -10}),
       ("Change the system to get the best out of him AND the team", "The manager's job is to solve this puzzle",
-       {"flair_vs_function": 10, "stats_vs_eye_test": 5}),
+       {"flair_vs_function": 10, "stats_vs_eye_test": 5, "control_vs_chaos": 10}),
       ("Talk to him — maybe he needs a different role", "Communication before decisions",
-       {"loyalty_vs_ambition": 10, "flair_vs_function": 5})]),
+       {"loyalty_vs_ambition": 10, "flair_vs_function": 5, "control_vs_chaos": 5})]),
 
     ("dugout", "Extra time in a cup tie. You've used all your subs. Your striker is limping. Do you tell him to stay up front or drop deep?",
      None, 2, ["tactical", "pressure"],
@@ -1130,13 +1134,13 @@ QUESTIONS = [
     ("transfer", "You're offered a swap deal: your solid 7/10 centre-mid for their inconsistent 10/10 winger. He'll be brilliant or invisible. Take it?",
      None, 2, ["transfer", "philosophy"],
      [("Take it — you can't buy 10/10 talent", "Ceiling over floor every time",
-       {"flair_vs_function": 15, "stats_vs_eye_test": -10}),
+       {"flair_vs_function": 15, "stats_vs_eye_test": -10, "control_vs_chaos": -15}),
       ("Decline — consistency wins leagues", "You know what you've got",
-       {"flair_vs_function": -15, "stats_vs_eye_test": 15, "loyalty_vs_ambition": 10}),
+       {"flair_vs_function": -15, "stats_vs_eye_test": 15, "loyalty_vs_ambition": 10, "control_vs_chaos": 15}),
       ("Only if they add cash — talent premium goes both ways", "Make them pay for unpredictability",
-       {"stats_vs_eye_test": 10, "flair_vs_function": 5}),
+       {"stats_vs_eye_test": 10, "flair_vs_function": 5, "control_vs_chaos": 5}),
       ("Take it and then sign a cheap replacement for the midfielder", "Best of both worlds",
-       {"flair_vs_function": 10, "stats_vs_eye_test": 5, "loyalty_vs_ambition": -5})]),
+       {"flair_vs_function": 10, "stats_vs_eye_test": 5, "loyalty_vs_ambition": -5, "control_vs_chaos": -5})]),
 
     ("transfer", "You can sign a player from one of these clubs. Same position, same price. Where are you shopping?",
      None, 1, ["transfer", "global"],
@@ -1233,13 +1237,13 @@ QUESTIONS = [
     ("dressing-room", "Half-time. You're 3-0 down. What's the dressing room speech?",
      None, 2, ["man-management", "pressure"],
      [("Tear into them — unacceptable performance, make them feel it", "Anger can be a weapon",
-       {"flair_vs_function": -10, "loyalty_vs_ambition": -5}),
+       {"flair_vs_function": -10, "loyalty_vs_ambition": -5, "control_vs_chaos": -15}),
       ("Stay calm — outline three clear tactical changes", "Clear heads, clear plan",
-       {"stats_vs_eye_test": 15, "flair_vs_function": -5}),
+       {"stats_vs_eye_test": 15, "flair_vs_function": -5, "control_vs_chaos": 15}),
       ("Appeal to their pride — 'you're better than this, show me'", "Light the fire from within",
-       {"loyalty_vs_ambition": 15, "flair_vs_function": 10}),
+       {"loyalty_vs_ambition": 15, "flair_vs_function": 10, "control_vs_chaos": -5}),
       ("Say nothing — let the silence speak louder than words", "Sometimes the void is more powerful",
-       {"flair_vs_function": 5, "stats_vs_eye_test": -5})]),
+       {"flair_vs_function": 5, "stats_vs_eye_test": -5, "control_vs_chaos": 5})]),
 
     ("dressing-room", "Your assistant manager disagrees with your team selection in front of the coaching staff. How do you handle it?",
      None, 2, ["man-management", "leadership"],
@@ -1304,16 +1308,16 @@ QUESTIONS = [
       ("Lothar Matthäus", "Could do everything. The complete midfielder.",
        {"flair_vs_function": 5, "domestic_vs_global": -10})]),
 
-    ("dream-xi", "Greatest centre-back partnership in history?",
-     None, 1, ["goat", "era", "defence"],
-     [("Maldini & Nesta", "AC Milan poetry. Elegance and reading of the game.",
-       {"flair_vs_function": 10, "domestic_vs_global": -10}),
-      ("Ferdinand & Vidic", "United's wall. One read it, one destroyed it.",
-       {"flair_vs_function": -5, "domestic_vs_global": 15}),
-      ("Cannavaro & Nesta", "Italy 2006. A World Cup won on defending.",
-       {"attack_vs_defense": -15, "domestic_vs_global": -10}),
-      ("Terry & Carvalho", "Mourinho's Chelsea. 15 goals conceded in a season.",
-       {"attack_vs_defense": -15, "flair_vs_function": -10, "domestic_vs_global": 10})]),
+    ("dream-xi", "Best centre-back partnership for a relegation dogfight? You need warriors, not artists.",
+     None, 1, ["defence", "pressure"],
+     [("Terry & Cahill", "Chelsea grit. Headers, blocks, last-ditch tackles.",
+       {"flair_vs_function": -15, "attack_vs_defense": -15, "domestic_vs_global": 10}),
+      ("Jagielka & Distin", "Everton's budget wall. Organised, physical, relentless.",
+       {"flair_vs_function": -15, "stats_vs_eye_test": -10, "domestic_vs_global": 15}),
+      ("Kompany & Lescott", "City before the money felt normal. Kompany dragged them through.",
+       {"loyalty_vs_ambition": 10, "flair_vs_function": -10, "domestic_vs_global": 10}),
+      ("Vidic & Evans", "United's nastiest pairing. Nobody wanted to play against them.",
+       {"flair_vs_function": -10, "attack_vs_defense": -15, "control_vs_chaos": -10})]),
 
     ("dream-xi", "If you could pick ONE player from any era to build your team around, who would it be?",
      None, 2, ["goat", "philosophy"],
@@ -1326,16 +1330,16 @@ QUESTIONS = [
       ("Pelé", "Three World Cups. The original complete forward.",
        {"domestic_vs_global": -15, "flair_vs_function": 10})]),
 
-    ("dream-xi", "Best goalkeeper you've ever seen?",
-     None, 1, ["goat"],
-     [("Gianluigi Buffon", "Longevity, presence, big-game temperament. The standard.",
-       {"loyalty_vs_ambition": 15, "domestic_vs_global": -10}),
-      ("Manuel Neuer", "Reinvented the position. A sweeper who happens to save shots.",
-       {"flair_vs_function": 10, "stats_vs_eye_test": 10}),
-      ("Lev Yashin", "The Black Spider. Changed what a goalkeeper could be.",
-       {"domestic_vs_global": -15, "flair_vs_function": 5}),
-      ("Peter Schmeichel", "The star-fish save. Commanded his area like a king.",
-       {"domestic_vs_global": 10, "attack_vs_defense": -10})]),
+    ("dream-xi", "What matters more in a goalkeeper — shot-stopping or sweeping?",
+     None, 1, ["debate", "goalkeeper"],
+     [("Shot-stopping — a goalkeeper's job is to save shots, full stop", "Courtois, Banks, Buffon — reflexes win finals",
+       {"flair_vs_function": -15, "stats_vs_eye_test": 10, "control_vs_chaos": -5}),
+      ("Sweeping — the modern game demands a keeper who plays", "Neuer, Ederson, ter Stegen — the extra outfielder",
+       {"flair_vs_function": 10, "control_vs_chaos": 15, "stats_vs_eye_test": 5}),
+      ("Distribution — a great pass from the keeper starts every attack", "Alisson's through balls create more than some midfielders",
+       {"flair_vs_function": 10, "attack_vs_defense": 10, "control_vs_chaos": 10}),
+      ("Commanding the box — organising, shouting, owning the area", "Schmeichel, Cech — the wall behind the wall",
+       {"flair_vs_function": -10, "attack_vs_defense": -10, "control_vs_chaos": -10})]),
 
     # ── PRESS CONFERENCE — media handling, mind games ─────────────────────────
 
@@ -1425,24 +1429,24 @@ QUESTIONS = [
     ("dugout", "You're 1-0 up in a cup semi-final with 20 minutes left. Your formation?",
      None, 2, ["tactical", "pressure"],
      [("Stay as you are — don't change a winning game", "If it ain't broke...",
-       {"flair_vs_function": -10, "attack_vs_defense": -10}),
+       {"flair_vs_function": -10, "attack_vs_defense": -10, "control_vs_chaos": 10}),
       ("Go 5-4-1 — shut up shop and see it out", "Pragmatism wins trophies",
-       {"attack_vs_defense": -20, "flair_vs_function": -15}),
+       {"attack_vs_defense": -20, "flair_vs_function": -15, "control_vs_chaos": 15}),
       ("Push for a second — kill the game", "The best defence is attack",
-       {"attack_vs_defense": 15, "flair_vs_function": 10}),
+       {"attack_vs_defense": 15, "flair_vs_function": 10, "control_vs_chaos": -10}),
       ("Fresh legs in midfield — control the game with energy", "Manage the phases",
-       {"flair_vs_function": -5, "stats_vs_eye_test": 10})]),
+       {"flair_vs_function": -5, "stats_vs_eye_test": 10, "control_vs_chaos": 10})]),
 
     ("dugout", "Your team is dominating possession but can't score. It's 0-0 at half-time. What do you change?",
      None, 2, ["tactical"],
      [("Nothing — keep doing what you're doing, the goal will come", "Trust the process",
-       {"stats_vs_eye_test": 10, "flair_vs_function": -5}),
+       {"stats_vs_eye_test": 10, "flair_vs_function": -5, "control_vs_chaos": 15}),
       ("Bring on a target man — go more direct", "Change the angle of attack",
-       {"flair_vs_function": -15, "attack_vs_defense": 10}),
+       {"flair_vs_function": -15, "attack_vs_defense": 10, "control_vs_chaos": -10}),
       ("Push your full-backs higher — overload the wide areas", "Width creates space",
-       {"attack_vs_defense": 10, "flair_vs_function": 5}),
+       {"attack_vs_defense": 10, "flair_vs_function": 5, "control_vs_chaos": -5}),
       ("Bring on your most unpredictable player — disrupt their defensive structure", "Chaos is a ladder",
-       {"flair_vs_function": 20, "stats_vs_eye_test": -10})]),
+       {"flair_vs_function": 20, "stats_vs_eye_test": -10, "control_vs_chaos": -20})]),
 
     # ── THE PUB — classic debates ─────────────────────────────────────────────
 
@@ -1563,6 +1567,124 @@ QUESTIONS = [
        {"control_vs_chaos": 20, "flair_vs_function": 15, "stats_vs_eye_test": 10}),
       ("None of them — Rinus Michels invented it all and they're footnotes", "The General. Without Michels, none of them exist.",
        {"control_vs_chaos": 10, "flair_vs_function": 10, "domestic_vs_global": -15})]),
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # CONTRACT TALKS — Agent drama, wage demands, release clauses
+    # ══════════════════════════════════════════════════════════════════════════
+
+    ("negotiations", "Your star player's agent leaks contract demands to the press before you've even started negotiations. How do you respond?",
+     None, 2, ["negotiations", "man-management"],
+     [("Go public yourself — 'we value him, but no player is bigger than the club'", "Set the narrative before the agent does",
+       {"loyalty_vs_ambition": -10, "flair_vs_function": -10, "control_vs_chaos": 10}),
+      ("Call the agent directly — shut it down behind closed doors", "This is between professionals, not the press",
+       {"loyalty_vs_ambition": 10, "flair_vs_function": -5, "control_vs_chaos": 15}),
+      ("Use it as leverage — now the board knows the player wants to stay, they'll pay up", "Spin the leak",
+       {"flair_vs_function": 10, "stats_vs_eye_test": 10, "control_vs_chaos": -5}),
+      ("Bench him for the next game — actions have consequences", "Show strength, the contract can wait",
+       {"loyalty_vs_ambition": -15, "flair_vs_function": -10, "control_vs_chaos": -15})]),
+
+    ("negotiations", "Your best young player wants a release clause. The board says no. The player's getting restless. What do you do?",
+     None, 2, ["negotiations", "youth", "transfer"],
+     [("Give him the clause — players who want to leave eventually will", "Keep him happy now, cross that bridge later",
+       {"loyalty_vs_ambition": -10, "youth_vs_experience": 10, "stats_vs_eye_test": 10}),
+      ("Refuse and double his wages — make staying financially attractive", "Money talks, clauses walk",
+       {"loyalty_vs_ambition": 5, "flair_vs_function": -5, "stats_vs_eye_test": 15}),
+      ("Sell him now while his value is high — reinvest in three players", "If he's already thinking about leaving, he's already left",
+       {"loyalty_vs_ambition": -20, "stats_vs_eye_test": 15, "youth_vs_experience": -10}),
+      ("Talk to him personally — sell the project, the vision, the legacy", "Great managers inspire loyalty, not just contracts",
+       {"loyalty_vs_ambition": 20, "flair_vs_function": 10, "control_vs_chaos": 5})]),
+
+    ("negotiations", "A super-agent represents four players in your squad. He wants you to sign his fifth client — average player, inflated price. What's your play?",
+     None, 3, ["negotiations", "transfer"],
+     [("Refuse — you sign players, not agent packages", "Integrity over convenience",
+       {"loyalty_vs_ambition": 10, "flair_vs_function": -10, "stats_vs_eye_test": 15, "control_vs_chaos": 15}),
+      ("Buy him on loan — keep the agent sweet without committing long-term", "Diplomacy costs less than a bad transfer",
+       {"flair_vs_function": -5, "stats_vs_eye_test": 5, "control_vs_chaos": 5}),
+      ("Take the deal — relationships with super-agents open doors to superstars", "The long game requires short-term compromises",
+       {"loyalty_vs_ambition": -10, "flair_vs_function": 5, "control_vs_chaos": -10}),
+      ("Tell the board to ban the agent — you don't negotiate under pressure", "Power play. Risky but principled.",
+       {"loyalty_vs_ambition": 15, "flair_vs_function": -15, "control_vs_chaos": -15})]),
+
+    ("negotiations", "Transfer deadline day. The selling club keeps raising the price every hour. You've already agreed personal terms with the player. Do you keep chasing?",
+     None, 2, ["negotiations", "transfer", "pressure"],
+     [("Pay whatever it takes — you've made promises to the player", "Honour your word, even at a premium",
+       {"loyalty_vs_ambition": 15, "stats_vs_eye_test": -15, "control_vs_chaos": -15}),
+      ("Walk away — there's always another player", "Discipline wins over desperation",
+       {"stats_vs_eye_test": 15, "flair_vs_function": -10, "control_vs_chaos": 15}),
+      ("Call the player — get him to force the move", "Use the player's own desire as leverage",
+       {"flair_vs_function": 10, "loyalty_vs_ambition": -10, "control_vs_chaos": -10}),
+      ("Set a final take-it-or-leave-it offer — be prepared to walk", "Negotiation 101: always be ready to leave the table",
+       {"stats_vs_eye_test": 10, "flair_vs_function": -5, "control_vs_chaos": 10})]),
+
+    ("negotiations", "Your 30-year-old captain wants a four-year deal. The club policy is two-year max for over-30s. How do you handle it?",
+     None, 2, ["negotiations", "loyalty"],
+     [("Give him four years — he's earned the exception", "Loyalty can't be reduced to a spreadsheet",
+       {"loyalty_vs_ambition": 20, "stats_vs_eye_test": -15, "youth_vs_experience": -10}),
+      ("Offer three as a compromise — meet in the middle", "Show respect without breaking the system",
+       {"loyalty_vs_ambition": 10, "stats_vs_eye_test": 5, "control_vs_chaos": 5}),
+      ("Two years, plus a one-year option based on appearances", "Protect the club with performance triggers",
+       {"stats_vs_eye_test": 15, "loyalty_vs_ambition": 5, "control_vs_chaos": 10}),
+      ("Stick to the policy — no exceptions, even for legends", "Rules exist for a reason. Break them once, they break forever.",
+       {"loyalty_vs_ambition": -15, "stats_vs_eye_test": 10, "control_vs_chaos": 15})]),
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # INTERNATIONAL DUTY — Club vs country, tournament management
+    # ══════════════════════════════════════════════════════════════════════════
+
+    ("international", "Your star striker picks up a knock in training. There's an international break in 48 hours. His national team coach is calling. What do you do?",
+     None, 2, ["international", "man-management"],
+     [("Let him go — you can't stand in the way of a player's national pride", "Country is sacred. Don't be that club.",
+       {"loyalty_vs_ambition": 10, "domestic_vs_global": -15, "flair_vs_function": 5}),
+      ("Block the call-up — club comes first, always", "You pay his wages. You set the terms.",
+       {"loyalty_vs_ambition": -10, "domestic_vs_global": 15, "control_vs_chaos": 15}),
+      ("Send him but tell the national coach he's only fit for the bench", "Cooperate with limits — everyone saves face",
+       {"stats_vs_eye_test": 10, "domestic_vs_global": -5, "control_vs_chaos": 10}),
+      ("Let the player decide — it's his body and his country", "Trust the player. He knows the stakes.",
+       {"loyalty_vs_ambition": 5, "flair_vs_function": 5, "control_vs_chaos": -10})]),
+
+    ("international", "You're managing a national team at the World Cup. Your best player is 34 and won't make the next one. A brilliant 19-year-old plays the same position. Who starts the semi-final?",
+     None, 3, ["international", "youth", "pressure"],
+     [("The veteran — this is his last dance, he's earned it", "Experience in a semi-final is worth more than potential",
+       {"youth_vs_experience": -20, "loyalty_vs_ambition": 15, "stats_vs_eye_test": -10}),
+      ("The teenager — the future starts now, and he's in form", "Talent doesn't wait for sentiment",
+       {"youth_vs_experience": 20, "flair_vs_function": 10, "stats_vs_eye_test": -10}),
+      ("Start the veteran, bring the kid on at 60 minutes", "Best of both — experience to settle, youth to finish",
+       {"youth_vs_experience": -5, "stats_vs_eye_test": 10, "control_vs_chaos": 5}),
+      ("Whoever was better in training this week — form over reputation", "Data, not narrative, picks the team",
+       {"stats_vs_eye_test": 20, "flair_vs_function": -10, "control_vs_chaos": 10})]),
+
+    ("international", "Your club's January schedule is brutal — 9 games in 30 days. Three of your key players have been called up for international friendlies. Do you intervene?",
+     None, 2, ["international", "squad-building"],
+     [("Let them go — international duty is non-negotiable", "Respect the rules. Build squad depth for exactly this.",
+       {"domestic_vs_global": -15, "loyalty_vs_ambition": 5, "control_vs_chaos": -5}),
+      ("Call every national team coach personally — ask for reduced minutes", "Diplomatic lobbying works. Be professional about it.",
+       {"domestic_vs_global": 5, "stats_vs_eye_test": 10, "control_vs_chaos": 10}),
+      ("Publicly complain about the schedule — force FIFA to notice", "Someone has to say what every manager is thinking",
+       {"flair_vs_function": 10, "domestic_vs_global": 15, "control_vs_chaos": -15}),
+      ("Rest them in the games before the break — manage the load proactively", "Smart rotation beats reactive complaining",
+       {"stats_vs_eye_test": 15, "flair_vs_function": -10, "control_vs_chaos": 15})]),
+
+    ("international", "You're coaching a small nation with one generational talent. He wants to retire from international duty at 27 to focus on his club career. What do you say?",
+     None, 2, ["international", "loyalty"],
+     [("Respect his decision — you can't force a player to love his country", "Forcing it would only produce half-hearted performances",
+       {"loyalty_vs_ambition": -10, "flair_vs_function": -5, "domestic_vs_global": -10}),
+      ("Beg him to stay — explain what he means to the entire nation", "Some players carry more than just a team",
+       {"loyalty_vs_ambition": 20, "domestic_vs_global": -15, "flair_vs_function": 10}),
+      ("Offer to build the entire system around him — make it easy for him to stay", "Accommodate genius, reduce burden",
+       {"flair_vs_function": 15, "loyalty_vs_ambition": 10, "control_vs_chaos": -10}),
+      ("Let him go but leave the door open — 'the shirt is always here'", "No pressure, no drama — class response",
+       {"loyalty_vs_ambition": 5, "flair_vs_function": -5, "control_vs_chaos": 5})]),
+
+    ("international", "World Cup group stage. You've qualified with a game to spare. The last group match is a dead rubber. What's your approach?",
+     None, 1, ["international", "tactical"],
+     [("Full rotation — rest everyone for the knockout rounds", "Fresh legs win tournaments, not group games",
+       {"stats_vs_eye_test": 15, "flair_vs_function": -10, "control_vs_chaos": 10}),
+      ("Play your best XI — rhythm and momentum matter more than rest", "Winners don't take their foot off the gas",
+       {"flair_vs_function": -5, "stats_vs_eye_test": -10, "loyalty_vs_ambition": 5}),
+      ("Give fringe players a chance to stake a claim", "The squad needs to feel involved — morale wins knockouts",
+       {"youth_vs_experience": 10, "loyalty_vs_ambition": 10, "control_vs_chaos": -5}),
+      ("Experiment tactically — try the formation you've been saving for the quarter-final", "Use the dress rehearsal wisely",
+       {"flair_vs_function": 10, "stats_vs_eye_test": 10, "control_vs_chaos": -10})]),
 ]
 
 # ── Resolve category IDs ────────────────────────────────────────────────────
@@ -1602,7 +1724,9 @@ inserted = 0
 skipped = 0
 missing_persons = []
 
-for cat_slug, question_text, subtitle, difficulty, tags, options in QUESTIONS:
+for q_tuple in QUESTIONS:
+    cat_slug, question_text, subtitle, difficulty, tags, options = q_tuple[:6]
+    pick_count = q_tuple[6] if len(q_tuple) > 6 else 1
     cat_id = cat_map.get(cat_slug)
     if not cat_id:
         print(f"  WARNING: category '{cat_slug}' not found, skipping")
@@ -1631,10 +1755,10 @@ for cat_slug, question_text, subtitle, difficulty, tags, options in QUESTIONS:
         continue
 
     cur.execute("""
-        INSERT INTO fc_questions (category_id, question_text, subtitle, option_count, difficulty, tags, tier)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO fc_questions (category_id, question_text, subtitle, option_count, difficulty, tags, tier, pick_count)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id
-    """, (cat_id, question_text, subtitle, len(options), difficulty, tags, 2))
+    """, (cat_id, question_text, subtitle, len(options), difficulty, tags, 2, pick_count))
     q_id = cur.fetchone()[0]
 
     for i, opt in enumerate(options):

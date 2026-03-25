@@ -12,6 +12,18 @@ interface DashboardData {
   clubs: { total: number; withNation: number; withLeague: number; withWikidata: number; withStadium: number };
 }
 
+interface CrowdMismatch {
+  person_id: number;
+  name: string;
+  position: string;
+  crowd_win_pct: number;
+  db_level: number;
+  db_overall: number | null;
+  mismatch_score: number;
+  direction: "crowd_higher" | "crowd_lower";
+  sample_size: number;
+}
+
 function fmt(n: number): string {
   return n === 0 ? "\u2013" : n.toLocaleString();
 }
@@ -34,12 +46,17 @@ function CoverageBar({ value, total }: { value: number; total: number }) {
 export function DashboardTab() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [crowdIntel, setCrowdIntel] = useState<CrowdMismatch[]>([]);
 
   useEffect(() => {
     fetch("/api/admin/dashboard")
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));
+    fetch("/api/admin/crowd-intel")
+      .then((r) => r.json())
+      .then((d) => setCrowdIntel(d.mismatches ?? []))
+      .catch(() => {});
   }, []);
 
   if (loading) {
@@ -169,6 +186,67 @@ export function DashboardTab() {
             })}
           </div>
         </div>
+      </div>
+
+      {/* Crowd Intel */}
+      <div className="card rounded-xl p-4">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Crowd Intel</h2>
+        {crowdIntel.length === 0 ? (
+          <p className="text-[11px] text-[var(--text-secondary)]">Insufficient data — need more Gaffer votes to detect mismatches.</p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-mental)] mb-2">Crowd Says Higher</h3>
+              <div className="space-y-1.5">
+                {crowdIntel
+                  .filter((m) => m.direction === "crowd_higher")
+                  .slice(0, 10)
+                  .map((m) => (
+                    <div key={m.person_id} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[var(--text-primary)] truncate">{m.name}</span>
+                        <span className="text-[var(--text-muted)] text-[10px]">{m.position}</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-mono text-[var(--text-secondary)]">Lvl {m.db_level}</span>
+                        <span className="font-mono text-[var(--color-accent-mental)]">{m.crowd_win_pct.toFixed(0)}% win</span>
+                        <span className="font-mono text-[var(--text-muted)]">n={m.sample_size}</span>
+                        <a href={`/editor/${m.person_id}`} className="text-[var(--color-accent-tactical)] hover:underline">Review</a>
+                      </div>
+                    </div>
+                  ))}
+                {crowdIntel.filter((m) => m.direction === "crowd_higher").length === 0 && (
+                  <p className="text-[10px] text-[var(--text-muted)]">No mismatches in this direction</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-sentiment-negative)] mb-2">Crowd Says Lower</h3>
+              <div className="space-y-1.5">
+                {crowdIntel
+                  .filter((m) => m.direction === "crowd_lower")
+                  .slice(0, 10)
+                  .map((m) => (
+                    <div key={m.person_id} className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[var(--text-primary)] truncate">{m.name}</span>
+                        <span className="text-[var(--text-muted)] text-[10px]">{m.position}</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-mono text-[var(--text-secondary)]">Lvl {m.db_level}</span>
+                        <span className="font-mono text-[var(--color-sentiment-negative)]">{m.crowd_win_pct.toFixed(0)}% win</span>
+                        <span className="font-mono text-[var(--text-muted)]">n={m.sample_size}</span>
+                        <a href={`/editor/${m.person_id}`} className="text-[var(--color-accent-tactical)] hover:underline">Review</a>
+                      </div>
+                    </div>
+                  ))}
+                {crowdIntel.filter((m) => m.direction === "crowd_lower").length === 0 && (
+                  <p className="text-[10px] text-[var(--text-muted)]">No mismatches in this direction</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

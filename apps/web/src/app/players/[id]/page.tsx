@@ -15,7 +15,7 @@ import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { AddToShortlist } from "@/components/AddToShortlist";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
 import { BackLink } from "@/components/BackLink";
-import { ScoutingNotes } from "@/components/ScoutingNotes";
+import { ScoutingNotesAdmin } from "@/components/ScoutingNotesAdmin";
 import { RoleScoreEditor } from "@/components/RoleScoreEditor";
 import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
@@ -199,7 +199,7 @@ export default async function PlayerDetailPage({
     notFound();
   }
 
-  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult, xpResult, afStatsResult] = await Promise.all([
+  const [playerResult, momentsResult, newsResult, fbrefLinkResult, careerResult, metricsResult, playerTagsResult, valuationResult, xpResult, afStatsResult, playerStatusResult] = await Promise.all([
     supabaseServer
       .from("player_intelligence_card")
       .select("*")
@@ -253,6 +253,11 @@ export default async function PlayerDetailPage({
       .select("season, league_name, team_name, appearances, minutes, goals, assists, rating, shots_total, shots_on, passes_accuracy, tackles_total, interceptions, blocks, duels_total, duels_won, dribbles_attempted, dribbles_success, fouls_drawn, fouls_committed, cards_yellow, cards_red")
       .eq("person_id", playerId)
       .order("season", { ascending: false }),
+    supabaseServer
+      .from("player_status")
+      .select("notes_flagged")
+      .eq("person_id", playerId)
+      .maybeSingle(),
   ]);
 
   const player = playerResult.data as IntelligenceCard | null;
@@ -299,6 +304,7 @@ export default async function PlayerDetailPage({
   const valuation = valuationResult.data as PlayerValuation | null;
   const xpMilestones = (xpResult.data ?? []) as XpMilestone[];
   const afStats = (afStatsResult.data ?? []) as ApiFootballStat[];
+  const notesFlagged = (playerStatusResult.data as { notes_flagged: boolean | null } | null)?.notes_flagged ?? false;
 
   // Build season summary from API-Football (latest season)
   const latestAfSeason = afStats.length > 0 ? afStats.reduce((best, row) => {
@@ -404,9 +410,14 @@ export default async function PlayerDetailPage({
                   {latestAfSeason.rating != null && <span className="text-amber-400"> · {latestAfSeason.rating.toFixed(1)}★ avg</span>}
                 </p>
               )}
-              {/* Scouting notes inline — tap to expand */}
+              {/* Scouting notes inline — tap to expand, admin can flag for rewrite */}
               {player.scouting_notes && (
-                <ScoutingNotes text={player.scouting_notes} clamp={2} />
+                <ScoutingNotesAdmin
+                  personId={player.person_id}
+                  text={player.scouting_notes}
+                  initialFlagged={notesFlagged}
+                  clamp={2}
+                />
               )}
             </div>
 

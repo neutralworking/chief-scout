@@ -151,11 +151,11 @@ def fetch_trajectories(cur, player_ids: list[int]) -> dict[int, str]:
     if not player_ids:
         return {}
     cur.execute("""
-        SELECT player_id, trajectory
+        SELECT person_id, trajectory
         FROM career_metrics
-        WHERE player_id = ANY(%s)
+        WHERE person_id = ANY(%s)
     """, (player_ids,))
-    return {row["player_id"]: row["trajectory"] for row in cur.fetchall()}
+    return {row["person_id"]: row["trajectory"] for row in cur.fetchall()}
 
 # ── Build dossier text ────────────────────────────────────────────────────────
 def build_dossier(player: dict, grades: list[tuple], traits: list[str],

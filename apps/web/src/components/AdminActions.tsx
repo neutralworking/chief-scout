@@ -55,6 +55,11 @@ export function AdminActions() {
   const [profilesChecking, setProfilesChecking] = useState(false);
   const [profilesCount, setProfilesCount] = useState<number | null>(null);
 
+  // Scout Notes state
+  const [scoutNotesRunning, setScoutNotesRunning] = useState(false);
+  const [scoutNotesResult, setScoutNotesResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [flaggedCount, setFlaggedCount] = useState<number | null>(null);
+
   // Club analysis state
   const [clubAnalysisRunning, setClubAnalysisRunning] = useState(false);
   const [clubAnalysisResult, setClubAnalysisResult] = useState<{
@@ -453,6 +458,87 @@ export function AdminActions() {
                   </button>
                 )}
               </span>
+            )}
+          </div>
+
+          {/* Scout Notes */}
+          <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+            <p className="text-[9px] text-[var(--text-muted)] mb-2 uppercase tracking-wider font-semibold">Scout Notes</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={async () => {
+                  setScoutNotesRunning(true);
+                  setScoutNotesResult(null);
+                  try {
+                    // Check flagged count first
+                    const countRes = await fetch("/api/admin/sql", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ sql: "SELECT COUNT(*) as cnt FROM player_status WHERE notes_flagged = true" }),
+                    });
+                    const countData = await countRes.json();
+                    const fc = Number(countData.data?.[0]?.cnt ?? 0);
+                    setFlaggedCount(fc);
+
+                    if (fc === 0) {
+                      setScoutNotesResult({ type: "success", text: "No flagged notes to regenerate" });
+                      setScoutNotesRunning(false);
+                      return;
+                    }
+
+                    const res = await fetch("/api/admin/scout-notes", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "x-admin": "1" },
+                      body: JSON.stringify({ mode: "flagged", limit: 20 }),
+                    });
+                    const data = await res.json();
+                    if (data.ok) setScoutNotesResult({ type: "success", text: data.message });
+                    else setScoutNotesResult({ type: "error", text: data.error ?? "Failed" });
+                  } catch (e) { setScoutNotesResult({ type: "error", text: String(e) }); }
+                  setScoutNotesRunning(false);
+                }}
+                disabled={scoutNotesRunning}
+                className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-semibold disabled:opacity-40 hover:bg-purple-500 transition-colors cursor-pointer"
+              >
+                {scoutNotesRunning ? "Generating..." : "Rewrite Flagged"}
+              </button>
+              <button
+                onClick={async () => {
+                  setScoutNotesRunning(true);
+                  setScoutNotesResult(null);
+                  try {
+                    const res = await fetch("/api/admin/scout-notes", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "x-admin": "1" },
+                      body: JSON.stringify({ mode: "top", limit: 10 }),
+                    });
+                    const data = await res.json();
+                    if (data.ok) setScoutNotesResult({ type: "success", text: data.message });
+                    else setScoutNotesResult({ type: "error", text: data.error ?? "Failed" });
+                  } catch (e) { setScoutNotesResult({ type: "error", text: String(e) }); }
+                  setScoutNotesRunning(false);
+                }}
+                disabled={scoutNotesRunning}
+                className="px-3 py-1.5 rounded-lg bg-purple-600/70 text-white text-xs font-semibold disabled:opacity-40 hover:bg-purple-500 transition-colors cursor-pointer"
+              >
+                {scoutNotesRunning ? "Generating..." : "Top 10 Missing"}
+              </button>
+              <button
+                onClick={() => { navigator.clipboard.writeText("python 90_scouting_notes.py --top 500 --force"); setScoutNotesResult({ type: "success", text: "Copied: python 90_scouting_notes.py --top 500 --force" }); }}
+                className="text-[9px] text-[var(--text-muted)] hover:text-[var(--color-accent-tactical)] transition-colors underline cursor-pointer"
+              >
+                copy full cmd
+              </button>
+              {flaggedCount !== null && flaggedCount > 0 && (
+                <span className="text-xs text-[var(--text-secondary)]">
+                  <span className="font-mono font-bold text-[var(--color-accent-tactical)]">{flaggedCount}</span> flagged
+                </span>
+              )}
+            </div>
+            {scoutNotesResult && (
+              <p className={`text-xs mt-2 ${scoutNotesResult.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+                {scoutNotesResult.text}
+              </p>
             )}
           </div>
 

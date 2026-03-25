@@ -75,6 +75,20 @@ PROXY_RULES = {
         ],
         "min_attrs": 2,
     },
+    "Commander": {
+        # Leadership/authority proxies. No stat source covers communication,
+        # concentration, drive, or leadership directly. Composure and
+        # discipline indicate mental authority; awareness and aerial presence
+        # suggest a dominant defensive organiser.
+        "sources": [
+            ("composure", 1.0),
+            ("discipline", 0.9),
+            ("awareness", 0.8),
+            ("aerial_duels", 0.6),
+            ("duels", 0.5),
+        ],
+        "min_attrs": 2,
+    },
 }
 
 

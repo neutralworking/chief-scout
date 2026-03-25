@@ -84,6 +84,8 @@ ATTRIBUTE_ALIASES = {
     "blocking":         "tackling",     # defensive action proxy
     "clearances":       "heading",      # aerial clearances ≈ heading
     "duels":            "aggression",   # physical contests ≈ aggression
+    "marking":          "interceptions",# defensive reading ≈ interceptions (not tackling — already Destroyer)
+    "positioning":      "awareness",    # positional sense ≈ spatial awareness
 }
 
 # 4 compound groupings
@@ -148,7 +150,7 @@ TACTICAL_ROLES = {
     ],
     "DM": [
         ("Passer", "Controller",   "Regista"),       # Pirlo, Jorginho: deep playmaker
-        ("Cover", "Destroyer",     "Sentinelle"),    # Makelele, Casemiro: shield, guards gate
+        ("Cover", "Destroyer",     "Anchor"),        # Makelele, Casemiro: shield, guards gate
         ("Controller", "Cover",    "Pivote"),        # Busquets, Rodri: midfield brain
         ("Powerhouse", "Destroyer","Volante"),       # Gattuso, Kante: ball-winner, aggressive
     ],
@@ -760,15 +762,21 @@ def main():
         global_median = sorted(all_medians.values())[len(all_medians) // 2]
         print(f"\n  Position normalisation (target median={global_median}):")
         for pos, med in sorted(all_medians.items()):
-            deflator = global_median / med if med > 0 else 1.0
-            # Only deflate, never inflate. Positions scoring below the global
-            # median may be correctly harder — don't artificially boost them.
-            deflator = min(deflator, 1.0)
-            print(f"    {pos:3s}  median={med}  deflator={deflator:.3f}")
-            # Apply deflator to ALL players at this position
+            # Additive shift: move the distribution so medians align.
+            # Unlike multiplicative deflation, this preserves the spread
+            # at the top end — a 90-rated defender stays near 90, not 79.
+            shift = global_median - med  # negative = deflate, positive = inflate
+            # Only deflate, never inflate.
+            shift = min(shift, 0)
+            # Cap max deflation at -4. Positions like CD/WD have inherently
+            # compressed raw scores due to data gaps (marking, positioning,
+            # leadership have no stat sources). Overcorrecting punishes
+            # the best defenders.
+            shift = max(shift, -4)
+            print(f"    {pos:3s}  median={med}  shift={shift:+.0f}")
             for i, r in enumerate(results):
                 if r["position"] == pos and r.get("best_role_score") is not None:
-                    results[i]["best_role_score"] = round(r["best_role_score"] * deflator)
+                    results[i]["best_role_score"] = round(r["best_role_score"] + shift)
                     results[i]["best_role_score"] = max(1, min(99, results[i]["best_role_score"]))
 
     # ── Step 4: Distribution stats ───────────────────────────────────────────
@@ -796,6 +804,17 @@ def main():
         for r in top_rs:
             print(f"    {r.get('name','?'):25s} {r['position']:3s}  RS={r['best_role_score']:2d}"
                   f"  lvl={r.get('level') or '?'}")
+
+        # Show top defenders (CD/WD) — helps validate position normalisation
+        top_def = sorted(
+            [r for r in results if r.get("best_role_score") is not None and r["position"] in ("CD", "WD")],
+            key=lambda r: -r["best_role_score"]
+        )[:10]
+        if top_def:
+            print(f"\n  Top 10 defenders (CD/WD):")
+            for r in top_def:
+                print(f"    {r.get('name','?'):25s} {r['position']:3s}  RS={r['best_role_score']:2d}"
+                      f"  lvl={r.get('level') or '?'}  role={r.get('best_role','?')}")
 
         # Show top 5 by overall
         top = sorted(results, key=lambda r: -r["overall"])[:5]

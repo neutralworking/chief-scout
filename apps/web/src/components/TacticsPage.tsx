@@ -106,25 +106,29 @@ export function TacticsPage({
   return (
     <div>
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-4 border-b border-[var(--border-subtle)]">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`text-xs font-medium px-3 py-2 border-b-2 transition-colors ${
-              activeTab === tab.key
-                ? "border-[var(--color-accent-tactical)] text-[var(--text-primary)]"
-                : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-            }`}
-          >
-            {tab.label}
-            <span className="ml-1.5 text-[9px] text-[var(--text-muted)]">
-              {tab.key === "philosophies" && philosophies.length}
-              {tab.key === "formations" && formations.length}
-              {tab.key === "roles" && roles.length}
-            </span>
-          </button>
-        ))}
+      <div className="flex items-center gap-0.5 mb-4">
+        {TABS.map((tab) => {
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 transition-colors"
+              style={{
+                background: active ? "rgba(153,89,182,0.15)" : "var(--bg-surface)",
+                color: active ? "var(--color-accent-tactical)" : "var(--text-muted)",
+                border: `1px solid ${active ? "rgba(153,89,182,0.4)" : "var(--border-subtle)"}`,
+              }}
+            >
+              {tab.label}
+              <span className="ml-1 font-data text-[8px] opacity-60">
+                {tab.key === "philosophies" && philosophies.length}
+                {tab.key === "formations" && formations.length}
+                {tab.key === "roles" && roles.length}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Philosophies tab */}
@@ -164,14 +168,17 @@ export function TacticsPage({
           ))}
           {unmappedFormations.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-[10px] font-semibold tracking-widest uppercase text-[var(--text-muted)] mb-3">
-                Unmapped ({unmappedFormations.length})
-              </h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-1 h-1 bg-[var(--text-muted)]" />
+                <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">
+                  Unmapped ({unmappedFormations.length})
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1">
                 {unmappedFormations.map((f) => (
                   <span
                     key={f.id}
-                    className="text-xs text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2 py-1 rounded"
+                    className="text-[10px] text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2 py-1"
                   >
                     {f.name}
                   </span>

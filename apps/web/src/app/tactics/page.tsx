@@ -150,9 +150,9 @@ export default async function TacticsPageRoute() {
 
   return (
     <div className="max-w-5xl">
-      <h1 className="text-2xl font-bold tracking-tight mb-2">Tactics</h1>
-      <p className="text-xs text-[var(--text-secondary)] mb-6">
-        {philosophies.length} philosophies &middot; {formationsWithSlots.length} formations &middot; {roles.length} tactical roles &middot; {players.length} tracked players
+      <h1 className="text-lg font-bold tracking-tight mb-0.5">Tactics</h1>
+      <p className="text-[10px] text-[var(--text-muted)] mb-4 font-data">
+        {philosophies.length} philosophies &middot; {formationsWithSlots.length} formations &middot; {roles.length} roles &middot; {players.length} tracked
       </p>
 
       <TacticsPage

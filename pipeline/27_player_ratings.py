@@ -743,41 +743,25 @@ def main():
     # This preserves within-position ordering while removing cross-position
     # inflation.
 
-    # Compute position medians from ALL players with role scores.
-    # Post-level-floor scores include the floor, which is fine — we want
-    # to normalise the final distribution, not the raw data.
-    pos_scores_for_median = {}   # position -> [role_score]
+    # Position medians — diagnostic only.
+    # Position deflation REMOVED: POSITION_WEIGHTS already handle position
+    # fit within compute_best_role(). Adding a second correction on top
+    # double-penalises positions with poor stat coverage (CD/WD have no
+    # stat sources for marking, positioning, leadership → inflated median
+    # from level floors → deflator crushes elite defenders).
+    pos_scores_for_median = {}
     for r in results:
         if r.get("best_role_score") is not None and r["position"] != "GK":
             pos_scores_for_median.setdefault(r["position"], []).append(r["best_role_score"])
 
-    # Target: all positions should have the same median for data-rich players
-    all_medians = {}
-    for pos, scores in pos_scores_for_median.items():
+    print(f"\n  Position medians (no deflation applied):")
+    for pos in sorted(pos_scores_for_median.keys()):
+        scores = pos_scores_for_median[pos]
         if len(scores) >= 10:
             sorted_s = sorted(scores)
-            all_medians[pos] = sorted_s[len(sorted_s) // 2]
-
-    if all_medians:
-        global_median = sorted(all_medians.values())[len(all_medians) // 2]
-        print(f"\n  Position normalisation (target median={global_median}):")
-        for pos, med in sorted(all_medians.items()):
-            # Additive shift: move the distribution so medians align.
-            # Unlike multiplicative deflation, this preserves the spread
-            # at the top end — a 90-rated defender stays near 90, not 79.
-            shift = global_median - med  # negative = deflate, positive = inflate
-            # Only deflate, never inflate.
-            shift = min(shift, 0)
-            # Cap max deflation at -4. Positions like CD/WD have inherently
-            # compressed raw scores due to data gaps (marking, positioning,
-            # leadership have no stat sources). Overcorrecting punishes
-            # the best defenders.
-            shift = max(shift, -4)
-            print(f"    {pos:3s}  median={med}  shift={shift:+.0f}")
-            for i, r in enumerate(results):
-                if r["position"] == pos and r.get("best_role_score") is not None:
-                    results[i]["best_role_score"] = round(r["best_role_score"] + shift)
-                    results[i]["best_role_score"] = max(1, min(99, results[i]["best_role_score"]))
+            med = sorted_s[len(sorted_s) // 2]
+            top = sorted_s[-1]
+            print(f"    {pos:3s}  median={med}  max={top}  n={len(scores)}")
 
     # ── Step 4: Distribution stats ───────────────────────────────────────────
 

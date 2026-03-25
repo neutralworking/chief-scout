@@ -282,7 +282,7 @@ Three = **Trio** (+25% each).
 | The Double Pivot | Sentinelle + Volante | ×1.2 |
 | Counter Punch | Volante + Extremo | ×1.2 |
 | Total Control | Metodista + Regista | ×1.3 |
-| The Wall | Vorstopper + Zagueiro | ×1.2 |
+| The Wall | Stopper + Zagueiro | ×1.2 |
 | Wing Play | Lateral + Winger | ×1.2 |
 | Inside Out | Invertido + Fantasista | ×1.2 |
 | The Link | Enganche + Poacher | ×1.3 |
@@ -294,7 +294,7 @@ Three = **Trio** (+25% each).
 | Wide Overload | Fluidificante + Tornante | ×1.2 |
 | Second Wave | Mezzala + Seconda Punta | ×1.2 |
 | Creative Hub | Fantasista + Trequartista | ×1.3 |
-| Destroyer Duo | Volante + Vorstopper | ×1.2 |
+| Destroyer Duo | Volante + Stopper | ×1.2 |
 
 **Chemistry Book**: Discovered synergies persist across runs (meta-progression).
 

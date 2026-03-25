@@ -21,7 +21,7 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Libero',          'CD', 'Ball-playing CB — progressive passing from deep',                     'Passer',     'Cover',      'technical'),
   ('Sweeper',         'CD', 'Last man — reads play two moves ahead, covers space',                 'Cover',      'Controller', 'tactical'),
   ('Zagueiro',        'CD', 'Commanding CB — leads, organizes, sets the defensive tone',           'Commander',  'Destroyer',  'mental'),
-  ('Vorstopper',      'CD', 'Aggressive front-foot defender — wins duels, dominates',              'Powerhouse', 'Destroyer',  'physical'),
+  ('Stopper',      'CD', 'Aggressive front-foot defender — wins duels, dominates',              'Powerhouse', 'Destroyer',  'physical'),
   -- WD
   ('Lateral',         'WD', 'Attacking fullback — crosses, final ball, width',                     'Passer',     'Dribbler',   'technical'),
   ('Fluidificante',   'WD', 'Covers full flank in both phases, tireless discipline',               'Engine',     'Cover',      'tactical'),
@@ -66,7 +66,7 @@ ON CONFLICT (name, position) DO UPDATE SET
 -- Clean up old roles that no longer exist
 DELETE FROM tactical_roles WHERE name NOT IN (
   'Libero GK', 'Sweeper Keeper', 'Comandante', 'Shotstopper',
-  'Libero', 'Sweeper', 'Zagueiro', 'Vorstopper',
+  'Libero', 'Sweeper', 'Zagueiro', 'Stopper',
   'Lateral', 'Fluidificante', 'Invertido', 'Corredor',
   'Regista', 'Sentinelle', 'Pivote', 'Volante',
   'Mezzala', 'Tuttocampista', 'Metodista', 'Relayeur',

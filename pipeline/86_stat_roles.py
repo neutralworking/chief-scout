@@ -75,7 +75,7 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
             ("passes_p90", "high"),
             ("tackles_p90", "medium"),
         ],
-        "Vorstopper": [
+        "Stopper": [
             ("tackles_p90", "very_high"),
             ("blocks_p90", "high"),
             ("duels_won_pct", "high"),

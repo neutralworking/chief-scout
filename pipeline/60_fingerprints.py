@@ -58,7 +58,7 @@ ROLE_AXES = {
     "Enforcer":           ["Destroyer", "Commander", "Powerhouse", "Cover"],
     "Ball-Carrier":       ["Cover", "Dribbler", "Passer", "Controller"],
     "Zagueiro":           ["Destroyer", "Cover", "Commander", "Target"],
-    "Vorstopper":         ["Destroyer", "Cover", "Powerhouse", "Engine"],
+    "Stopper":         ["Destroyer", "Cover", "Powerhouse", "Engine"],
     "Libero":             ["Cover", "Passer", "Controller", "Dribbler"],
     # WD
     "Lateral":            ["Engine", "Sprinter", "Dribbler", "Cover"],

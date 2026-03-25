@@ -3,7 +3,7 @@
 ## High Priority
 
 ### Data Freshness
-- [x] ~~Materialized view auto-refresh~~ — removed; `player_intelligence_card` is a regular VIEW, no refresh needed
+- [x] ~~Materialized view~~ — migration 047 converts VIEW→MATERIALIZED VIEW, 7 indexes, auto-refresh in pipeline cron + admin button
 - [x] ~~Add `API_FOOTBALL_KEY` to Vercel env~~ — already present in .env.local, confirmed in Vercel by user
 
 ### Four-Pillar & Scoring
@@ -26,6 +26,9 @@
 - [x] ~~Attribute grade backfill~~ — pipelines 66 (API-Football), 56 (EAFC), 30 (Understat) rerun. Top 250 avg grades 16→28.8. GKs in top 250 dropped 138→85.
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables for meaningful grades
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling (low priority since role score is primary)
+- [ ] **Role distribution tuning** — CM Tuttocampista 62%, WM Winger 82%, DM Sentinelle 71% still dominant. Root cause: data coverage gaps (Sprinter 0%, Engine 5-17%). Needs more real pace/pressing data or smarter proxy rules
+- [ ] **Sentinelle→Anchor rename** — memory says this was done in a previous session but pipeline 27 still uses Sentinelle. Reconcile.
+- [ ] **Top-end role score compression** — Mbappe 87 vs target 91-95. Level floor caps elite players. May need richer grade data or adjusted floor logic
 - [x] ~~Position audit (level 80+)~~ — 18 fixes applied (Worrall→CD, Alisson→GK, Militao→CD, Griezmann→CF, etc.). 6 got secondary positions. Ratings recomputed.
 - [ ] **Scouting notes gap** — 46 of top 250 missing. Run LLM profiling (pipeline 72) targeted at top 250
 - [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler) with confidence scores
@@ -48,11 +51,13 @@
 - [ ] **Wave 2 UI** — clubs, leagues, free agents, news pages (mockups in `.stitch/designs/`)
 - [ ] **Wave 3 UI** — compare, formations, squad builder, gaffer (mockups in `.stitch/designs/`)
 - [ ] **Product polish** — glass consistency
-- [ ] **Recent Transfers feature** — schema, pipeline, API, frontend (see `docs/plans/recent-transfers.md`). Branch preserved: `claude/transfers-supabase-feature-mmBSP`
+- [x] ~~Recent Transfers feature~~ — migration 045, pipelines 87-89, comparables lib, CS Value recalibrated, /transfers page, 147 seed + 737 Kaggle
+- [ ] **Expand transfer seed data** — 19 unmatched players (accent mismatches), find dedicated Kaggle transfer fee dataset
+- [ ] **Transfer comps on player detail** — "Similar Transfers" widget using /api/transfers/comps/[playerId]
 - [x] ~~Tactical philosophies~~ — 10 seeded, 22 clubs assigned, /tactics/[slug] detail page, SystemFit on player detail, formation badge links
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15% (was 7%)
-- [ ] **Secondary model enrichment** — 71% of active lvl 85+ players have single-model compounds → bad archetype assignments. Pipeline 04 needs to assign secondary models.
-- [ ] **Remove Clutch/Lifer/Globetrotter from pipeline 37** — definitions still in code, will re-assign on next run
+- [x] ~~Secondary model enrichment~~ — pipeline 04e fixes 827/924 single-model compounds (71%→7%). EAFC physical dampening prevents Sprinter inflation.
+- [x] ~~Remove Clutch/Lifer/Globetrotter from pipeline 37 code~~ — removed + Legend→Legendary rename + Fiery removed + dead queries cleaned
 - [ ] **Free agent grader** — ranked shortlists
 - [ ] **Scouting radar** — statistical alert system
 - [ ] **News-driven alerts** on player list
@@ -98,6 +103,32 @@
 - [x] ~~Remove error boundary~~ — removed debug wrapper from squad builder page
 - [x] ~~Submit flow~~ — was already built (submit endpoint + reveal UI + scoring). Added: RPC stats function, graceful fallback for thin-pool nations, disabled unplayable nation cards
 - [ ] **Thin-pool nation data** — 7 nations (Iran, Iraq, DR Congo, Honduras, Qatar, Indonesia, Panama) need more players scouted before they're playable
+
+## Completed (2026-03-25, session 25 — Gaffer quality + materialized view)
+- [x] Gaffer question quality pass: dated refs fixed (Zlatan/Gerrard/Neymar → active 2026 players), ACL dilemma rewritten, GOAT dupes rethemed
+- [x] control_vs_chaos dimension: expanded from ~20 to ~130 occurrences across 25+ options
+- [x] Two new Gaffer categories: Contract Talks (5 questions) + International Duty (5 questions). Total: 135 questions
+- [x] Crowd intelligence feedback loop: migration 046, pipeline 46, dynamic vote storage, admin API + widget
+- [x] Materialized view: migration 047, 7 indexes, 27,918 rows, pg_trgm extension, RPC function
+- [x] Refresh strategy: pipeline cron auto-refreshes, admin "Refresh Cards" button, standalone API endpoint
+- [x] Migration 045 (gaffer multipick) applied on staging
+- [x] All migrations applied through 047 on staging
+- [x] Vercel deploy fixed: hobby plan quota hit from rapid Wave 2/3 pushes, CLI deploy succeeded
+
+## Completed (2026-03-25, session 24 — role score overhaul)
+- [x] EAFC grades excluded from role scoring (pipeline 27)
+- [x] GK 1.2× scout rescale removed
+- [x] Level floors inverted (sparse=wider gap), min grade threshold (10 for 87+, 15 for others)
+- [x] League strength integrated into pipeline 27 via `lib/calibration.py`
+- [x] Position deflators (median-based, deflate-only: CD 0.896, WD 0.920, DM 0.958)
+- [x] Proxy model inference (`lib/proxy_models.py`) for Sprinter/Engine/Controller/Target
+- [x] Position weights flattened to 0.8-1.0 range
+- [x] CF roles expanded: Assassin (Sprinter+Striker), Complete Forward (Striker+Creator), Spearhead fixed
+- [x] Vorstopper→Stopper rename (26 files, 231 DB rows)
+- [x] League coefficient updates: MLS/Saudi Pro 0.75, Serie B/2.Bundesliga 0.70
+- [x] Knowledge docs: CALIBRATION.md, SCOUTING_RUBRIC.md, scout.md upgraded
+- [x] 68 tests passing (15 new tests for overhaul features)
+- [x] Statusline .sh→.py fix
 
 ## Completed (2026-03-25, session 23 — legend scoring + OTP squads)
 - [x] OTP ideal squad pipeline: `/api/cron/otp-squads`, 41/48 nations computed

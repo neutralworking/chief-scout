@@ -53,7 +53,7 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 | Role | Primary | Secondary | Formula |
 |------|---------|-----------|---------|
 | Libero | Cover | Passer | Cover×0.6 + Passer×0.4 |
-| Vorstopper | Destroyer | Powerhouse | Destroyer×0.6 + Powerhouse×0.4 |
+| Stopper | Destroyer | Powerhouse | Destroyer×0.6 + Powerhouse×0.4 |
 | Sweeper | Cover | Controller | Cover×0.6 + Controller×0.4 |
 | Zagueiro | Destroyer | Commander | Destroyer×0.6 + Commander×0.4 |
 

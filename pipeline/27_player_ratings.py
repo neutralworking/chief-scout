@@ -104,16 +104,21 @@ GK_COMPOUND_MODELS = {
 }
 
 # Position weights for role fit (mirrors radar route.ts)
+# Position weights for role fit.
+# Tight range (0.8-1.0) so the DATA decides the role, not the weights.
+# With a wide range, the highest-weighted model always wins regardless of
+# the player's actual profile. A tight range means a player with genuinely
+# strong Engine data CAN beat a player with strong Dribbler data.
 POSITION_WEIGHTS = {
-    "GK":  {"GK": 0.6, "Passer": 0.8, "Cover": 0.8, "Organiser": 0.8, "Shotstopper": 0.8, "Controller": 0.4},
-    "CD":  {"Destroyer": 1.0, "Cover": 0.9, "Commander": 0.7, "Target": 0.5, "Powerhouse": 0.4, "Passer": 0.3},
-    "WD":  {"Engine": 0.9, "Dribbler": 0.7, "Passer": 0.7, "Sprinter": 0.6, "Cover": 0.6, "Destroyer": 0.3},
-    "DM":  {"Cover": 1.0, "Destroyer": 0.9, "Controller": 0.8, "Passer": 0.5, "Commander": 0.4, "Powerhouse": 0.3},
-    "CM":  {"Controller": 1.0, "Passer": 0.9, "Engine": 0.8, "Cover": 0.5, "Creator": 0.4},
-    "WM":  {"Dribbler": 0.9, "Passer": 0.8, "Engine": 0.7, "Sprinter": 0.6, "Creator": 0.5},
-    "AM":  {"Creator": 1.0, "Dribbler": 0.8, "Passer": 0.7, "Controller": 0.5, "Striker": 0.4, "Sprinter": 0.3},
-    "WF":  {"Dribbler": 1.0, "Sprinter": 0.9, "Striker": 0.7, "Creator": 0.5, "Engine": 0.5},
-    "CF":  {"Striker": 1.0, "Target": 0.7, "Sprinter": 0.6, "Powerhouse": 0.5, "Dribbler": 0.4, "Creator": 0.3},
+    "GK":  {"GK": 1.0, "Passer": 0.9, "Cover": 0.9, "Organiser": 0.9, "Shotstopper": 0.9, "Controller": 0.8},
+    "CD":  {"Destroyer": 1.0, "Cover": 0.95, "Commander": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85, "Controller": 0.8},
+    "WD":  {"Engine": 1.0, "Dribbler": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Cover": 0.85, "Controller": 0.85, "Destroyer": 0.8},
+    "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Commander": 0.85, "Powerhouse": 0.85},
+    "CM":  {"Controller": 1.0, "Passer": 0.95, "Engine": 0.95, "Cover": 0.85, "Creator": 0.85, "Sprinter": 0.85},
+    "WM":  {"Dribbler": 1.0, "Engine": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Creator": 0.85, "Controller": 0.85, "Cover": 0.8},
+    "AM":  {"Creator": 1.0, "Dribbler": 0.95, "Engine": 0.9, "Passer": 0.9, "Controller": 0.85, "Striker": 0.85, "Sprinter": 0.85},
+    "WF":  {"Dribbler": 1.0, "Sprinter": 0.95, "Striker": 0.9, "Creator": 0.9, "Engine": 0.85},
+    "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 
 # Tactical roles — each name is the term the football world actually uses.
@@ -133,7 +138,7 @@ TACTICAL_ROLES = {
         ("Passer", "Cover",        "Libero"),       # Beckenbauer, Stones: ball-playing CB
         ("Cover", "Controller",    "Sweeper"),       # Sammer, Hummels: last man, reads play
         ("Commander", "Destroyer", "Zagueiro"),      # Thiago Silva, Van Dijk: commanding CB
-        ("Powerhouse", "Destroyer","Vorstopper"),    # Chiellini, Konate: aggressive, wins duels
+        ("Powerhouse", "Destroyer","Stopper"),    # Chiellini, Konate: aggressive, wins duels
     ],
     "WD": [
         ("Passer", "Dribbler",   "Lateral"),        # TAA, Cafu: attacking fullback, final ball
@@ -172,10 +177,12 @@ TACTICAL_ROLES = {
         ("Sprinter", "Striker",   "Extremo"),        # Henry, Mbappe: electric pace + power
     ],
     "CF": [
-        ("Striker", "Dribbler",    "Poacher"),       # Gerd Muller, Inzaghi: pure finisher
-        ("Engine", "Destroyer",    "Spearhead"),     # Vardy, Suarez: leads the press
-        ("Creator", "Controller",  "Falso Nove"),    # Messi (2009), Benzema: false 9
-        ("Target", "Powerhouse",   "Prima Punta"),   # Toni, Giroud: target striker
+        ("Striker", "Dribbler",    "Poacher"),       # Gerd Muller, Inzaghi: pure finisher in the box
+        ("Sprinter", "Striker",    "Assassin"),        # Mbappe, Henry: pace-based direct forward
+        ("Engine", "Striker",      "Spearhead"),      # Vardy, Suarez, Jesus: presses + scores
+        ("Striker", "Creator",     "Complete Forward"),        # Kane, Benzema: finishing + vision + link-up
+        ("Creator", "Controller",  "Falso Nove"),     # Messi (2009), Firmino: false 9, orchestrates
+        ("Target", "Powerhouse",   "Prima Punta"),    # Toni, Giroud: target striker, aerial threat
     ],
 }
 
@@ -205,11 +212,15 @@ def _safe(val):
     return val
 
 
-def compute_model_scores(grades, level=None, position=None):
+def compute_model_scores(grades, level=None, position=None, league_strength=None):
     """Compute model scores (0-100) from best-source attribute grades.
 
     scout_grade uses a 1-20 scale; stat_score uses a 1-10 scale.
     Both are normalised to 0-20 before averaging.
+
+    league_strength: optional float (0.40-1.15) applied to stat sources that
+    aren't already pre-scaled. Scout grades and API-Football (pre-scaled in
+    pipeline 66) are NOT adjusted.
 
     Returns (anchored_scores, raw_scores):
       - anchored_scores: blended with level when data is thin — used for
@@ -222,22 +233,18 @@ def compute_model_scores(grades, level=None, position=None):
     best = {}  # attr -> (normalised_score_0_20, priority)
     for g in grades:
         source = g.get("source", "")
+        # EAFC ratings are video game numbers, not scouting data.
+        # They stay in DB for reference but don't feed model scores.
+        if source == "eafc_inferred":
+            continue
         attr = g["attribute"].lower().replace(" ", "_")
         # Normalise to 0-20 scale regardless of source.
         # Only scout_assessment can reach 19-20; all stat sources cap at 18.
         # This reserves the top of the scale for human assessment.
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
-            # GK scout grades are assessed on a compressed scale (10-14 = elite).
-            # Light rescale: 14→16.8, 10→12. Keeps GK role scores in line with
-            # outfield players (~85-90 range) rather than inflating to 95+.
-            if position == "GK" and source == "scout_assessment":
-                score_20 = min(score_20 * 1.2, 20)
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            if source == "eafc_inferred":
-                # EA FC 1-20 but cap at 18: inferred data shouldn't reach scout territory
-                score_20 = min(g["stat_score"], 18)
-            elif source == "understat":
+            if source == "understat":
                 # Understat clusters high (9-10 for any decent player).
                 # Compress: 10→17, 8→14, 5→9. Prevents understat-only
                 # players from scoring as if they had elite scout grades.
@@ -248,6 +255,13 @@ def compute_model_scores(grades, level=None, position=None):
                 score_20 = min(g["stat_score"] * 2, 18)
         else:
             continue
+        # League strength scaling: discount stat grades from weaker leagues.
+        # Scout grades reflect context-aware human assessment — no scaling.
+        # API-Football grades are already pre-scaled in pipeline 66.
+        # Computed grades are derived — no scaling.
+        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football"}
+        if source not in PRESCALED_SOURCES and league_strength is not None:
+            score_20 = score_20 * league_strength
         priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
         if existing is None or priority > existing[1]:
@@ -305,6 +319,17 @@ def compute_model_scores(grades, level=None, position=None):
                 data_weight = len(values) / len(attrs)
                 anchored = raw_score * data_weight + level_anchor * (1 - data_weight)
             anchored_scores[model] = round(anchored)
+
+    # Proxy inference: fill missing model scores from available attributes.
+    # Many roles require Sprinter/Engine/Controller/Target models that lack
+    # direct data coverage. Proxy scores are discounted (0.75×) so they
+    # never outcompete real data-driven scores.
+    from lib.proxy_models import infer_proxy_scores
+    proxy = infer_proxy_scores(best, raw_scores)
+    for model_name, proxy_score in proxy.items():
+        raw_scores[model_name] = proxy_score
+        # Anchored = proxy (no level blend needed — proxy is already conservative)
+        anchored_scores[model_name] = proxy_score
 
     return anchored_scores, raw_scores
 
@@ -435,11 +460,13 @@ def _compute_base_gk_score(grades):
     best = {}
     for g in grades:
         source = g.get("source", "")
+        if source == "eafc_inferred":
+            continue
         attr = g["attribute"].lower().replace(" ", "_")
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            if source in ("statsbomb", "eafc_inferred"):
+            if source == "statsbomb":
                 score_20 = min(g["stat_score"], 20)
             elif source == "understat":
                 score_20 = min(g["stat_score"] * 1.7, 17)
@@ -560,6 +587,16 @@ def main():
         }
     print(f"  Profiles with position: {len(profiles)}")
 
+    # ── Step 2b: Load league strength factors ─────────────────────────────────
+
+    from lib.calibration import load_player_league_strengths, validate_anchors
+    player_strengths = load_player_league_strengths(conn)
+    print(f"  Players with league strength: {len(player_strengths)}")
+
+    # Load player names for anchor validation and top-N display
+    cur.execute("SELECT id, name FROM people")
+    player_names = {r[0]: r[1] for r in cur.fetchall()}
+
     # ── Step 3: Compute ratings ──────────────────────────────────────────────
 
     player_ids = list(player_grades.keys())
@@ -588,7 +625,10 @@ def main():
         level = profile.get("level")
         peak = profile.get("peak")
 
-        anchored_scores, raw_scores = compute_model_scores(grades, level=level, position=position)
+        ls = player_strengths.get(pid, 1.0)
+        anchored_scores, raw_scores = compute_model_scores(
+            grades, level=level, position=position, league_strength=ls
+        )
 
         if not has_differentiated_data(anchored_scores):
             stats["skipped_flat"] += 1
@@ -607,11 +647,14 @@ def main():
         if position == "GK":
             effective_grade_count = sum(
                 1 for g in grades
-                if g["attribute"].lower().replace(" ", "_") in GK_RELEVANT_ATTRS
-                or g.get("source") == "scout_assessment"
+                if g.get("source") != "eafc_inferred"
+                and (g["attribute"].lower().replace(" ", "_") in GK_RELEVANT_ATTRS
+                     or g.get("source") == "scout_assessment")
             )
         else:
-            effective_grade_count = len(grades)
+            effective_grade_count = sum(
+                1 for g in grades if g.get("source") != "eafc_inferred"
+            )
 
         overall = compute_overall(compound_scores, position, level, peak, grade_count=effective_grade_count)
 
@@ -650,34 +693,38 @@ def main():
 
         best_role, best_role_score = compute_best_role(role_scores, position)
 
+        # Minimum grade threshold: insufficient data → no role score.
+        # Level 87+ players get a lower threshold (10) because they're
+        # editorially calibrated and some stat data exists.
+        # UI shows level instead for NULL role scores.
+        real_grade_count = sum(1 for g in grades if g.get("source") != "eafc_inferred")
+        min_grades = 10 if level and level >= 87 else 15
+        if real_grade_count < min_grades:
+            best_role_score = None
+
         # Level floor: role score can't drop too far below level.
-        # Gap scales with data density — sparse data trusts level more.
-        # Floor capped at 90 so truly elite players (level 92+) must prove
-        # role fit through data — prevents auto-inflation.
+        # Gap WIDENS with sparse data — data must prove itself.
+        # Floor capped at 90 so truly elite players must prove role fit.
         if level and best_role_score is not None:
-            if grade_count < 10:
-                gap = 1   # Very sparse: almost entirely trust level
-            elif grade_count < 30:
-                gap = 3   # Moderate data
-            elif grade_count >= 50:
-                gap = 8   # Rich data (50+ grades): let data speak
+            if real_grade_count < 30:
+                gap = 8
+            elif real_grade_count < 50:
+                gap = 5
             else:
-                gap = 5   # Moderate-rich data (30-49 grades)
+                gap = 3
             level_floor = min(max(level - gap, 50), 90)
             best_role_score = max(best_role_score, level_floor)
 
-            # GK boost removed: EAFC data now provides baseline GK grades,
-            # so the standard data-density floor above handles GKs correctly.
-
         results.append({
             "person_id": pid,
+            "name": player_names.get(pid, "Unknown"),
             "overall": overall,
             "model_scores": anchored_scores,
             "compound_scores": compound_scores,
             "position": position,
             "level": level,
             "best_role": best_role,
-            "best_role_score": best_role_score,
+            "best_role_score": best_role_score,  # raw, pre-floor
             "technical_score": compound_scores.get("Technical"),
             "physical_score": compound_scores.get("Physical"),
         })
@@ -685,6 +732,44 @@ def main():
     print(f"\n  Computed ratings: {stats['computed']}")
     print(f"  Skipped (flat data): {stats['skipped_flat']}")
     print(f"  Skipped (no position): {stats['skipped_no_position']}")
+
+    # ── Step 3b: Position-normalised role scores ───────────────────────────
+    # Defensive positions produce systematically higher raw role scores than
+    # attacking/creative positions because defensive stat models cluster
+    # higher. Compute the median role score for data-rich (30+ grade)
+    # players per position, then scale each position so medians align.
+    # This preserves within-position ordering while removing cross-position
+    # inflation.
+
+    # Compute position medians from ALL players with role scores.
+    # Post-level-floor scores include the floor, which is fine — we want
+    # to normalise the final distribution, not the raw data.
+    pos_scores_for_median = {}   # position -> [role_score]
+    for r in results:
+        if r.get("best_role_score") is not None and r["position"] != "GK":
+            pos_scores_for_median.setdefault(r["position"], []).append(r["best_role_score"])
+
+    # Target: all positions should have the same median for data-rich players
+    all_medians = {}
+    for pos, scores in pos_scores_for_median.items():
+        if len(scores) >= 10:
+            sorted_s = sorted(scores)
+            all_medians[pos] = sorted_s[len(sorted_s) // 2]
+
+    if all_medians:
+        global_median = sorted(all_medians.values())[len(all_medians) // 2]
+        print(f"\n  Position normalisation (target median={global_median}):")
+        for pos, med in sorted(all_medians.items()):
+            deflator = global_median / med if med > 0 else 1.0
+            # Only deflate, never inflate. Positions scoring below the global
+            # median may be correctly harder — don't artificially boost them.
+            deflator = min(deflator, 1.0)
+            print(f"    {pos:3s}  median={med}  deflator={deflator:.3f}")
+            # Apply deflator to ALL players at this position
+            for i, r in enumerate(results):
+                if r["position"] == pos and r.get("best_role_score") is not None:
+                    results[i]["best_role_score"] = round(r["best_role_score"] * deflator)
+                    results[i]["best_role_score"] = max(1, min(99, results[i]["best_role_score"]))
 
     # ── Step 4: Distribution stats ───────────────────────────────────────────
 
@@ -702,18 +787,29 @@ def main():
     # ── Step 5: Show samples ─────────────────────────────────────────────────
 
     if results:
+        # Show top 20 by role score
+        top_rs = sorted(
+            [r for r in results if r.get("best_role_score") is not None],
+            key=lambda r: -r["best_role_score"]
+        )[:20]
+        print(f"\n  Top 20 by role score:")
+        for r in top_rs:
+            print(f"    {r.get('name','?'):25s} {r['position']:3s}  RS={r['best_role_score']:2d}"
+                  f"  lvl={r.get('level') or '?'}")
+
         # Show top 5 by overall
         top = sorted(results, key=lambda r: -r["overall"])[:5]
         print(f"\n  Top 5 rated players:")
         for r in top:
-            name_q = cur.execute("SELECT name FROM people WHERE id = %s", (r["person_id"],))
-            name_row = cur.fetchone()
-            name = name_row[0] if name_row else f"#{r['person_id']}"
+            name = r.get("name", f"#{r['person_id']}")
             compounds = ", ".join(f"{k}={v}" for k, v in r["compound_scores"].items())
             level_str = f" lvl={r['level']}" if r['level'] else ""
             role_str = f" role={r['best_role']}({r['best_role_score']})" if r.get('best_role') else ""
             print(f"    {name:25s} {r['position']:3s}  overall={r['overall']:2d}"
                   f"{level_str}{role_str}  [{compounds}]")
+
+        # Anchor validation: compare key players against expected score ranges
+        validate_anchors(results)
 
     # ── Step 6: Write results ────────────────────────────────────────────────
 

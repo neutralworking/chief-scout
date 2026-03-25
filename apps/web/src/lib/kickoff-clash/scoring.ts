@@ -410,7 +410,7 @@ function applyRoleAbilities(
         }
         break;
       }
-      case 'Vorstopper': {
+      case 'Stopper': {
         if (sc.card.archetype === 'Destroyer') {
           states[i].powerMultiplier += 0.15;
           addEffect(i, 'Front Foot', '+15% (Destroyer)', sc.card.power * 0.15);

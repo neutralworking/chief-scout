@@ -130,7 +130,7 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
 
   Stopper: {
     role: "Stopper",
-    culturalName: "Vorstopper",
+    culturalName: "Stopper",
     origin: "German",
     position: "CD",
     iconPlayer: "Fabio Cannavaro",

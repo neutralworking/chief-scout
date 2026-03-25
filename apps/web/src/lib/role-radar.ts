@@ -27,7 +27,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Libero":          { models: ["Passer", "Cover", "Controller", "Dribbler"],           labels: [] },
   "Sweeper":         { models: ["Cover", "Controller", "Commander", "Passer"],          labels: [] },
   "Zagueiro":        { models: ["Commander", "Destroyer", "Cover", "Powerhouse"],       labels: [] },
-  "Vorstopper":      { models: ["Powerhouse", "Destroyer", "Cover", "Commander"],       labels: [] },
+  "Stopper":      { models: ["Powerhouse", "Destroyer", "Cover", "Commander"],       labels: [] },
   // ── WD ──
   "Lateral":         { models: ["Passer", "Dribbler", "Engine", "Sprinter"],            labels: [] },
   "Fluidificante":   { models: ["Engine", "Cover", "Sprinter", "Destroyer"],            labels: [] },

@@ -65,7 +65,7 @@ const TRAIT_LABELS: Record<string, string> = {
   sweeper_reader: "Reader", brick_wall: "Brick Wall",
   hard_man: "Hard Man", captain_leader: "Captain",
   target_man: "Target Man", pace_merchant: "Pace",
-  big_game_player: "Big Game", clutch: "Clutch",
+  big_game_player: "Big Game",
 };
 
 const TRAIT_COLORS: Record<string, string> = {

@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Mirrors pipeline 27_player_ratings.py TACTICAL_ROLES (36-role four-pillar taxonomy)
 const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   GK: [["GK", "Passer", "Libero GK"], ["GK", "Cover", "Sweeper Keeper"], ["GK", "Commander", "Comandante"], ["GK", "Target", "Shotstopper"]],
-  CD: [["Passer", "Cover", "Libero"], ["Cover", "Controller", "Sweeper"], ["Commander", "Destroyer", "Zagueiro"], ["Powerhouse", "Destroyer", "Vorstopper"]],
+  CD: [["Passer", "Cover", "Libero"], ["Cover", "Controller", "Sweeper"], ["Commander", "Destroyer", "Zagueiro"], ["Powerhouse", "Destroyer", "Stopper"]],
   WD: [["Passer", "Dribbler", "Lateral"], ["Engine", "Cover", "Fluidificante"], ["Controller", "Passer", "Invertido"], ["Sprinter", "Engine", "Corredor"]],
   DM: [["Passer", "Controller", "Regista"], ["Cover", "Destroyer", "Sentinelle"], ["Controller", "Cover", "Pivote"], ["Powerhouse", "Destroyer", "Volante"]],
   CM: [["Passer", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Controller", "Passer", "Metodista"], ["Sprinter", "Engine", "Relayeur"]],

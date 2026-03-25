@@ -111,17 +111,20 @@ def coeff_to_strength(coeff: float) -> float:
 
 
 # Non-UEFA league strength factors (manually calibrated)
+# Tier 3A (0.75): non-European top leagues — stronger than European second divisions
+# Tier 4 (0.60): lower divisions
 NON_UEFA_STRENGTH = {
-    "Argentine Liga Profesional": 0.72,
-    "Brasileirao Serie A": 0.75,
-    "Liga MX": 0.65,
-    "Colombian Primera A": 0.58,
-    "MLS": 0.60,
-    "Saudi Pro League": 0.62,
-    "K League 1": 0.55,
-    "Chinese Super League": 0.50,
-    "A-League": 0.52,
-    "J1 League": 0.55,
+    # Tier 3A — non-European top (0.72-0.78)
+    "Brasileirao Serie A": 0.78,
+    "Argentine Liga Profesional": 0.75,
+    "Saudi Pro League": 0.75,
+    "MLS": 0.75,
+    "Liga MX": 0.72,
+    "J1 League": 0.72,
+    "K League 1": 0.72,
+    "Chinese Super League": 0.70,
+    "Colombian Primera A": 0.65,
+    "A-League": 0.60,
     # Youth leagues — weighted lower
     "UEFA Youth League": 0.50,
     "Campionato Primavera 1": 0.45,
@@ -163,8 +166,22 @@ LEAGUE_TO_COUNTRY = {
     "Bulgarian First League": "Bulgaria",
 }
 
-# Second-tier leagues get 80% of their country's coefficient
-SECOND_TIER_LEAGUES = {"Championship"}
+# Second-tier leagues within Big 5 countries.
+# Championship = Eredivisie level (0.85), so it gets a gentler discount.
+# European second divisions (Serie B, 2. Bundesliga, etc.) are weaker
+# than non-European top leagues (MLS, Saudi Pro, etc.)
+SECOND_TIER_LEAGUES = {"Championship"}  # 80% of country coefficient
+
+# European second divisions — fixed at tier 3B (0.70)
+# These are BELOW non-European top leagues (MLS=0.75, Saudi=0.75)
+EUROPEAN_SECOND_DIVISIONS = {
+    "Serie B": 0.70,
+    "2. Bundesliga": 0.70,
+    "Segunda Division": 0.70,
+    "Ligue 2": 0.70,
+    "League One": 0.60,
+    "League Two": 0.55,
+}
 
 
 # ── UEFA Club Coefficients (Top 100, 2025-26) ───────────────────────────────
@@ -351,6 +368,11 @@ for league_name, country in LEAGUE_TO_COUNTRY.items():
     )
     league_rows.append((league_name, country, country_code, coeff, factor))
     print(f"  {league_name:<30} {country:<15} coeff={coeff:>8.3f}  strength={factor:.3f}")
+
+# Add European second divisions (fixed tiers, not derived from country coefficient)
+for league_name, factor in EUROPEAN_SECOND_DIVISIONS.items():
+    league_rows.append((league_name, "", None, 0, factor))
+    print(f"  {league_name:<30} {'(2nd div)':<15} coeff={'N/A':>8}  strength={factor:.3f}")
 
 # Add non-UEFA leagues
 for league_name, factor in NON_UEFA_STRENGTH.items():

@@ -419,7 +419,7 @@ export function analyzeDeck(deck: Card[], opponent: OpponentBuild): DeckAnalysis
     { name: 'The Double Pivot', role1: 'Sentinelle', role2: 'Volante' },
     { name: 'Counter Punch', role1: 'Volante', role2: 'Extremo' },
     { name: 'Total Control', role1: 'Metodista', role2: 'Regista' },
-    { name: 'The Wall', role1: 'Vorstopper', role2: 'Zagueiro' },
+    { name: 'The Wall', role1: 'Stopper', role2: 'Zagueiro' },
     { name: 'Engine Room', role1: 'Tuttocampista', role2: 'Relayeur' },
     { name: 'Creative Hub', role1: 'Fantasista', role2: 'Trequartista' },
   ];

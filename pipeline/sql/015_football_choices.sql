@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS fc_questions (
     active          boolean DEFAULT true,
     created_at      timestamptz DEFAULT now(),
     total_votes     integer DEFAULT 0,        -- denormalized for sorting
-    skip_count      integer DEFAULT 0         -- how often users skip this question
+    skip_count      integer DEFAULT 0,        -- how often users skip this question
+    pick_count      smallint DEFAULT 1        -- how many options to pick (1=single, 2+=multi)
 );
 
 -- ── Question options (each option = a player card) ─────────────────────────

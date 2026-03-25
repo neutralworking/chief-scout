@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   let query = sb
     .from("fc_questions")
     .select(`
-      id, question_text, subtitle, option_count, difficulty, tags, total_votes, tier,
+      id, question_text, subtitle, option_count, difficulty, tags, total_votes, tier, pick_count,
       category:fc_categories(id, slug, name, icon),
       options:fc_options(id, person_id, label, subtitle, image_url, sort_order, vote_count, dimension_weights)
     `)

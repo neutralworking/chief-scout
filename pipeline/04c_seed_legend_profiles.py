@@ -349,7 +349,7 @@ LEGEND_SEEDS = {
     ),  # Christian Vieri
 
     9943: (
-        "Destroyer-Commander", "Vorstopper", 92,
+        "Destroyer-Commander", "Stopper", 92,
         "Aggressive, uncompromising centre-back who led from the front. "
         "Combined fierce tackling with aerial dominance and the authority to captain Argentina."
     ),  # Daniel Passarella

@@ -298,7 +298,7 @@ ROLE_ABILITIES = {
     "Ball-Playing GK":  ("Launch Pad",      "Every outfield card gets +3% connection bonus"),
     # CD roles
     "Libero":           ("Surgical Pass",   "Each attacker in lineup gets +10%"),
-    "Vorstopper":       ("Front Foot",      "+30% own power if opponent has a CF card"),
+    "Stopper":       ("Front Foot",      "+30% own power if opponent has a CF card"),
     "Sweeper":          ("The Shield",      "Lowest-scoring card gets +30%"),
     "Zagueiro":         ("Command Line",    "All cards in adjacent slots get +10%"),
     # WD roles

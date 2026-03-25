@@ -7,9 +7,8 @@ statistical proof + personality fit. Most players don't earn one.
 Writes to: player_profiles.earned_archetype, archetype_tier, legacy_tag, behavioral_tag
 
 Architecture:
-  - 30 positional archetypes (position-specific stat thresholds)
-  - 5 behavioral tags (cross-position)
-  - 6 legacy tags (career-gated)
+  - 27 positional archetypes (position-gated stat thresholds)
+  - 4 legacy tags (career-gated): Icon, Legendary, Wonderkid, Veteran
   - Tiers: elite (top 3-5%), established (10-15%), aspiring (within 80% of threshold)
 
 Usage:
@@ -58,31 +57,31 @@ POSITIONAL_ARCHETYPES = {
         "tier_elite": lambda s: s.get("goals", 0) >= 25 or s.get("gp90", 0) >= 0.65,
     },
     "Conjurer": {
-        "positions": None,  # any — elite dribble-creator
+        "positions": {"WD", "CM", "WM", "WF", "AM", "CF"},  # elite dribble-creator
         "check": lambda s, p: (s.get("ap90", 0) >= 0.3 and s.get("drib_att_p90", 0) >= 3 and s.get("drib_pct", 0) >= 50),
         "personality": None,
         "tier_elite": lambda s: s.get("ap90", 0) >= 0.4 and s.get("drib_att_p90", 0) >= 4,
     },
     "Virtuoso": {
-        "positions": None,  # any — goals + assists + dribbles, the complete attacker
+        "positions": {"WD", "CM", "WM", "WF", "AM", "CF"},  # goals + assists + dribbles, the complete attacker
         "check": lambda s, p: (s.get("gp90", 0) >= 0.25 and s.get("ap90", 0) >= 0.15 and s.get("drib_att_p90", 0) >= 2.0),
         "personality": None,
     },
     "Fulcrum": {
-        "positions": {"DM", "CM"},  # midfielders — everything goes through them
-        "check": lambda s, p: (s.get("gp90", 0) >= 0.2 and s.get("kp90", 0) >= 1.5),
+        "positions": {"CD", "DM"},  # deep players — everything goes through them
+        "check": lambda s, p: (s.get("intercepts_p90", 0) >= 1.5 and s.get("kp90", 0) >= 1.0 and s.get("pass_acc", 0) >= 85),
         "personality": None,
     },
 
     # ── CREATIVE ─────────────────────────────────────────────────
     "Architect": {
-        "positions": None,  # any — elite creator, high assists + pass quality
+        "positions": {"WD", "CM", "WM", "WF", "AM", "CF"},  # elite creator, high assists + pass quality
         "check": lambda s, p: ((s.get("assists", 0) >= 10 or s.get("ap90", 0) >= 0.25) and s.get("pass_acc", 0) >= 87),
         "personality": None,
         "tier_elite": lambda s: s.get("assists", 0) >= 15 or s.get("ap90", 0) >= 0.35,
     },
     "Artisan": {
-        "positions": None,  # any — intelligent creator with end product (key passes + goals/assists)
+        "positions": {"WD", "CM", "WM", "WF", "AM", "CF"},  # intelligent creator with end product
         "check": lambda s, p: (s.get("kp90", 0) >= 2.0 and (s.get("gp90", 0) >= 0.15 or s.get("ap90", 0) >= 0.15)),
         "personality": None,
     },
@@ -105,30 +104,30 @@ POSITIONAL_ARCHETYPES = {
         "check": lambda s, p: (s.get("tackles_p90", 0) >= 3 and s.get("duel_pct", 0) >= 55),
         "personality": None,
     },
-    "Bastion": {
-        "positions": None,  # any — shield, wins duels + intercepts, protects the back line
+    "Sentinel": {
+        "positions": {"CD", "DM", "WD"},  # shield, wins duels + intercepts, protects the back line
         "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("def_actions_p90", 0) >= 2.5),
         "personality": None,
     },
     "Terrier": {
-        "positions": None,  # any — ball-winner, high energy, never stops pressing
-        "check": lambda s, p: s.get("def_actions_p90", 0) >= 3.5,
+        "positions": {"DM", "CM", "WD", "CD"},  # ball-winner, high energy, never stops pressing
+        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 4.0 and s.get("tackles_p90", 0) >= 2.0),
         "personality": None,
     },
 
     # ── DIRECT / WIDE ────────────────────────────────────────────
     "Outlet": {
-        "positions": None,  # any — direct runner, takes on defenders
-        "check": lambda s, p: s.get("drib_att_p90", 0) >= 2.5,
+        "positions": {"WM", "WF", "AM", "CF"},  # direct runner, takes on defenders
+        "check": lambda s, p: (s.get("drib_att_p90", 0) >= 3.5 and s.get("drib_pct", 0) >= 45),
         "personality": None,
     },
     "Hunter": {
-        "positions": {"CF"},  # CF only — clinical finisher, high conversion
+        "positions": {"CF", "WF"},  # clinical finisher, high conversion
         "check": lambda s, p: (s.get("gp90", 0) >= 0.45 and s.get("shot_conv", 0) >= 20),
         "personality": None,
     },
     "Fox": {
-        "positions": None,  # any — scores without dribbling, poacher instinct
+        "positions": {"CF"},  # poacher — scores without dribbling
         "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("drib_att_p90", 0) < 2),
         "personality": None,
     },
@@ -141,8 +140,8 @@ POSITIONAL_ARCHETYPES = {
         "tier_elite": lambda s: s.get("duel_pct", 0) >= 70,
     },
     "Reader": {
-        "positions": None,  # any — anticipation, intercepts everything
-        "check": lambda s, p: s.get("intercepts_p90", 0) >= 2.5,
+        "positions": {"CD", "DM", "WD"},  # anticipation, intercepts everything
+        "check": lambda s, p: (s.get("intercepts_p90", 0) >= 3.0 and s.get("def_actions_p90", 0) >= 1.5),
         "personality": None,
     },
     "Lockdown": {
@@ -168,21 +167,11 @@ POSITIONAL_ARCHETYPES = {
         "check": lambda s, p: (s.get("pass_acc", 0) >= 83 and s.get("rating", 0) >= 6.7),
         "personality": None,
     },
-    "Grafter": {
-        "positions": None,  # any — defends from the front, does the dirty work
-        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 3 and s.get("gp90", 0) < 0.3),
-        "personality": None,
-    },
 
     # ── MID-TIER / CATCH-ALL ────────────────────────────────────
     "Connector": {
         "positions": {"CM", "DM", "AM"},  # midfielders — links play, keeps possession moving
         "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 35),
-        "personality": None,
-    },
-    "Raider": {
-        "positions": {"CM", "AM"},  # scores from midfield, arrives late in the box
-        "check": lambda s, p: (s.get("gp90", 0) >= 0.15 and s.get("kp90", 0) < 1.5),
         "personality": None,
     },
     "Battering Ram": {
@@ -228,15 +217,15 @@ ARCHETYPE_PRIORITY = [
     # Tempo / Control
     "Pulse", "Fortress",
     # Physical / Combative
-    "Goliath", "Warrior", "Bastion", "Terrier",
+    "Goliath", "Warrior", "Sentinel", "Terrier",
     # Direct
     "Outlet", "Fox",
     # Defensive
     "Lockdown", "Reader",
     # Role players
-    "Utility", "Grafter", "Support",
+    "Utility", "Support",
     # Mid-tier / catch-all
-    "Battering Ram", "Drifter", "Raider", "Connector", "Sentry", "Safety",
+    "Battering Ram", "Drifter", "Connector", "Sentry", "Safety",
     # Goalkeepers
     "Wall", "Sweeper",
 ]
@@ -392,21 +381,6 @@ def main():
     for r in cur.fetchall():
         player_grades.setdefault(r["player_id"], {})[r["attribute"]] = r["score"]
 
-    # Red cards career total
-    cur.execute("""
-        SELECT person_id, sum(cards_red) as total_reds, sum(cards_yellow) as total_yellows
-        FROM api_football_player_stats WHERE person_id IS NOT NULL
-        GROUP BY person_id
-    """)
-    career_cards = {r["person_id"]: r for r in cur.fetchall()}
-
-    # Penalty stats
-    cur.execute("""
-        SELECT person_id, sum(penalties_scored) as pen_scored, sum(penalties_missed) as pen_missed
-        FROM api_football_player_stats WHERE person_id IS NOT NULL
-        GROUP BY person_id HAVING sum(penalties_scored) + sum(penalties_missed) >= 5
-    """)
-    penalty_stats = {r["person_id"]: r for r in cur.fetchall()}
 
     print(f"  {len(profiles)} profiles, {len(personalities)} personalities, {len(careers)} careers, {len(xp)} with XP")
 
@@ -489,50 +463,22 @@ def main():
         peak = prof.get("peak") or 0
         age = pd.get("age") or 0
         career_years = float(career.get("career_years") or 0)
-        clubs = career.get("clubs_count") or 0
-        leagues = career.get("leagues_count") or 0
-        loyalty = career.get("loyalty_score") or 0
 
-        # Lifer (standalone — checked first)
-        if clubs == 1 and career_years >= 10 and level >= 80:
-            legacy = "Lifer"
         # Icon
-        elif player_xp >= 85 and peak >= 92 and career_years >= 15:
+        if player_xp >= 85 and peak >= 92 and career_years >= 15:
             legacy = "Icon"
-        # Legend
+        # Legendary
         elif player_xp >= 70 and peak >= 90:
-            legacy = "Legend"
+            legacy = "Legendary"
         # Wonderkid
         elif age and age <= 21 and level >= 85:
             legacy = "Wonderkid"
-        # Evergreen
+        # Veteran
         elif age and age >= 33 and level >= 83:
             legacy = "Veteran"
-        # Globetrotter
-        elif leagues >= 5:
-            legacy = "Globetrotter"
 
         # ── Behavioral tag ────────────────────────────────────────────
         behavioral = None
-        cc = career_cards.get(pid, {})
-        total_reds = cc.get("total_reds") or 0
-        total_yellows = cc.get("total_yellows") or 0
-        coach = pers.get("coachability") or 5
-
-        # Mr Reliable (highest priority behavioral)
-        if stats.get("minutes", 0) >= 2500 and stats.get("rating", 0) >= 7.0 and coach >= 7:
-            behavioral = "Ironclad"
-        # Clutch
-        elif pid in penalty_stats:
-            ps = penalty_stats[pid]
-            total_pens = (ps["pen_scored"] or 0) + (ps["pen_missed"] or 0)
-            if total_pens >= 5 and (ps["pen_scored"] or 0) / total_pens >= 0.85:
-                behavioral = "Clutch"
-        # Fiery
-        if total_reds >= 3 and coach <= 3:
-            behavioral = "Fiery"
-
-        # Lifer is a legacy tag alongside the positional archetype — don't override
 
         results.append((pid, earned, tier, legacy, behavioral))
 

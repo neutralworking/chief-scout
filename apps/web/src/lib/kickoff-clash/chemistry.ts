@@ -56,7 +56,7 @@ export const ROLE_COMBOS: {
   { name: "The Double Pivot", role1: "Sentinelle", role2: "Volante", multiplier: 1.2 },
   { name: "Counter Punch", role1: "Volante", role2: "Extremo", multiplier: 1.2 },
   { name: "Total Control", role1: "Metodista", role2: "Regista", multiplier: 1.3 },
-  { name: "The Wall", role1: "Vorstopper", role2: "Zagueiro", multiplier: 1.2 },
+  { name: "The Wall", role1: "Stopper", role2: "Zagueiro", multiplier: 1.2 },
   { name: "Wing Play", role1: "Lateral", role2: "Winger", multiplier: 1.2 },
   { name: "Inside Out", role1: "Invertido", role2: "Fantasista", multiplier: 1.2 },
   { name: "The Link", role1: "Enganche", role2: "Poacher", multiplier: 1.3 },
@@ -68,7 +68,7 @@ export const ROLE_COMBOS: {
   { name: "Wide Overload", role1: "Fluidificante", role2: "Tornante", multiplier: 1.2 },
   { name: "Second Wave", role1: "Mezzala", role2: "Seconda Punta", multiplier: 1.2 },
   { name: "Creative Hub", role1: "Fantasista", role2: "Trequartista", multiplier: 1.3 },
-  { name: "The Destroyer Duo", role1: "Volante", role2: "Vorstopper", multiplier: 1.2 },
+  { name: "The Destroyer Duo", role1: "Volante", role2: "Stopper", multiplier: 1.2 },
 ];
 
 // ---------------------------------------------------------------------------

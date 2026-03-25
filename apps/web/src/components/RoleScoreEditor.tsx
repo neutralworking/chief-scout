@@ -10,7 +10,7 @@ const TACTICAL_ROLES = [
   // GK
   "Libero GK", "Sweeper Keeper", "Comandante", "Shotstopper",
   // CD
-  "Libero", "Vorstopper", "Sweeper", "Zagueiro",
+  "Libero", "Stopper", "Sweeper", "Zagueiro",
   // WD
   "Lateral", "Fluidificante", "Invertido", "Corredor",
   // DM

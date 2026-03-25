@@ -217,7 +217,7 @@ Each role's **primary model** determines its pillar alignment:
 | CD | Libero | Technical | Passer | Cover | Ball-playing CB — progressive passing from deep | Beckenbauer → Sammer → Stones |
 | CD | Sweeper | Tactical | Cover | Controller | Last man — reads play two moves ahead, covers space | Sammer → Hummels → Marquinhos |
 | CD | Zagueiro | Mental | Commander | Destroyer | Commanding CB — leads, organizes, sets the defensive tone | Lucio → Thiago Silva → Van Dijk |
-| CD | Vorstopper | Physical | Powerhouse | Destroyer | Aggressive front-foot defender — wins duels, dominates | Baresi → Chiellini → Konate |
+| CD | Stopper | Physical | Powerhouse | Destroyer | Aggressive front-foot defender — wins duels, dominates | Baresi → Chiellini → Konate |
 | WD | Lateral | Technical | Passer | Dribbler | Attacking fullback — crosses, final ball, width | Cafu → Dani Alves → TAA |
 | WD | Fluidificante | Tactical | Engine | Cover | Covers full flank in both phases, tireless discipline | Facchetti → Zanetti → Hakimi |
 | WD | Invertido | Mental | Controller | Passer | Inverted FB — reads when to tuck inside, becomes midfielder | Lahm (2013) → Cancelo → Rico Lewis |

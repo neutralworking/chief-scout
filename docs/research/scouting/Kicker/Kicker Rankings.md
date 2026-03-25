@@ -37,7 +37,7 @@ Central Forward (Innenstürmer, lit. ‘inside striker’)
 
 ‘Central forwards’ means the two inside forwards in the 4-2-4 system, not to be confused with ‘center forward’. ‘Kicker’ used this term for the next 20 years (until July 1985), although the 4-2-4 system had already been superseded by the 4- 3-3 system by the early-1970s. In my opinion it would have been better if ‘kicker’ had reintroduced the term ‘center forward’ (‘Mittelstürmer’) by the early 1970s as most teams played with two wingers and a center forward by that time. 
 
-In July 1971, ‘kicker’ made the next change in splitting the ‘central defenders’ category into ‘libero’ and ‘stopper’ (German term ‘Vorstopper’, lit. ‘frontstopper’), reflecting the hierarchy which was established by all teams at that time. All other categories remained unchanged. 
+In July 1971, ‘kicker’ made the next change in splitting the ‘central defenders’ category into ‘libero’ and ‘stopper’ (German term ‘Stopper’, lit. ‘frontstopper’), reflecting the hierarchy which was established by all teams at that time. All other categories remained unchanged. 
 
 The next change in the naming of the categories came in December 1982, when ‘midfielders’ category was split into ‘defensive midfielders’ and ‘offensive midfielders’ and the two categories ‘outside right’ and ‘outside left’ were merged into a single category called ‘wingers’ (‘Aussenstürmer, lit. ‘outside strikers’). 
 

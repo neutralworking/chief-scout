@@ -22,7 +22,7 @@ const PIPELINE_TACTICAL_ROLES: Record<string, [string, string, string][]> = {
     ["Passer", "Cover", "Libero"],
     ["Cover", "Controller", "Sweeper"],
     ["Commander", "Destroyer", "Zagueiro"],
-    ["Powerhouse", "Destroyer", "Vorstopper"],
+    ["Powerhouse", "Destroyer", "Stopper"],
   ],
   WD: [
     ["Passer", "Dribbler", "Lateral"],

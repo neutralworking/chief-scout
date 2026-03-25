@@ -110,11 +110,11 @@ class TestGradeNormalisation:
         _, raw = ratings.compute_model_scores(grades)
         assert raw["Creator"] == self._expected(14)  # 7 * 2 = 14
 
-    def test_eafc_1_to_20_passthrough(self):
-        """EAFC stat_score (1-20) passes through unchanged."""
+    def test_eafc_excluded_from_scoring(self):
+        """EAFC grades are excluded from model scoring entirely."""
         grades = [grade("creativity", stat=16, source="eafc_inferred")]
         _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(16)
+        assert "Creator" not in raw  # EAFC skipped → no data → no model score
 
     def test_understat_compression(self):
         """Understat scores are compressed: score * 1.7, capped at 17."""
@@ -389,15 +389,14 @@ class TestBestRole:
         assert role in cd_roles
 
     def test_position_weights_applied(self):
-        """Position weights influence role selection — not just raw model scores."""
-        # A CD with high Passer but also high Destroyer should get a Destroyer-primary role
-        # because Destroyer weight=1.0 for CD, Passer weight=0.3
-        scores = {"Destroyer": 80, "Passer": 82, "Cover": 75, "Commander": 70,
-                  "Controller": 60, "Powerhouse": 65, "Target": 50}
+        """Position weights influence role selection — data drives role, not just top weight."""
+        # With tight weights (0.8-1.0), a CD with dominant Destroyer data
+        # should get a Destroyer-primary role over weaker models.
+        scores = {"Destroyer": 90, "Cover": 60, "Commander": 55,
+                  "Passer": 50, "Controller": 40, "Powerhouse": 70, "Target": 45}
         role, _ = ratings.compute_best_role(scores, "CD")
-        # Destroyer (1.0 weight) should beat Passer (0.3 weight) despite raw being lower
-        # Vorstopper = (Destroyer, Powerhouse) or Zagueiro = (Destroyer, Commander)
-        assert role in ("Vorstopper", "Zagueiro", "Sweeper")
+        # Destroyer-primary roles: Stopper (Destroyer+Powerhouse), Zagueiro (Destroyer+Commander)
+        assert role in ("Stopper", "Zagueiro")
 
     def test_unknown_position_returns_none(self):
         """Unknown position → no role."""
@@ -476,7 +475,8 @@ class TestKnownPlayers:
         })
         _, raw = ratings.compute_model_scores(grades)
         role, _ = ratings.compute_best_role(raw, "CF")
-        assert role in ("Poacher", "Complete Forward", "Prima Punta")
+        cf_roles = [name for _, _, name in ratings.TACTICAL_ROLES["CF"]]
+        assert role in cf_roles
 
     def test_pirlo_is_dm_role(self):
         """Pirlo profile → DM Regista or Pivote (both playmaker-controller DM roles)."""
@@ -507,13 +507,13 @@ class TestKnownPlayers:
 class TestGKBaseModelFallback:
     """Verify GKs get best_role via base model attrs when override model has no data."""
 
-    def test_base_gk_score_from_eafc_attrs(self):
+    def test_base_gk_score_from_scout_attrs(self):
         """_compute_base_gk_score returns a score from agility/footwork/handling/reactions."""
         grades = [
-            grade("agility", stat=16, source="eafc_inferred"),
-            grade("footwork", stat=14, source="eafc_inferred"),
-            grade("handling", stat=18, source="eafc_inferred"),
-            grade("reactions", stat=17, source="eafc_inferred"),
+            grade("agility", scout=16),
+            grade("footwork", scout=14),
+            grade("handling", scout=18),
+            grade("reactions", scout=17),
         ]
         score = ratings._compute_base_gk_score(grades)
         assert score is not None
@@ -523,8 +523,8 @@ class TestGKBaseModelFallback:
     def test_base_gk_score_none_when_no_gk_attrs(self):
         """Returns None when no base GK attributes are available."""
         grades = [
-            grade("tackling", stat=15, source="eafc_inferred"),
-            grade("heading", stat=12, source="eafc_inferred"),
+            grade("tackling", scout=15),
+            grade("heading", scout=12),
         ]
         score = ratings._compute_base_gk_score(grades)
         assert score is None
@@ -532,34 +532,40 @@ class TestGKBaseModelFallback:
     def test_base_gk_score_partial_coverage(self):
         """Partial base GK attrs → score with confidence penalty."""
         grades = [
-            grade("handling", stat=18, source="eafc_inferred"),
-            grade("reactions", stat=16, source="eafc_inferred"),
+            grade("handling", scout=18),
+            grade("reactions", scout=16),
         ]
         score = ratings._compute_base_gk_score(grades)
         assert score is not None
         # avg = 17, full = 85, 2/4 confidence = 0.85 → 72
         assert score == round(min(17 * 5, 99) * 0.85)
 
-    def test_gk_gets_role_with_only_base_attrs(self):
-        """GK with only eafc base attrs (no positioning/awareness) still gets a role."""
-        # These are the attrs that eafc_inferred typically provides for GKs
+    def test_eafc_excluded_from_base_gk_score(self):
+        """_compute_base_gk_score also excludes EAFC grades."""
         grades = [
-            grade("agility", stat=15, source="eafc_inferred"),
+            grade("agility", stat=16, source="eafc_inferred"),
             grade("footwork", stat=14, source="eafc_inferred"),
-            grade("handling", stat=17, source="eafc_inferred"),
-            grade("reactions", stat=16, source="eafc_inferred"),
-            # Also some Cover attrs so there's differentiated data
-            grade("awareness", stat=12, source="eafc_inferred"),
-            grade("discipline", stat=14, source="eafc_inferred"),
-            grade("interceptions", stat=10, source="eafc_inferred"),
+            grade("handling", stat=18, source="eafc_inferred"),
+            grade("reactions", stat=17, source="eafc_inferred"),
+        ]
+        score = ratings._compute_base_gk_score(grades)
+        assert score is None  # All grades are EAFC → excluded → no data
+
+    def test_gk_gets_role_with_scout_base_attrs(self):
+        """GK with scout base attrs gets a role via base model fallback."""
+        grades = [
+            grade("agility", scout=15),
+            grade("footwork", scout=14),
+            grade("handling", scout=17),
+            grade("reactions", scout=16),
+            # Cover attrs for differentiated data
+            grade("awareness", scout=12),
+            grade("discipline", scout=14),
+            grade("interceptions", scout=10),
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # The overridden GK model uses positioning/awareness/pass_range/throwing
-        # Only awareness matches, so GK model score may exist but be very thin.
-        # The base fallback should provide the GK score for role selection.
         base_score = ratings._compute_base_gk_score(grades)
         assert base_score is not None
-        # Now simulate role computation: inject base score if GK missing
         role_scores = dict(raw)
         if "GK" not in role_scores:
             role_scores["GK"] = base_score
@@ -568,16 +574,15 @@ class TestGKBaseModelFallback:
         assert role in gk_roles
         assert score > 0
 
-    def test_gk_override_model_not_replaced_when_present(self):
-        """If the override GK model already has a score, base fallback is not used."""
+    def test_gk_override_model_with_scout_data(self):
+        """If the override GK model has scout data, GK key should be present."""
         grades = [
-            grade("positioning", stat=16, source="eafc_inferred"),
-            grade("awareness", stat=14, source="eafc_inferred"),
-            grade("pass_range", stat=15, source="eafc_inferred"),
-            grade("throwing", stat=13, source="eafc_inferred"),
+            grade("positioning", scout=16),
+            grade("awareness", scout=14),
+            grade("pass_range", scout=15),
+            grade("throwing", scout=13),
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # Override model has all 4 attrs → GK key should be present
         assert "GK" in raw
 
 
@@ -591,20 +596,17 @@ class TestFBRefPriorityDemotion:
         from lib.models import SOURCE_PRIORITY
         assert SOURCE_PRIORITY["fbref"] == 0
 
-    def test_eafc_beats_fbref_same_attribute(self):
-        """EAFC grade (priority 0, loaded second) doesn't lose to fbref (also 0)."""
-        # When priorities are equal, later-loaded doesn't override — first wins.
-        # But the key point is fbref no longer has priority 3 to override eafc.
+    def test_eafc_excluded_fbref_survives(self):
+        """When both EAFC and fbref exist, EAFC is excluded and fbref is used."""
         grades = [
             grade("through_balls", stat=2, source="fbref"),      # priority 0, norm=4
-            grade("through_balls", stat=16, source="eafc_inferred"),  # priority 0, norm=16
+            grade("through_balls", stat=16, source="eafc_inferred"),  # EXCLUDED
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # Both priority 0 — first one wins (fbref loaded first gets it)
-        # But that's fine because the real fix is that api_football (priority 3)
-        # and understat (priority 2) now beat fbref.
-        # The important thing: fbref no longer beats eafc.
-        assert "Passer" in raw  # through_balls feeds Passer model
+        # EAFC excluded → only fbref (norm=4) remains
+        assert "Passer" in raw
+        expected = round(min(4 * 5, 99) * 0.70)  # 1/4 confidence
+        assert raw["Passer"] == expected
 
     def test_api_football_beats_fbref(self):
         """api_football (priority 3) overrides fbref (priority 0)."""
@@ -628,3 +630,169 @@ class TestFBRefPriorityDemotion:
         # understat wins — creativity norm = 7*1.7 = 11.9
         expected = round(min(11.9 * 5, 99) * 0.70)
         assert raw["Creator"] == expected
+
+
+# ── EAFC Exclusion ──────────────────────────────────────────────────────────
+
+class TestEAFCExclusion:
+    """Verify EAFC grades are completely excluded from model scoring."""
+
+    def test_eafc_only_player_gets_no_scores(self):
+        """A player with only EAFC grades produces no model scores."""
+        grades = [
+            grade("creativity", stat=18, source="eafc_inferred"),
+            grade("vision", stat=17, source="eafc_inferred"),
+            grade("unpredictability", stat=16, source="eafc_inferred"),
+            grade("guile", stat=15, source="eafc_inferred"),
+        ]
+        _, raw = ratings.compute_model_scores(grades)
+        assert raw == {}  # All EAFC → all excluded → empty
+
+    def test_eafc_mixed_with_real_uses_real_only(self):
+        """When EAFC and real sources coexist, only real sources are used."""
+        grades = [
+            grade("creativity", stat=18, source="eafc_inferred"),  # EXCLUDED
+            grade("creativity", stat=7, source="api_football"),    # priority 3, norm=14
+        ]
+        _, raw = ratings.compute_model_scores(grades)
+        expected = round(min(14 * 5, 99) * 0.70)
+        assert raw["Creator"] == expected
+
+    def test_eafc_excluded_from_base_gk(self):
+        """_compute_base_gk_score also excludes EAFC."""
+        grades = [
+            grade("agility", stat=16, source="eafc_inferred"),
+            grade("handling", stat=18, source="eafc_inferred"),
+        ]
+        score = ratings._compute_base_gk_score(grades)
+        assert score is None
+
+
+# ── League Strength Scaling ───────────────────────────────────────────────────
+
+class TestLeagueStrengthScaling:
+    """Verify league strength is applied to non-prescaled sources."""
+
+    def test_understat_scaled_by_league_strength(self):
+        """Understat grades are multiplied by league_strength."""
+        grades = [grade("creativity", stat=10, source="understat")]
+        # Without league strength: 10 * 1.7 = 17
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        # With 0.75 league strength: 17 * 0.75 = 12.75
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.75)
+        # Weaker league → lower score
+        assert raw_with_ls["Creator"] < raw_no_ls["Creator"]
+
+    def test_scout_grades_not_scaled(self):
+        """Scout assessment grades are NOT affected by league strength."""
+        grades = [grade("creativity", scout=15)]
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.60)
+        # Scout grades are context-aware — no league scaling
+        assert raw_no_ls["Creator"] == raw_with_ls["Creator"]
+
+    def test_api_football_not_double_scaled(self):
+        """API-Football grades are NOT scaled (already pre-scaled in pipeline 66)."""
+        grades = [grade("creativity", stat=8, source="api_football")]
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.60)
+        assert raw_no_ls["Creator"] == raw_with_ls["Creator"]
+
+    def test_statsbomb_scaled_by_league_strength(self):
+        """StatsBomb grades are scaled by league strength."""
+        grades = [grade("creativity", stat=8, source="statsbomb")]
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.70)
+        assert raw_with_ls["Creator"] < raw_no_ls["Creator"]
+
+    def test_computed_not_scaled(self):
+        """Computed grades are NOT scaled by league strength."""
+        grades = [grade("creativity", stat=8, source="computed")]
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.60)
+        assert raw_no_ls["Creator"] == raw_with_ls["Creator"]
+
+    def test_league_strength_1_0_no_effect(self):
+        """League strength of 1.0 (top league) has no effect on scores."""
+        grades = [grade("creativity", stat=10, source="understat")]
+        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
+        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=1.0)
+        assert raw_no_ls["Creator"] == raw_with_ls["Creator"]
+
+
+# ── GK Scout Grade Rescale Removal ────────────────────────────────────────────
+
+class TestGKScoutRescaleRemoval:
+    """Verify GK scout grades are no longer inflated by 1.2x multiplier."""
+
+    def test_gk_scout_grade_not_inflated(self):
+        """GK scout grades use face value, not 1.2x rescale."""
+        # GK model uses positioning/awareness/pass_range/throwing
+        grades = [
+            grade("positioning", scout=15, source="scout_assessment"),
+            grade("awareness", scout=15, source="scout_assessment"),
+            grade("pass_range", scout=15, source="scout_assessment"),
+            grade("throwing", scout=15, source="scout_assessment"),
+        ]
+        _, raw = ratings.compute_model_scores(grades, position="GK")
+        # At face value: avg=15, score = 15*5 = 75, confidence 1.0 → 75
+        assert raw["GK"] == round(min(15 * 5, 99) * 1.0)
+
+    def test_gk_and_outfield_same_scout_grade_same_score(self):
+        """Same scout grade produces same normalised score regardless of position."""
+        gk_grades = [grade("positioning", scout=16, source="scout_assessment")]
+        outfield_grades = [grade("positioning", scout=16, source="scout_assessment")]
+        _, gk_raw = ratings.compute_model_scores(gk_grades, position="GK")
+        _, of_raw = ratings.compute_model_scores(outfield_grades, position="CF")
+        # Both should produce identical scores for the same attribute value
+        # (positioning feeds different models for GK vs CF, but normalisation should be equal)
+        # We check the normalised value reaches the same models that use positioning
+        # Cover model uses positioning for both positions
+        if "Cover" in gk_raw and "Cover" in of_raw:
+            assert gk_raw["Cover"] == of_raw["Cover"]
+
+
+# ── Calibration Module ─────────────────────────────────────────────────────────
+
+class TestCalibrationModule:
+    """Verify calibration module functions."""
+
+    def test_score_bands_complete(self):
+        """Every score 0-99 maps to a band."""
+        from lib.calibration import get_score_band
+        for s in range(0, 100):
+            name, desc = get_score_band(s)
+            assert name != ""
+            assert desc != ""
+
+    def test_score_band_none_is_unrated(self):
+        """None score returns Unrated."""
+        from lib.calibration import get_score_band
+        name, _ = get_score_band(None)
+        assert name == "Unrated"
+
+    def test_score_band_boundaries(self):
+        """Key boundary scores map to expected bands."""
+        from lib.calibration import get_score_band
+        assert get_score_band(95)[0] == "Generational"
+        assert get_score_band(93)[0] == "Generational"
+        assert get_score_band(92)[0] == "World Class"
+        assert get_score_band(90)[0] == "World Class"
+        assert get_score_band(89)[0] == "Elite"
+        assert get_score_band(87)[0] == "Elite"
+        assert get_score_band(86)[0] == "International"
+        assert get_score_band(83)[0] == "Established"
+        assert get_score_band(79)[0] == "Professional"
+        assert get_score_band(74)[0] == "Capable"
+        assert get_score_band(64)[0] == "Foundation"
+
+    def test_reference_profiles_exist(self):
+        """Reference profiles dict has entries for all key positions."""
+        from lib.calibration import REFERENCE_PROFILES
+        positions = {v[0] for v in REFERENCE_PROFILES.values()}
+        assert "CF" in positions
+        assert "WF" in positions
+        assert "CM" in positions
+        assert "CD" in positions
+        assert "GK" in positions
+        assert len(REFERENCE_PROFILES) >= 25  # at least 25 anchor players

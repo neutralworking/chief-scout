@@ -28,12 +28,12 @@ chief-scout/
 
 ## North Star Metric
 Full player profiles in production (profile + personality + market + attributes + status).
-Current: **~50 seeded full profiles, 941 with computed ratings, 4,464 with level data, 19,341 total players.**
+Current: **276 Tier 1 in prod, 12,769 with ratings, 10,568 with levels, 21,683 total players, 110k+ attribute grades.**
 
 ---
 
 ## Phase 1 — Data Pipeline [DONE]
-All 27 pipeline scripts operational. 5+ external data sources ingested and cross-linked.
+79 pipeline scripts operational. 7+ external data sources ingested and cross-linked (StatsBomb, Understat, FBRef, API-Football, Kaggle, EAFC, Wikidata, Transfermarkt).
 
 - [x] Parse research vault + Real Players CSV into merged player dataset
 - [x] Push to Supabase (players + formations)
@@ -52,72 +52,58 @@ All 27 pipeline scripts operational. 5+ external data sources ingested and cross
 - [x] Composite player ratings: model scores → compound → overall (script 27)
 - [ ] ~~Connect `supabase-fbref-scraper`~~ — DEAD. Replace with multi-source: API-Football + Fotmob
 
-## Phase 2 — Scouting Interface [FUNCTIONAL]
-Core UI built and working. Needs design polish pass.
+## Phase 2 — Scouting Interface [LIVE]
+Core product deployed to production. Wave 1 UI redesign shipped.
 
-- [x] App shell — Next.js scaffold, player list with filters, detail page
-- [x] `player_intelligence_card` view wired end-to-end
-- [x] `<PersonalityBadge>` + themed personality cards
-- [x] Player detail: radar, career timeline, key moments, FBRef stats, personality
-- [x] Dashboard: featured player, news feed with tags, trending, browse by position/personality
-- [x] Position/role radar with 13 playing models + role fit scoring
-- [x] Server-side pagination for players (was loading all 19k)
-- [x] `/clubs` + `/leagues` pages with paginated data
-- [x] `/news` page with Tailwind + glass design system
-- [x] Football Choices game — PWA with category voting + identity building
-- [x] Admin panel (`/admin`) — Import, Pipeline status, Data health tabs
-- [ ] **Formations page** — tables exist but empty, need seed from research (#54)
-- [ ] **Product polish** — glass styling consistency, archetype differentiation (#55)
-- [ ] **Comparison tool** — side-by-side player radar + stats
-- [x] Staging/production environment separation — env detection, route filtering, sidebar gating
-- [ ] Production deployment to Vercel — create prod project, set env vars, first promotion (#32)
-- [ ] Scouting radar: statistical alert system (#25)
-- [ ] Free agent grader: ranked shortlists (#26)
+- [x] App shell, player list with filters, detail page, dashboard
+- [x] Four-pillar assessment (Technical/Tactical/Mental/Physical) + radar fingerprints
+- [x] Earned archetype system: 29 archetypes, 8,181 classified
+- [x] `/compare` — side-by-side player comparison with radar overlay
+- [x] `/free-agents` — position-grouped with contract intelligence
+- [x] `/legends` — retired players with editable skillsets + "Plays Like" comparisons
+- [x] `/clubs` + `/leagues` with squad depth + power ratings
+- [x] Admin panel, editor, scout pad, news pipeline
+- [x] Staging/production separation + 276 Tier 1 promoted
+- [x] Mobile bottom nav (5 tabs), mobile-first editing
+- [x] Wave 1 UI: dashboard, players, detail pages redesigned
+- [ ] **Wave 2 UI** — clubs, leagues, free agents, news (mockups exist)
+- [ ] **Wave 3 UI** — compare, formations, squad builder, gaffer
+- [ ] Scouting radar: statistical alert system
+- [ ] Free agent grader: ranked shortlists
 
-## Phase 3 — Game Integration [DEFERRED]
-Parked until data density justifies it.
+## Phase 3 — Games & Engagement [LIVE]
+Three games shipping, two more planned.
 
-- [ ] Export availability scores to Director of Football game
-- [ ] Inbox event generator: scouting reports as game messages
-- [ ] Chief Scout role as NPC in DoF game
-- [ ] Transfer rumours as Director inbox events (#24)
+- [x] **Gaffer** (`/choices`) — manager decision game, PWA, identity profiling
+- [x] **Kickoff Clash** (`/kickoff-clash`) — roguelike card battler, 500 characters, fully client-side
+- [x] **On The Plane** (`/on-the-plane`) — WC 2026 squad picker, 48 nations (ideal squad scoring pending)
+- [ ] **Punter's Pad** — virtual sportsbook (planned, separate repo)
+- [ ] KC pack opening animation, manager cards, meta-progression
 
-## Phase 4 — News Layer [FUNCTIONAL — needs automation]
-Pipeline works, UI integrated. Missing automated refresh.
+## Phase 4 — News Layer [LIVE]
+Automated 6x/day via GitHub Actions.
 
-- [x] `news_stories` + `news_player_tags` tables (migration 003 + 005)
-- [x] `12_news_ingest.py` — RSS fetch + Gemini Flash tagging
-- [x] Player name matching against `people` table
-- [x] Dashboard news feed with player tags + sentiment dots
-- [x] `/news` standalone page with filters + glass design
-- [x] Scout Pad integration — news tab on player detail
-- [x] Key moments derived from news stories (script 26)
-- [x] News sentiment aggregation per player (script 24)
-- [ ] **News cron** — automated refresh every 2-4h (#53)
-- [ ] News-driven alerts on player list (#23)
+- [x] News pipeline: RSS + Gemini Flash tagging, sentiment aggregation
+- [x] Dashboard news feed, `/news` page, player detail integration
+- [x] News cron: GitHub Actions 6x/day (moved from Vercel Hobby 1/day limit)
+- [ ] News-driven alerts on player list
 
-## Phase 5 — Coverage Scaling [IN PROGRESS]
-Pipeline supports automated profile generation. Manual data work ongoing.
+## Phase 5 — Coverage Scaling [ONGOING]
+110k+ grades, 12,769 ratings, 8,181 archetypes classified.
 
-- [x] Seed script for 50 players (script 14)
-- [x] FBRef grades → attribute_grades for all matched players (script 22)
-- [x] Composite ratings for 941 players with differentiated data (script 27)
-- [ ] Scale full profiles via automated generation from external data
-- [ ] Target: 200+ full profiles by end of March
-
-## Phase 6 — Admin Panel & Operational Tooling [DONE]
-- [x] `/admin` route with tabbed UI
-- [x] Import tab — FBRef CSV upload, parse, upsert
-- [x] Pipeline tab — table row counts, sync timestamps, freshness
-- [x] Health tab — coverage metrics, trigger player matching
-- [x] API routes: fbref-import, pipeline, health, match
+- [x] API-Football: 43 leagues, 110k grades, coefficient-scaled
+- [x] EA FC 25: 9,190 players, 189k grades
+- [x] Kaggle: 5 datasets integrated
+- [x] Valuation v1.1-pillars: 16,813 players valued
+- [ ] Scale to 500+ Tier 1 profiles
+- [ ] FBRef advanced stats re-import
 
 ---
 
 ## Current Sprint
-1. News cron — automated pipeline refresh (#53)
-2. Formations seed — populate from research data (#54)
-3. Product polish — glass consistency, archetype styling (#55)
+1. OTP ideal squad pipeline — populate `otp_ideal_squads` for submit/reveal flow
+2. Wave 2 UI — clubs, leagues, free agents, news pages
+3. KC theme sync — standalone felt/amber theme → web route
 
 ## Connects to
 - `director/` — chief scout provides player data + scouting reports to the game

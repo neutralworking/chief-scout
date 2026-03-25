@@ -232,7 +232,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
             )}
             {philosophyData && (
               <Link
-                href="/tactics"
+                href={`/tactics/${philosophyData.slug}`}
                 className="inline-block text-[9px] font-medium px-1.5 py-0.5 rounded mt-1 bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border border-[var(--color-accent-tactical)]/30 hover:bg-[var(--color-accent-tactical)]/25 transition-colors"
               >
                 {philosophyData.name}

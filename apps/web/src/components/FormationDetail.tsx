@@ -272,9 +272,11 @@ export function FormationDetail({
           {philosophyBadges && philosophyBadges.length > 0 && (
             <div className="flex items-center gap-1 mt-1">
               {philosophyBadges.map(({ philosophy, affinity }) => (
-                <span
+                <Link
                   key={philosophy.slug}
-                  className={`text-[8px] px-1.5 py-0.5 rounded border ${
+                  href={`/tactics/${philosophy.slug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`text-[8px] px-1.5 py-0.5 rounded border hover:brightness-125 transition-colors ${
                     affinity === "primary"
                       ? "bg-[var(--color-accent-tactical)]/15 text-[var(--color-accent-tactical)] border-[var(--color-accent-tactical)]/30"
                       : affinity === "secondary"
@@ -283,7 +285,7 @@ export function FormationDetail({
                   }`}
                 >
                   {philosophy.name}
-                </span>
+                </Link>
               ))}
             </div>
           )}

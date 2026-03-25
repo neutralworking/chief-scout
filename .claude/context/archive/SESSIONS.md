@@ -135,7 +135,17 @@
 - Git merge: resolved conflicts from 124 upstream commits
 **Carry-Forward**: KC needs migration applied + card generation run, game playable but needs DB wiring
 
-## Session 12 — 2026-03-19 (current)
+## Session 22 — 2026-03-25
+**Goal**: Launch Kickoff Clash game + wire up On The Plane
+**Outcome**:
+- Kickoff Clash: data bridge (500 chars), card detail popup, title screen, persistence, QA (6 fixes), hosted at /kickoff-clash
+- On The Plane: migration 042, 48 nations seeded, 3 API routes, squad picker redesign (pitch + additions split)
+- Fixed 5 OTP bugs: 0-player count, broken view, pagination, React #310 (frozen useMemo), CSS vars
+- Build fix: SectionHeader + GradeBadge stubs for partial wave1-ui merge
+- Nav updated: sidebar + mobile + dashboard CTAs for both games
+**Carry-Forward**: OTP needs ideal squad pipeline, KC standalone has newer theme not synced to web route
+
+## Session 12 — 2026-03-19
 **Goal**: League expansion + coefficient system + news cron
 **Outcome**:
 - Expanded API-Football from 10 to 43 leagues (Europe tier 2-3, Americas, Asia, youth/academy)

@@ -1,192 +1,220 @@
 # Chief Scout — Outstanding Tasks
 
-## Continue Today (from yesterday's session)
-- [ ] **Wave 1 UI polish** — merged to main (64e21ec), but likely needs QA pass on dashboard, player list, player detail
-- [x] **Kickoff Clash v4** — migration 036 applied, 500 cards in DB, API wired, 201 tests, rarity rebalanced, DB run persistence
-- [ ] **Legends polish** — trait pills, similar players, editable archetypes all shipped. Review quality of legend-to-active scoring
-
 ## High Priority
 
+### Data Freshness
+- [x] ~~Materialized view auto-refresh~~ — removed; `player_intelligence_card` is a regular VIEW, no refresh needed
+- [x] ~~Add `API_FOOTBALL_KEY` to Vercel env~~ — already present in .env.local, confirmed in Vercel by user
+
+### Four-Pillar & Scoring
+- [x] ~~Precompute pillar scores~~ — cron endpoint + GitHub Actions daily. 15k scored. View update SQL in `pipeline/sql/039_pillar_scores.sql`
+- [x] ~~Valuation integration~~ — pillar scores feed into effective score (45/25/30 blend) + ability domain scoring (30% pillar blend). Model v1.1-pillars.
+- [x] ~~Valuation GK model fix~~ — min 2 attrs per model in `valuation_core/data_loader.py`. 12,632 revalued. Kane €123m→€81m.
+- [x] ~~Re-run valuation with --force~~ — 16,813 players revalued with pillar-integrated formula. Chunking fix (500/batch) solved connection drops.
+
 ### Product & UX
+- [x] ~~Mobile nav: 5-tab layout~~ — Home/Players/Clubs/Compare/More (was 4 tabs)
+- [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
+- [x] ~~SEO advanced~~ — OG images, generateMetadata, JSON-LD. Need NEXT_PUBLIC_SITE_URL in Vercel.
 - [ ] **Onboarding** — no help docs or tour for new users
-- [ ] **Product polish** — glass consistency, archetype styling
-
-### Data & Pipeline
-- [ ] **Investigate player_intelligence_card performance** — regular VIEW with 6-table join. Check if materialized view needed. Dead `refresh_intelligence_cards` RPC exists with no backing function
-- [ ] **Add `API_FOOTBALL_KEY` to Vercel env** — needed for automated pipeline runs
-- [ ] **Valuation integration** — feed four-pillar scores into valuation engine (Phase 5)
-- [x] **Fix script 04** (`refine_players.py`) — string-to-dict guard already in place (lines 376-382)
-
-### Monetization
-- [ ] **Stripe integration QA** — billing tier system added (416e23a), needs end-to-end testing
-- [ ] **Shortlist Stripe gate** — enforce Scout/Pro tier for shortlist creation (currently open)
-
-## Kickoff Clash (Sibling Product — `apps/kickoff-clash/`)
-- [x] ~~Felt table theme + design tokens~~
-- [x] ~~Hand evaluation engine: roll, discard, evaluate~~
-- [x] ~~Joker system: 8 manager cards~~
-- [x] ~~GameShell: full game loop~~
-- [x] ~~Supporting screens: title, setup, postmatch, shop, end~~
-- [x] ~~v4: pack opening, match phase, shop phase, formations, tactics~~
-- [x] ~~500 fake characters from Airtable + LLM bios~~
-- [x] **Apply migration 036** — 7 KC tables created in Supabase
-- [x] **Wire DB cards** — 500 cards in kc_cards, API route + loadCardsFromDB()
-- [x] **Run persistence** — DB sync via kc_runs/kc_matches + localStorage dual-write
-- [x] **Rarity bracket rebalance** — thresholds shifted (76/81/87), distribution now 12%/42%/30%/16%
-- [x] **Game engine tests** — 201 tests across 6 files (scoring, run, economy, actions, chemistry, transform)
-
-### Punter's Pad (future)
-- [ ] **Fixture data feed** — pipeline 61 fixtures → exportable format
-- [ ] **Punter's Pad scaffold** — `punters-pad` repo
-
-## User Shortlists — Remaining
-- [x] ~~CRUD API + AddToShortlist UI + owner controls~~
-- [ ] **Unlisted sharing polish** — frontend verification needed
-- [ ] **Reorder players** — drag-to-reorder within shortlist detail
-- [ ] **Per-player scout notes** — inline edit on shortlist detail (owner only)
-
-## Fixture Previews
-- [ ] **Fixture-based club verification** — build `38_fixture_club_verify.py`
-- [ ] **Add Vercel env var to preview** — git repo not connected
+- [x] ~~Fix script 04~~ — `story_types` string guard already in place (lines 376-382), verified 2026-03-20
+- [x] ~~Showman→Catalyst test fix~~ — already updated, 33/33 passing (verified 2026-03-20)
 
 ## Medium Priority
 
 ### Data Quality
-- [ ] **Dedup improvements** — fuzzy matching (Levenshtein/Jaro-Winkler) with confidence scores
-- [ ] **Data quality dashboard** — per-field completeness heatmap in `/admin`
-- [ ] **StatsBomb event extraction** — progressive carries, pressure events from `sb_events`
-- [ ] ~2,600 clubs without wikidata_ids — bulk SPARQL matcher
-- [ ] **Wikidata enrichment level 75-77** — ~600 players remain
-- [ ] Women's players: decide long-term approach
+- [x] ~~Attribute grade backfill~~ — pipelines 66 (API-Football), 56 (EAFC), 30 (Understat) rerun. Top 250 avg grades 16→28.8. GKs in top 250 dropped 138→85.
+- [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables for meaningful grades
+- [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling (low priority since role score is primary)
+- [x] ~~Position audit (level 80+)~~ — 18 fixes applied (Worrall→CD, Alisson→GK, Militao→CD, Griezmann→CF, etc.). 6 got secondary positions. Ratings recomputed.
+- [ ] **Scouting notes gap** — 46 of top 250 missing. Run LLM profiling (pipeline 72) targeted at top 250
+- [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler) with confidence scores
+- [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`
+- [ ] **StatsBomb event extraction** — progressive carries, pressure events, shot-creating actions from `sb_events`
+- [ ] Club stadium capacities — Wikidata P115 qualifier spotty, needs targeted enrichment
+- [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
+- [ ] Women's players: decide long-term approach (separate pipeline? same tables?)
+- [ ] 3 manual profiles not found (Tchouameni, Cubarsi, Dembele) — accent mismatches
+- [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)
 
 ### Product & Features
+- [ ] **TM value sparkline** — mini chart on player detail page showing transfermarkt value history over time
+- [ ] Add MiniRadar to shortlist detail page (`/shortlists/[slug]`)
+- [ ] Add MiniRadar to club detail page key players section (`/clubs/[id]`)
+- [ ] Add MiniRadar to TrendingPlayers component (homepage)
 - [ ] **Formations seed** — populate from research data
+- [x] ~~Archetype styling~~ — 15 UI files updated, centralized `lib/archetype-styles.ts`, category-based colors. Build passes.
+- [x] ~~Legends page polish~~ — trait pills 8→9/10px, merged Skillset column, mobile "Plays like:" labels
+- [ ] **Wave 2 UI** — clubs, leagues, free agents, news pages (mockups in `.stitch/designs/`)
+- [ ] **Wave 3 UI** — compare, formations, squad builder, gaffer (mockups in `.stitch/designs/`)
+- [ ] **Product polish** — glass consistency
+- [ ] **Recent Transfers feature** — schema, pipeline, API, frontend (see `docs/plans/recent-transfers.md`). Branch preserved: `claude/transfers-supabase-feature-mmBSP`
+- [ ] **Tactical philosophies** — seed pipeline 83, club assignments, philosophy detail page (see `docs/plans/tactical-philosophies.md`)
+- [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15% (was 7%)
 - [ ] **Free agent grader** — ranked shortlists
 - [ ] **Scouting radar** — statistical alert system
 - [ ] **News-driven alerts** on player list
+- [x] ~~Playing style traits taxonomy~~ — 16 traits, pipeline 04d seeds 65 legends, trait pills on legends page with admin editing
 
-### Data Enrichment
-- [ ] Apply migration 024 (network_roles + network_edits tables)
+### Infrastructure
+- [x] ~~Valuation engine (40) timeout in orchestrator~~ — chunking added (500/batch with delete-before-insert). 16,813 players processed without drops.
+- [x] ~~StatsBomb grades (31)~~ — scoped to tournaments (Euro/Copa/WC), 5,742 grades for 522 players
+- [ ] **Migrate remaining understat scripts** — scripts 13, 22, 44, 10 still reference `understat_player_match_stats` (only 2022+ data remains)
 
 ## Low Priority
+- [ ] Player list pillar spark bars (needs precomputed scores or batch API)
 - [ ] Clean up more duplicate players (accent variants)
-- [ ] EA FC 25 fuzzy matching — ~6,900 unmatched
-- [ ] **LLM-powered name matching** — `pipeline/lib/llm_match.py`
+- [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players (single-name formats)
+- [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/nickname/accent resolution
+- [ ] **Pricing page visual alignment** — redesigned to match landing page (needs review)
 
-## Branch Cleanup
-20 unmerged remote branches — see `BRANCHES.md`. Most are stale or cherry-picked.
+## Kickoff Clash (Sibling Product)
+### Kickoff Clash — hosted at `/kickoff-clash`
+- [x] ~~Data bridge~~ — 500 characters from kc_characters.json, transform.ts maps to Card[]
+- [x] ~~Card detail popup~~ — bio, quirk, tags, strengths/weaknesses via InspectCardContext
+- [x] ~~Title screen + persistence~~ — Continue Run / New Run, localStorage auto-save, run history
+- [x] ~~Hosted on Chief Scout Vercel~~ — `/kickoff-clash` route with scoped layout + CSS vars
+- [x] ~~QA fixes~~ — durability weights, secondary archetypes, z-index, mobile overlap, empty quirk
+- [ ] **KC v2 polish** — pack opening animation, manager cards, meta-progression, more formations
+- [ ] **KC standalone theme** — felt green/amber/leather redesign (done on standalone app, not web route)
+
+### Punter's Pad (Planned)
+- [ ] **Fixture data feed** — pipeline 61 fixtures → exportable format for virtual sportsbook
+- [ ] **Punter's Pad scaffold** — `punters-pad` repo, fixture feed from CS pipeline 61
 
 ---
 
-## Completed (2026-03-22-23, sessions 19-21)
+## On The Plane
+- [x] ~~Migration 042~~ — wc_nations, otp_ideal_squads, otp_entries, otp_nation_stats tables
+- [x] ~~Seed 48 WC nations~~ — pipeline 83_seed_wc_nations.py
+- [x] ~~Fix 0-player count~~ — Supabase 1000-row limit, switched to exact count queries
+- [x] ~~Fix player loading~~ — switched from `players` view to `player_intelligence_card`
+- [x] ~~Paginate England~~ — 1473 players, .range() pagination
+- [x] ~~React #310 fix~~ — spread before .sort() on useMemo array
+- [x] ~~Squad picker redesign~~ — split layout: pitch + additions + player list
+- [x] ~~Ideal squad computation~~ — cron endpoint `/api/cron/otp-squads` computes all 48 nations. 41 computed, 7 skipped (thin pools)
+- [ ] **Remove error boundary** — temporary debug wrapper, remove once stable
+- [ ] **Submit flow** — depends on ideal squad for comparison scoring
 
-### Wave 1 UI Redesign
-- [x] Design tokens: pit bg, panel borders, sharp edges (9ef9c52)
-- [x] Topbar, SectionHeader, GradeBadge components (2ed28f5)
-- [x] PlayerCard redesign: sharp edges, model label, four-pillar color scheme (31fa344, 1db9dd9)
-- [x] Compact PlayerCard: 3-row layout with flags, inline pillars (b6ca559)
-- [x] Dashboard redesign: news-first, FeaturedPlayer 2-col layout (6350255)
-- [x] Player List: sticky search, remove Tier 1/pursuit, panel styling (2dabd8f)
-- [x] Player Detail: best roles panel, sharp panels (9f887d8)
-- [x] 5-tab mobile nav + bottom tab bar (5753a72, 9371dcd)
-- [x] Sharp edge sweep: remove all rounded corners (627d286)
-- [x] Wave 1 merged to main (64e21ec)
+## Completed (2026-03-25, session 22 — KC launch + OTP)
+- [x] Kickoff Clash launched: 500 characters, data bridge, card detail, title screen, persistence
+- [x] KC hosted at /kickoff-clash on Chief Scout Vercel (no separate project needed)
+- [x] KC QA: durability weights, secondary archetypes, z-index, mobile overlap fixes
+- [x] On The Plane: migration 042, 48 nations seeded, API routes, squad picker UI
+- [x] OTP bugs: 0-player count, broken players view, pagination, React #310 frozen memo
+- [x] Nav links updated: sidebar, mobile bottom nav, mobile top nav, dashboard CTAs
+- [x] Build fix: SectionHeader + GradeBadge stub components (missing from feat/wave1-ui merge)
+- [x] CSS fix: kickoff-clash --bg-base → --color-bg-base (invisible content on mobile)
 
-### Kickoff Clash v3→v4
-- [x] Felt table theme + design tokens (821b42c)
-- [x] Hand evaluation engine + joker system (64fe92f, ca9934f)
-- [x] PlayerCard, HandPhase, ScoreReveal, GameShell (ac5da41→dfe4f30)
-- [x] 500 fake characters from Airtable + LLM bios + procedural avatars (0c6fc56)
-- [x] KC launch: card detail, title screen, persistence (e4ff3f2)
-- [x] v4: pack opening, tactic cards (12), formations (6) (d32df8a, d3e922d, 8f51c9b)
-- [x] v4: MatchPhase (11-card XI, subs, tactics), ShopPhase, GameShell v4 (1bca3fe→8e80ae3)
-- [x] /kickoff-clash route on Chief Scout Vercel (1ae94bf)
+## Completed (2026-03-22, session 19b — legends traits)
+- [x] Legends page overhaul: editable Primary/Secondary, auto-derived Model label, Similar active player column
+- [x] MODEL_LABELS (130 compounds) ported to TypeScript
+- [x] Legend-aware similar player scoring: skillset-first + adjacent positions + quality floor (peak-9)
+- [x] Playing style traits: 16 editorial traits, pipeline 04d seeds 152 traits for 65 legends
+- [x] Trait pills UI: colored by category, admin add/remove dropdown
+- [x] trait-update API endpoint with ALLOWED_TRAITS validation
 
-### Legends System
-- [x] Legend skillsets: seed 195 legends, "Plays Like" comparison (c9d13a1)
-- [x] Editable Primary/Secondary, MODEL_LABELS TS port (8184fa3, ea76755)
-- [x] 12 editorial playing style traits + trait API + pipeline 04d (06893e5→306650d)
-- [x] Trait pills with admin editing, source dedup (715bca7, fe0e7d9)
-- [x] Legend-aware similar player scoring + quality floor (3f17a11, 3a7cfc2, f131f19)
+## Completed (2026-03-22, session 20)
+- [x] Valuation pillar integration — overall_pillar_score as 3rd signal (45% role / 25% pillar / 30% level), individual pillars blend into ability domains
+- [x] Full revaluation — 16,813 players valued with v1.1-pillars model
+- [x] Valuation engine chunking — 500/batch with delete-before-insert, fixes Supabase connection drops at >10k
+- [x] Position audit — 18 corrections (level 80+), cross-referenced FBRef+Kaggle, secondary positions for versatile players
+- [x] Pipeline 27 --player bug fix — stale clearing now skipped on single-player/limited runs
+- [x] Full ratings recompute — 13,235 ratings restored after --player bug
 
-### New Features
-- [x] On The Plane: World Cup squad picker game + migration 042 (d38f8d2, c2b4ce9)
-- [x] Freemium strategy: PlayerTeaser, UpgradeCTA, tier system (8154bf1)
-- [x] Billing tier system: migration, Stripe wiring, tier gating (416e23a)
-- [x] Precomputed four-pillar scores: cron endpoint + daily automation (b9b94d2)
-- [x] Per-player SEO: dynamic OG images, meta tags, JSON-LD (0e7143c)
-- [x] Tactics screen: 10 tactical philosophies + role browser (e688c10)
-- [x] Role icons: greatest player per tactical role (8700c0b)
-- [x] Blueprint computation module extracted (68a19de)
-- [x] Design system + Stitch prototyping setup (a81eb8c)
-- [x] v2 mockups: 16 screens + clubs/leagues/formations/gaffer mockups (f10fd00, 49c9f86)
-- [x] Tactical Command UI mockups (ddbc4ee)
+## Completed (2026-03-22, session 19)
+- [x] Legends page overhaul: editable Primary/Secondary, auto-derived Model label, Similar active player column
+- [x] Removed Last Club + Score columns from legends
+- [x] MODEL_LABELS (130 compound labels) ported to TypeScript (`apps/web/src/lib/models.ts`)
+- [x] Legend-aware similar player scoring: skillset-first path, adjacent position search
+- [x] Quality floor for legend similar players: `level >= peak - 9` (min 80)
+- [x] Playing style traits scoped but deferred — needs taxonomy from /categorist + /dof
 
-### Fixes
-- [x] PlayerRadar role mismatch: prefer stored best_role (25ebcda)
-- [x] Deduplicate tactical roles (a61029a)
-- [x] Data sweep: GK roles, fbref fix, side inference, similar players rewrite (7869183)
-- [x] QA: durability weights, secondary archetypes, z-index, mobile overlap (d1f00d3)
-- [x] England crash: paginate people query (9e04b6b)
-- [x] React #310: memoized sort mutation (11bca4a)
-- [x] Free agents: shared compact PlayerCard (781925e)
-- [x] Mobile nav + featured player fixes (1817002)
+## Completed (2026-03-21, session 18)
+- [x] FeaturedPlayer card fix: earned_archetype display, position-specific radar axes, stored best_role preference
+- [x] Legend skillsets: 195 legends seeded with curated Primary-Secondary, tactical roles, playing styles (pipeline 04c)
+- [x] 3 duplicate legends merged (Sivori, Kocsis, Savicevic)
+- [x] "Plays Like" legend comparison: similar-players API + SimilarPlayers component
+- [x] Legends page "Archetype" column renamed to "Skillset"
+- [x] Airtable skillset pipeline built (04b) — tested but rejected (grade scale too coarse)
 
-## Completed (2026-03-20, sessions 14-18)
+## Completed (2026-03-21, session 16 continued)
+- [x] Grade backfill — pipelines 66, 56, 30 rerun. Top 250 avg grades 16→28.8
+- [x] Pipeline 27 rerun with fresh grades — 13,216 ratings recomputed
+- [x] Similar players algorithm rewrite — 8 factors (role, RS, archetype, pillars, personality, side, foot, club)
+- [x] Player side inference — pipeline 38c, EAFC positions (5,628) + foot fallback (828) + central default (8,182)
+- [x] Side added to player_intelligence_card view
+- [x] Side displayed on player detail, compare, free agents, club detail pages
+- [x] Level calibration pipeline (38b) — built but parked (level being phased out, role score is primary)
+- [x] Level review exported to Airtable (2,590 players in Fake Players base)
+- [x] Airtable credentials added to .env.local
+- [x] Supabase space reclaimed: 528→293 MB (understat pre-2022 purge + player_xp drop)
+- [x] understat_player_agg table created (9,595 players, preserves lifetime stats)
+- [x] Pipeline 30 updated to use agg table instead of match-level data
 
-### Features & UI
-- [x] User shortlists: CRUD API, AddToShortlist UI, owner controls, visibility (289d2a3)
-- [x] Scout Insights → /network: hidden gems, triage, InsightCard redesign (e28bcb5, 9ee9b82)
-- [x] Career XP v2 "The Footballer's Odyssey": 159 milestones, legacy score, BG3 levels (ebd8ddc)
-- [x] Club power ratings: 4-pillar composite (0-100), pipeline 68, migration 039 (45ff917)
-- [x] Club strengths/weaknesses auto-report (cc5cf72)
-- [x] Comparison tool at /compare (radar overlay, pillars, roles, personality, market)
-- [x] Age group filters U16-U23 on /players (3345735)
-- [x] Admin consolidated 5 tabs + Levels/Club Analysis buttons (9a7df27, 4632dfc)
-- [x] Editor pillar tabs: Technical/Tactical/Mental/Physical (a8b37b7)
-- [x] Free Agents → Free Agency rename (7237292)
-- [x] Gaffer mobile cards + stat quiz (6f0ba92)
-- [x] Pursuit status removed from all UI, sidebar Gems→Network (1d88e4d)
-- [x] Featured player pool: DOF + 500 Tier 1, 3x rotation (339c368)
+## Completed (2026-03-20, session 16)
+- [x] DoF data quality sweep on top 250 players
+- [x] GK best_role fix — base model fallback, 830/830 GKs now have roles
+- [x] FBRef priority demotion (3→0) — was poisoning through_balls/creativity/vision for 325 players
+- [x] Pipeline 27 rerun — 12,769 ratings + 49,710 compound scores recomputed
+- [x] 9 new tests for GK fallback + fbref priority (52 total passing)
 
-### Pipeline & Data
-- [x] Pipeline 86: algorithmic best_role from AF stats (5927531)
-- [x] Earned archetype system + Inventor→Creative Winger (ec80b30, 68c06fe)
-- [x] Personality review optimized: source-quality filter, batch writes (a8b37b7)
+## Completed (2026-03-20, session 15)
+- [x] Mobile bottom nav: top pill strip → bottom tab bar (Home/Players/Admin/More) + grouped sheet
+- [x] Mobile bottom nav QA: 13 vitest tests, all passing
+- [x] StatusBar hidden on mobile (was overlapping bottom nav)
 
-### QA & Fixes
-- [x] Test suite: 370 tests (Python + TS) (bd73d48)
-- [x] Four-pillar QA: all 5 issues fixed (c9e35b2)
-- [x] Radar fingerprints: proxies, role mapping, pool sizing (7f097db)
-- [x] Squad roles fix (efc1033)
-- [x] KC cards: full bio, normalized ratings, deduped attrs, durability (2ede946, bd73d48)
+## Completed (2026-03-19-20, sessions 13-14)
+- [x] Earned archetype system: 45 archetypes, stat+personality gated, pipeline 37
+- [x] Role renames: Shadow Striker→Second Striker, Carrier added, Tornante/Fluidificante dropped
+- [x] Editor pillar tabs: Technical/Tactical/Mental/Physical reorganization
+- [x] Four-pillar QA pass: all 5 issues fixed (commit c9e35b2)
+- [x] Career XP v2: 159 milestone types, legacy score, BG3-style levels
+- [x] Club power ratings: 4-pillar composite (0-100) with pipeline + UI
+- [x] User shortlists: CRUD API, AddToShortlist UI, owner controls
+- [x] Test suite: 231 tests, stale role names fixed, KC durability
+- [x] InsightCard redesign: KC-card-inspired visual language
+- [x] Radar fingerprint fixes: proxies, role mapping, pool sizing, CSS
+- [x] Featured player pool: blended DOF picks + 500 Tier 1 rotation
+- [x] Level inference engine: admin buttons, pipeline 38/39
+- [x] Trait inference: pipeline 36c (infer_traits) + 36b (fitness_tags) + 36 (mental_tags)
+- [x] Scout Insights → /network with editable triage workflow
+- [x] Pursuit status removed from all UI
+- [x] U16/U18/U21/U23 age filters on /players
 
 ## Completed (2026-03-19, sessions 12-13)
-- [x] CS Value recalibrated against 10 DoF anchors
-- [x] Four-pillar rebuilt: real data, physical 5-component formula
-- [x] UEFA/FIFA coefficient system (pipeline 70, migration 037)
+- [x] CS Value formula recalibrated against 10 DoF anchors
+- [x] Four-pillar assessment rebuilt: fix scale bugs, remove level anchor, wire real data sources
+- [x] Physical pillar rebuilt: 5-component data-driven formula
+- [x] LLM Profiles button added to admin panel
+- [x] UEFA/FIFA coefficient system: pipeline 70, migration 037
 - [x] API-Football expanded to 43 leagues, coefficient-scaled grades
-- [x] News cron → GitHub Actions 6x/day
+- [x] News cron moved to GitHub Actions (6x/day)
 - [x] Dual skill sets + MODEL_LABELS taxonomy
-- [x] LLM profiling (context-enriched bio mode)
-- [x] Kickoff Clash: KC flagging, pipeline 80, KCCard, Love2D, itch.io
-- [x] /players overhaul, /compare, radar fixes, sidebar regroup
-- [x] Inventor → Inverted Winger (201 DB rows)
+- [x] Kickoff Clash: migration 035, pipeline 80, KCCard, /kc-preview, Love2D prototype, itch.io
+- [x] Players page overhaul: flags, league filter, CS value editing
+- [x] Radar: contrast stretch, proxy attributes, scale bug fix, quality filter
+- [x] Sidebar category grouping, Legends mobile nav + editable cards
+- [x] Comparison tool live at /compare
 
 ## Completed (2026-03-18, sessions 9-11)
-- [x] Pipeline renumbering + infrastructure (orchestrator, incremental, validation)
-- [x] API-Football pipeline: migration 034, scripts 65-69, 36,799 grades
+- [x] Pipeline renumbering + infrastructure (orchestrator, incremental, validation, parallel)
+- [x] API-Football pipeline: migration 034, scripts 65-69, 4,906 rows, 36,799 grades
+- [x] Role score calibration: 9 targets validated
 - [x] Kaggle data pipeline: 5 datasets, migration 033
-- [x] Dashboard overhaul, Scout Pad v2, club assignment overhaul
-- [x] Full enrichment chain: grades→ratings→fingerprints→levels→personalities→blueprints→tags
+- [x] Dashboard overhaul: intelligence widgets
+- [x] Scout Pad v2: bulk level/role editor table
+- [x] Club assignment overhaul: 1,100+ clubs fixed
 
-## Completed (2026-03-16-17, sessions 4-8)
-- [x] Production deployment: chief-scout-prod.vercel.app, prod Supabase
-- [x] XP system, EA FC 25 reimport (189k grades), FBRef CSV import
-- [x] Landing page, SEO basics, analytics (Plausible)
-- [x] Editor redesign, overall rating transition, role score inflation fix
+## Completed (2026-03-16-17, sessions 4-6)
+- [x] Production deployment + 276 Tier 1 promoted
+- [x] XP system v1 + EA FC 25 reimport
+- [x] Personality rename + role score inflation fix
+- [x] Landing page, SEO basics, analytics
+- [x] Editor redesign + overall rating transition
 
 ## Completed (2026-03-14-15, sessions 1-3)
-- [x] Four-pillar assessment system (lib + API + UI + SACROSANCT)
-- [x] Personality reassessment, club dedup, MiniRadar, DoF assessment
+- [x] Four-pillar assessment system
+- [x] Personality reassessment + club dedup
+- [x] MiniRadar fingerprint + DoF assessment system
 - [x] All pending migrations applied (023-035)

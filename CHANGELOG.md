@@ -5,6 +5,110 @@ Format: grouped by date, newest first. Each entry notes scope and affected areas
 
 ---
 
+## [2026-03-25] Kickoff Clash Launch + On The Plane
+
+**Scope**: Large | **Areas**: Games, App, Pipeline, DB
+
+### Added
+- **Kickoff Clash** game at `/kickoff-clash` — 500 fictional characters, roguelike card battler with scoring, chemistry, economy, persistence
+- `apps/web/src/lib/kickoff-clash/` — game engine (scoring, chemistry, actions, economy, run manager, transform)
+- `transform.ts` — maps kc_characters.json → Card[] with position, archetype, personality, rarity, durability mappings
+- Card detail popup with bio, quirk, tags, strengths/weaknesses via InspectCardContext
+- Title screen with Continue Run / New Run + localStorage run history
+- **On The Plane** WC squad picker at `/on-the-plane` — 48 nations, squad builder UI
+- Migration 042: `wc_nations`, `otp_ideal_squads`, `otp_entries`, `otp_nation_stats` tables
+- Pipeline `83_seed_wc_nations.py` — seeds 48 WC 2026 nations
+- Squad picker UI: split layout with pitch diagram + additions list + player pool
+- `SectionHeader` + `GradeBadge` components (stubs for Wave 1 UI system)
+- Dashboard game CTAs: Gaffer + Kickoff Clash + On The Plane in flex-wrap row
+- Nav links for both games in Sidebar, MobileBottomNav, MobileTopNav
+
+### Fixed
+- KC CSS variables: `--bg-base` → `--color-bg-base` (invisible content on mobile)
+- KC durability weights: Common tier summed 1.45 → 1.0
+- KC secondary archetypes: added SECONDARY_TO_ARCHETYPE map
+- KC z-index: CardDetailPopup raised to z-[70] above DeckViewer
+- OTP 0-player count: Supabase 1000-row limit → exact count queries per nation
+- OTP player loading: `players` view (wrong columns) → `player_intelligence_card`
+- OTP England pagination: 1473 players, `.range()` pagination added
+- OTP React #310: `selectedPlayers.sort()` mutated frozen useMemo array → `[...selectedPlayers].sort()`
+- `/kc-preview` redirect → `/kickoff-clash`
+- Build fix: missing SectionHeader + GradeBadge from partial wave1-ui merge
+
+---
+
+## [2026-03-22] Wave 1 UI Redesign + Legends Traits
+
+**Scope**: Large | **Areas**: UI, Pipeline, Legends
+
+### Added
+- Wave 1 UI mockups: 24 HTML screens across dashboard, players, detail, clubs, leagues, formations, gaffer
+- Playing style traits: 16 editorial traits, pipeline 04d, trait pills with admin editing
+- Legend skillsets: 195 legends with curated Primary-Secondary + "Plays Like" comparison
+- Valuation v1.1-pillars: overall_pillar_score as 3rd signal, 16,813 revalued
+- Position audit: 18 fixes for level 80+ players, secondary positions added
+- Side inference: L/R/C from EAFC + foot, pipeline 38c
+
+### Fixed
+- Pipeline 27 --player bug: stale clearing skipped on single-player runs
+- GK best_role: base model fallback for 830 GKs
+- FBRef priority demotion (3→0): was poisoning creativity/vision for 325 players
+
+---
+
+## [2026-03-19-20] Earned Archetypes + Four-Pillar QA
+
+**Scope**: Large | **Areas**: Pipeline, App, Scoring
+
+### Added
+- Earned archetype system: 29 archetypes, stat+personality gated, 8,181 classified (93%)
+- Career XP v2: 159 milestone types, legacy score, BG3-style levels
+- Mobile bottom nav: 5-tab layout replacing top pill strip
+- API-Football expanded: 32/43 leagues, 110,047 grades
+- Comparison tool at `/compare`
+
+---
+
+## [2026-03-17-18] Data Density + Infrastructure
+
+**Scope**: Large | **Areas**: Pipeline, Data, Infrastructure
+
+### Added
+- API-Football pipeline: scripts 65-66, migration 034, 4,906 stat rows, 36,799 grades
+- Kaggle data pipeline: 5 datasets, migration 033
+- Pipeline infrastructure: orchestrator, incremental processing, validation, parallel execution
+- Dashboard intelligence widgets: fixtures, contracts, rising stars, market movers
+- Scout Pad v2: bulk level/role editor with infinite scroll
+
+---
+
+## [2026-03-16] Production + XP + Personality
+
+**Scope**: Large | **Areas**: Infrastructure, Pipeline, App
+
+### Added
+- Production deployment: chief-scout-prod.vercel.app, 276 Tier 1 promoted
+- XP system v1: migration 031, pipeline 44
+- EA FC 25 import: 9,190 players, 189k grades
+- Personality renames: Blade→Mamba, Warrior→Catalyst
+- Landing page, SEO, analytics (Plausible)
+
+---
+
+## [2026-03-14-15] Four Pillars + Editor + Fingerprints
+
+**Scope**: Large | **Areas**: Pipeline, App, Schema
+
+### Added
+- Four-pillar assessment system (Technical/Tactical/Mental/Physical)
+- Personality reassessment: rules (765) + LLM (top 50)
+- Club dedup: 28 duplicates merged, 204 clubs enriched
+- MiniRadar fingerprint on PlayerCard
+- DoF assessment system: 6-dimension, API, editor UI
+- Editor redesign: scout-first workflow
+
+---
+
 ## [2026-03-13] Staging / Production Separation
 
 **Scope**: Medium | **Areas**: Infrastructure, Pipeline, App

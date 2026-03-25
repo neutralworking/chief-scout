@@ -104,11 +104,42 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **DB**: `fc_users`, `fc_user_squad`, `fc_user_identity`
 - **SQL**: `017_auth_profile.sql`
 
+## Kickoff Clash (`/kickoff-clash`)
+- **Page**: `apps/web/src/app/kickoff-clash/page.tsx`
+- **Layout**: `apps/web/src/app/kickoff-clash/layout.tsx` (scoped CSS vars for game theme)
+- **Lib**: `apps/web/src/lib/kickoff-clash/` — scoring.ts, run.ts, chemistry.ts, actions.ts, economy.ts, transform.ts
+- **Data**: `apps/web/public/data/kc_characters.json` (500 fictional characters)
+- **Notes**: Fully client-side, no Supabase. localStorage persistence. Title screen + run history.
+
+## On The Plane (`/on-the-plane`)
+- **Pages**: `apps/web/src/app/on-the-plane/page.tsx` (nations index), `[nationSlug]/page.tsx` (squad builder)
+- **API**: `GET /api/on-the-plane/nations`, `GET /api/on-the-plane/nations/[id]/players`, `POST /api/on-the-plane/submit`
+- **Lib**: `apps/web/src/lib/ideal-squad.ts` — pool categorization + ideal squad computation
+- **DB**: `wc_nations`, `otp_ideal_squads`, `otp_entries`, `otp_nation_stats`
+- **Pipeline**: `83_seed_wc_nations.py`
+- **SQL**: `042_on_the_plane.sql`
+
+## Legends (`/legends`)
+- **Page**: `apps/web/src/app/legends/page.tsx`
+- **API**: `GET /api/legends`, `POST /api/admin/trait-update`
+- **DB**: `people` (active=false), `player_profiles`, `player_trait_scores`
+- **Notes**: Editable skillsets, "Plays Like" comparisons, playing style trait pills
+
+## Compare (`/compare`)
+- **Page**: `apps/web/src/app/compare/page.tsx`
+- **API**: `GET /api/players/compare`, `GET /api/players/[id]/similar`
+- **Notes**: Radar overlay, four-pillar bars, role/personality/market comparison
+
+## Free Agents (`/free-agents`)
+- **Page**: `apps/web/src/app/free-agents/page.tsx`
+- **API**: `GET /api/free-agents`
+- **Notes**: Position-grouped layout, contract intelligence, PlayerCard component
+
 ## Layout / Sidebar
 - **Layout**: `apps/web/src/app/layout.tsx`, `globals.css`
-- **Components**: `Sidebar.tsx`, `ServiceWorker.tsx`
-- **Lib**: `types.ts`, `features.ts`, `club-themes.ts`, `archetype-themes.ts`
-- **Nav items**: Dashboard, Players, Clubs, Leagues, Formations, News, Choices, Editor, Admin
+- **Components**: `Sidebar.tsx`, `MobileBottomNav.tsx`, `ServiceWorker.tsx`, `AuthProvider.tsx`, `Topbar.tsx`, `SectionHeader.tsx`
+- **Lib**: `types.ts`, `features.ts`, `club-themes.ts`, `archetype-styles.ts`, `pillar-colors.ts`
+- **Nav**: Sidebar (desktop) + MobileBottomNav (5 tabs: Home/Players/Clubs/Compare/More)
 
 ## Pipeline Scripts (numbered)
 | # | Script | Purpose |

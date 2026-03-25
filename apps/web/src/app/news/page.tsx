@@ -74,6 +74,16 @@ const SENTIMENT_DOT: Record<string, string> = {
   neutral: "bg-[var(--color-sentiment-neutral)]",
 };
 
+const STORY_TYPE_BORDER: Record<string, string> = {
+  transfer: "var(--color-accent-personality)",
+  injury: "var(--color-sentiment-negative)",
+  performance: "var(--color-accent-tactical)",
+  tactical: "var(--color-accent-mental)",
+  contract: "var(--color-accent-physical)",
+  discipline: "var(--color-sentiment-negative)",
+  international: "var(--color-accent-technical)",
+};
+
 const SOURCE_LABEL: Record<string, string> = {
   bbc_football: "BBC",
   guardian_football: "Guardian",
@@ -233,9 +243,9 @@ function BriefingCard({
   const pursuitStyle = PURSUIT_STYLE[player.pursuit_status] ?? "";
 
   return (
-    <div className="card rounded-lg p-3">
+    <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-3">
       <div className="flex items-center gap-2 mb-2">
-        <Link href={`/players/${playerId}`} className="text-sm font-bold text-[var(--text-primary)] hover:text-white transition-colors">
+        <Link href={`/players/${playerId}`} className="text-xs font-bold text-[var(--text-primary)] hover:text-[var(--border-bright)] transition-colors">
           {player.name}
         </Link>
         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${pursuitStyle}`}>
@@ -304,13 +314,39 @@ function StoryCard({
 }) {
   const hasReactions = Object.values(counts).some((c) => c > 0);
 
+  const typeColor = STORY_TYPE_BORDER[story.story_type ?? ""] ?? "var(--border-subtle)";
+
   return (
-    <article className={`card rounded-lg p-3 group/story ${isTracked ? "ring-1 ring-[var(--color-accent-personality)]/20" : ""}`}>
+    <article
+      className={`bg-[var(--bg-surface)] p-3 group/story transition-colors hover:bg-[rgba(111,195,223,0.03)] ${isTracked ? "shadow-[inset_0_0_12px_rgba(111,195,223,0.06)]" : ""}`}
+      style={{ borderLeft: `2px solid ${typeColor}`, borderBottom: "1px solid var(--border-subtle)" }}
+    >
+      {/* Top row: type + source + time */}
+      <div className="flex items-center gap-1.5 mb-1">
+        {story.story_type && (
+          <span className={`text-[8px] font-bold tracking-[2px] uppercase px-1.5 py-0.5 ${STORY_TYPE_STYLE[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)]"}`}>
+            {story.story_type}
+          </span>
+        )}
+        <span className="ml-auto flex items-center gap-2 shrink-0">
+          {story.source && (
+            <span className="text-[9px] text-[var(--text-muted)] font-medium">
+              {SOURCE_LABEL[story.source] ?? story.source}
+            </span>
+          )}
+          {story.published_at && (
+            <span className="text-[9px] text-[var(--text-muted)] font-mono">
+              {timeAgo(story.published_at)}
+            </span>
+          )}
+        </span>
+      </div>
+
       {/* Headline */}
-      <div className="text-sm font-semibold leading-snug mb-1 line-clamp-2">
+      <div className="text-xs font-semibold leading-snug mb-1 line-clamp-2">
         {story.url ? (
           <a href={story.url} target="_blank" rel="noopener noreferrer"
-            className="text-[var(--text-primary)] hover:text-white transition-colors">
+            className="text-[var(--text-primary)] hover:text-[var(--border-bright)] transition-colors">
             {story.headline}
           </a>
         ) : (
@@ -320,54 +356,34 @@ function StoryCard({
 
       {/* Summary */}
       {story.summary && (
-        <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-1.5">
+        <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-1.5">
           {story.summary}
         </p>
       )}
 
-      {/* Meta row */}
-      <div className="flex items-center flex-wrap gap-1.5">
-        {story.story_type && (
-          <span className={`text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded ${STORY_TYPE_STYLE[story.story_type] ?? "bg-[var(--bg-elevated)] text-[var(--text-muted)]"}`}>
-            {story.story_type}
-          </span>
-        )}
-
-        {storyTags.map((tag) => {
-          const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
-          const hasPursuit = tag.pursuit_status && tag.pursuit_status !== "Pass";
-          return (
-            <Link key={tag.player_id} href={`/players/${tag.player_id}`}
-              className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full transition-colors ${
-                hasPursuit
-                  ? "bg-[var(--color-accent-personality)]/10 text-[var(--color-accent-personality)] hover:text-white"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
-              {tag.name}
-              {hasPursuit && (
-                <span className="text-[8px] opacity-70">{tag.pursuit_status}</span>
-              )}
-            </Link>
-          );
-        })}
-
-        <span className="ml-auto flex items-center gap-2 shrink-0">
-          {story.source && (
-            <span className="text-[9px] text-[var(--text-muted)] font-medium">
-              {SOURCE_LABEL[story.source] ?? story.source}
-            </span>
-          )}
-          {story.published_at && (
-            <span className="text-[10px] text-[var(--text-muted)] font-mono">
-              {timeAgo(story.published_at)}
-            </span>
-          )}
-        </span>
-      </div>
+      {/* Player tags */}
+      {storyTags.length > 0 && (
+        <div className="flex items-center flex-wrap gap-1 mb-1">
+          {storyTags.map((tag) => {
+            const dotClass = SENTIMENT_DOT[tag.sentiment ?? "neutral"] ?? SENTIMENT_DOT.neutral;
+            const hasPursuit = tag.pursuit_status && tag.pursuit_status !== "Pass";
+            return (
+              <Link key={tag.player_id} href={`/players/${tag.player_id}`}
+                className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 transition-colors ${
+                  hasPursuit
+                    ? "bg-[var(--color-accent-personality)]/10 text-[var(--color-accent-personality)] hover:text-white"
+                    : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+                {tag.name}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* Reactions */}
-      <div className={`mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] ${hasReactions ? "" : "opacity-0 group-hover/story:opacity-100"} transition-opacity`}>
+      <div className={`mt-1 pt-1 border-t border-[var(--border-subtle)]/30 ${hasReactions ? "" : "opacity-0 group-hover/story:opacity-100"} transition-opacity`}>
         <ReactionBar storyId={story.id} storyType={story.story_type} counts={counts} userReaction={userReaction} onVote={onVote} />
       </div>
     </article>
@@ -497,63 +513,70 @@ export default function NewsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-4">
-        <div className="flex items-baseline gap-3 mb-0.5">
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1">
           <h1 className="text-lg font-bold tracking-tight">News Intelligence</h1>
           {hasTracked && (
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               <button
                 onClick={() => setViewMode("feed")}
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded transition-colors ${
-                  viewMode === "feed"
-                    ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                }`}
+                className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+                style={{
+                  background: viewMode === "feed" ? "rgba(111,195,223,0.12)" : "transparent",
+                  color: viewMode === "feed" ? "var(--border-bright)" : "var(--text-muted)",
+                  border: `1px solid ${viewMode === "feed" ? "rgba(111,195,223,0.3)" : "transparent"}`,
+                }}
               >
                 Feed
               </button>
               <button
                 onClick={() => setViewMode("briefing")}
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded transition-colors ${
-                  viewMode === "briefing"
-                    ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                }`}
+                className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+                style={{
+                  background: viewMode === "briefing" ? "rgba(232,197,71,0.12)" : "transparent",
+                  color: viewMode === "briefing" ? "var(--color-accent-personality)" : "var(--text-muted)",
+                  border: `1px solid ${viewMode === "briefing" ? "rgba(232,197,71,0.3)" : "transparent"}`,
+                }}
               >
                 Briefing
                 {trackedStoryIds.size > 0 && (
-                  <span className="ml-1 text-[9px] font-mono">{trackedStoryIds.size}</span>
+                  <span className="ml-1 font-mono text-[8px]">{trackedStoryIds.size}</span>
                 )}
               </button>
             </div>
           )}
         </div>
-        <p className="text-[11px] text-[var(--text-secondary)] mb-3">
+        <p className="text-[10px] text-[var(--text-muted)] mb-2 font-mono">
           {validStories.length} stories
-          {trackedStoryIds.size > 0 && <> &middot; <span className="text-[var(--color-accent-personality)]">{trackedStoryIds.size} about tracked players</span></>}
+          {trackedStoryIds.size > 0 && <> · <span className="text-[var(--color-accent-personality)]">{trackedStoryIds.size} tracked</span></>}
         </p>
 
         {/* Type filter pills */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1 flex-wrap">
           <button onClick={() => setTypeFilter("")}
-            className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors ${
-              typeFilter === ""
-                ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-                : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-            }`}>
+            className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+            style={{
+              background: typeFilter === "" ? "rgba(111,195,223,0.12)" : "var(--bg-surface)",
+              color: typeFilter === "" ? "var(--border-bright)" : "var(--text-muted)",
+              border: `1px solid ${typeFilter === "" ? "rgba(111,195,223,0.3)" : "var(--border-subtle)"}`,
+            }}
+          >
             All
           </button>
           {STORY_TYPES.map((t) => {
             const count = typeCounts.get(t) ?? 0;
+            const borderColor = STORY_TYPE_BORDER[t] ?? "var(--border-subtle)";
             return (
               <button key={t} onClick={() => setTypeFilter(typeFilter === t ? "" : t)}
-                className={`text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors capitalize ${
-                  typeFilter === t
-                    ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)] border border-[var(--color-accent-personality)]/30"
-                    : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-transparent hover:text-[var(--text-secondary)]"
-                }`}>
+                className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 transition-colors"
+                style={{
+                  background: typeFilter === t ? `${borderColor}18` : "var(--bg-surface)",
+                  color: typeFilter === t ? borderColor : "var(--text-muted)",
+                  border: `1px solid ${typeFilter === t ? borderColor : "var(--border-subtle)"}`,
+                }}
+              >
                 {t}
-                {count > 0 && <span className="ml-1 font-mono text-[9px] opacity-60">{count}</span>}
+                {count > 0 && <span className="ml-1 font-mono text-[8px] opacity-60">{count}</span>}
               </button>
             );
           })}
@@ -562,24 +585,25 @@ export default function NewsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="card rounded-xl py-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">Loading intelligence...</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] py-12 text-center">
+          <p className="text-xs text-[var(--text-muted)]">Loading intelligence...</p>
         </div>
       ) : validStories.length === 0 ? (
-        <div className="card rounded-xl p-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">No stories found.</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
+        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-8 text-center">
+          <p className="text-xs text-[var(--text-muted)]">No stories found.</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1">Run the news pipeline to ingest stories.</p>
         </div>
       ) : viewMode === "briefing" && hasTracked ? (
         /* ── Briefing Mode ─────────────────────────────────────────── */
         <div>
-          <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-2 px-1">
-            Player Briefing
-          </h2>
-          <p className="text-[10px] text-[var(--text-muted)] mb-3 px-1">
-            Stories about players you&apos;re tracking (Watch, Interested, Priority)
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="w-1.5 h-1.5 bg-[var(--color-accent-personality)] shadow-[0_0_6px_var(--color-accent-personality)]" />
+            <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-personality)]">Player Briefing</span>
+          </div>
+          <p className="text-[10px] text-[var(--text-muted)] mb-3">
+            Stories about players you&apos;re tracking
           </p>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-1">
             {Object.entries(trackedPlayers).map(([pid, player]) => (
               <BriefingCard
                 key={pid}
@@ -591,9 +615,8 @@ export default function NewsPage() {
             ))}
           </div>
           {trackedStoryIds.size === 0 && (
-            <div className="card rounded-xl p-6 text-center mt-2">
-              <p className="text-sm text-[var(--text-muted)]">No recent news about tracked players.</p>
-              <p className="text-[11px] text-[var(--text-muted)] mt-1">Stories mentioning players you&apos;re pursuing will appear here.</p>
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-6 text-center mt-2">
+              <p className="text-xs text-[var(--text-muted)]">No recent news about tracked players.</p>
             </div>
           )}
         </div>
@@ -604,10 +627,14 @@ export default function NewsPage() {
           <div className="flex-1 min-w-0 space-y-4">
             {[...grouped.entries()].map(([group, groupStories]) => (
               <div key={group}>
-                <h2 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2 px-1">
-                  {group}
-                </h2>
-                <div className="space-y-1">
+                <div className="flex items-center gap-1.5 mb-1 mt-2 first:mt-0">
+                  <span className="w-1 h-1 bg-[var(--border-bright)] shadow-[0_0_4px_var(--border-bright)]" />
+                  <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">
+                    {group}
+                  </span>
+                  <span className="text-[8px] font-mono text-[var(--text-muted)]">({groupStories.length})</span>
+                </div>
+                <div className="space-y-0">
                   {groupStories.map((story) => (
                     <StoryCard
                       key={story.id}
@@ -627,9 +654,10 @@ export default function NewsPage() {
           {/* Desktop sidebar: tracked player summary */}
           {hasTracked && (
             <div className="hidden xl:block w-72 shrink-0 space-y-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-accent-personality)] mb-1 px-1">
-                Watchlist Activity
-              </h3>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="w-1.5 h-1.5 bg-[var(--color-accent-personality)] shadow-[0_0_6px_var(--color-accent-personality)]" />
+                <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-personality)]">Watchlist</span>
+              </div>
               {Object.entries(trackedPlayers).map(([pid, player]) => {
                 const playerStoryCount = validStories.filter((s) =>
                   (tagsByStory.get(s.id) ?? []).some((t) => t.player_id === Number(pid))
@@ -641,7 +669,7 @@ export default function NewsPage() {
 
                 return (
                   <Link key={pid} href={`/players/${pid}`}
-                    className="card rounded-lg p-2.5 flex items-center gap-2 hover:border-[var(--color-accent-personality)]/30 transition-colors block">
+                    className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-2.5 flex items-center gap-2 hover:bg-[rgba(111,195,223,0.04)] transition-colors block">
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
                       <p className="text-[9px] text-[var(--text-muted)]">

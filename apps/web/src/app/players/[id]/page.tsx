@@ -21,6 +21,7 @@ import { RoleScoreEditor } from "@/components/RoleScoreEditor";
 import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
+import { SystemFit } from "@/components/SystemFit";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
@@ -594,6 +595,13 @@ export default async function PlayerDetailPage({
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 
           <SimilarPlayers playerId={player.person_id} />
+
+          <SystemFit
+            clubId={player.club_id}
+            archetype={player.earned_archetype ?? player.archetype}
+            personalityType={player.personality_type}
+            level={player.level}
+          />
 
           {news.length > 0 && <PlayerNews news={news} />}
 

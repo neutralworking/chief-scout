@@ -210,7 +210,7 @@ function ReactionBar({
                 : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]/50"
             }`}>
             <Icon active={active} />
-            {count > 0 && <span className={`font-mono text-[9px] ${active ? "text-[var(--text-secondary)]" : ""}`}>{count}</span>}
+            {count > 0 && <span className={`font-data text-[9px] ${active ? "text-[var(--text-secondary)]" : ""}`}>{count}</span>}
             <span className="hidden group-hover:inline text-[8px] font-medium tracking-wide uppercase">{labels[r]}</span>
           </button>
         );
@@ -252,7 +252,7 @@ function BriefingCard({
           {player.pursuit_status}
         </span>
         {player.position && (
-          <span className="text-[9px] text-[var(--text-muted)] font-mono">{player.position}</span>
+          <span className="text-[9px] text-[var(--text-muted)] font-data">{player.position}</span>
         )}
         {player.club && (
           <span className="text-[10px] text-[var(--text-secondary)]">{player.club}</span>
@@ -280,7 +280,7 @@ function BriefingCard({
                 <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${SENTIMENT_DOT[storyTag.sentiment] ?? ""}`} />
               )}
               {story.published_at && (
-                <span className="text-[9px] text-[var(--text-muted)] font-mono shrink-0">{timeAgo(story.published_at)}</span>
+                <span className="text-[9px] text-[var(--text-muted)] font-data shrink-0">{timeAgo(story.published_at)}</span>
               )}
             </div>
           );
@@ -335,7 +335,7 @@ function StoryCard({
             </span>
           )}
           {story.published_at && (
-            <span className="text-[9px] text-[var(--text-muted)] font-mono">
+            <span className="text-[9px] text-[var(--text-muted)] font-data">
               {timeAgo(story.published_at)}
             </span>
           )}
@@ -540,13 +540,13 @@ export default function NewsPage() {
               >
                 Briefing
                 {trackedStoryIds.size > 0 && (
-                  <span className="ml-1 font-mono text-[8px]">{trackedStoryIds.size}</span>
+                  <span className="ml-1 font-data text-[8px]">{trackedStoryIds.size}</span>
                 )}
               </button>
             </div>
           )}
         </div>
-        <p className="text-[10px] text-[var(--text-muted)] mb-2 font-mono">
+        <p className="text-[10px] text-[var(--text-muted)] mb-2 font-data">
           {validStories.length} stories
           {trackedStoryIds.size > 0 && <> · <span className="text-[var(--color-accent-personality)]">{trackedStoryIds.size} tracked</span></>}
         </p>
@@ -576,7 +576,7 @@ export default function NewsPage() {
                 }}
               >
                 {t}
-                {count > 0 && <span className="ml-1 font-mono text-[8px] opacity-60">{count}</span>}
+                {count > 0 && <span className="ml-1 font-data text-[8px] opacity-60">{count}</span>}
               </button>
             );
           })}
@@ -632,7 +632,7 @@ export default function NewsPage() {
                   <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">
                     {group}
                   </span>
-                  <span className="text-[8px] font-mono text-[var(--text-muted)]">({groupStories.length})</span>
+                  <span className="text-[8px] font-data text-[var(--text-muted)]">({groupStories.length})</span>
                 </div>
                 <div className="space-y-0">
                   {groupStories.map((story) => (
@@ -673,12 +673,12 @@ export default function NewsPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{player.name}</p>
                       <p className="text-[9px] text-[var(--text-muted)]">
-                        {player.position && <span className="font-mono">{player.position}</span>}
+                        {player.position && <span className="font-data">{player.position}</span>}
                         {player.club && <span> &middot; {player.club}</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] font-mono text-[var(--text-secondary)]">{playerStoryCount}</span>
+                      <span className="text-[10px] font-data text-[var(--text-secondary)]">{playerStoryCount}</span>
                       <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${pursuitStyle}`}>
                         {player.pursuit_status}
                       </span>

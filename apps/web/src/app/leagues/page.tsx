@@ -101,7 +101,7 @@ export default async function LeaguesPage() {
           All clubs &rarr;
         </Link>
       </div>
-      <p className="text-[10px] text-[var(--text-muted)] mb-4 font-mono">
+      <p className="text-[10px] text-[var(--text-muted)] mb-4 font-data">
         {allLeagues.length} leagues &middot; {totalPlayers.toLocaleString()} players
       </p>
 
@@ -141,7 +141,7 @@ export default async function LeaguesPage() {
           <div className="flex items-center gap-1.5 mb-2">
             <span className="w-1 h-1 bg-[var(--text-muted)]" />
             <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">Other Leagues</span>
-            <span className="text-[8px] font-mono text-[var(--text-muted)]">({otherLeagues.length})</span>
+            <span className="text-[8px] font-data text-[var(--text-muted)]">({otherLeagues.length})</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 sm:gap-1">
             {otherLeagues.map((league) => (
@@ -179,16 +179,16 @@ function LeagueCard({ league, maxPlayers, featured = false }: { league: LeagueRo
           )}
         </div>
         {league.avgLevel != null && (
-          <span className={`text-sm font-mono font-bold shrink-0 ml-2 ${levelTextClass(league.avgLevel)}`}>
+          <span className={`text-sm font-data font-bold shrink-0 ml-2 ${levelTextClass(league.avgLevel)}`}>
             {league.avgLevel.toFixed(1)}
           </span>
         )}
       </div>
 
       <div className="flex items-center gap-2 mt-1.5 text-[9px] text-[var(--text-muted)]">
-        <span className="font-mono">{league.clubCount}</span> clubs
+        <span className="font-data">{league.clubCount}</span> clubs
         <span>&middot;</span>
-        <span className="font-mono">{league.playerCount}</span> players
+        <span className="font-data">{league.playerCount}</span> players
       </div>
 
       {/* Player count bar */}

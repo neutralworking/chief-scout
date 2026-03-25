@@ -128,7 +128,7 @@ export function ClubsList({
           Leagues &rarr;
         </Link>
       </div>
-      <p className="text-[10px] text-[var(--text-muted)] mb-3 font-mono">
+      <p className="text-[10px] text-[var(--text-muted)] mb-3 font-data">
         {filtered.length === clubs.length
           ? `${clubs.length.toLocaleString()} clubs`
           : `${filtered.length.toLocaleString()} / ${clubs.length.toLocaleString()}`}
@@ -233,7 +233,7 @@ export function ClubsList({
                   className="border-b border-[var(--border-subtle)]/20 hover:bg-[rgba(111,195,223,0.04)] transition-colors"
                   style={{ borderLeft: `2px solid ${powerBorderColor(club.power_rating)}` }}
                 >
-                  <td className="py-1.5 px-3 font-mono text-[var(--text-muted)] text-[10px]">
+                  <td className="py-1.5 px-3 font-data text-[var(--text-muted)] text-[10px]">
                     {i + 1}
                   </td>
                   <td className="py-1.5 px-3">
@@ -247,13 +247,13 @@ export function ClubsList({
                   <td className="py-1.5 px-3 text-[var(--text-muted)] text-[10px]">
                     {club.league_name || "–"}
                   </td>
-                  <td className="py-1.5 px-3 text-right font-mono text-[var(--text-muted)]">
+                  <td className="py-1.5 px-3 text-right font-data text-[var(--text-muted)]">
                     {club.player_count}
                   </td>
-                  <td className={`py-1.5 px-3 text-right font-mono font-bold ${powerTextClass(club.power_rating)}`}>
+                  <td className={`py-1.5 px-3 text-right font-data font-bold ${powerTextClass(club.power_rating)}`}>
                     {club.power_rating != null ? club.power_rating.toFixed(1) : "–"}
                   </td>
-                  <td className={`py-1.5 px-3 text-right font-mono ${levelTextClass(club.avg_level)}`}>
+                  <td className={`py-1.5 px-3 text-right font-data ${levelTextClass(club.avg_level)}`}>
                     {club.avg_level != null ? club.avg_level.toFixed(1) : "–"}
                   </td>
                   <td className="py-1.5 px-3">
@@ -293,7 +293,7 @@ export function ClubsList({
               style={{ borderLeft: `2px solid ${powerBorderColor(club.power_rating)}` }}
             >
               {/* Rank */}
-              <span className="text-[9px] font-mono text-[var(--text-muted)] w-5 shrink-0">
+              <span className="text-[9px] font-data text-[var(--text-muted)] w-5 shrink-0">
                 {i + 1}
               </span>
 
@@ -320,7 +320,7 @@ export function ClubsList({
                     {club.player_count} players
                   </span>
                   {club.avg_level != null && (
-                    <span className={`text-[9px] font-mono ${levelTextClass(club.avg_level)}`}>
+                    <span className={`text-[9px] font-data ${levelTextClass(club.avg_level)}`}>
                       Avg {club.avg_level.toFixed(1)}
                     </span>
                   )}
@@ -340,7 +340,7 @@ export function ClubsList({
 
               {/* Power score */}
               <div className="shrink-0 text-right">
-                <span className={`text-sm font-mono font-bold ${powerTextClass(club.power_rating)}`}>
+                <span className={`text-sm font-data font-bold ${powerTextClass(club.power_rating)}`}>
                   {club.power_rating != null ? club.power_rating.toFixed(0) : "–"}
                 </span>
               </div>

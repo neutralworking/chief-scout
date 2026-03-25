@@ -149,7 +149,7 @@ function FreeAgentsContent() {
       {/* Header */}
       <div className="mb-3">
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Free Agency</h1>
-        <p className="text-[10px] text-[var(--text-muted)] font-mono mb-1">
+        <p className="text-[10px] text-[var(--text-muted)] font-data mb-1">
           {loading ? "Loading..." : `${players.length} players`}
           {avgScore != null && !loading && ` · avg score ${avgScore}`}
         </p>
@@ -285,7 +285,7 @@ function FreeAgentsContent() {
                       ) : "–"}
                     </td>
                     <td className="py-2 px-4 text-xs text-[var(--text-secondary)] hidden lg:table-cell">{player.nation || "–"}</td>
-                    <td className="py-2 px-4 text-right font-mono text-xs text-[var(--text-muted)]">{age ?? "–"}</td>
+                    <td className="py-2 px-4 text-right font-data text-xs text-[var(--text-muted)]">{age ?? "–"}</td>
                     <td className="py-2 px-4">
                       {player.fingerprint && player.fingerprint.some((v) => v > 0) ? (
                         <div className="flex justify-center">
@@ -306,18 +306,18 @@ function FreeAgentsContent() {
                         </span>
                       ) : "–"}
                     </td>
-                    <td className="py-2 px-4 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                    <td className="py-2 px-4 text-right font-data text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
                       {player.goals ?? "–"}
                     </td>
-                    <td className="py-2 px-4 text-right font-mono text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
+                    <td className="py-2 px-4 text-right font-data text-[10px] text-[var(--text-muted)] hidden lg:table-cell">
                       {player.assists ?? "–"}
                     </td>
-                    <td className="py-2 px-4 text-right font-mono text-[10px] hidden lg:table-cell">
+                    <td className="py-2 px-4 text-right font-data text-[10px] hidden lg:table-cell">
                       {player.rating != null ? (
                         <span className="text-amber-400">{player.rating.toFixed(2)}★</span>
                       ) : "–"}
                     </td>
-                    <td className="py-2 px-4 text-right text-xs font-mono text-[var(--text-secondary)] hidden lg:table-cell">
+                    <td className="py-2 px-4 text-right text-xs font-data text-[var(--text-secondary)] hidden lg:table-cell">
                       {formatValue(player.market_value_eur)}
                     </td>
                     <td className="py-2 px-4 text-right hidden lg:table-cell">
@@ -325,7 +325,7 @@ function FreeAgentsContent() {
                         const playerAge = computeAge(player.dob);
                         const curve = ageCurveScore(player.position, playerAge);
                         return (
-                          <span className={`text-[10px] font-mono font-bold ${
+                          <span className={`text-[10px] font-data font-bold ${
                             curve >= 80 ? "text-[var(--color-accent-physical)]" :
                             curve >= 60 ? "text-[var(--text-secondary)]" :
                             "text-[var(--text-muted)]"
@@ -341,12 +341,12 @@ function FreeAgentsContent() {
                           Free
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                        <span className="text-[10px] font-data text-[var(--text-muted)]">
                           {formatExpiry(player.contract_expiry_date)}
                         </span>
                       )}
                     </td>
-                    <td className={`py-2 px-4 text-right font-mono font-bold ${ratingColor(player.best_role_score)}`}>
+                    <td className={`py-2 px-4 text-right font-data font-bold ${ratingColor(player.best_role_score)}`}>
                       {player.best_role_score ?? "–"}
                     </td>
                   </tr>

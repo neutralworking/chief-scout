@@ -22,6 +22,7 @@ import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import { SystemFit } from "@/components/SystemFit";
+import { TransferComps } from "@/components/TransferComps";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
@@ -591,6 +592,8 @@ export default async function PlayerDetailPage({
         {/* Right: Valuation + Career + Similar + News + Shortlists */}
         <div className="lg:overflow-y-auto space-y-3 pl-1">
           {valuation && <ValuationPanel valuation={valuation} />}
+
+          {valuation && <TransferComps playerId={player.person_id} />}
 
           <CareerAndMoments entries={careerEntries} metrics={careerMetrics} moments={moments} xpMilestones={xpMilestones} />
 

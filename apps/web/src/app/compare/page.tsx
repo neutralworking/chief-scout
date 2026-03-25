@@ -185,9 +185,9 @@ function PlayerSearch({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]
-                   px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]
-                   focus:outline-none focus:ring-1 focus:ring-[var(--border-subtle)]"
+        className="w-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+                   px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)]
+                   focus:outline-none focus:border-[var(--border-bright)]"
         style={{ borderLeftColor: PLAYER_COLORS[slotIndex], borderLeftWidth: 3 }}
       />
       {loading && (
@@ -197,7 +197,7 @@ function PlayerSearch({
       )}
       {open && results.length > 0 && (
         <ul
-          className="absolute z-50 mt-1 w-full rounded-lg border border-[var(--border-subtle)]
+          className="absolute z-50 mt-0 w-full border border-[var(--border-subtle)]
                      bg-[var(--bg-surface)] shadow-lg overflow-hidden"
         >
           {results.map((r) => (
@@ -260,9 +260,9 @@ function StatBar({
       <div className="flex gap-2 items-center">
         {values.map((v, i) => (
           <div key={i} className="flex-1 flex items-center gap-1.5">
-            <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+            <div className="flex-1 h-2 rounded-none bg-white/5 overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full rounded-none transition-all duration-500"
                 style={{
                   width: `${Math.min(((v ?? 0) / maxVal) * 100, 100)}%`,
                   backgroundColor: PLAYER_COLORS[i],
@@ -271,7 +271,7 @@ function StatBar({
               />
             </div>
             <span
-              className="text-xs font-mono w-7 text-right"
+              className="text-xs font-data w-7 text-right"
               style={{
                 color: win === i ? PLAYER_COLORS[i] : "var(--text-muted)",
                 fontWeight: win === i ? 700 : 400,
@@ -298,7 +298,7 @@ function VerdictChip({
   const win = winner(values);
   return (
     <div
-      className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs border border-[var(--border-subtle)]
+      className="flex items-center gap-2 rounded-none px-3 py-1.5 text-xs border border-[var(--border-subtle)]
                  bg-[var(--bg-surface)]"
     >
       <span className="text-[var(--text-muted)]">{label}</span>
@@ -398,7 +398,7 @@ export default function ComparePage() {
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 max-w-5xl mx-auto">
       {/* Page header */}
-      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
+      <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)] mb-4">
         Compare Players
       </h1>
 
@@ -411,7 +411,7 @@ export default function ComparePage() {
           return (
             <div
               key={i}
-              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+              className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                          p-3 space-y-2"
               style={{ borderTopColor: PLAYER_COLORS[i], borderTopWidth: 3 }}
             >
@@ -461,7 +461,7 @@ export default function ComparePage() {
           <button
             type="button"
             onClick={addSlot}
-            className="rounded-xl border border-dashed border-[var(--border-subtle)]
+            className="rounded-none border border-dashed border-[var(--border-subtle)]
                        p-3 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]
                        hover:border-[var(--text-muted)] transition-colors flex items-center
                        justify-center gap-1 min-h-[88px]"
@@ -483,7 +483,7 @@ export default function ComparePage() {
         <div className="space-y-6">
           {/* Header Row */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4 overflow-x-auto"
           >
             <table className="w-full text-sm">
@@ -588,12 +588,13 @@ export default function ComparePage() {
 
           {/* Radar Overlay */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Model Radar
-            </h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-[var(--border-bright)] shadow-[0_0_6px_var(--border-bright)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">Model Radar</span>
+            </div>
             <div className="flex justify-center">
               <RadarChart
                 labels={radarLabels}
@@ -607,7 +608,7 @@ export default function ComparePage() {
               {players.map((p, i) => (
                 <div key={p.person_id} className="flex items-center gap-1.5 text-xs">
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 rounded-none"
                     style={{ backgroundColor: PLAYER_COLORS[i] }}
                   />
                   <span className="text-[var(--text-secondary)]">{p.name}</span>
@@ -618,12 +619,13 @@ export default function ComparePage() {
 
           {/* Four Pillar Stats */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4 space-y-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Four Pillars
-            </h2>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 bg-[var(--color-accent-mental)] shadow-[0_0_6px_var(--color-accent-mental)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-mental)]">Four Pillars</span>
+            </div>
             {(
               Object.entries(PILLAR_CONFIG) as [
                 string,
@@ -643,12 +645,13 @@ export default function ComparePage() {
 
           {/* Individual Model Scores */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4 space-y-3"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              All 13 Models
-            </h2>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1 h-1 bg-[var(--text-muted)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--text-muted)]">All 13 Models</span>
+            </div>
             {ALL_MODELS.map((model) => (
               <StatBar
                 key={model}
@@ -660,12 +663,13 @@ export default function ComparePage() {
 
           {/* Role Comparison */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Top Roles
-            </h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-[var(--color-accent-tactical)] shadow-[0_0_6px_var(--color-accent-tactical)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-tactical)]">Top Roles</span>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {players.map((p, i) => (
                 <div key={p.person_id} className="space-y-2">
@@ -685,7 +689,7 @@ export default function ComparePage() {
                           {ri + 1}. {role.name}
                         </span>
                         <span
-                          className="font-mono text-xs font-bold"
+                          className="font-data text-xs font-bold"
                           style={{ color: PLAYER_COLORS[i] }}
                         >
                           {role.score}
@@ -704,12 +708,13 @@ export default function ComparePage() {
 
           {/* Personality */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Personality
-            </h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-[var(--color-accent-personality)] shadow-[0_0_6px_var(--color-accent-personality)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-personality)]">Personality</span>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {players.map((p, i) => {
                 const pt = p.personality_type
@@ -727,7 +732,7 @@ export default function ComparePage() {
                       <>
                         <div className="text-sm text-[var(--text-primary)] font-medium">
                           {pt.fullName}{" "}
-                          <span className="text-[var(--text-muted)] font-mono text-xs">
+                          <span className="text-[var(--text-muted)] font-data text-xs">
                             ({pt.code})
                           </span>
                         </div>
@@ -756,12 +761,13 @@ export default function ComparePage() {
 
           {/* Market */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Market Valuation
-            </h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-[var(--color-accent-technical)] shadow-[0_0_6px_var(--color-accent-technical)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--color-accent-technical)]">Market Valuation</span>
+            </div>
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -800,12 +806,13 @@ export default function ComparePage() {
 
           {/* Verdict Row */}
           <div
-            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]
+            className="rounded-none border border-[var(--border-subtle)] bg-[var(--bg-surface)]
                        p-4"
           >
-            <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Verdict
-            </h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-[var(--border-bright)] shadow-[0_0_6px_var(--border-bright)]" />
+              <span className="text-[9px] font-bold uppercase tracking-[2px] text-[var(--border-bright)]">Verdict</span>
+            </div>
             <div className="flex flex-wrap gap-2">
               <VerdictChip
                 label="Overall"

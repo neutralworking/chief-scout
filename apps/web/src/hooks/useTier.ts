@@ -6,6 +6,13 @@ import type { Tier } from "@/lib/stripe";
 
 const TIER_RANK: Record<Tier, number> = { free: 0, scout: 1, pro: 2 };
 
+/** Staging bypasses all tier gates. Admin login (sessionStorage) also bypasses. */
+function isBypassed(): boolean {
+  if (process.env.NEXT_PUBLIC_APP_ENV !== "production") return true;
+  if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("network_admin") === "1") return true;
+  return false;
+}
+
 export function useTier() {
   const { session, user, loading: authLoading } = useAuth();
   const [tier, setTier] = useState<Tier>("free");
@@ -13,6 +20,12 @@ export function useTier() {
 
   useEffect(() => {
     if (authLoading) return;
+
+    if (isBypassed()) {
+      setTier("pro");
+      setLoading(false);
+      return;
+    }
 
     if (!session?.access_token) {
       setTier("free");

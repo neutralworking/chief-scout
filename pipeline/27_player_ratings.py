@@ -303,7 +303,15 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
                     alias_count += 1
         if values:
             avg = sum(values) / len(values)
-            full_score = min(avg * 5, 99)
+            # Curved conversion: linear up to 12/20 (=60), then accelerating.
+            # Scout grades practically cap at 16/20 — linear *5 maps that to
+            # only 80/100, compressing elite players. The curve stretches the
+            # 12-20 range so 16→84, 17→88, 18→92.
+            if avg <= 12:
+                full_score = min(avg * 5, 99)
+            else:
+                excess = avg - 12
+                full_score = min(60 + (excess / 8) ** 0.7 * 39, 99)
 
             # Coverage: aliases count as half for confidence purposes
             effective_coverage = len(values) - alias_count * 0.5
@@ -436,6 +444,17 @@ def compute_best_role(model_scores, position):
         return None, 0
     # Normalize to 0-99: a player with all-99 model scores gets role score 99
     normalised = (best_score / best_max_score) * 99 if best_max_score > 0 else best_score
+
+    # Top-end stretch: scout grades practically cap at 16/20, compressing
+    # elite players into the 80-89 band. Power curve above 70 stretches
+    # the top end so elite players get proper separation.
+    # 70→70, 75→81, 80→86, 85→90, 87→92, 89→93
+    if normalised > 70:
+        excess = normalised - 70
+        max_excess = 29  # 99 - 70
+        stretched = (excess / max_excess) ** 0.55 * max_excess
+        normalised = 70 + stretched
+
     return best_role, round(min(max(normalised, 0), 99))
 
 
@@ -706,7 +725,6 @@ def main():
 
         # Level floor: role score can't drop too far below level.
         # Gap WIDENS with sparse data — data must prove itself.
-        # Floor capped at 90 so truly elite players must prove role fit.
         if level and best_role_score is not None:
             if real_grade_count < 30:
                 gap = 8
@@ -714,7 +732,7 @@ def main():
                 gap = 5
             else:
                 gap = 3
-            level_floor = min(max(level - gap, 50), 90)
+            level_floor = max(level - gap, 50)
             best_role_score = max(best_role_score, level_floor)
 
         results.append({

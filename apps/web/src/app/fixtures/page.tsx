@@ -65,10 +65,6 @@ interface ClubMeta {
   id: number;
   clubname: string;
   short_name: string | null;
-  formation: string | null;
-  team_tactical_style: string | null;
-  offensive_style: string | null;
-  defensive_style: string | null;
   logo_url: string | null;
   league_name: string | null;
 }
@@ -181,10 +177,9 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
           <div className="text-sm font-bold text-[var(--text-primary)] mb-1">
             {homeName}
           </div>
-          {!isInternational && (
+          {!isInternational && homeClub?.league_name && (
             <div className="flex justify-end gap-1 flex-wrap">
-              <StylePill label={homeClub?.formation ?? null} />
-              <StylePill label={homeClub?.team_tactical_style ?? null} />
+              <StylePill label={homeClub.league_name} />
             </div>
           )}
         </div>
@@ -210,10 +205,9 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
           <div className="text-sm font-bold text-[var(--text-primary)] mb-1">
             {awayName}
           </div>
-          {!isInternational && (
+          {!isInternational && awayClub?.league_name && (
             <div className="flex gap-1 flex-wrap">
-              <StylePill label={awayClub?.formation ?? null} />
-              <StylePill label={awayClub?.team_tactical_style ?? null} />
+              <StylePill label={awayClub.league_name} />
             </div>
           )}
         </div>

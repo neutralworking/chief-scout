@@ -276,11 +276,11 @@ export async function GET(
     return NextResponse.json({ error: "Fixture not found" }, { status: 404 });
   }
 
-  // Fetch both clubs
+  // Fetch clubs with philosophy + formation data
   const clubIds = [fixture.home_club_id, fixture.away_club_id].filter(Boolean);
   const { data: clubsData } = await supabaseServer
     .from("clubs")
-    .select("id, clubname, short_name, formation, team_tactical_style, offensive_style, defensive_style, logo_url, league_name, stadium, stadium_capacity, reputation")
+    .select("id, clubname, short_name, logo_url, league_name, stadium, stadium_capacity, power_rating, philosophy_id")
     .in("id", clubIds);
 
   const clubMap = new Map<number, any>();
@@ -288,8 +288,43 @@ export async function GET(
     clubMap.set(c.id, c);
   }
 
-  const homeClub = fixture.home_club_id ? clubMap.get(fixture.home_club_id) : null;
-  const awayClub = fixture.away_club_id ? clubMap.get(fixture.away_club_id) : null;
+  // Fetch philosophy + primary formation for clubs that have a philosophy
+  const philIds = (clubsData ?? []).map((c: any) => c.philosophy_id).filter(Boolean);
+  const [{ data: philData }, { data: philFormData }] = await Promise.all([
+    philIds.length > 0
+      ? supabaseServer.from("tactical_philosophies").select("id, name, slug, pressing_intensity, directness, defensive_depth, possession_orientation").in("id", philIds)
+      : Promise.resolve({ data: [] }),
+    philIds.length > 0
+      ? supabaseServer.from("philosophy_formations").select("philosophy_id, formation_id, formations(name)").eq("affinity", "primary").in("philosophy_id", philIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const philMap = new Map<number, any>();
+  for (const p of (philData ?? []) as any[]) philMap.set(p.id, p);
+  const philFormMap = new Map<number, string>();
+  for (const pf of (philFormData ?? []) as any[]) {
+    if (!philFormMap.has(pf.philosophy_id)) {
+      philFormMap.set(pf.philosophy_id, pf.formations?.name ?? null);
+    }
+  }
+
+  // Enrich clubs with philosophy-derived style info
+  function enrichClub(club: any) {
+    if (!club) return null;
+    const phil = club.philosophy_id ? philMap.get(club.philosophy_id) : null;
+    const formation = club.philosophy_id ? philFormMap.get(club.philosophy_id) ?? null : null;
+    // Map philosophy properties to style taxonomy
+    const tacticalStyle = phil?.name ?? null;
+    const pressing = phil?.pressing_intensity ?? 5;
+    const directness = phil?.directness ?? 5;
+    const depth = phil?.defensive_depth ?? 5;
+    const offensiveStyle = pressing > 7 ? "Overload" : directness > 7 ? "Direct" : directness < 3 ? "Possession" : "Balanced";
+    const defensiveStyle = pressing > 8 ? "High Press" : depth > 7 ? "Low Block" : depth < 3 ? "Full Press" : "Balanced";
+    return { ...club, formation, tacticalStyle, offensiveStyle: phil ? offensiveStyle : null, defensiveStyle: phil ? defensiveStyle : null };
+  }
+
+  const homeClub = enrichClub(fixture.home_club_id ? clubMap.get(fixture.home_club_id) : null);
+  const awayClub = enrichClub(fixture.away_club_id ? clubMap.get(fixture.away_club_id) : null);
 
   // Fetch squads in parallel
   const [homeSquad, awaySquad] = await Promise.all([
@@ -302,16 +337,16 @@ export async function GET(
     {
       name: homeClub?.clubname ?? fixture.home_team,
       formation: homeClub?.formation,
-      tacticalStyle: homeClub?.team_tactical_style,
-      offensiveStyle: homeClub?.offensive_style,
-      defensiveStyle: homeClub?.defensive_style,
+      tacticalStyle: homeClub?.tacticalStyle,
+      offensiveStyle: homeClub?.offensiveStyle,
+      defensiveStyle: homeClub?.defensiveStyle,
     },
     {
       name: awayClub?.clubname ?? fixture.away_team,
       formation: awayClub?.formation,
-      tacticalStyle: awayClub?.team_tactical_style,
-      offensiveStyle: awayClub?.offensive_style,
-      defensiveStyle: awayClub?.defensive_style,
+      tacticalStyle: awayClub?.tacticalStyle,
+      offensiveStyle: awayClub?.offensiveStyle,
+      defensiveStyle: awayClub?.defensiveStyle,
     },
   );
 
@@ -338,7 +373,7 @@ export async function GET(
           style: formatClubStyle({
             name: homeClub.clubname,
             formation: homeClub.formation,
-            tacticalStyle: homeClub.team_tactical_style,
+            tacticalStyle: homeClub.tacticalStyle,
           }),
         }
       : null,
@@ -348,7 +383,7 @@ export async function GET(
           style: formatClubStyle({
             name: awayClub.clubname,
             formation: awayClub.formation,
-            tacticalStyle: awayClub.team_tactical_style,
+            tacticalStyle: awayClub.tacticalStyle,
           }),
         }
       : null,

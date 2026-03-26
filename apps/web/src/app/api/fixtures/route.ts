@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
   const clubId = searchParams.get("club");
   const days = parseInt(searchParams.get("days") ?? "30", 10);
   const status = searchParams.get("status");
-  const compType = searchParams.get("type"); // domestic | continental | international
 
   // Build query
   let query = supabaseServer
@@ -32,9 +31,6 @@ export async function GET(req: NextRequest) {
 
   if (competition) {
     query = query.eq("competition_code", competition);
-  }
-  if (compType) {
-    query = query.eq("competition_type", compType);
   }
   if (clubId) {
     const id = parseInt(clubId, 10);
@@ -62,7 +58,7 @@ export async function GET(req: NextRequest) {
       ? supabaseServer
           .from("clubs")
           .select(
-            "id, clubname, short_name, formation, team_tactical_style, offensive_style, defensive_style, logo_url, league_name, power_rating",
+            "id, clubname, short_name, logo_url, league_name, power_rating",
           )
           .in("id", Array.from(clubIds))
       : Promise.resolve({ data: [] });

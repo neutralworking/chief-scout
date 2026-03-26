@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+import { PaywallGate } from "@/components/PaywallGate";
 
 interface Shortlist {
   id: number;
@@ -88,6 +89,7 @@ export default function ShortlistsPage() {
   }
 
   return (
+    <PaywallGate required="pro">
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Shortlists</h1>
@@ -239,6 +241,7 @@ export default function ShortlistsPage() {
         </>
       )}
     </div>
+    </PaywallGate>
   );
 }
 

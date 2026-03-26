@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 // InsightCard handles its own position colors
 import { InsightCard, type InsightData } from "@/components/InsightCard";
+import { PaywallGate } from "@/components/PaywallGate";
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PAGE_SIZE = 25;
@@ -94,6 +95,7 @@ export default function GemsPage() {
   const progressPct = total > 0 ? Math.round((reviewedCount / total) * 100) : 0;
 
   return (
+    <PaywallGate required="pro">
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:h-[calc(100vh-2rem)]">
       {/* Header */}
       <div className="shrink-0 mb-2">
@@ -236,5 +238,6 @@ export default function GemsPage() {
         )}
       </div>
     </div>
+    </PaywallGate>
   );
 }

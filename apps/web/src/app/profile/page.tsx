@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { getClubList } from "@/lib/club-themes";
+import { computeIdentity, type IdentityDimensions } from "@/lib/football-identity";
 import Link from "next/link";
 
 interface ProfileData {
@@ -198,26 +199,60 @@ export default function ProfilePage() {
       )}
 
       {/* Footballing Identity */}
-      {identity.era_bias && (
-        <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-4 mb-4">
-          <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
-            Footballing Identity
-          </div>
-          <IdentityBar label="Flair vs Function" value={identity.flair_vs_function} left="Flair" right="Function" />
-          <IdentityBar label="Youth vs Experience" value={identity.youth_vs_experience} left="Youth" right="Experience" />
-          <IdentityBar label="Attack vs Defense" value={identity.attack_vs_defense} left="Attack" right="Defense" />
-          <IdentityBar label="Loyalty vs Ambition" value={identity.loyalty_vs_ambition} left="Loyalty" right="Ambition" />
-          <IdentityBar label="Domestic vs Global" value={identity.domestic_vs_global} left="Domestic" right="Global" />
-          <IdentityBar label="Stats vs Eye Test" value={identity.stats_vs_eye_test} left="Stats" right="Eye Test" />
-          <IdentityBar label="Control vs Chaos" value={identity.control_vs_chaos} left="Control" right="Chaos" />
-          {identity.era_bias && (
-            <div className="mt-3 text-center">
-              <span className="text-xs text-[var(--text-muted)]">Era bias: </span>
-              <span className="text-sm font-semibold capitalize">{identity.era_bias}</span>
+      {stats.total_votes >= 5 && (() => {
+        const dims: IdentityDimensions = {
+          flair_vs_function: identity.flair_vs_function ?? 50,
+          youth_vs_experience: identity.youth_vs_experience ?? 50,
+          attack_vs_defense: identity.attack_vs_defense ?? 50,
+          loyalty_vs_ambition: identity.loyalty_vs_ambition ?? 50,
+          domestic_vs_global: identity.domestic_vs_global ?? 50,
+          stats_vs_eye_test: identity.stats_vs_eye_test ?? 50,
+          control_vs_chaos: identity.control_vs_chaos ?? 50,
+        };
+        const mgr = computeIdentity(dims);
+        const hasEnoughData = stats.total_votes >= 10;
+        return (
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-4 mb-4">
+            <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
+              Footballing Identity
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Manager archetype card */}
+            {hasEnoughData ? (
+              <div className="bg-[var(--bg-elevated)] rounded-xl p-4 mb-4 text-center border border-[var(--accent-tactical)]/20">
+                <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">You manage like</div>
+                <div className="text-xl font-bold text-[var(--accent-tactical)]">{mgr.name}</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1 italic">&ldquo;{mgr.tagline}&rdquo;</div>
+                <div className="text-sm text-[var(--text-primary)] mt-2 font-medium">{mgr.summary}</div>
+                {identity.era_bias && (
+                  <div className="mt-2 text-[10px] text-[var(--text-muted)]">
+                    Era bias: <span className="font-semibold capitalize text-[var(--text-secondary)]">{identity.era_bias}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-[var(--bg-elevated)] rounded-xl p-4 mb-4 text-center">
+                <div className="text-xs text-[var(--text-muted)]">Your manager type is taking shape...</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">
+                  {10 - stats.total_votes} more vote{10 - stats.total_votes !== 1 ? "s" : ""} to reveal your identity
+                </div>
+                <Link href="/choices" className="text-xs text-[var(--accent-tactical)] font-semibold mt-2 inline-block hover:opacity-80">
+                  Keep voting &rarr;
+                </Link>
+              </div>
+            )}
+
+            {/* Dimension bars */}
+            <IdentityBar label="Flair vs Function" value={identity.flair_vs_function} left="Flair" right="Function" />
+            <IdentityBar label="Youth vs Experience" value={identity.youth_vs_experience} left="Youth" right="Experience" />
+            <IdentityBar label="Attack vs Defense" value={identity.attack_vs_defense} left="Attack" right="Defense" />
+            <IdentityBar label="Loyalty vs Ambition" value={identity.loyalty_vs_ambition} left="Loyalty" right="Ambition" />
+            <IdentityBar label="Domestic vs Global" value={identity.domestic_vs_global} left="Domestic" right="Global" />
+            <IdentityBar label="Stats vs Eye Test" value={identity.stats_vs_eye_test} left="Stats" right="Eye Test" />
+            <IdentityBar label="Control vs Chaos" value={identity.control_vs_chaos} left="Control" right="Chaos" />
+          </div>
+        );
+      })()}
 
       {/* Club theme */}
       <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-4 mb-4">

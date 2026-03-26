@@ -76,6 +76,28 @@ export async function POST(request: Request) {
         }
       }
 
+      // Compute era bias for dynamic votes too
+      const fvf = (userUpdate.flair_vs_function as number | undefined) ?? (currentUser.flair_vs_function as number | null) ?? 50;
+      const yve = (userUpdate.youth_vs_experience as number | undefined) ?? (currentUser.youth_vs_experience as number | null) ?? 50;
+      const sve = (userUpdate.stats_vs_eye_test as number | undefined) ?? (currentUser.stats_vs_eye_test as number | null) ?? 50;
+      const cvc = (userUpdate.control_vs_chaos as number | undefined) ?? (currentUser.control_vs_chaos as number | null) ?? 50;
+      const dvg = (userUpdate.domestic_vs_global as number | undefined) ?? (currentUser.domestic_vs_global as number | null) ?? 50;
+
+      if (newTotalVotes >= 5) {
+        const classicSignals = (sve < 40 ? 1 : 0) + (dvg < 40 ? 1 : 0) + (yve > 60 ? 1 : 0);
+        const modernSignals = (sve > 60 ? 1 : 0) + (dvg > 60 ? 1 : 0) + (yve < 40 ? 1 : 0);
+
+        if (classicSignals >= 2) {
+          userUpdate.era_bias = "classic";
+        } else if (modernSignals >= 2) {
+          userUpdate.era_bias = "modern";
+        } else if (fvf > 55 && cvc < 45) {
+          userUpdate.era_bias = "golden age";
+        } else {
+          userUpdate.era_bias = "timeless";
+        }
+      }
+
       await sb.from("fc_users").update(userUpdate).eq("id", user_id);
     }
 
@@ -204,11 +226,43 @@ export async function POST(request: Request) {
       }
     }
 
+    // Compute era bias from dimension patterns
+    const fvf = (userUpdate.flair_vs_function as number | undefined) ?? (currentUser.flair_vs_function as number | null) ?? 50;
+    const yve = (userUpdate.youth_vs_experience as number | undefined) ?? (currentUser.youth_vs_experience as number | null) ?? 50;
+    const sve = (userUpdate.stats_vs_eye_test as number | undefined) ?? (currentUser.stats_vs_eye_test as number | null) ?? 50;
+    const cvc = (userUpdate.control_vs_chaos as number | undefined) ?? (currentUser.control_vs_chaos as number | null) ?? 50;
+    const dvg = (userUpdate.domestic_vs_global as number | undefined) ?? (currentUser.domestic_vs_global as number | null) ?? 50;
+
+    if (newTotalVotes >= 5) {
+      // Classic (pre-2000): values eye test, loyalty/domestic, experience
+      // Modern (2010s+): values stats, global outlook, youth development
+      // Golden (2000s): balanced or high flair + control
+      const classicSignals = (sve < 40 ? 1 : 0) + (dvg < 40 ? 1 : 0) + (yve > 60 ? 1 : 0);
+      const modernSignals = (sve > 60 ? 1 : 0) + (dvg > 60 ? 1 : 0) + (yve < 40 ? 1 : 0);
+
+      if (classicSignals >= 2) {
+        userUpdate.era_bias = "classic";
+      } else if (modernSignals >= 2) {
+        userUpdate.era_bias = "modern";
+      } else if (fvf > 55 && cvc < 45) {
+        userUpdate.era_bias = "golden age";
+      } else {
+        userUpdate.era_bias = "timeless";
+      }
+    }
+
     await sb
       .from("fc_users")
       .update(userUpdate)
       .eq("id", user_id);
   }
+
+  // Re-fetch updated user dimensions for identity computation
+  const { data: updatedUser } = await sb
+    .from("fc_users")
+    .select("total_votes, flair_vs_function, youth_vs_experience, attack_vs_defense, loyalty_vs_ambition, domestic_vs_global, stats_vs_eye_test, control_vs_chaos, era_bias")
+    .eq("id", user_id)
+    .single();
 
   // Return all options with updated vote counts
   const { data: options } = await sb
@@ -220,5 +274,16 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     results: options ?? [],
+    identity: updatedUser ? {
+      total_votes: updatedUser.total_votes,
+      flair_vs_function: updatedUser.flair_vs_function,
+      youth_vs_experience: updatedUser.youth_vs_experience,
+      attack_vs_defense: updatedUser.attack_vs_defense,
+      loyalty_vs_ambition: updatedUser.loyalty_vs_ambition,
+      domestic_vs_global: updatedUser.domestic_vs_global,
+      stats_vs_eye_test: updatedUser.stats_vs_eye_test,
+      control_vs_chaos: updatedUser.control_vs_chaos,
+      era_bias: updatedUser.era_bias,
+    } : null,
   });
 }

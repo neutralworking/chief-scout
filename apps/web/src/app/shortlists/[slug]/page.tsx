@@ -8,6 +8,7 @@ import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
 import { getArchetypeColor } from "@/lib/archetype-styles";
 import { useAuth } from "@/components/AuthProvider";
+import { PaywallGate } from "@/components/PaywallGate";
 
 interface ShortlistDetail {
   id: number;
@@ -143,6 +144,7 @@ export default function ShortlistDetailPage() {
   }
 
   return (
+    <PaywallGate required="pro">
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-2">
@@ -309,5 +311,6 @@ export default function ShortlistDetailPage() {
         </div>
       )}
     </div>
+    </PaywallGate>
   );
 }

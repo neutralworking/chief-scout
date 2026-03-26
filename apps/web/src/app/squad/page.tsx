@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { PaywallGate } from "@/components/PaywallGate";
 
 interface SquadPlayer {
   id: number;
@@ -116,6 +117,7 @@ export default function SquadPage() {
   }
 
   return (
+    <PaywallGate required="pro">
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -259,5 +261,6 @@ export default function SquadPage() {
         </div>
       )}
     </div>
+    </PaywallGate>
   );
 }

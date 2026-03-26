@@ -40,3 +40,4 @@ scripts/logs/
 
 # Stitch skills (third-party downloads)
 .agents/
+.superpowers/

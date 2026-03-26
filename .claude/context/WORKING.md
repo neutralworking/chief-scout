@@ -1,112 +1,118 @@
 # Working Context — Chief Scout
-> Auto-updated at session start/end. Last updated: 2026-03-25
+> Last updated: 2026-03-24 (session 23)
+
+## Continue Today
+1. **Cross-session sync** — WORKING.md, FEATURES.md, tasks.md all stale. Updating now.
+2. **Prod DB broken** — `PROD_POSTGRES_DSN` returns "Tenant or user not found". Blocks promotion.
+3. **Stripe keys missing** — no `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in `.env.local`. Blocks billing QA.
+4. **Google Cloud** — user says keys should be available but no GCP env vars or CLI found.
+5. **Stale branch cleanup** — 20 unmerged remote branches (see BRANCHES.md).
 
 ## Current Sprint
-1. **Kickoff Clash Launch** — COMPLETE.
-2. **On The Plane** — COMPLETE (41/48 nations playable, 7 thin-pool disabled gracefully).
-3. **Wave 1 UI Redesign** — COMPLETE. Wave 2 in flight (parallel agent shipping clubs/leagues/news/free-agents).
-4. **Recent Transfers + CS Value** — COMPLETE. 147 seed, comp-blended valuations, /transfers page.
+1. ~~**Data Density**~~ — DONE. 27,918 people in staging.
+2. ~~**Four-Pillar QA**~~ — DONE. Precomputed scores run daily via cron.
+3. ~~**36-Role Taxonomy**~~ — DONE. PR #106 merged, migration 043 applied, 14,063 players recomputed.
+4. ~~**Fixture Predictions**~~ — DONE. PRs #107-108 merged, migration 044, pipeline 69.
 
-## Resume Tasks (next session)
-- Scouting notes gap — top 250 LLM profiling (wait for scout skill update first)
-- Expand transfer seed data — 19 unmatched players, find dedicated fee dataset
-- Transfer comps widget on player detail page
-- Expand trait seeds to peak 88-91 legends (~30 more)
-- Add missing tactical_roles (40 names) to increase philosophy-role link coverage
-- Expand club_philosophies.csv — Garra Charrua + Cholismo need clubs
-- Wave 3 UI — compare, formations, squad builder, gaffer
-- Run pipeline 46 (crowd intel) once enough Gaffer votes accumulate
+### Next Sprint (proposed)
+- PL launch audit — completeness gate for production
+- Stripe E2E test — needs keys first
+- KC DB wiring — migration 036 + replace hardcoded cards
+- Auth enforcement — currently sessionStorage hack
+
+## What's New (sessions 22-23)
+
+### Shipped & On Main
+- **36-Role Four-Pillar Taxonomy** (PR #106): SACROSANCT System 4 rewrite, migration 043, formation slots, blueprints, ratings, role icons, editor all updated
+- **Fixture Predictions** (PRs #107-108): predicted scores, international/continental support, position constraints, role mapping, tag pipelines (36b fitness, 36c disciplinary), migration 044
+- **GK-Specific Ratings**: separate models, alias discounting, league strength pre-scaling
+- **Nav v2**: Clash Display headings, brand gradient logo, pill nav items
+- **Design System v2**: Vibrant Data — warm surfaces, brand gradient, Bricolage Grotesque + Clash Display, 12px radius, card system (58 files)
+- **Blueprint Computation**: extracted module, updated for 36-role taxonomy
+- **Role redesign branch**: merged to main and deleted
+
+### Previously Shipped (sessions 17-21)
+- Wave 1 UI, Kickoff Clash v4, Legends system, On The Plane
+- Freemium + billing tier system, per-player SEO
+- Precomputed four-pillar cron, tactics screen, role icons
+- Design system + Stitch prototyping, 16+ mockups
+
+## App Structure
+| Route | Purpose | Env |
+|-------|---------|-----|
+| `/` | Dashboard — news-first, FeaturedPlayer 2-col | All |
+| `/players` | Player list — sticky search, age groups | All |
+| `/players/[id]` | Player detail — best roles, four-pillar, SEO | All |
+| `/compare` | 2-3 player comparison | All |
+| `/fixtures` | Fixture previews + predicted scores | All |
+| `/network` | Scout Insights: hidden gems, batch triage | Staging |
+| `/clubs` | Club list + `/clubs/[id]` with power ratings | All |
+| `/leagues` | League list (top 5 pinned) | All |
+| `/formations` | Formation browser + 36 tactical roles | All |
+| `/tactics` | 10 philosophies + role browser | All |
+| `/news` | News feed | All |
+| `/free-agents` | Free Agency (compact PlayerCard) | All |
+| `/shortlists` | User + editorial shortlists | All |
+| `/choices` | Gaffer (PWA) — mobile cards + stat quiz | All |
+| `/kickoff-clash` | KC game hosted on CS Vercel | All |
+| `/legends` | Legend profiles with trait pills + similar players | All |
+| `/on-the-plane` | World Cup squad picker | All |
+| `/admin` | 5-tab: Dashboard, Scout Pad, Editor, Personality, KC Cards | Staging |
+
+## Sidebar Nav (v2)
+- **Scouting**: Dashboard, Players, Network*, Stats, Free Agency, Compare, Legends
+- **Browse**: Clubs, Leagues, Fixtures, News
+- **Games**: Gaffer, Kickoff Clash, On The Plane
+- **Admin**: Admin*, Tactics*
+(*staging only)
 
 ## Active Decisions
-- KC game lives in TWO places: `apps/kickoff-clash/` (standalone) and `apps/web/src/lib/kickoff-clash/` (hosted route). Standalone has newer theme.
-- Pulse (1,037) and Outlet (1,041) still the largest archetypes
-- CS Value Approach B active (comp-count scaled blend). Path to Approach C (calibration curves) once 500+ real fees exist.
+- KC v4: apply migration 036 + wire DB, or keep client-side prototype?
+- Freemium/Stripe: need keys before E2E test
+- Google Cloud: what services to integrate?
 
 ## Blockers
-- ~8,000 players lack AF data — archetype system can't classify without stats
-- Wikidata has NO transfer fee data (P1536 empty) — need Kaggle/manual sources
+- **Prod DB unreachable** — "Tenant or user not found" on PROD_POSTGRES_DSN
+- Stripe keys not in .env.local — billing QA blocked
+- Migration 036 (KC tables) not applied
+- Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator
+- 20 stale remote branches (see BRANCHES.md)
+- Script 04 `story_types` crash — guard exists in code but needs live verification
 
-## What Shipped (session 25, 2026-03-25)
+## Key Metrics (as of 2026-03-24)
+| Metric | Value |
+|--------|-------|
+| people | 27,918 |
+| attribute_grades | 646k+ |
+| Players rated | 14,063 |
+| Tier 1 profiles | 9,227+ |
+| Tests | 370 (Python + TS) |
+| Clubs | 961 |
+| Legends seeded | 195 |
+| KC characters | 500 |
+| Tactical roles | 36 |
+| Pipeline scripts | 01-86 + 69 |
+| Migrations | through 044 |
 
-### Gaffer Quality + Crowd Intelligence
-- Question quality pass: 6 dated player refs fixed, ACL dilemma rewritten, 2 GOAT dupes rethemed
-- control_vs_chaos expanded to 130 occurrences (was ~20)
-- 2 new categories (Contract Talks, International Duty) with 10 questions → 135 total
-- Crowd intelligence pipeline: migration 046, pipeline 46, dynamic vote storage, admin widget
-- Migration 045 (multipick) applied, questions reseeded with --force
+## Infrastructure
+- News cron: GitHub Actions 6x/day + Vercel 1x/day
+- Four-pillar cron: daily precompute via `/api/cron/assessments`
+- Billing: Stripe wired, tier gating in place (needs keys + testing)
+- Design system: Stitch prototyping + Figma MCP
+- PM: Notion MCP connected (project board, CEO assessments, tasks DB)
+- MCP servers: Notion, Figma
 
-### Materialized Intelligence Card
-- Migration 047: VIEW → MATERIALIZED VIEW with 7 indexes (27,918 rows)
-- pg_trgm extension enabled for name search
-- Auto-refresh in pipeline cron, manual "Refresh Cards" button, standalone API endpoint
-- All 25 consumers unchanged
-
-### Vercel Deploy Fix
-- Hobby plan quota hit from 9 rapid Wave 2/3 pushes — CLI deploy bypassed the issue
-
-## What Shipped (session 24, 2026-03-25)
-
-### Recent Transfers + CS Value Calibration
-- Migration 045: transfers table with source/confidence, partial unique indexes, transfer_comparables view
-- Pipeline 87 (Wikidata P1536): built but source is empty for footballers
-- Pipeline 88 (seed): 147 curated transfers (Summer 2022 – Jan 2026), 128 matched
-- Pipeline 89 (Kaggle): 737 career moves, latest-move-only fee estimates, low confidence
-- Comparables lib: 7-dimension similarity, confidence weighting, weighted median
-- CS Value recalibrated: base curve lifted (L92=€180m), buyer pool softened, comp blend (5+ high-conf, 15-35%)
-- 15,980 players revalued. Yamal €268m, Gabriel €102m, Kane ~€82m, Neves €97m
-- /transfers page (Wave 2), API route, sidebar link
-
-### OTP Submit Flow — Completed
-- Error boundary removed, graceful fallback for 7 thin-pool nations
-- Nation stats RPC (042b), unplayable nation cards disabled
-- 41/48 nations fully playable with scoring
-
-## What Shipped (session 23, 2026-03-25)
-
-### Tactical Philosophies — Full Feature
-- Migration 031 applied: tactical_philosophies, philosophy_formations, philosophy_roles tables
-- Pipeline 83 run: 10 philosophies seeded + 51 formation links + 21 role links
-- Pipeline 84 created: CSV-driven club assignment, 22 clubs across 8 philosophies
-- `/tactics/[slug]` detail page: header+radar, origin story, clubs, best-fit players, formations, roles, fit profile
-- `SystemFit` component on player detail: club system fit + top 3 philosophy fits
-- Formation badges now link to `/tactics/[slug]`
-- Club detail pill links to `/tactics/[slug]`
-- Pipeline 83 env fix: `.env.local` path (was bare `load_dotenv()`)
-- Build passes clean
-
-## What Shipped (session 22, 2026-03-25)
-
-### Kickoff Clash Launch
-- Data bridge: transform.ts maps 500 kc_characters.json → Card[] (position, archetype, personality, rarity, durability)
-- Card detail popup with bio, quirk, tags, strengths/weaknesses via InspectCardContext
-- Title screen with Continue Run / New Run + run history (localStorage)
-- Hosted at /kickoff-clash on Chief Scout Vercel with scoped layout + CSS vars
-- QA: durability weights, secondary archetypes, z-index, mobile overlap, empty quirk
-
-### On The Plane — WC Squad Picker
-- Migration 042: wc_nations, otp_ideal_squads, otp_entries, otp_nation_stats
-- 48 WC 2026 nations seeded via pipeline 83
-- Squad picker UI: split layout (pitch diagram + additions list + player pool)
-- API fixes: exact count queries, player_intelligence_card, pagination for 1473 England players
-- React #310 fix: spread before .sort() on useMemo array (React 19 freezes memo values)
-
-### Build fixes
-- SectionHeader + GradeBadge stub components (missing from partial wave1-ui merge)
-- CSS: --bg-base → --color-bg-base in KC globals + layout
-
-## Key Metrics
-| Table | Count | Last Updated |
-|-------|-------|-------------|
-| people | 21,683+ | 2026-03-19 |
-| wc_nations | 48 | 2026-03-25 |
-| AF grades | 110,047 | 2026-03-21 |
-| earned_archetype assigned | 8,181 | 2026-03-21 |
-| player_valuations | 16,813 | 2026-03-22 |
-| editorial traits seeded | 152 (65 legends) | 2026-03-22 |
-| KC characters (JSON) | 500 | 2026-03-25 |
-
-## Infrastructure Notes
-- `assessments-cron.yml` — daily 3:30am UTC, computes all pillar scores
-- `MODEL_LABELS` in `apps/web/src/lib/models.ts` — mirrors `pipeline/lib/models.py`
-- `TRAIT_DEFINITIONS` in `trait-role-impact.ts` — canonical trait registry (30 traits total)
-- `POST /api/admin/trait-update` — editorial trait add/remove with ALLOWED_TRAITS validation
+## Credential Status
+| Service | Status |
+|---------|--------|
+| Supabase Staging | ✓ Connected |
+| Supabase Prod | ✗ Broken (tenant not found) |
+| GitHub | ✓ Connected |
+| Gemini | ✓ Key present |
+| Groq | ✓ Key present |
+| API-Football | ✓ Key present |
+| Anthropic | ✓ Key present |
+| Stripe | ✗ No keys |
+| Google Cloud | ✗ No keys or CLI |
+| Notion MCP | ✓ Connected |
+| Figma MCP | ✓ Connected |

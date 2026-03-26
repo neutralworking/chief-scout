@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RadarChart } from "@/components/RadarChart";
+import { PaywallGate } from "@/components/PaywallGate";
 import { MODEL_ATTRIBUTES, MODEL_LABEL, MODEL_SHORT } from "@/lib/models";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { POSITION_COLORS } from "@/lib/types";
@@ -396,6 +397,7 @@ export default function ComparePage() {
   const hasComparison = players.length >= 2;
 
   return (
+    <PaywallGate required="scout">
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 max-w-5xl mx-auto">
       {/* Page header */}
       <h1 className="text-lg font-bold tracking-tight text-[var(--text-primary)] mb-4">
@@ -856,5 +858,6 @@ export default function ComparePage() {
         </div>
       )}
     </div>
+    </PaywallGate>
   );
 }

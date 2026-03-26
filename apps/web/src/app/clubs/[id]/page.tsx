@@ -5,6 +5,7 @@ import { computeAge } from "@/lib/types";
 import { MiniRadar } from "@/components/MiniRadar";
 import { getRoleRadarConfig } from "@/lib/role-radar";
 import { getArchetypeColor } from "@/lib/archetype-styles";
+import { TierGatedSection } from "@/components/TierGatedSection";
 
 interface ClubPlayer {
   person_id: number;
@@ -274,6 +275,9 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Gated: squad depth, power rating, player list ── */}
+      <TierGatedSection required="scout" message="Unlock squad depth analysis" detail="Upgrade to Scout to see power ratings, position depth, and full squad intelligence.">
 
       {/* Power Rating */}
       {ratingData && (() => {
@@ -553,6 +557,7 @@ export default async function ClubDetailPage({ params }: ClubPageProps) {
           </div>
         </>
       )}
+      </TierGatedSection>
     </div>
   );
 }

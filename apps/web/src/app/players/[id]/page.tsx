@@ -21,6 +21,7 @@ import { ValuationPanel } from "@/components/ValuationPanel";
 import { FourPillarDashboard } from "@/components/FourPillarDashboard";
 import { SimilarPlayers } from "@/components/SimilarPlayers";
 import { SystemFit } from "@/components/SystemFit";
+import { TierGatedSection } from "@/components/TierGatedSection";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 
@@ -433,6 +434,7 @@ export default async function PlayerDetailPage({
           </div>
 
           {/* Row 2: Meta chips — archetype, personality, valuation, tags, links */}
+          <TierGatedSection required="scout" message="Unlock full scouting profile" detail={`See ${player.name}'s archetype, personality, radar, and detailed assessment.`}>
           <div className="mt-1.5 pt-1.5 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-3 gap-y-1">
             {(player.earned_archetype || player.archetype) && (
               <div className="flex items-center gap-1">
@@ -514,13 +516,17 @@ export default async function PlayerDetailPage({
               )}
             </div>
           </div>
+          </TierGatedSection>
         </div>
 
         {/* Assessment — full width */}
+        <TierGatedSection required="scout" message="Unlock player assessment" detail={`See ${player.name}'s four-pillar assessment scores.`}>
         <FourPillarDashboard playerId={player.person_id} storedBestRole={player.best_role} storedBestRoleScore={player.best_role_score} />
+        </TierGatedSection>
       </div>
 
       {/* ── Two-column body — fills remaining viewport, no scroll ── */}
+      <TierGatedSection required="scout" message="Unlock full intelligence" detail="Upgrade to Scout to see radar, stats, career history, valuation, and more.">
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Left: Radar + System Fit + Tab group (Career / Stats / News) */}
         <div className="flex flex-col gap-2 min-h-0">
@@ -567,6 +573,7 @@ export default async function PlayerDetailPage({
           ]} />
         </div>
       </div>
+      </TierGatedSection>
     </div>
   );
 }

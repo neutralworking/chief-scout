@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
+import { PaywallGate } from "@/components/PaywallGate";
 import { POSITION_COLORS } from "@/lib/types";
 import Link from "next/link";
 
@@ -435,12 +436,14 @@ function StatsContent() {
 
 export default function StatsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="text-[var(--text-muted)] text-sm">Loading...</div>
-      }
-    >
-      <StatsContent />
-    </Suspense>
+    <PaywallGate required="scout">
+      <Suspense
+        fallback={
+          <div className="text-[var(--text-muted)] text-sm">Loading...</div>
+        }
+      >
+        <StatsContent />
+      </Suspense>
+    </PaywallGate>
   );
 }

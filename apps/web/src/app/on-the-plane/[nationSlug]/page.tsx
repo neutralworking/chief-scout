@@ -851,8 +851,8 @@ export default function SquadBuilderPage() {
 
             {/* Conversion CTA */}
             <UpgradeCTA
-              message="Our scouts rated this squad — want to know why?"
-              detail="Unlock full player profiles, archetypes, and scouting intelligence."
+              message={`Our scouts rated your squad ${comparison.score}/100 — want to know why?`}
+              detail="Unlock full player profiles, radar charts, archetypes, and scouting intelligence for every player."
             />
           </>
         )}

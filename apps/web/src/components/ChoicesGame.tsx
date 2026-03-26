@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
+import { computeIdentity, type IdentityDimensions } from "@/lib/football-identity";
+import Link from "next/link";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,8 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
   const [streakAnim, setStreakAnim] = useState<"bounce" | "shake" | null>(null);
+  const [identity, setIdentity] = useState<ReturnType<typeof computeIdentity> | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const timerRef = useRef<number>(0);
 
   void categories;
@@ -132,6 +136,10 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         if (dynData.questions?.length > 0) {
           setCurrentQuestion(dynData.questions[0]);
           timerRef.current = Date.now();
+          // Show onboarding for first-time users
+          if (!localStorage.getItem("fc_total_answered")) {
+            setShowOnboarding(true);
+          }
         } else {
           setCurrentQuestion(null);
         }
@@ -146,6 +154,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
 
   const handleOptionTap = async (optionId: number) => {
     if (!currentQuestion || results !== null) return;
+    if (showOnboarding) setShowOnboarding(false);
 
     const newChosenIds = new Set(chosenIds);
 
@@ -202,6 +211,20 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
             image_url: o.image_url,
           }))
         );
+      }
+
+      // Compute identity from vote response
+      if (data.identity && (data.identity.total_votes ?? 0) >= 5) {
+        const dims: IdentityDimensions = {
+          flair_vs_function: data.identity.flair_vs_function ?? 50,
+          youth_vs_experience: data.identity.youth_vs_experience ?? 50,
+          attack_vs_defense: data.identity.attack_vs_defense ?? 50,
+          loyalty_vs_ambition: data.identity.loyalty_vs_ambition ?? 50,
+          domestic_vs_global: data.identity.domestic_vs_global ?? 50,
+          stats_vs_eye_test: data.identity.stats_vs_eye_test ?? 50,
+          control_vs_chaos: data.identity.control_vs_chaos ?? 50,
+        };
+        setIdentity(computeIdentity(dims));
       }
 
       setPrevStreak(streak);
@@ -271,18 +294,41 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
       {/* ── No questions left ── */}
       {!loading && !currentQuestion && (
         <div className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="text-4xl mb-4">⚽</div>
-          <div className="text-lg font-bold mb-2">All caught up!</div>
-          <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
-            You&apos;ve answered everything. New questions coming soon.
-          </p>
-          <UpgradeCTA
-            message="Your manager style is taking shape"
-            detail="See which players match your philosophy with full scouting intelligence."
-          />
+          {identity ? (
+            <>
+              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">You manage like</div>
+              <div className="text-2xl font-bold text-[var(--accent-tactical)] mb-1">{identity.name}</div>
+              <div className="text-xs text-[var(--text-secondary)] italic mb-2">&ldquo;{identity.tagline}&rdquo;</div>
+              <div className="text-sm text-[var(--text-primary)] font-medium mb-4">{identity.summary}</div>
+              <Link
+                href="/players"
+                className="px-5 py-2 bg-[var(--color-accent-tactical)] text-white text-sm font-semibold hover:opacity-90 transition-opacity mb-3"
+              >
+                Find players that fit your style &rarr;
+              </Link>
+              <Link
+                href="/profile"
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              >
+                See full identity profile
+              </Link>
+            </>
+          ) : (
+            <>
+              <div className="text-4xl mb-4">⚽</div>
+              <div className="text-lg font-bold mb-2">All caught up!</div>
+              <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
+                You&apos;ve answered everything. New questions coming soon.
+              </p>
+              <UpgradeCTA
+                message="Your manager style is taking shape"
+                detail="See which players match your philosophy with full scouting intelligence."
+              />
+            </>
+          )}
           <button
             onClick={() => fetchQuestion()}
-            className="px-6 py-2 mt-4 bg-[var(--color-accent-tactical)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            className="px-6 py-2 mt-4 border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs hover:text-[var(--text-secondary)] transition-colors"
           >
             Try Again
           </button>
@@ -298,6 +344,16 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
               : "opacity-100 translate-y-0"
           }`}
         >
+          {/* First-time onboarding hint */}
+          {showOnboarding && (
+            <div className="flex-none mx-4 mt-3 mb-1 px-4 py-3 bg-[var(--color-accent-tactical)]/10 border border-[var(--color-accent-tactical)]/25 rounded-xl text-center animate-slideUp">
+              <p className="text-xs font-semibold text-[var(--color-accent-tactical)] mb-0.5">Welcome to Gaffer</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">
+                Make managerial calls — bench decisions, transfers, pub debates. Your choices build a unique manager identity.
+              </p>
+            </div>
+          )}
+
           {/* Question zone */}
           <div className="flex-none px-4 pt-4 pb-2 text-center animate-slideUp">
             {currentQuestion.category && (
@@ -342,10 +398,20 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
                 <span className="text-xs text-[var(--text-muted)] font-data">
                   {currentQuestion.total_votes + 1} votes
                 </span>
-                <UpgradeCTA
-                  message="See which players match your style"
-                  variant="inline"
-                />
+                {identity ? (
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent-tactical)]/10 border border-[var(--color-accent-tactical)]/25 rounded-md hover:bg-[var(--color-accent-tactical)]/20 transition-colors"
+                  >
+                    <span className="text-[10px] text-[var(--text-muted)]">Your type:</span>
+                    <span className="text-[11px] font-bold text-[var(--color-accent-tactical)]">{identity.name}</span>
+                  </Link>
+                ) : (
+                  <UpgradeCTA
+                    message="See which players match your style"
+                    variant="inline"
+                  />
+                )}
                 <button
                   onClick={nextQuestion}
                   className="px-6 py-2 bg-[var(--color-accent-tactical)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"

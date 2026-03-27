@@ -55,6 +55,7 @@ export async function GET(
       .select("id")
       .eq("nation_id", nationId)
       .eq("active", true)
+      .eq("is_female", false)
       .range(from, from + PAGE - 1);
     if (!data || data.length === 0) break;
     primaryIds.push(...data.map((p) => p.id));

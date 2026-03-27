@@ -109,7 +109,7 @@ WIKI_ARTICLES: dict[str, str] = {
     "iraq": "Iraq national football team",
     "indonesia": "Indonesia national football team",
     # OFC
-    "new-zealand": "New Zealand national football team",
+    "new-zealand": "New Zealand men's national football team",
     # Playoff
     "peru": "Peru national football team",
     "honduras": "Honduras national football team",
@@ -182,6 +182,7 @@ def fetch_wiki_html(article_title: str) -> Optional[str]:
         "prop": "text",
         "format": "json",
         "disableeditsection": "true",
+        "redirects": "true",
     }
     url = f"{WIKI_API}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -250,13 +251,14 @@ def parse_squad_from_html(html_text: str, nation_slug: str) -> list[dict]:
     seen_names = set()
 
     # Strategy A: Look for sortable wikitable with position column
-    tables = re.findall(r'<table[^>]*class="[^"]*wikitable[^"]*sortable[^"]*"[^>]*>(.*?)</table>', html_text, re.DOTALL)
+    # Wikipedia class ordering varies (e.g. "wikitable sortable" or "sortable wikitable plainrowheaders")
+    tables = re.findall(r'<table[^>]*class="[^"]*(?:wikitable[^"]*sortable|sortable[^"]*wikitable)[^"]*"[^>]*>(.*?)</table>', html_text, re.DOTALL)
     if not tables:
         tables = re.findall(r'<table[^>]*class="[^"]*wikitable[^"]*"[^>]*>(.*?)</table>', html_text, re.DOTALL)
 
     for table_html in tables:
-        # Check if this looks like a squad table (has GK/DF/MF/FW positions)
-        if not re.search(r'(?:>GK<|>DF<|>MF<|>FW<)', table_html, re.IGNORECASE):
+        # Check if this looks like a squad table (has GK/DF/MF/FW positions, possibly with sort-key prefix like "1GK")
+        if not re.search(r'>\d*(?:GK|DF|MF|FW)<', table_html, re.IGNORECASE):
             continue
 
         rows = re.findall(r'<tr[^>]*>(.*?)</tr>', table_html, re.DOTALL)
@@ -270,9 +272,11 @@ def parse_squad_from_html(html_text: str, nation_slug: str) -> list[dict]:
             pos_val = None
             for i, cell in enumerate(cells):
                 cell_text = re.sub(r'<[^>]+>', '', cell).strip()
-                if cell_text.upper() in ("GK", "DF", "MF", "FW"):
+                # Wikipedia sort keys prepend digits (e.g. "1GK", "2DF") — strip them
+                cell_clean = re.sub(r'^\d+', '', cell_text).strip()
+                if cell_clean.upper() in ("GK", "DF", "MF", "FW"):
                     pos_idx = i
-                    pos_val = cell_text.upper()
+                    pos_val = cell_clean.upper()
                     break
 
             if pos_idx is None:
@@ -293,6 +297,7 @@ def parse_squad_from_html(html_text: str, nation_slug: str) -> list[dict]:
                 player_name = re.sub(r'\s*\(footballer[^)]*\)', '', player_name)
                 player_name = re.sub(r'\s*\(soccer[^)]*\)', '', player_name)
                 player_name = re.sub(r'\s*\(born \d{4}\)', '', player_name)
+                player_name = re.sub(r'\s*\(page does not exist\)', '', player_name)
             else:
                 player_name = re.sub(r'<[^>]+>', '', name_cell).strip()
 
@@ -331,17 +336,24 @@ def parse_squad_from_html(html_text: str, nation_slug: str) -> list[dict]:
                     break
 
             # Extract club from later cells (look for links to club articles)
+            # Club cells typically have: flag icon (links to federation) + actual club link
+            # We want the last non-federation link in the cell
             club_name = None
             for i in range(name_idx + 1, len(cells)):
-                club_match = re.search(r'title="([^"]+)"', cells[i])
-                if club_match:
-                    club_candidate = club_match.group(1)
-                    # Skip nation/flag links and date links
-                    if not re.search(r'(football team|national|FIFA|Category|\d{4})', club_candidate, re.IGNORECASE):
-                        # Clean up common suffixes
-                        club_candidate = re.sub(r'\s*F\.?C\.?\s*$', ' FC', club_candidate).strip()
-                        club_name = club_candidate
-                        break
+                # Find ALL title links in this cell
+                all_links = re.findall(r'title="([^"]+)"', cells[i])
+                # Filter out federation/association, nation, flag, date links
+                skip_re = re.compile(
+                    r'(football team|national|federation|association|FIFA|Category|\d{4}|flag of)',
+                    re.IGNORECASE
+                )
+                club_candidates = [t for t in all_links if not skip_re.search(t)]
+                if club_candidates:
+                    # Take the last candidate (usually the actual club, after flag icons)
+                    club_candidate = club_candidates[-1]
+                    club_candidate = re.sub(r'\s*F\.?C\.?\s*$', ' FC', club_candidate).strip()
+                    club_name = club_candidate
+                    break
 
             norm = normalize_name(player_name)
             if norm in seen_names:
@@ -483,11 +495,14 @@ def match_player_to_db(cur, player: dict, nation_id: int) -> Optional[int]:
 
 def insert_player(cur, player: dict, nation_id: int) -> Optional[int]:
     """Insert a new player from Wikipedia squad data."""
+    # people.id has no auto-increment — generate next ID manually
+    cur.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM people")
+    next_id = cur.fetchone()[0]
     cur.execute("""
-        INSERT INTO people (name, nation_id, dob, active)
-        VALUES (%s, %s, %s, true)
+        INSERT INTO people (id, name, nation_id, date_of_birth, active)
+        VALUES (%s, %s, %s, %s, true)
         RETURNING id
-    """, (player["name"], nation_id, player.get("dob")))
+    """, (next_id, player["name"], nation_id, player.get("dob")))
     row = cur.fetchone()
     if not row:
         return None

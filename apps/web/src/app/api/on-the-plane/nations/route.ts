@@ -47,7 +47,8 @@ export async function GET() {
         .from("people")
         .select("id", { count: "exact", head: true })
         .eq("nation_id", nid)
-        .eq("active", true);
+        .eq("active", true)
+        .eq("is_female", false);
       return { nid, count: count ?? 0 };
     });
     const counts = await Promise.all(countPromises);

@@ -7,9 +7,11 @@ import { ScoutPadTab } from "@/components/admin/ScoutPadTab";
 import { EditorTab } from "@/components/admin/EditorTab";
 import { PersonalityTab } from "@/components/admin/PersonalityTab";
 import { KCPreviewTab } from "@/components/admin/KCPreviewTab";
+import { GradingTab } from "@/components/admin/GradingTab";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
+  { id: "grading", label: "Grading" },
   { id: "scout-pad", label: "Scout Pad" },
   { id: "editor", label: "Editor" },
   { id: "personality", label: "Personality" },
@@ -60,6 +62,7 @@ function AdminTabs() {
 
       {/* Tab content */}
       {activeTab === "dashboard" && <DashboardTab />}
+      {activeTab === "grading" && <GradingTab />}
       {activeTab === "scout-pad" && <ScoutPadTab />}
       {activeTab === "editor" && <EditorTab />}
       {activeTab === "personality" && <PersonalityTab />}

@@ -13,7 +13,7 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **Components**: `CareerAndMoments.tsx`, `KeyMomentsList.tsx`, `PlayerStats.tsx`, `PlayerRadar.tsx`, `PersonalityBadge.tsx`, `ScoutPad.tsx`
 - **API**: `GET /api/players/[id]`, `GET /api/players/[id]/radar`, `GET /api/players/[id]/tags`, `GET /api/players/[id]/news`, `GET /api/players/[id]/assessment`, `GET /api/players/[id]/similar`, `GET /api/players/[id]/valuation`, `GET /api/players/[id]/suitability`, `GET /api/players/[id]/shortlists`
 - **DB**: `people`, `player_profiles`, `player_status`, `player_market`, `player_personality`, `attribute_grades`, `key_moments`
-- **Notes**: Per-player SEO with OG images, meta tags, JSON-LD structured data
+- **Notes**: No-scroll redesign with tab groups. Per-player SEO with OG images, meta tags, JSON-LD structured data. Transfer comparables widget ("Similar Transfers").
 
 ## Player Browse / Search
 - **Page**: `apps/web/src/app/players/page.tsx`
@@ -42,6 +42,14 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **SQL**: `030_fixtures.sql`, `044_fixture_predictions.sql`
 - **Notes**: Competition tabs (PL, La Liga, BL, SA, L1, CL, EL, ECL, Championship, Eredivisie, Primeira Liga, WC, Euros). Prediction model shows W/D/L probability bars, predicted scorelines. Match preview links to scout preview with squad analysis.
 
+## Transfers
+- **Page**: `apps/web/src/app/transfers/page.tsx`
+- **API**: `GET /api/transfers`, `GET /api/transfers/comps/[playerId]`
+- **DB**: `transfers`, `transfer_comparables`
+- **Pipeline**: `87_wikidata_transfers.py`, `88_seed_transfers.py`, `89_kaggle_to_transfers.py`
+- **SQL**: `045_transfers.sql`
+- **Notes**: Recent transfer feed with 147 seed + 737 Kaggle transfers. Transfer comparables library for valuation context. CS Value recalibrated against comp-blended data. Transfer comps widget on player detail page.
+
 ## Free Agency
 - **Page**: `apps/web/src/app/free-agents/page.tsx`
 - **Components**: `PlayerCard.tsx`, `MiniRadar.tsx`
@@ -56,7 +64,7 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **Pipeline**: `80_export_card_templates.py`, `80_export_character_templates.py`, `81_airtable_kc_ingest.py`, `82_kc_bios.py`
 - **SQL**: `036_kickoff_clash.sql`
 - **DB**: 500 KC characters derived from real player archetypes
-- **Notes**: Roguelike card battler. Phases: setup (draft deck) → match (round-by-round) → shop (buy/sell/upgrade). Features: playing styles, chemistry connections, durability system, academy tiers, action cards, substitutions. Custom dark theme with CSS variable overrides. Felt table aesthetic.
+- **Notes**: Roguelike card battler. DB-wired (migration 036 applied), 201 tests. Phases: setup (draft deck) → match (round-by-round) → shop (buy/sell/upgrade). Features: playing styles, chemistry connections, durability system, academy tiers, action cards, substitutions, pack opening, card art, rarity rebalance, manager cards, full XI formations. Custom dark theme. Mobile responsive.
 
 ## Legends
 - **Page**: `apps/web/src/app/legends/page.tsx`
@@ -132,9 +140,31 @@ Quick-reference map of every feature → its key files. Use this instead of sear
 - **Page**: `apps/web/src/app/choices/page.tsx`
 - **Components**: `ChoicesGame.tsx`, `ChoicesShell.tsx`, `AllTimeXI.tsx`, `CompoundMetrics.tsx`
 - **API**: `GET /api/choices/categories`, `GET /api/choices`, `POST /api/choices/vote`, `GET /api/choices/squad`, `GET /api/choices/user`
-- **DB**: `fc_categories`, `fc_candidates`, `fc_votes`, `fc_user_squad`, `fc_user_identity`
-- **Pipeline**: `20_seed_choices.py`, `21_seed_alltime_xi.py`
-- **SQL**: `015_football_choices.sql`, `016_alltime_xi.sql`
+- **DB**: `fc_categories`, `fc_candidates`, `fc_votes`, `fc_user_squad`, `fc_user_identity`, `fc_crowd_votes`
+- **Pipeline**: `20_seed_choices.py`, `21_seed_alltime_xi.py`, `46_crowd_intelligence.py`
+- **SQL**: `015_football_choices.sql`, `016_alltime_xi.sql`, `045_gaffer_multipick.sql`, `046_crowd_intelligence.sql`
+- **Notes**: 135 questions across 10 categories (The Dugout, Transfer Window, The Pub, Academy vs Chequebook, Scouting Report, Dressing Room, Press Conference, Dream XI, Contract Talks, International Duty). Manager identity reveal from vote patterns. Era bias fix (dated refs updated to 2026 active players). OTP conversion hook. Crowd intelligence feedback loop.
+
+## Scouting Notes v2
+- **Pipeline**: `90_scouting_notes.py`
+- **SQL**: `048_notes_flagged.sql`
+- **DB**: `player_status` (scouting_notes, notes_flagged)
+- **API**: `POST /api/admin/flag-notes`, `POST /api/admin/rewrite-notes`
+- **Notes**: Multi-perspective intelligence pipeline. Admin panel with "Flag for Rewrite" button and "Top 10 Missing" shortcut. Notes written from scout, analyst, and DoF perspectives.
+
+## Crowd Intelligence (Gaffer)
+- **DB**: `fc_crowd_votes`, `fc_crowd_feedback`
+- **Pipeline**: `46_crowd_intelligence.py`
+- **SQL**: `046_crowd_intelligence.sql`
+- **API**: `GET /api/admin/crowd-stats`, `POST /api/admin/reseed-gaffer`
+- **Notes**: Dynamic vote storage, community intelligence feedback loop, admin widget for crowd stats.
+
+## Revenue Gating
+- **Components**: `PaywallGate.tsx`, `TierGatedSection.tsx`, `PlayerTeaser.tsx`, `UpgradeCTA.tsx`
+- **Lib**: `stripe.ts`, `env.ts`
+- **API**: `GET /api/user/tier`, `POST /api/stripe/checkout`, `POST /api/stripe/webhook`
+- **SQL**: `040_billing_tier.sql`
+- **Notes**: Freemium tier system. PaywallGate wraps restricted pages, TierGatedSection for inline gating. Stripe checkout + webhook integration. Needs STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET to function.
 
 ## Player Radar
 - **Components**: `PlayerRadar.tsx`, `RadarChart.tsx`, `FeaturedRadar.tsx`, `MiniRadar.tsx`

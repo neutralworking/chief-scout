@@ -1,106 +1,129 @@
 # Working Context — Chief Scout
-> Last updated: 2026-03-24 (session 23)
+> Last updated: 2026-03-27 (session 28)
 
-## Continue Today
-1. **Cross-session sync** — WORKING.md, FEATURES.md, tasks.md all stale. Updating now.
-2. **Prod DB broken** — `PROD_POSTGRES_DSN` returns "Tenant or user not found". Blocks promotion.
-3. **Stripe keys missing** — no `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in `.env.local`. Blocks billing QA.
-4. **Google Cloud** — user says keys should be available but no GCP env vars or CLI found.
-5. **Stale branch cleanup** — 20 unmerged remote branches (see BRANCHES.md).
+## Current Sprint: Launch Prep
+Target: **May 1, 2026** (from CEO assessment PR #113)
+OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 
-## Current Sprint
-1. ~~**Data Density**~~ — DONE. 27,918 people in staging.
-2. ~~**Four-Pillar QA**~~ — DONE. Precomputed scores run daily via cron.
-3. ~~**36-Role Taxonomy**~~ — DONE. PR #106 merged, migration 043 applied, 14,063 players recomputed.
-4. ~~**Fixture Predictions**~~ — DONE. PRs #107-108 merged, migration 044, pipeline 69.
+### Launch Gates
+1. **PL data completeness** — all 20 PL clubs with full squads, grades, scouting notes
+2. **Prod DB fix** — PROD_POSTGRES_DSN broken ("Tenant or user not found")
+3. **Stripe E2E** — keys missing, billing flow untested
+4. ~~**OTP 48 nations**~~ — DONE: 48/48 playable, squads precomputed, women filtered
+5. **OTP conversion hook** — post-submit CS rating + upgrade CTA (not yet verified)
+6. **Stale branch cleanup** — only 1 unmerged remote remains
 
-### Next Sprint (proposed)
-- PL launch audit — completeness gate for production
-- Stripe E2E test — needs keys first
-- KC DB wiring — migration 036 + replace hardcoded cards
-- Auth enforcement — currently sessionStorage hack
+### Done (from previous sprint)
+1. ~~**Data Density**~~ — 27,918 people in staging
+2. ~~**Four-Pillar QA**~~ — precomputed daily via cron
+3. ~~**36-Role Taxonomy**~~ — PR #106, migration 043, 14,063 recomputed
+4. ~~**Fixture Predictions**~~ — PRs #107-108, migration 044, pipeline 69
 
-## What's New (sessions 22-23)
+## What's New (sessions 24-26)
 
-### Shipped & On Main
-- **36-Role Four-Pillar Taxonomy** (PR #106): SACROSANCT System 4 rewrite, migration 043, formation slots, blueprints, ratings, role icons, editor all updated
-- **Fixture Predictions** (PRs #107-108): predicted scores, international/continental support, position constraints, role mapping, tag pipelines (36b fitness, 36c disciplinary), migration 044
-- **GK-Specific Ratings**: separate models, alias discounting, league strength pre-scaling
-- **Nav v2**: Clash Display headings, brand gradient logo, pill nav items
-- **Design System v2**: Vibrant Data — warm surfaces, brand gradient, Bricolage Grotesque + Clash Display, 12px radius, card system (58 files)
-- **Blueprint Computation**: extracted module, updated for 36-role taxonomy
-- **Role redesign branch**: merged to main and deleted
+### Session 28 (current)
+- **Pipeline 92 parser fix**: 4 bugs fixed (sort-key positions, table class regex, federation club links, redlink names)
+- **Pipeline 92 data fixes**: column name, manual ID gen, South Africa redirect, NZ disambiguation
+- **720 new players**: 15 thin/low nations enriched from Wikipedia, 48/48 now playable
+- **OTP squads precomputed**: 48/48 nations computed, zero errors
+- **Women filtered from OTP**: `is_female` column on `people`, 90 flagged, 3 API endpoints filtered
+- **Mat view refreshed**: 28,636 rows (up from 27,918)
 
-### Previously Shipped (sessions 17-21)
-- Wave 1 UI, Kickoff Clash v4, Legends system, On The Plane
-- Freemium + billing tier system, per-player SEO
-- Precomputed four-pillar cron, tactics screen, role icons
-- Design system + Stitch prototyping, 16+ mockups
+### Session 27
+- Fixture predictions fix, paywall bypass, role score decompression, POSTGRES_DSN fix
+
+### Session 26
+- Revenue Gating, Gaffer Sprint 2, CEO Assessment (PR #113)
+
+### Session 25
+- **Gaffer quality pass**: dated refs fixed, ACL dilemma rewritten, GOAT dupes rethemed
+- **Crowd intelligence**: migration 046, pipeline 46, dynamic vote storage, admin widget
+- **Materialized view**: migration 047, 7 indexes, 27,918 rows, pg_trgm, RPC refresh
+- **Two new Gaffer categories**: Contract Talks + International Duty (135 total questions)
+
+### Session 24
+- **Role score overhaul**: EAFC excluded, GK rescale removed, level floors inverted
+- **League strength**: integrated into pipeline 27 via `lib/calibration.py`
+- **Position deflators**: median-based (CD 0.896, WD 0.920, DM 0.958), later removed
+- **Proxy models**: `lib/proxy_models.py` for Sprinter/Engine/Controller/Target
+- **Archetype renames**: Fox→Assassin, Sentinelle→Anchor, Vorstopper→Stopper
+- **CF roles expanded**: Assassin, Complete Forward, Spearhead fixed
+
+### Sessions 22-23 (previously shipped)
+- Transfer Comparables: migration 045, pipelines 87-89, /transfers page, CS Value recalibration
+- Scouting Notes v2: pipeline 90, migration 048, multi-perspective intelligence, admin panel
+- Player detail: no-scroll redesign with tab groups
+- Wave 2 UI: Clubs, Leagues, News, Free Agents redesigned
+- Wave 3 UI: Compare, Tactics, Squad redesigned
+- KC DB wiring: 201 tests, pack opening, card art, rarity rebalance
+- OTP fixes: GK filter, positions-first layout, UK nation mapping
+- KC mobile: full XI formations, starter packs, manager cards
+- Legends: trait pills, similar player scoring, archetype inference
 
 ## App Structure
 | Route | Purpose | Env |
 |-------|---------|-----|
-| `/` | Dashboard — news-first, FeaturedPlayer 2-col | All |
-| `/players` | Player list — sticky search, age groups | All |
-| `/players/[id]` | Player detail — best roles, four-pillar, SEO | All |
-| `/compare` | 2-3 player comparison | All |
+| `/` | Dashboard — FeaturedPlayer, TrendingPlayers | All |
+| `/players` | Player list — search, filters, age groups | All |
+| `/players/[id]` | Player detail — no-scroll tabs, four-pillar, SEO | All |
+| `/compare` | 2-3 player comparison with radar overlay | All |
 | `/fixtures` | Fixture previews + predicted scores | All |
+| `/transfers` | Recent transfers + comparables | All |
 | `/network` | Scout Insights: hidden gems, batch triage | Staging |
-| `/clubs` | Club list + `/clubs/[id]` with power ratings | All |
+| `/clubs` | Club list + power ratings | All |
 | `/leagues` | League list (top 5 pinned) | All |
 | `/formations` | Formation browser + 36 tactical roles | All |
 | `/tactics` | 10 philosophies + role browser | All |
 | `/news` | News feed | All |
-| `/free-agents` | Free Agency (compact PlayerCard) | All |
+| `/free-agents` | Free Agency (expiry windows, position tabs) | All |
 | `/shortlists` | User + editorial shortlists | All |
-| `/choices` | Gaffer (PWA) — mobile cards + stat quiz | All |
-| `/kickoff-clash` | KC game hosted on CS Vercel | All |
-| `/legends` | Legend profiles with trait pills + similar players | All |
-| `/on-the-plane` | World Cup squad picker | All |
-| `/admin` | 5-tab: Dashboard, Scout Pad, Editor, Personality, KC Cards | Staging |
-
-## Sidebar Nav (v2)
-- **Scouting**: Dashboard, Players, Network*, Stats, Free Agency, Compare, Legends
-- **Browse**: Clubs, Leagues, Fixtures, News
-- **Games**: Gaffer, Kickoff Clash, On The Plane
-- **Admin**: Admin*, Tactics*
-(*staging only)
+| `/choices` | Gaffer (PWA) — 135 questions, 10 categories | All |
+| `/kickoff-clash` | KC roguelike card battler (DB-wired) | All |
+| `/legends` | 195 legend profiles + trait pills + similar players | All |
+| `/on-the-plane` | World Cup squad picker (48 nations) | All |
+| `/pricing` | Tier pricing page | All |
+| `/admin` | Dashboard, Scout Pad, Editor, Personality, KC Cards, Scout Notes | Staging |
 
 ## Active Decisions
-- KC v4: apply migration 036 + wire DB, or keep client-side prototype?
-- Freemium/Stripe: need keys before E2E test
-- Google Cloud: what services to integrate?
+- Prod DB: fix existing project or provision new?
+- Stripe: get keys from user to unblock billing E2E
+- FBRef advanced stats: scrape HTML tables or find better CSV source?
 
 ## Blockers
-- **Prod DB unreachable** — "Tenant or user not found" on PROD_POSTGRES_DSN
-- Stripe keys not in .env.local — billing QA blocked
-- Migration 036 (KC tables) not applied
-- Valuation engine (40) and StatsBomb grades (31) timeout in orchestrator
-- 20 stale remote branches (see BRANCHES.md)
-- Script 04 `story_types` crash — guard exists in code but needs live verification
+> All P0 launch blockers cleared (session 26):
+> - ~~Prod DB~~ — region migrated eu-central-1→eu-west-1, pooler endpoint updated
+> - ~~Stripe keys~~ — test keys set locally + Vercel
+> - ~~Scouting notes~~ — 250/250 top players now have notes
+> - ~~NEXT_PUBLIC_SITE_URL~~ — set in Vercel
+> - ~~Build~~ — passing
+> - Codespace secrets (13 keys) + Vercel env vars (16 keys) all configured
 
-## Key Metrics (as of 2026-03-24)
+## Key Metrics (as of 2026-03-26)
 | Metric | Value |
 |--------|-------|
-| people | 27,918 |
+| people | 28,636 |
 | attribute_grades | 646k+ |
 | Players rated | 14,063 |
 | Tier 1 profiles | 9,227+ |
-| Tests | 370 (Python + TS) |
+| Tests | 370+ (Python + TS + KC 201) |
 | Clubs | 961 |
 | Legends seeded | 195 |
-| KC characters | 500 |
+| KC characters | 500 (DB-wired) |
 | Tactical roles | 36 |
-| Pipeline scripts | 01-86 + 69 |
-| Migrations | through 044 |
+| Gaffer questions | 135 (10 categories) |
+| Pipeline scripts | 01-90 |
+| Migrations | through 048 |
+| App pages | 20+ routes |
+| UI waves completed | 3/3 |
 
 ## Infrastructure
 - News cron: GitHub Actions 6x/day + Vercel 1x/day
 - Four-pillar cron: daily precompute via `/api/cron/assessments`
+- Materialized view: auto-refresh in pipeline cron + admin button
 - Billing: Stripe wired, tier gating in place (needs keys + testing)
+- Revenue gates: PaywallGate + TierGatedSection on restricted pages
 - Design system: Stitch prototyping + Figma MCP
 - PM: Notion MCP connected (project board, CEO assessments, tasks DB)
-- MCP servers: Notion, Figma
 
 ## Credential Status
 | Service | Status |

@@ -613,6 +613,11 @@ def main():
 
         new_conf = archetype_confidence(has_grades, has_scout)
 
+        # Preserve manually curated archetypes (profile_tier=1 = scout-assessed)
+        if p.get("profile_tier") == 1 and cur_arch:
+            new_arch = cur_arch
+            new_conf = p.get("archetype_confidence") or new_conf
+
         label = new_arch or "(none)"
         arch_dist[label] = arch_dist.get(label, 0) + 1
         if new_arch != cur_arch:

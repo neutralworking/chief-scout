@@ -4,10 +4,11 @@
 
 ### OTP Launch — Hard Deadline: April 7
 WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and all 48 nations playable.
-- [ ] **Wikipedia squad enrichment** — run `pipeline/92_wikipedia_national_squads.py` for all 48 nations. Fix thin-pool nations (<11 players)
-- [ ] **Manual roster augmentation** — user will feed up-to-date squad info from news/Wikipedia for nations with gaps
-- [ ] **Pre-compute ideal squads** — run OTP cron (`/api/cron/otp-squads?force=true`) after roster expansion
-- [ ] **OTP smoke test** — all 48 nations clickable, squad builder works, ideal squad reveals correctly
+- [x] ~~Wikipedia squad enrichment~~ — pipeline 92 fixed + run, 720 players inserted, 48/48 nations playable
+- [x] ~~Pre-compute ideal squads~~ — OTP cron run with force, 48/48 computed
+- [x] ~~OTP smoke test~~ — all 48 nations clickable, squads return, ideal squad cached
+- [x] ~~Women filtered from OTP~~ — `is_female` column added to `people`, 90 flagged, API filters applied
+- [ ] **Manual roster augmentation** — user can feed up-to-date squad info for thin nations if needed
 - [ ] **Verify OTP conversion hook** — post-submit CS rating + upgrade CTA functional
 
 ### Production Readiness
@@ -42,7 +43,7 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **StatsBomb event extraction** — progressive carries, pressure events, shot-creating actions from `sb_events`
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
-- [ ] Women's players: decide long-term approach (separate pipeline? same tables?)
+- [x] ~~Women's players~~ — `is_female` column on `people`, 90 flagged, filtered from OTP. Longer-term: separate pipeline TBD
 - [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)
 - [ ] **Expand transfer seed data** — 19 unmatched players (accent mismatches), find Kaggle transfer fee dataset
 
@@ -78,6 +79,15 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo
 
 ---
+
+## Completed (2026-03-27, session 28)
+- [x] Pipeline 92 parser fixed: 4 bugs (sort-key positions, table class ordering, federation club links, redlink names)
+- [x] Pipeline 92 data fixes: `date_of_birth` column name, manual ID generation, South Africa redirect, New Zealand disambiguation
+- [x] 720 new players inserted across 15 thin/low nations — 48/48 WC nations now playable
+- [x] Materialized view refreshed: 28,636 rows (up from 27,918)
+- [x] OTP ideal squads precomputed: 48/48 nations, zero errors
+- [x] Women filtered from OTP: `is_female` boolean on `people` (90 flagged), API filters on 3 endpoints
+- [x] Codespace POSTGRES_DSN secret stale (eu-west-1) — needs GitHub secret update
 
 ## Completed (2026-03-26, session 27)
 - [x] Fixture predictions fix: club enrichment was broken (selecting nonexistent columns), 130/149 predictions now live

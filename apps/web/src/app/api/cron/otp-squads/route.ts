@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     try {
       // Step 1: Collect all person IDs for this nation (primary + dual nationals)
       const primaryPeople = await fetchAll<{ id: number }>(() =>
-        sb.from("people").select("id").eq("nation_id", nation_id).eq("active", true)
+        sb.from("people").select("id").eq("nation_id", nation_id).eq("active", true).eq("is_female", false)
       );
       const { data: dualNationals } = await sb
         .from("player_nationalities")

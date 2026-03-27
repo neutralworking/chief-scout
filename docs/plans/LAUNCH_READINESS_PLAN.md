@@ -35,8 +35,10 @@ This plan sequences 5 weekly sprints to go from "built" to "launchable" by May 1
 
 ---
 
-## Sprint 2 — Fix the Games (Apr 3 – Apr 9)
+## Sprint 2 — Fix the Games (Apr 3 – Apr 7)
 **Theme**: Games are the front door. They must deliver on their promise.
+
+> **OTP HARD DEADLINE: April 7** — WC 2026 playoffs complete by this date, World Cup buzz already building. OTP must be live with all 48 nations playable.
 
 | # | Task | Size | Owner | Files |
 |---|------|------|-------|-------|
@@ -44,8 +46,8 @@ This plan sequences 5 weekly sprints to go from "built" to "launchable" by May 1
 | 2.2 | **Gaffer in-game reveal** — after 10+ votes, show "Your manager type is emerging..." banner in ChoicesGame. After 20+, show full archetype | M | Frontend | `apps/web/src/components/ChoicesGame.tsx` |
 | 2.3 | **Gaffer conversion hook** — on reveal screen: "You manage like Guardiola — see which players fit your style" → link to `/players` filtered by archetype alignment | M | Frontend | `ChoicesGame.tsx`, player list filter |
 | 2.4 | **Era bias computation** — rules-based from dimension patterns, compute in vote route, store in `fc_users.era_bias` | S | Backend | `apps/web/src/app/api/choices/vote/route.ts` |
-| 2.5 | **OTP roster expansion** — run API-Football + FBRef pipelines targeting 7 thin nations (Indonesia, Honduras, + 5 others). Goal: all 48 nations with 11+ players | L | Pipeline | `pipeline/65_api_football_ingest.py`, `pipeline/11_fbref_ingest.py` |
-| 2.6 | **OTP pre-compute ideal squads** — batch compute `otp_ideal_squads` for all 48 nations so first visit isn't slow | S | Pipeline | New script or extend `pipeline/83_seed_wc_nations.py` |
+| 2.5 | **OTP roster expansion via Wikipedia** — run `pipeline/92_wikipedia_national_squads.py` for all 48 nations. Fetches current squads from Wikipedia, matches to DB, inserts missing players. Targets all thin-pool nations. Supplement with manual feed from news sources | M | Pipeline | `pipeline/92_wikipedia_national_squads.py` |
+| 2.6 | **OTP pre-compute ideal squads** — batch compute `otp_ideal_squads` for all 48 nations via `/api/cron/otp-squads?force=true` | S | Pipeline | `apps/web/src/app/api/cron/otp-squads/route.ts` |
 | 2.7 | **OTP conversion hook** — after squad submission, show CS rating: "Our scouts rated this squad 7.2/10 — upgrade to see full player intelligence" | S | Frontend | `apps/web/src/app/on-the-plane/[nationSlug]/page.tsx` |
 | 2.8 | **Gaffer onboarding** — first-time tooltip on empty pitch explaining the game | S | Frontend | `ChoicesGame.tsx` |
 
@@ -55,7 +57,7 @@ This plan sequences 5 weekly sprints to go from "built" to "launchable" by May 1
 - [ ] Gaffer result screen includes cross-sell to player intelligence
 - [ ] OTP ideal squads pre-computed (no first-visit delay)
 
-**Risk**: OTP roster expansion (2.5) depends on external data availability for smaller federations. Some nations may need manual roster seeding as fallback.
+**Risk**: Wikipedia squad tables vary in structure across nations. Manual roster augmentation may be needed for smaller federations where Wikipedia is sparse. User will supplement with news/Wikipedia research.
 
 ---
 

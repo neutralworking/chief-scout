@@ -140,6 +140,10 @@ Run via `make pipeline` or individually (`make statsbomb`, `make understat`, etc
 - `61_fixture_ingest.py` → Fixtures from football-data.org
 - `62_populate_free_agents.py` → Contract expiry + free agent tags
 
+### 90-92: Enrichment & OTP
+- `90_scouting_notes.py` → Multi-perspective scouting notes via LLM
+- `92_wikipedia_national_squads.py` → Fetch national team squads from Wikipedia for WC 2026 nations. Flags: `--nation`, `--thin-only`, `--dry-run`, `--force`, `--list`
+
 ### 70-79: One-off fixes (archive)
 - `70_wikipedia_style.py` → Style of play tag extraction
 - `71_dof_profiles.py` → DoF deep profiling

@@ -2,6 +2,14 @@
 
 ## Launch Blockers (P0)
 
+### OTP Launch — Hard Deadline: April 7
+WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and all 48 nations playable.
+- [ ] **Wikipedia squad enrichment** — run `pipeline/92_wikipedia_national_squads.py` for all 48 nations. Fix thin-pool nations (<11 players)
+- [ ] **Manual roster augmentation** — user will feed up-to-date squad info from news/Wikipedia for nations with gaps
+- [ ] **Pre-compute ideal squads** — run OTP cron (`/api/cron/otp-squads?force=true`) after roster expansion
+- [ ] **OTP smoke test** — all 48 nations clickable, squad builder works, ideal squad reveals correctly
+- [ ] **Verify OTP conversion hook** — post-submit CS rating + upgrade CTA functional
+
 ### Production Readiness
 - [x] ~~Fix Prod DB~~ — region migrated eu-central-1→eu-west-1, pooler endpoint updated
 - [x] ~~Stripe keys~~ — test keys set in both .env.local files. Still need adding to Vercel for deploy.
@@ -58,7 +66,7 @@
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/accent resolution
 - [ ] **Pricing page visual alignment** — redesigned to match landing page
-- [ ] **Thin-pool OTP nations** — 7 nations need more players before playable
+- [x] ~~Thin-pool OTP nations~~ — pipeline 92 (Wikipedia national squads) built, covers all 48 nations
 
 ## Kickoff Clash
 - [x] ~~KC DB wiring~~ — migration 036, 201 tests, pack opening, card art, rarity rebalance

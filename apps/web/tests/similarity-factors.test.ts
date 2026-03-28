@@ -76,8 +76,9 @@ describe("traitOverlap", () => {
   it("returns 1.0 for identical traits", () => {
     expect(traitOverlap(["Ball Progressor", "Clinical Finisher"], ["Ball Progressor", "Clinical Finisher"])).toBe(1.0);
   });
-  it("returns 0.5 for 50% overlap", () => {
-    expect(traitOverlap(["Ball Progressor", "Clinical Finisher"], ["Ball Progressor", "Set Piece Threat"])).toBeCloseTo(0.5, 1);
+  it("returns 1/3 for Jaccard of 1 shared out of 3 unique", () => {
+    // Jaccard: intersection=1, union=3 → 0.333
+    expect(traitOverlap(["Ball Progressor", "Clinical Finisher"], ["Ball Progressor", "Set Piece Threat"])).toBeCloseTo(0.333, 1);
   });
   it("returns 0.0 when either has no traits", () => {
     expect(traitOverlap([], ["Ball Progressor"])).toBe(0.0);
@@ -108,7 +109,11 @@ describe("personalityMatch", () => {
     expect(personalityMatch("ESTJ", "ENFJ")).toBe(0.3);
   });
   it("returns 0.1 for 1/4 match", () => {
-    expect(personalityMatch("ESTJ", "INFP")).toBe(0.1);
+    // E matches, S≠N, T≠F, J≠P → 1/4
+    expect(personalityMatch("ESTJ", "ENFP")).toBe(0.1);
+  });
+  it("returns 0.0 for 0/4 match", () => {
+    expect(personalityMatch("ESTJ", "INFP")).toBe(0.0);
   });
   it("returns 0.0 when either is null", () => {
     expect(personalityMatch(null, "ESTJ")).toBe(0.0);

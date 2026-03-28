@@ -73,8 +73,8 @@ export function traitOverlap(srcTraits: string[], tgtTraits: string[]): number {
   for (const t of srcSet) {
     if (tgtSet.has(t)) intersection++;
   }
-  const maxSize = Math.max(srcSet.size, tgtSet.size);
-  return maxSize === 0 ? 0.0 : intersection / maxSize;
+  const union = new Set([...srcSet, ...tgtSet]).size;
+  return union === 0 ? 0.0 : intersection / union;
 }
 
 export function physicalProfile(
@@ -109,7 +109,7 @@ export function personalityMatch(
   for (let i = 0; i < 4; i++) {
     if (src[i] === tgt[i]) matches++;
   }
-  return [0.1, 0.1, 0.3, 0.7, 1.0][matches];
+  return [0.0, 0.1, 0.3, 0.7, 1.0][matches];
 }
 
 export function gradeProfile(

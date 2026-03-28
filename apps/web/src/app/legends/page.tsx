@@ -177,8 +177,8 @@ function LegendsContent() {
       fetch(`/api/players/${personId}/similar`)
         .then((r) => r.json())
         .then((data) => {
-          const top = data.players?.[0];
-          if (top) setSimilar({ name: top.name, person_id: top.person_id, similarity: top.similarity, club: top.club });
+          const top = data.results?.[0];
+          if (top) setSimilar({ name: top.player.name, person_id: top.player.person_id, similarity: top.similarity, club: top.player.club });
         })
         .catch(() => {});
     }, [loaded, personId]);

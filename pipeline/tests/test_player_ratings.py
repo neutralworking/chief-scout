@@ -395,8 +395,10 @@ class TestBestRole:
         scores = {"Destroyer": 90, "Cover": 60, "Commander": 55,
                   "Passer": 50, "Controller": 40, "Powerhouse": 70, "Target": 45}
         role, _ = ratings.compute_best_role(scores, "CD")
-        # Destroyer-primary roles: Stopper (Destroyer+Powerhouse), Zagueiro (Destroyer+Commander)
-        assert role in ("Stopper", "Zagueiro")
+        # Destroyer-primary roles: Stopper (Powerhouse+Destroyer), Centrale (Commander+Destroyer)
+        # With new roles, Destroyer is secondary — check CD roles with high Destroyer weight
+        cd_roles = [name for _, _, name in ratings.TACTICAL_ROLES["CD"]]
+        assert role in cd_roles
 
     def test_unknown_position_returns_none(self):
         """Unknown position → no role."""
@@ -427,12 +429,53 @@ class TestBestRole:
 
     def test_secondary_missing_applies_penalty(self):
         """When secondary model is missing, 0.85 penalty applied to primary."""
-        # Give only Striker data — CF Poacher needs (Striker, Sprinter)
+        # Give only Striker data — CF Poacher needs (Striker, Engine)
         scores = {"Striker": 80}
         role, score = ratings.compute_best_role(scores, "CF")
         # Should still return a role but with penalty
         assert role is not None
         assert score > 0
+
+    def test_new_role_names(self):
+        """New 41-role set: key roles exist with correct compounds."""
+        new_roles = {
+            "CF": {
+                "Poacher": ("Striker", "Engine"),
+                "Spearhead": ("Engine", "Striker"),
+                "Shadow Striker": ("Sprinter", "Striker"),
+            },
+            "CM": {
+                "Playmaker": ("Passer", "Creator"),
+                "Mezzala": ("Engine", "Creator"),
+            },
+            "DM": {
+                "Anchor": ("Cover", "Destroyer"),
+                "Ball Winner": ("Engine", "Destroyer"),
+            },
+            "GK": {
+                "Distributor": ("GK", "Passer"),
+                "Comandante": ("GK", "Commander"),
+                "Shotstopper": ("GK", "Powerhouse"),
+            },
+            "CD": {
+                "Colossus": ("Target", "Powerhouse"),
+            },
+        }
+        for pos, roles_dict in new_roles.items():
+            pos_roles = ratings.TACTICAL_ROLES.get(pos, [])
+            role_map = {name: (p, s) for p, s, name in pos_roles}
+            for role_name, (exp_primary, exp_secondary) in roles_dict.items():
+                assert role_name in role_map, f"{role_name} missing from {pos}"
+                actual_p, actual_s = role_map[role_name]
+                assert actual_p == exp_primary, f"{role_name} primary: got {actual_p}, expected {exp_primary}"
+                assert actual_s == exp_secondary, f"{role_name} secondary: got {actual_s}, expected {exp_secondary}"
+
+    def test_role_count_per_position(self):
+        """Each position has the expected number of roles."""
+        expected = {"GK": 4, "CD": 5, "WD": 4, "DM": 5, "CM": 4, "WM": 4, "AM": 3, "WF": 5, "CF": 7}
+        for pos, count in expected.items():
+            actual = len(ratings.TACTICAL_ROLES.get(pos, []))
+            assert actual == count, f"{pos}: expected {count} roles, got {actual}"
 
 
 # ── Flat Data Detection ──────────────────────────────────────────────────────

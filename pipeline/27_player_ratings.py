@@ -123,68 +123,68 @@ POSITION_WEIGHTS = {
     "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 
-# Tactical roles — each name is the term the football world actually uses.
-# If the word came from Italian, Spanish, Portuguese, German, French, or
-# Argentine football culture and became THE word for that role, we use it.
-# No FIFA/FM generic compound names.
-#
-# Lineage in SACROSANCT System 4.
+# Tactical roles — 41 roles validated against real tactical systems.
+# Each role exists in at least one system in the tactical_systems hierarchy.
+# See docs/superpowers/specs/2026-03-29-systems-and-roles-design.md
 TACTICAL_ROLES = {
     "GK": [
-        ("GK", "Passer",     "Libero GK"),        # Ederson, Ter Stegen: distribution specialist
-        ("GK", "Cover",      "Sweeper Keeper"),    # Neuer, Alisson: high line, reads danger
-        ("GK", "Organiser",  "Comandante"),        # Buffon, Casillas: organizer, commands area
-        ("GK", "Shotstopper","Shotstopper"),       # Kahn, Courtois: reflexes, shot-stopping
+        ("GK", "Commander",   "Comandante"),
+        ("GK", "Cover",       "Sweeper Keeper"),
+        ("GK", "Passer",      "Distributor"),
+        ("GK", "Powerhouse",  "Shotstopper"),
     ],
     "CD": [
-        ("Passer", "Cover",        "Libero"),       # Beckenbauer, Stones: ball-playing CB
-        ("Cover", "Controller",    "Sweeper"),       # Sammer, Hummels: last man, reads play
-        ("Commander", "Destroyer", "Zagueiro"),      # Thiago Silva, Van Dijk: commanding CB
-        ("Powerhouse", "Destroyer","Stopper"),    # Chiellini, Konate: aggressive, wins duels
+        ("Commander", "Destroyer",  "Centrale"),
+        ("Passer",    "Cover",      "Distributor"),
+        ("Powerhouse","Destroyer",  "Stopper"),
+        ("Cover",     "Controller", "Sweeper"),
+        ("Target",    "Powerhouse", "Colossus"),
     ],
     "WD": [
-        ("Passer", "Dribbler",   "Lateral"),        # TAA, Cafu: attacking fullback, final ball
-        ("Engine", "Cover",      "Fluidificante"),   # Zanetti, Robertson: covers full flank
-        ("Controller", "Passer", "Invertido"),       # Lahm, Cancelo: inverted FB, tucks inside
-        ("Sprinter", "Engine",   "Corredor"),        # Walker, Theo Hernandez: pace-based fullback
+        ("Engine",     "Passer",    "Fullback"),
+        ("Engine",     "Dribbler",  "Wing-back"),
+        ("Cover",      "Destroyer", "Corner Back"),
+        ("Controller", "Passer",    "Invertido"),
     ],
     "DM": [
-        ("Passer", "Controller",   "Regista"),       # Pirlo, Jorginho: deep playmaker
-        ("Cover", "Destroyer",     "Anchor"),        # Makelele, Casemiro: shield, guards gate
-        ("Controller", "Cover",    "Pivote"),        # Busquets, Rodri: midfield brain
-        ("Powerhouse", "Destroyer","Volante"),       # Gattuso, Kante: ball-winner, aggressive
+        ("Passer",     "Controller", "Regista"),
+        ("Controller", "Cover",      "Pivote"),
+        ("Cover",      "Destroyer",  "Anchor"),
+        ("Engine",     "Destroyer",  "Ball Winner"),
+        ("Powerhouse", "Engine",     "Segundo Volante"),
     ],
     "CM": [
-        ("Passer", "Creator",      "Mezzala"),       # Barella, Kovacic: half-space creator
-        ("Engine", "Cover",        "Tuttocampista"), # Lampard, Gerrard: all-pitch midfielder
-        ("Controller", "Passer",   "Metodista"),     # Xavi, Kroos: orchestrator
-        ("Sprinter", "Engine",     "Relayeur"),      # Valverde, Toure: tireless shuttle
+        ("Passer",     "Creator",  "Playmaker"),
+        ("Controller", "Passer",   "Metodista"),
+        ("Engine",     "Creator",  "Mezzala"),
+        ("Engine",     "Cover",    "Tuttocampista"),
     ],
     "WM": [
-        ("Dribbler", "Passer",    "Winger"),         # Garrincha, Figo, Saka: beats man with skill
-        ("Engine", "Cover",       "Tornante"),       # Moses, Kostic: full-flank, both phases
-        ("Controller", "Cover",   "False Winger"),   # Bernardo Silva, Foden: drifts inside
-        ("Sprinter", "Engine",    "Shuttler"),       # Sterling, Sane: pace + stamina from wide
+        ("Dribbler",   "Passer",  "Winger"),
+        ("Engine",     "Cover",   "Tornante"),
+        ("Controller", "Creator", "False Winger"),
+        ("Creator",    "Passer",  "Wide Playmaker"),
     ],
     "AM": [
-        ("Dribbler", "Creator",   "Trequartista"),   # Baggio, Zidane: free-roaming 10
-        ("Engine", "Striker",     "Seconda Punta"),  # Del Piero, Griezmann: reads space, links play
-        ("Controller", "Creator", "Enganche"),       # Riquelme, Dybala: the hook, sees everything
-        ("Sprinter", "Striker",   "Boxcrasher"),     # Havertz, Bruno Fernandes: arrives in box
+        ("Dribbler", "Creator",    "Trequartista"),
+        ("Creator",  "Controller", "Enganche"),
+        ("Sprinter", "Striker",    "Boxcrasher"),
     ],
     "WF": [
-        ("Dribbler", "Sprinter",  "Inside Forward"), # Robben, Salah: cuts inside to shoot
-        ("Engine", "Striker",     "Raumdeuter"),     # Son, Mane: space interpreter, presses + scores
-        ("Creator", "Dribbler",   "Inventor"),       # Grealish, Neymar: creates from nothing
-        ("Sprinter", "Striker",   "Extremo"),        # Henry, Mbappe: electric pace + power
+        ("Dribbler", "Striker",    "Inside Forward"),
+        ("Engine",   "Striker",    "Raumdeuter"),
+        ("Dribbler", "Passer",     "Winger"),
+        ("Creator",  "Passer",     "Wide Playmaker"),
+        ("Target",   "Powerhouse", "Wide Target Forward"),
     ],
     "CF": [
-        ("Striker", "Dribbler",    "Poacher"),       # Gerd Muller, Inzaghi: pure finisher in the box
-        ("Sprinter", "Striker",    "Assassin"),        # Mbappe, Henry: pace-based direct forward
-        ("Engine", "Striker",      "Spearhead"),      # Vardy, Suarez, Jesus: presses + scores
-        ("Striker", "Creator",     "Complete Forward"),        # Kane, Benzema: finishing + vision + link-up
-        ("Creator", "Controller",  "Falso Nove"),     # Messi (2009), Firmino: false 9, orchestrates
-        ("Target", "Powerhouse",   "Prima Punta"),    # Toni, Giroud: target striker, aerial threat
+        ("Striker",  "Engine",     "Poacher"),
+        ("Striker",  "Creator",    "Complete Forward"),
+        ("Creator",  "Controller", "Falso Nove"),
+        ("Engine",   "Striker",    "Spearhead"),
+        ("Target",   "Powerhouse", "Target Forward"),
+        ("Creator",  "Striker",    "Seconda Punta"),
+        ("Sprinter", "Striker",    "Shadow Striker"),
     ],
 }
 

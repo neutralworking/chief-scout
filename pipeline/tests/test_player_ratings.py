@@ -429,7 +429,7 @@ class TestBestRole:
 
     def test_secondary_missing_applies_penalty(self):
         """When secondary model is missing, 0.85 penalty applied to primary."""
-        # Give only Striker data — CF Poacher needs (Striker, Engine)
+        # Give only Striker data — CF Prima Punta needs (Striker, Target)
         scores = {"Striker": 80}
         role, score = ratings.compute_best_role(scores, "CF")
         # Should still return a role but with penalty
@@ -440,7 +440,7 @@ class TestBestRole:
         """New 41-role set: key roles exist with correct compounds."""
         new_roles = {
             "CF": {
-                "Poacher": ("Striker", "Engine"),
+                "Prima Punta": ("Striker", "Target"),
                 "Spearhead": ("Engine", "Striker"),
                 "Shadow Striker": ("Sprinter", "Striker"),
             },
@@ -510,7 +510,7 @@ class TestKnownPlayers:
     """
 
     def test_kane_is_cf_role(self):
-        """Harry Kane profile → CF role (Poacher or Complete Forward)."""
+        """Harry Kane profile → CF role (Prima Punta or Complete Forward)."""
         grades = scout_grades({
             "finishing": 19, "shot_power": 17, "heading": 16, "movement": 18,
             "composure": 18, "vision": 15, "hold_up": 16, "strength": 15,

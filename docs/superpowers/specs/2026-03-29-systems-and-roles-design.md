@@ -210,7 +210,7 @@ CREATE POLICY "public_read" ON slot_roles FOR SELECT USING (true);
 
 ---
 
-## The 38 Roles (Bottom-Up Validated)
+## The 41 Roles (Bottom-Up Validated)
 
 Every role below emerged from at least one real system during the audit. No role exists that isn't used in a real tactical system.
 
@@ -220,10 +220,10 @@ Every role below emerged from at least one real system during the audit. No role
 |---|---|---|---|---|
 | **Comandante** | Organises, commands, vocal presence | GK | Commander | Schmeichel, Buffon, Lloris |
 | **Sweeper Keeper** | Sweeps behind high line, comes off line | GK | Cover | Neuer, Alisson, Van der Sar |
-| **Libero GK** | Distribution specialist, passing outlet | GK | Passer | Ederson, Valdés |
+| **Distributor** | Distribution specialist, passing outlet | GK | Passer | Ederson, Valdés |
 | **Shotstopper** | Reflexes, dominates the box | GK | Powerhouse | Courtois, Pope, Begović |
 
-### CD (4)
+### CD (5)
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
@@ -231,6 +231,7 @@ Every role below emerged from at least one real system during the audit. No role
 | **Distributor** | Ball-playing CB — progressive passing from deep | Passer | Cover | Bonucci, Stones, Piqué, Ferdinand |
 | **Stopper** | Aggressive, front-foot, wins duels | Powerhouse | Destroyer | Chiellini, Vidić, Stam, Konaté |
 | **Sweeper** | Last man — reads play, covers space | Cover | Controller | Beckenbauer, Varane, Hummels, Picchi |
+| **Colossus** | Aerial dominant — wins headers in both boxes | Target | Powerhouse | Maguire, Smalling, Zouma, Süle |
 
 ### WD (4)
 
@@ -241,31 +242,33 @@ Every role below emerged from at least one real system during the audit. No role
 | **Corner Back** | Stays home, defends, marks | Cover | Destroyer | Azpilicueta, Pavard, Mendy, Cáceres |
 | **Invertido** | Tucks inside, becomes midfielder | Controller | Passer | Lahm 2013, Cancelo, TAA, Krol |
 
-### DM (4)
+### DM (5)
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
 | **Regista** | Deep quarterback — dictates with long passing | Passer | Controller | Pirlo, Jorginho, Gérson |
 | **Pivote** | Creative holding mid — controls, distributes | Controller | Cover | Busquets, Rodri, Rijkaard |
-| **Anchor** | Sits, disrupts, protects the back line | Destroyer | Cover | Makélélé, Kanté, Fabinho, Gattuso |
+| **Anchor** | Sits, shields, protects the back line positionally | Cover | Destroyer | Makélélé, Fabinho, Casemiro |
+| **Ball Winner** | Aggressive mid who hunts the ball with energy | Engine | Destroyer | Kanté, Ndidi, Gattuso |
 | **Segundo Volante** | DM who drives forward, scores from deep | Powerhouse | Engine | Touré, Pogba, Caicedo, Keïta |
 
 ### CM (4)
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
-| **Playmaker** | Runs the game with vision and range | Creator | Passer | Scholes, Modric, Didi, Van Hanegem |
+| **Playmaker** | Runs the game with vision and range | Passer | Creator | Scholes, Modric, Didi, Van Hanegem |
 | **Metodista** | Metronome — controls rhythm, never wastes a ball | Controller | Passer | Xavi, Kroos, Carrick, Thiago |
-| **Mezzala** | Half-space creator, arrives in the box | Passer | Creator | Iniesta, Bellingham, Mazzola, Litmanen |
+| **Mezzala** | Half-space creator, arrives in the box with energy | Engine | Creator | Bellingham, Barella, Mazzola, Litmanen |
 | **Tuttocampista** | Box-to-box, covers every blade | Engine | Cover | Keane, Vidal, Neeskens, Davids, Wijnaldum |
 
-### WM (3)
+### WM (4)
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
 | **Winger** | Beats man or delivers from wide | Dribbler | Passer | Garrincha, Giggs, Beckham, Raphinha |
 | **Tornante** | Tracks back, full-flank both phases | Engine | Cover | Zagallo, Park, Gosens, Valverde |
 | **False Winger** | Starts wide, drifts inside | Controller | Creator | Bernardo Silva, Forsberg |
+| **Wide Playmaker** | Creates from wide — vision, passing, dictates | Creator | Passer | Grealish, Bernardo (deep), Rui Costa (wide) |
 
 ### AM (3)
 
@@ -274,9 +277,6 @@ Every role below emerged from at least one real system during the audit. No role
 | **Trequartista** | Free-roaming creator in the final third | Dribbler | Creator | Götze, Muniain, De Bruyne, Pelé 1970 |
 | **Enganche** | The hook — receives between lines, decisive pass | Creator | Controller | Sneijder, Tostão, Riquelme |
 | **Boxcrasher** | Dynamic AM who arrives in the box with energy | Sprinter | Striker | Lampard, Klich, Havertz |
-| **Seconda Punta** | Second striker from AM — drops, links, creates | Creator | Striker | Griezmann 2018 |
-
-Note: Seconda Punta is valid at both AM and CF. The same role name appears in system slots at both positions. Griezmann plays it from AM, Yorke from CF.
 
 ### WF (5)
 
@@ -292,10 +292,10 @@ Note: Seconda Punta is valid at both AM and CF. The same role name appears in sy
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
-| **Poacher** | Box instinct, movement, clinical | Striker | Dribbler | Inzaghi, Haaland, Gerd Müller, Cole |
+| **Prima Punta** | The main striker — clinical finisher, wins headers, occupies CBs | Striker | Target | Lewandowski, Kane, Gerd Müller, Toni |
 | **Complete Forward** | Scores, creates, links, does everything | Striker | Creator | Lewandowski, Kane, Benzema, Rooney |
 | **Falso Nove** | Drops deep, creates space, false 9 | Creator | Controller | Messi 2011, Firmino, Cruyff |
-| **Spearhead** | Leads the press from front, work rate | Engine | Destroyer | Suárez, Okazaki, Bamford |
+| **Spearhead** | Leads the press from front, work rate | Engine | Striker | Suárez, Okazaki, Bamford |
 | **Target Forward** | Aerial, holds up, physical reference point | Target | Powerhouse | Giroud, Crouch, Mandžukić, Llorente |
 | **Seconda Punta** | Second striker — creative, plays off the main striker | Creator | Striker | Yorke, Forlán, Del Piero, Griezmann |
 | **Shadow Striker** | Pace, runs in behind, ghosts past the line | Sprinter | Striker | Vardy, Werner, Aubameyang, Belanov |
@@ -308,7 +308,8 @@ Note: Seconda Punta is valid at both AM and CF. The same role name appears in sy
 |---|---|
 | Assassin | Archetype-derived, no system uses it |
 | Outlet | Archetype-derived, no system uses it |
-| Libero (CD) | Renamed → Distributor (Libero too specific to Beckenbauer's free man) |
+| Libero (CD) | Renamed → Distributor at CD (Libero too specific to Beckenbauer's free man) |
+| Libero GK | Renamed → Distributor at GK (clearer label for distribution specialist) |
 | Zagueiro (CD) | Renamed → Centrale (Zagueiro just means "defender") |
 | Prima Punta (CF) | Renamed → Target Forward (gender-neutral, clearer) |
 | Fluidificante (WD) | Merged into Wing-back / Fullback |
@@ -378,12 +379,12 @@ Scoring formula unchanged: `primary × 0.6 + secondary × 0.4`, normalized to 0-
 
 ## Success Criteria
 
-- [ ] Every role in `slot_roles` exists in at least one real tactical system
+- [ ] Every role in `slot_roles` exists in at least one real tactical system (41 total)
 - [ ] No orphan roles (roles not used by any system)
 - [ ] Matheus Cunha gets Complete Forward or Seconda Punta, not Outlet/Assassin
 - [ ] Mbappe role score improves (Shadow Striker with Sprinter+Striker models)
 - [ ] Pipeline 27 produces valid `best_role` for all players using system-validated roles
-- [ ] Zero players with `best_role` values not in the new 38-role set after pipeline rerun
+- [ ] Zero players with `best_role` values not in the new 41-role set after pipeline rerun
 - [ ] Median role score change within +/- 3 points (no bulk regression)
 - [ ] No player loses more than 15 role score points without explanation
 - [ ] All 22 existing club-philosophy assignments survive the rename

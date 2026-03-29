@@ -306,13 +306,13 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
   },
 
   // ── CF ──────────────────────────────────────────────────────────────────
-  "Poacher": {
-    archetypes: ["Striker", "Engine"],
+  "Prima Punta": {
+    archetypes: ["Striker", "Target"],
     personalities: ["ANSC", "INSC", "IXSC"],
     minLevel: 13,
     positions: ["CF"],
-    keyAttributes: ["Short Range", "Movement", "Penalties", "Reactions"],
-    reference: "The Inzaghi role — lives on the shoulder, clinical finishing inside the box",
+    keyAttributes: ["Short Range", "Mid Range", "Heading", "Aerial Duels"],
+    reference: "The main striker — puts the ball in the net, wins headers, occupies centre-backs. Lewandowski, Kane, Gerd Müller.",
   },
   "Spearhead": {
     archetypes: ["Engine", "Striker"],
@@ -392,7 +392,7 @@ const BLUEPRINT_ROLE_MAP: Record<string, string> = {
   "Wide Forward": "Wide Target Forward",
   "Inventor": "Wide Playmaker",
   // CF
-  "Poacher": "Poacher",
+  "Prima Punta": "Prima Punta",
   "Falso Nove": "Falso Nove",
   "Prima Punta": "Colossus",
   "Regista": "Regista",
@@ -572,8 +572,8 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Shuttler", blueprint: "Giggs", demand: "Beats full-backs 1v1, dribbles past men, stretches play, direct and unpredictable" },
       ],
       CF: [
-        { role: "Poacher", blueprint: "Solskjær", demand: "Lives on the shoulder, clinical inside the six-yard box, fox in the box" },
-        { role: "Poacher", blueprint: "Cole/Yorke", demand: "Link play, movement, pressing — interchangeable with the partner" },
+        { role: "Prima Punta", blueprint: "Solskjær", demand: "Lives on the shoulder, clinical inside the six-yard box, fox in the box" },
+        { role: "Prima Punta", blueprint: "Cole/Yorke", demand: "Link play, movement, pressing — interchangeable with the partner" },
       ],
     },
   },
@@ -600,7 +600,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       AM: [{ role: "Trequartista", blueprint: "Pogba", demand: "Drives forward from deep, arrives in the box, unpredictable creative force" }],
       CF: [
         { role: "Prima Punta", blueprint: "Llorente/Mandzukic", demand: "Holds it up, wins aerial duels, brings others into play" },
-        { role: "Poacher", blueprint: "Tévez", demand: "Runs in behind, presses from the front, clinical finisher" },
+        { role: "Prima Punta", blueprint: "Tévez", demand: "Runs in behind, presses from the front, clinical finisher" },
       ],
     },
   },
@@ -628,7 +628,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Kuba / Ronaldo", demand: "Direct running, takes on full-backs, lethal in transition" },
       ],
       AM: [{ role: "Advanced Playmaker", blueprint: "Götze / Özil", demand: "Links midfield to attack, finds the killer pass, intelligent movement" }],
-      CF: [{ role: "Poacher", blueprint: "Lewandowski / Benzema", demand: "Holds up, runs behind, presses, scores — does everything" }],
+      CF: [{ role: "Prima Punta", blueprint: "Lewandowski / Benzema", demand: "Holds up, runs behind, presses, scores — does everything" }],
     },
   },
 
@@ -680,7 +680,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       ],
       AM: [{ role: "Trequartista", blueprint: "Kaká", demand: "The most explosive no. 10 — receives, turns, accelerates into the final third" }],
       CF: [
-        { role: "Poacher", blueprint: "Shevchenko", demand: "Clinical finisher, intelligent movement, scores from anywhere" },
+        { role: "Prima Punta", blueprint: "Shevchenko", demand: "Clinical finisher, intelligent movement, scores from anywhere" },
         { role: "Prima Punta", blueprint: "Inzaghi", demand: "Pure poacher — lives offside, scores tap-ins, ghosts into the box" },
       ],
     },
@@ -709,7 +709,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Traditional Winger", blueprint: "Kuyt", demand: "Relentless work rate, presses from wide, arrives in the box" },
         { role: "Wide Playmaker", blueprint: "Luis García", demand: "Creates from wide left, drifts inside, scores important goals" },
       ],
-      CF: [{ role: "Poacher", blueprint: "Torres", demand: "Pace in behind, clinical finishing, terrorises high lines" }],
+      CF: [{ role: "Prima Punta", blueprint: "Torres", demand: "Pace in behind, clinical finishing, terrorises high lines" }],
     },
   },
 
@@ -734,7 +734,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Wide Forward", blueprint: "Harrison", demand: "Direct, pace, stretches the defence — Bielsa's outlet on the break" },
         { role: "Inside Forward", blueprint: "Susaeta / Bamford", demand: "Works the channels, presses relentlessly, movement over technique" },
       ],
-      CF: [{ role: "Poacher", blueprint: "Llorente (Athl.) / Bamford", demand: "Holds up, presses, runs — the system's willing runner" }],
+      CF: [{ role: "Prima Punta", blueprint: "Llorente (Athl.) / Bamford", demand: "Holds up, presses, runs — the system's willing runner" }],
     },
   },
 
@@ -761,8 +761,8 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Inside Forward", blueprint: "Zagallo", demand: "The original inverted winger — tucks inside, creates overloads in midfield" },
       ],
       CF: [
-        { role: "Poacher", blueprint: "Pelé", demand: "The complete forward — shoots, heads, dribbles, creates, defines the position" },
-        { role: "Poacher", blueprint: "Vavá", demand: "Finisher — feeds off Pelé and Garrincha's service, clinical in the box" },
+        { role: "Prima Punta", blueprint: "Pelé", demand: "The complete forward — shoots, heads, dribbles, creates, defines the position" },
+        { role: "Prima Punta", blueprint: "Vavá", demand: "Finisher — feeds off Pelé and Garrincha's service, clinical in the box" },
       ],
     },
   },
@@ -789,7 +789,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       AM: [{ role: "Seconda Punta", blueprint: "Arda Turan", demand: "Drifts between the lines, finds pockets, feeds the strikers" }],
       CF: [
         { role: "Prima Punta", blueprint: "Costa", demand: "Physical, aggressive, holds it up, bullies centre-backs" },
-        { role: "Poacher", blueprint: "Villa/Griezmann", demand: "Runs off the target man, finishes clinically, intelligent movement" },
+        { role: "Prima Punta", blueprint: "Villa/Griezmann", demand: "Runs off the target man, finishes clinically, intelligent movement" },
       ],
     },
   },

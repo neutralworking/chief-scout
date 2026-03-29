@@ -302,7 +302,7 @@ Each role's **primary model** determines its pillar alignment:
 
 | Role | Description |
 |------|-------------|
-| **Poacher** | Pure finisher — movement, instinct, clinical in the box. Gerd Muller → Inzaghi → Haaland |
+| **Prima Punta** | The main striker — clinical finisher, wins headers, occupies CBs. Gerd Müller → Lewandowski → Kane |
 | **Complete Forward** | All-round striker — contributes to build-up, holds up, finishes. Lewandowski → Benzema |
 | **Falso Nove** | False 9 — drops deep, creates, pulls CBs out of shape. Hidegkuti (1953) → Messi (2009) |
 | **Spearhead** | Leads the press from front, relentless work rate. Firmino → Vardy → Suarez |

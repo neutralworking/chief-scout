@@ -7,7 +7,7 @@
 
 import {
   FORMATION_BLUEPRINTS,
-  scorePlayerForRole,
+  scorePlayerForSlot,
   type FormationBlueprint,
 } from "@/lib/formation-intelligence";
 
@@ -180,14 +180,13 @@ function scoreFormation(
 
     for (const p of players) {
       if (used.has(p.person_id)) continue;
-      const s = scorePlayerForRole(
+      const s = scorePlayerForSlot(
         {
           level: p.level,
-          archetype: p.archetype,
-          personality_type: p.personality_type,
           position: p.position,
+          best_role_score: p.best_role_score,
         },
-        slot.role
+        slot.position
       );
       if (s > bestScore) {
         bestScore = s;
@@ -318,11 +317,10 @@ export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | 
     benchedIds.add(p.person_id);
   }
 
-  // Compute strength: average role score of starting XI normalized to 0-100
-  // Max theoretical role score ~230 (level 20 + 120 archetype + 60 personality + 30 position)
+  // Strength = average role score of starting XI (already 0-99 scale from pipeline 27)
   const avgRoleScore =
     bestXI.reduce((sum, s) => sum + s.role_score, 0) / bestXI.length;
-  const strength = Math.min(100, Math.round((avgRoleScore / 230) * 100));
+  const strength = Math.min(100, Math.round(avgRoleScore));
 
   return {
     formation: bestFormation,

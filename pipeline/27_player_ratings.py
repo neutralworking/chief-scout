@@ -112,7 +112,7 @@ GK_COMPOUND_MODELS = {
 # the player's actual profile. A tight range means a player with genuinely
 # strong Engine data CAN beat a player with strong Dribbler data.
 POSITION_WEIGHTS = {
-    "GK":  {"GK": 1.0, "Passer": 0.9, "Cover": 0.9, "Organiser": 0.9, "Shotstopper": 0.9, "Controller": 0.8},
+    "GK":  {"GK": 1.0, "Commander": 0.95, "Cover": 0.9, "Passer": 0.9, "Powerhouse": 0.9, "Controller": 0.8},
     "CD":  {"Destroyer": 1.0, "Cover": 0.95, "Commander": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85, "Controller": 0.8},
     "WD":  {"Engine": 1.0, "Dribbler": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Cover": 0.85, "Controller": 0.85, "Destroyer": 0.8},
     "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Commander": 0.85, "Powerhouse": 0.85},

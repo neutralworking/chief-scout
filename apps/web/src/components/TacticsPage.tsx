@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { FormationDetail } from "@/components/FormationDetail";
 import { PhilosophyCard } from "@/components/PhilosophyCard";
 import { RoleBrowser } from "@/components/RoleBrowser";
-import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole } from "@/lib/tactical-philosophies";
+import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole, TacticalSystem, SystemSlot, SlotRole } from "@/lib/tactical-philosophies";
 
 type Tab = "philosophies" | "formations" | "roles";
 
@@ -58,6 +58,9 @@ interface TacticsPageProps {
   players: TrackedPlayer[];
   formationSlotCounts: Record<number, number>;
   formationPhilosophies: Record<number, Array<{ philosophy: { name: string; slug: string }; affinity: string }>>;
+  systems?: TacticalSystem[];
+  systemSlots?: SystemSlot[];
+  slotRoles?: SlotRole[];
 }
 
 const TABS: { key: Tab; label: string }[] = [

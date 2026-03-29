@@ -1,7 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { POSITIONS } from "@/lib/types";
 import { TacticsPage } from "@/components/TacticsPage";
-import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole } from "@/lib/tactical-philosophies";
+import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole, TacticalSystem, SystemSlot, SlotRole } from "@/lib/tactical-philosophies";
 
 interface Formation {
   id: number;
@@ -74,6 +74,23 @@ export default async function TacticsPageRoute() {
     philosophies = (philResult.data ?? []) as TacticalPhilosophy[];
     philosophyFormations = (pfResult.data ?? []) as PhilosophyFormation[];
     philosophyRoles = (prResult.data ?? []) as PhilosophyRole[];
+  } catch {
+    // Tables don't exist yet
+  }
+
+  // Fetch new systems hierarchy (tactical_systems → system_slots → slot_roles)
+  let systems: TacticalSystem[] = [];
+  let systemSlots: SystemSlot[] = [];
+  let slotRoles: SlotRole[] = [];
+  try {
+    const [systemsResult, systemSlotsResult, slotRolesResult] = await Promise.all([
+      supabaseServer.from("tactical_systems").select("*").order("name"),
+      supabaseServer.from("system_slots").select("*"),
+      supabaseServer.from("slot_roles").select("*"),
+    ]);
+    systems = (systemsResult.data ?? []) as TacticalSystem[];
+    systemSlots = (systemSlotsResult.data ?? []) as SystemSlot[];
+    slotRoles = (slotRolesResult.data ?? []) as SlotRole[];
   } catch {
     // Tables don't exist yet
   }
@@ -152,7 +169,7 @@ export default async function TacticsPageRoute() {
     <div className="max-w-5xl">
       <h1 className="text-lg font-bold tracking-tight mb-0.5">Tactics</h1>
       <p className="text-[10px] text-[var(--text-muted)] mb-4 font-data">
-        {philosophies.length} philosophies &middot; {formationsWithSlots.length} formations &middot; {roles.length} roles &middot; {players.length} tracked
+        {philosophies.length} philosophies &middot; {systems.length} systems &middot; {formationsWithSlots.length} formations &middot; {roles.length} roles &middot; {players.length} tracked
       </p>
 
       <TacticsPage
@@ -168,6 +185,9 @@ export default async function TacticsPageRoute() {
         players={players}
         formationSlotCounts={formationSlotCounts}
         formationPhilosophies={formationPhilosophies}
+        systems={systems}
+        systemSlots={systemSlots}
+        slotRoles={slotRoles}
       />
     </div>
   );

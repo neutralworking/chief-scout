@@ -1,7 +1,7 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole } from "@/lib/tactical-philosophies";
+import type { TacticalPhilosophy, PhilosophyFormation, PhilosophyRole, TacticalSystem, SystemSlot, SlotRole } from "@/lib/tactical-philosophies";
 import { PhilosophyDetail } from "@/components/PhilosophyDetail";
 
 interface Props {
@@ -65,6 +65,31 @@ export default async function PhilosophyDetailPage({ params }: Props) {
   const formations = allFormationsResult.data ?? [];
   const roles = allRolesResult.data ?? [];
 
+  // Fetch systems belonging to this philosophy
+  let systems: TacticalSystem[] = [];
+  let systemSlots: SystemSlot[] = [];
+  let allSlotRoles: SlotRole[] = [];
+  try {
+    const systemsResult = await supabaseServer
+      .from("tactical_systems")
+      .select("*")
+      .eq("philosophy_id", phil.id)
+      .order("name");
+    systems = (systemsResult.data ?? []) as TacticalSystem[];
+
+    const systemIds = systems.map((s) => s.id);
+    if (systemIds.length > 0) {
+      const [slotsRes, rolesRes] = await Promise.all([
+        supabaseServer.from("system_slots").select("*").in("system_id", systemIds),
+        supabaseServer.from("slot_roles").select("*"),
+      ]);
+      systemSlots = (slotsRes.data ?? []) as SystemSlot[];
+      allSlotRoles = (rolesRes.data ?? []) as SlotRole[];
+    }
+  } catch {
+    // Tables don't exist yet
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-3 py-4">
       <Link
@@ -82,6 +107,9 @@ export default async function PhilosophyDetailPage({ params }: Props) {
         players={players}
         formations={formations}
         roles={roles}
+        systems={systems}
+        systemSlots={systemSlots}
+        slotRoles={allSlotRoles}
       />
     </div>
   );

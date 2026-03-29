@@ -7,6 +7,9 @@ import {
   type TacticalPhilosophy,
   type PhilosophyFormation,
   type PhilosophyRole,
+  type TacticalSystem,
+  type SystemSlot,
+  type SlotRole,
   getRadarValues,
   getRadarLabels,
   getPhilosophyColor,
@@ -54,6 +57,9 @@ interface Props {
   players: Player[];
   formations: FormationInfo[];
   roles: RoleInfo[];
+  systems?: TacticalSystem[];
+  systemSlots?: SystemSlot[];
+  slotRoles?: SlotRole[];
 }
 
 export function PhilosophyDetail({

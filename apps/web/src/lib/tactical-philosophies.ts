@@ -44,6 +44,35 @@ export interface PhilosophyRole {
   rationale: string | null;
 }
 
+export interface TacticalSystem {
+  id: number;
+  philosophy_id: number;
+  slug: string;
+  name: string;
+  formation: string;
+  defining_team: string | null;
+  key_principle: string | null;
+  variant_of: number | null;
+}
+
+export interface SystemSlot {
+  id: number;
+  system_id: number;
+  slot_label: string;
+  position: string;
+  sort_order: number;
+}
+
+export interface SlotRole {
+  id: number;
+  slot_id: number;
+  role_name: string;
+  is_default: boolean;
+  primary_model: string;
+  secondary_model: string;
+  rationale: string | null;
+}
+
 // ── Radar dimensions ─────────────────────────────────────────────────────────
 
 export const PHILOSOPHY_DIMENSIONS = [

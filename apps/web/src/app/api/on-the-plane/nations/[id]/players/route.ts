@@ -36,11 +36,13 @@ export async function GET(
     return NextResponse.json({ error: "Nation not in World Cup 2026" }, { status: 404 });
   }
 
-  // Get dual nationals for this nation
+  // Get dual nationals for this nation (exclude women)
   const { data: dualNationals } = await sb
     .from("player_nationalities")
-    .select("person_id")
-    .eq("nation_id", nationId);
+    .select("person_id, people!inner(active, is_female)")
+    .eq("nation_id", nationId)
+    .eq("people.active", true)
+    .neq("people.is_female", true);
 
   const dualIds = (dualNationals ?? []).map((d) => d.person_id);
 
@@ -55,7 +57,7 @@ export async function GET(
       .select("id")
       .eq("nation_id", nationId)
       .eq("active", true)
-      .eq("is_female", false)
+      .neq("is_female", true)
       .range(from, from + PAGE - 1);
     if (!data || data.length === 0) break;
     primaryIds.push(...data.map((p) => p.id));

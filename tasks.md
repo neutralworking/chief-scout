@@ -9,7 +9,8 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [x] ~~OTP smoke test~~ — all 48 nations clickable, squads return, ideal squad cached
 - [x] ~~Women filtered from OTP~~ — `is_female` column added to `people`, 90 flagged, API filters applied
 - [ ] **Manual roster augmentation** — user can feed up-to-date squad info for thin nations if needed
-- [ ] **Verify OTP conversion hook** — post-submit CS rating + upgrade CTA functional
+- [x] ~~Verify OTP conversion hook~~ — post-submit scoring + UpgradeCTA + /pricing page all wired up
+- [ ] **Stripe price IDs in Vercel** — create products in Stripe, add NEXT_PUBLIC_STRIPE_SCOUT_PRICE_ID + annual + pro variants to Vercel env
 
 ### Production Readiness
 - [x] ~~Fix Prod DB~~ — region migrated eu-central-1→eu-west-1, pooler endpoint updated
@@ -20,7 +21,7 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ### Data Quality (launch-critical)
 - [x] ~~Top-end role score compression~~ — Fixed: curved model conversion + top-end stretch. Mbappé 87→90, ceiling 89→92
-- [ ] **3 manual profiles not found** (Tchouameni, Cubarsi, Dembele) — accent mismatches
+- [x] ~~3 manual profiles not found~~ (Tchouameni, Cubarsi, Dembele) — stale no-accent dupes deleted, accented entries have full data
 
 ## High Priority
 
@@ -31,8 +32,9 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ### Data Quality
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables
-- [ ] **Role distribution tuning** — CM Tuttocampista 62%, WM Winger 82%, DM Anchor 71% dominant. Root cause: data coverage gaps
+- [ ] **Role distribution tuning** — superseded by Systems & Roles redesign (new role set will rebalance)
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15%
+- [ ] **Systems & Roles implementation** — spec at `docs/superpowers/specs/2026-03-29-systems-and-roles-design.md`. Migration + pipeline 83 rewrite + pipeline 27 update + frontend rewrite. Fixes Matheus Cunha problem.
 
 ## Medium Priority
 

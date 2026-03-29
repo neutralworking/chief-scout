@@ -47,7 +47,7 @@ async function fallbackQuery(
   // Get players with role scores
   let query = sb
     .from("player_intelligence_card")
-    .select("id, name, position, club, nation_code, best_role, best_role_score, earned_archetype, archetype, level, age")
+    .select("person_id, name, position, club, nation_code, best_role, best_role_score, earned_archetype, archetype, level, dob")
     .not("best_role_score", "is", null)
     .eq("active", true)
     .order("best_role_score", { ascending: false })
@@ -66,13 +66,7 @@ async function fallbackQuery(
     return NextResponse.json({ players: [] });
   }
 
-  const playerIds = players.map((p: { id: number }) => p.id);
-
-  // Fetch grade counts per player
-  const { data: gradeCounts } = await sb
-    .from("attribute_grades")
-    .select("player_id, source")
-    .in("player_id", playerIds);
+  const playerIds = players.map((p: { person_id: number }) => p.person_id);
 
   // Compute per-player stats
   const statsMap: Record<number, { scout: number; pipeline: number; attrs: Set<string> }> = {};
@@ -99,12 +93,19 @@ async function fallbackQuery(
     }
   }
 
-  const enriched = players.map((p: Record<string, unknown>) => ({
-    ...p,
-    scout_grades: statsMap[p.id as number]?.scout ?? 0,
-    pipeline_grades: statsMap[p.id as number]?.pipeline ?? 0,
-    total_coverage: statsMap[p.id as number]?.attrs.size ?? 0,
-  }));
+  const now = new Date();
+  const enriched = players.map((p: Record<string, unknown>) => {
+    const dob = p.dob ? new Date(p.dob as string) : null;
+    const age = dob ? Math.floor((now.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null;
+    return {
+      ...p,
+      id: p.person_id,
+      age,
+      scout_grades: statsMap[p.person_id as number]?.scout ?? 0,
+      pipeline_grades: statsMap[p.person_id as number]?.pipeline ?? 0,
+      total_coverage: statsMap[p.person_id as number]?.attrs.size ?? 0,
+    };
+  });
 
   // Apply filter
   const filtered = filter === "all"

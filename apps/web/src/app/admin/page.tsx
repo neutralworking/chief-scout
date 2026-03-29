@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { DashboardTab } from "@/components/admin/DashboardTab";
-import { ScoutPadTab } from "@/components/admin/ScoutPadTab";
 import { EditorTab } from "@/components/admin/EditorTab";
 import { PersonalityTab } from "@/components/admin/PersonalityTab";
 import { KCPreviewTab } from "@/components/admin/KCPreviewTab";
@@ -12,7 +11,6 @@ import { GradingTab } from "@/components/admin/GradingTab";
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
   { id: "grading", label: "Grading" },
-  { id: "scout-pad", label: "Scout Pad" },
   { id: "editor", label: "Editor" },
   { id: "personality", label: "Personality" },
   { id: "kc-preview", label: "KC Cards" },
@@ -63,7 +61,6 @@ function AdminTabs() {
       {/* Tab content */}
       {activeTab === "dashboard" && <DashboardTab />}
       {activeTab === "grading" && <GradingTab />}
-      {activeTab === "scout-pad" && <ScoutPadTab />}
       {activeTab === "editor" && <EditorTab />}
       {activeTab === "personality" && <PersonalityTab />}
       {activeTab === "kc-preview" && <KCPreviewTab />}

@@ -251,8 +251,14 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
                 # Compress: 10→17, 8→14, 5→9. Prevents understat-only
                 # players from scoring as if they had elite scout grades.
                 score_20 = min(g["stat_score"] * 1.7, 17)
+            elif source == "api_football":
+                # API-Football uses percentile ranking (uniform 1-10 distribution).
+                # ×1.5, cap 15: AF 10/10 → 15/20 (very good, not elite).
+                # Without this, AF 9/10 → 18/20 → model 92, inflating
+                # stat-only players to world-class scout-grade territory.
+                score_20 = min(g["stat_score"] * 1.5, 15)
             else:
-                # StatsBomb, API-Football, computed, fbref: 1-10 → 2-18
+                # StatsBomb, computed, fbref: 1-10 → 2-18
                 # Cap at 18: scores of 19-20 reserved for scout assessment
                 score_20 = min(g["stat_score"] * 2, 18)
         else:

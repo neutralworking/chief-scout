@@ -246,16 +246,11 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            if source == "understat":
-                # Understat clusters high (9-10 for any decent player).
-                # Compress: 10→17, 8→14, 5→9. Prevents understat-only
-                # players from scoring as if they had elite scout grades.
-                score_20 = min(g["stat_score"] * 1.7, 17)
-            elif source == "api_football":
-                # API-Football uses percentile ranking (uniform 1-10 distribution).
-                # ×1.5, cap 15: AF 10/10 → 15/20 (very good, not elite).
-                # Without this, AF 9/10 → 18/20 → model 92, inflating
-                # stat-only players to world-class scout-grade territory.
+            if source in ("understat", "api_football"):
+                # Both sources cluster high / use percentile ranking.
+                # ×1.5, cap 15: 10/10 → 15/20 (very good, not elite).
+                # Without this, stat-only players score as world-class.
+                # Only scout_assessment can reach 16-20.
                 score_20 = min(g["stat_score"] * 1.5, 15)
             else:
                 # StatsBomb, computed, fbref: 1-10 → 2-18

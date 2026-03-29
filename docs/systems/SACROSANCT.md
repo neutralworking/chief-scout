@@ -11,7 +11,7 @@
 | **Personality** | WHO is this player? | `player_personality` | Slow — character changes over years | Scout observation, behavioral inference |
 | **Archetype** | HOW does this player play? | `player_profiles` | Medium — evolves with age/role | Attribute scores, statistical analysis |
 | **Status** | WHAT is their current state? | `player_status` | Fast — changes week-to-week | News, match data, reports |
-| **Tactical Roles** | WHERE do they fit in a formation? | `tactical_roles` | Stable — role definitions evolve slowly | Archetype + personality + position matching |
+| **Tactical Roles** | WHERE do they fit in a formation? | `tactical_systems`, `system_slots`, `slot_roles` | Stable — role definitions evolve slowly | Archetype + personality + position matching |
 | **Four-Pillar Assessment** | OVERALL — how do they score? | Computed (API) | Real-time — recomputed on access | Technical + Tactical + Mental + Physical (25% each) |
 
 These are **not interchangeable**. A Commander archetype can have any personality type. A General personality can play as any archetype. Status tags describe the now, not the forever. The four-pillar assessment synthesizes all systems into a unified score.
@@ -192,11 +192,27 @@ These are free-form or enum fields, not categorical tags:
 
 ## System 4: Tactical Roles (WHERE)
 
-Tactical roles describe **where and how a player functions within a formation**. Unlike positions (which are broad zones), roles are specific jobs within a system. A CM can be a Mezzala, Box-to-Box, or Deep Playmaker — the role determines what the formation asks of them.
+Tactical roles describe **where and how a player functions within a formation**. Unlike positions (which are broad zones), roles are specific jobs within a system. A CM can be a Mezzala, Metodista, or Tuttocampista — the role determines what the formation asks of them.
 
-### Role ↔ Archetype Affinity
+**Full spec**: `docs/superpowers/specs/2026-03-29-systems-and-roles-design.md`
 
-Each role has a **primary** and **secondary** archetype affinity. Players whose archetype matches the role's affinity are naturally suited to it. This is computed, not assigned.
+### Hierarchy
+
+```
+Philosophy → System → Formation → Slot → Role(s)
+```
+
+| Level | Description | Storage |
+|-------|-------------|---------|
+| **Philosophy** | Tactical DNA — the overarching approach (e.g. Gegenpressing, Tiki-Taka) | `tactical_philosophies` |
+| **System** | Named tactical system within a philosophy (e.g. 4-3-3 Gegenpressing) | `tactical_systems` |
+| **Formation** | Shape — the numeric layout (e.g. 4-3-3, 4-2-3-1) | `formations` |
+| **Slot** | A positional role-slot in a formation (e.g. Left Wing, Pivot DM) | `system_slots` |
+| **Role** | The specific job assigned to that slot (e.g. Inside Forward, Anchor) | `slot_roles` |
+
+Roles are validated **bottom-up**: every role in this taxonomy exists in at least one real tactical system. No role is invented to fill a grid.
+
+### The 41 Roles
 
 Role names use the term the football world actually uses. If the word came from Italian, Spanish, Portuguese, German, French, or Argentine football culture and became THE word for that role, we use it. No FIFA/FM generic compound names.
 
@@ -208,44 +224,91 @@ Each role's **primary model** determines its pillar alignment:
 
 **GK exception**: The specialist GK model is always primary. The secondary model determines pillar alignment for goalkeeper roles.
 
-| Position | Role | Pillar | Primary | Secondary | Tooltip | Lineage |
-|----------|------|--------|---------|-----------|---------|---------|
-| GK | Libero GK | Technical | GK | Passer | Distribution specialist — builds attacks from the back | Ter Stegen → Ederson |
-| GK | Sweeper Keeper | Tactical | GK | Cover | High line, sweeps behind defence, reads danger early | Higuita → Neuer → Alisson |
-| GK | Comandante | Mental | GK | Commander | Organizer — commands the area, marshals the backline | Banks → Buffon → Casillas |
-| GK | Shotstopper | Physical | GK | Target | Reflexes, presence, dominates the six-yard box | Kahn → Courtois → Onana |
-| CD | Libero | Technical | Passer | Cover | Ball-playing CB — progressive passing from deep | Beckenbauer → Sammer → Stones |
-| CD | Sweeper | Tactical | Cover | Controller | Last man — reads play two moves ahead, covers space | Sammer → Hummels → Marquinhos |
-| CD | Zagueiro | Mental | Commander | Destroyer | Commanding CB — leads, organizes, sets the defensive tone | Lucio → Thiago Silva → Van Dijk |
-| CD | Stopper | Physical | Powerhouse | Destroyer | Aggressive front-foot defender — wins duels, dominates | Baresi → Chiellini → Konate |
-| WD | Lateral | Technical | Passer | Dribbler | Attacking fullback — crosses, final ball, width | Cafu → Dani Alves → TAA |
-| WD | Fluidificante | Tactical | Engine | Cover | Covers full flank in both phases, tireless discipline | Facchetti → Zanetti → Hakimi |
-| WD | Invertido | Mental | Controller | Passer | Inverted FB — reads when to tuck inside, becomes midfielder | Lahm (2013) → Cancelo → Rico Lewis |
-| WD | Corredor | Physical | Sprinter | Engine | Pace-based fullback — explosive in transition | Walker → Theo Hernandez → Alphonso Davies |
-| DM | Regista | Technical | Passer | Controller | Deep playmaker — dictates tempo with passing quality | Gerson (1970) → Pirlo → Jorginho |
-| DM | Anchor | Tactical | Cover | Destroyer | Shield — positions, intercepts, guards the gate | Makelele → Busquets → Casemiro |
-| DM | Pivote | Mental | Controller | Cover | Midfield brain — organizes shape, reads everything | Busquets → Rodri → Fernandinho |
-| DM | Volante | Physical | Powerhouse | Destroyer | Ball-winner — aggressive, physical, disrupts | Gattuso → Kante → Caicedo |
-| CM | Mezzala | Technical | Passer | Creator | Half-space creator — technical quality between the lines | Barella → Kovacic → Modric |
-| CM | Tuttocampista | Tactical | Engine | Cover | All-pitch midfielder — covers every blade, arrives in box | Lampard → Gerrard → Bellingham |
-| CM | Metodista | Mental | Controller | Passer | Orchestrator — controls rhythm with intelligent passing | Xavi → Kroos → Pedri |
-| CM | Relayeur | Physical | Sprinter | Engine | Tireless shuttle — pace and power to link phases | Toure → Valverde → Vidal |
-| WM | Winger | Technical | Dribbler | Passer | Beats defenders with skill and trickery, delivers from wide | Garrincha → Figo → Saka |
-| WM | Tornante | Tactical | Engine | Cover | Full-flank wide mid — works both phases, selfless | Maggio → Moses → Kostic |
-| WM | False Winger | Mental | Controller | Cover | Starts wide, drifts inside intelligently to create overloads | Bernardo Silva → Foden → Kulusevski |
-| WM | Shuttler | Physical | Sprinter | Engine | Raw pace and stamina to cover the flank end to end | Sterling → Sane → Chiesa |
-| AM | Trequartista | Technical | Dribbler | Creator | Free-roaming 10 — dribbling genius in the final third | Baggio → Zidane → Messi |
-| AM | Seconda Punta | Tactical | Engine | Striker | Second striker — reads space, links play through movement | Del Piero → Griezmann → Firmino |
-| AM | Enganche | Mental | Controller | Creator | The hook — sees everything, threads impossible passes | Maradona → Riquelme → Dybala |
-| AM | Boxcrasher | Physical | Sprinter | Striker | Dynamic AM who arrives in the box with pace and power | Lampard → Havertz → Bruno Fernandes |
-| WF | Inside Forward | Technical | Dribbler | Sprinter | Cuts inside on strong foot to shoot or create | Robben → Salah → Yamal |
-| WF | Raumdeuter | Tactical | Engine | Striker | Space interpreter — presses and finds pockets to score | Thomas Muller → Son → Mane |
-| WF | Inventor | Mental | Creator | Dribbler | Creates something from nothing — vision from wide | Rui Costa (wide) → Grealish → Neymar |
-| WF | Extremo | Physical | Sprinter | Striker | Electric pace and power — stretches the defence | Henry (wide) → Mbappe → Vinicius Jr |
-| CF | Poacher | Technical | Striker | Dribbler | Pure finisher — movement, instinct, clinical in the box | Gerd Muller → Inzaghi → Haaland |
-| CF | Spearhead | Tactical | Engine | Destroyer | Leads the press from front, relentless work rate | Firmino → Vardy → Suarez |
-| CF | Falso Nove | Mental | Creator | Controller | False 9 — drops deep, creates, pulls CBs out of shape | Hidegkuti (1953) → Messi (2009) → Firmino |
-| CF | Prima Punta | Physical | Target | Powerhouse | Target striker — aerial, holds up, physical reference point | Toni → Giroud → Lewandowski |
+#### GK (4 roles)
+
+| Role | Description |
+|------|-------------|
+| **Comandante** | Organizer — commands the area, marshals the backline. Banks → Buffon → Casillas |
+| **Sweeper Keeper** | High line, sweeps behind defence, reads danger early. Higuita → Neuer → Alisson |
+| **Distributor** | Distribution specialist — builds attacks from the back. Ter Stegen → Ederson |
+| **Shotstopper** | Reflexes, presence, dominates the six-yard box. Kahn → Courtois → Onana |
+
+#### CD (5 roles)
+
+| Role | Description |
+|------|-------------|
+| **Centrale** | Ball-playing CB — progressive passing from deep. Beckenbauer → Sammer → Stones |
+| **Distributor** | Pass-first CB who recycles possession and switches play |
+| **Stopper** | Aggressive front-foot defender — wins duels, dominates. Baresi → Chiellini → Konate |
+| **Sweeper** | Last man — reads play two moves ahead, covers space. Sammer → Hummels → Marquinhos |
+| **Colossus** | Commanding CB — leads, organizes, sets the defensive tone. Lucio → Thiago Silva → Van Dijk |
+
+#### WD (4 roles)
+
+| Role | Description |
+|------|-------------|
+| **Fullback** | Attacking fullback — crosses, final ball, width. Cafu → Dani Alves → TAA |
+| **Wing-back** | Covers full flank in both phases, tireless discipline. Facchetti → Zanetti → Hakimi |
+| **Corner Back** | Defensive-first fullback who holds position and protects the channel |
+| **Invertido** | Inverted FB — reads when to tuck inside, becomes midfielder. Lahm (2013) → Cancelo → Rico Lewis |
+
+#### DM (5 roles)
+
+| Role | Description |
+|------|-------------|
+| **Regista** | Deep playmaker — dictates tempo with passing quality. Gerson (1970) → Pirlo → Jorginho |
+| **Pivote** | Midfield brain — organizes shape, reads everything. Busquets → Rodri → Fernandinho |
+| **Anchor** | Shield — positions, intercepts, guards the gate. Makelele → Busquets → Casemiro |
+| **Ball Winner** | Ball-winner — aggressive, physical, disrupts. Gattuso → Kante → Caicedo |
+| **Segundo Volante** | Dynamic DM who arrives late into the box from deep |
+
+#### CM (4 roles)
+
+| Role | Description |
+|------|-------------|
+| **Playmaker** | Half-space creator — technical quality between the lines. Barella → Kovacic → Modric |
+| **Metodista** | Orchestrator — controls rhythm with intelligent passing. Xavi → Kroos → Pedri |
+| **Mezzala** | Half-space runner — breaks lines, links wide and central. Barella → Valverde |
+| **Tuttocampista** | All-pitch midfielder — covers every blade, arrives in box. Lampard → Gerrard → Bellingham |
+
+#### WM (4 roles)
+
+| Role | Description |
+|------|-------------|
+| **Winger** | Beats defenders with skill and trickery, delivers from wide. Garrincha → Figo → Saka |
+| **Tornante** | Full-flank wide mid — works both phases, selfless. Maggio → Moses → Kostic |
+| **False Winger** | Starts wide, drifts inside intelligently to create overloads. Bernardo Silva → Foden → Kulusevski |
+| **Wide Playmaker** | Creative wide presence — combines in tight spaces, picks passes from the flank |
+
+#### AM (3 roles)
+
+| Role | Description |
+|------|-------------|
+| **Trequartista** | Free-roaming 10 — dribbling genius in the final third. Baggio → Zidane → Messi |
+| **Enganche** | The hook — sees everything, threads impossible passes. Maradona → Riquelme → Dybala |
+| **Boxcrasher** | Dynamic AM who arrives in the box with pace and power. Havertz → Bruno Fernandes |
+
+#### WF (5 roles)
+
+| Role | Description |
+|------|-------------|
+| **Inside Forward** | Cuts inside on strong foot to shoot or create. Robben → Salah → Yamal |
+| **Raumdeuter** | Space interpreter — presses and finds pockets to score. Thomas Muller → Son → Mane |
+| **Winger** | Wide forward who runs channels, crosses and stretches the defence |
+| **Wide Playmaker** | Creates from wide with vision and combination play. Grealish → Neymar |
+| **Wide Target Forward** | Physical wide forward — holds up play, brings others into the game |
+
+#### CF (7 roles)
+
+| Role | Description |
+|------|-------------|
+| **Poacher** | Pure finisher — movement, instinct, clinical in the box. Gerd Muller → Inzaghi → Haaland |
+| **Complete Forward** | All-round striker — contributes to build-up, holds up, finishes. Lewandowski → Benzema |
+| **Falso Nove** | False 9 — drops deep, creates, pulls CBs out of shape. Hidegkuti (1953) → Messi (2009) |
+| **Spearhead** | Leads the press from front, relentless work rate. Firmino → Vardy → Suarez |
+| **Target Forward** | Aerial, holds up, physical reference point. Toni → Giroud → Lacazette |
+| **Seconda Punta** | Second striker — reads space, links play through movement. Del Piero → Griezmann → Firmino |
+| **Shadow Striker** | Arrives late from deep, ghosting in behind the target man. Totti → Sneijder → Gotze |
 
 ### Role Fit Scoring
 
@@ -262,8 +325,8 @@ Normalized to 0-100. A score ≥ 70 = strong fit, 50-69 = adequate, < 50 = poor 
 - Roles are always **Title Case** — Regista, Inside Forward, False Winger
 - Roles are distinct from positions — a position is WHERE on the pitch, a role is WHAT you do there
 - Roles belong to formations, not to players — a player has archetypes, a formation slot has a role
-- Every position has exactly **4 roles**, one per pillar (Technical, Tactical, Mental, Physical)
 - Role names use cultural football terms where established; coined English terms where no cultural term exists
+- Every role must be validated against at least one real tactical system (bottom-up validation)
 
 ---
 

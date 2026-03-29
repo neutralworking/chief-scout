@@ -394,10 +394,11 @@ const BLUEPRINT_ROLE_MAP: Record<string, string> = {
   // CF
   "Prima Punta": "Prima Punta",
   "Falso Nove": "Falso Nove",
-  "Prima Punta": "Colossus",
+  "Colossus": "Colossus",
   "Regista": "Regista",
   "Spearhead": "Spearhead",
   "Target Forward": "Target Forward",
+  "Shuttler": "Winger",
 };
 
 /**

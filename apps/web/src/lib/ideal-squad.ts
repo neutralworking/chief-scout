@@ -75,7 +75,7 @@ export function categorizePlayer(
   // Established: 10+ caps or confirmed national team career history
   if (caps >= 10 || hasHistory) {
     // Recall: over 28, had international history, but low caps suggests inactive
-    if (age > 28 && caps > 0 && caps < 20) {
+    if (age > 30 && caps > 0 && caps < 50) {
       return "recall";
     }
     return "established";

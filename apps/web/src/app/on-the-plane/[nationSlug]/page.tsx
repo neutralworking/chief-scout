@@ -97,7 +97,7 @@ export default function SquadBuilderPage() {
   const [xiIds, setXiIds] = useState<Set<number>>(new Set());
 
   // Filters
-  const [posFilter, setPosFilter] = useState<string | null>("GK");
+  const [posFilter, setPosFilter] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [sortBy, setSortBy] = useState<"level" | "age" | "name">("level");
@@ -986,7 +986,7 @@ export default function SquadBuilderPage() {
           </Link>
           <button
             onClick={() => {
-              const text = `✈️ On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches.`;
+              const text = `✈️ On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
               navigator.clipboard?.writeText(text);
             }}
             className="px-4 py-2 rounded-lg text-sm cursor-pointer"

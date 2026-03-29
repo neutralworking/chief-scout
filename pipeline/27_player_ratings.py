@@ -115,11 +115,11 @@ POSITION_WEIGHTS = {
     "GK":  {"GK": 1.0, "Commander": 0.95, "Cover": 0.9, "Passer": 0.9, "Powerhouse": 0.9, "Controller": 0.8},
     "CD":  {"Destroyer": 1.0, "Cover": 0.95, "Commander": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85, "Controller": 0.8},
     "WD":  {"Engine": 1.0, "Dribbler": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Cover": 0.85, "Controller": 0.85, "Destroyer": 0.8},
-    "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Commander": 0.85, "Powerhouse": 0.85},
+    "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Engine": 0.9, "Commander": 0.85, "Powerhouse": 0.85},
     "CM":  {"Controller": 1.0, "Passer": 0.95, "Engine": 0.95, "Cover": 0.85, "Creator": 0.85, "Sprinter": 0.85},
     "WM":  {"Dribbler": 1.0, "Engine": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Creator": 0.85, "Controller": 0.85, "Cover": 0.8},
     "AM":  {"Creator": 1.0, "Dribbler": 0.95, "Engine": 0.9, "Passer": 0.9, "Controller": 0.85, "Striker": 0.85, "Sprinter": 0.85},
-    "WF":  {"Dribbler": 1.0, "Sprinter": 0.95, "Striker": 0.9, "Creator": 0.9, "Engine": 0.85},
+    "WF":  {"Dribbler": 1.0, "Striker": 0.95, "Creator": 0.9, "Engine": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85},
     "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 

@@ -272,7 +272,23 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
             score_20 = score_20 * league_strength
         priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
-        if existing is None or priority > existing[1]:
+        if existing is None:
+            best[attr] = (score_20, priority)
+        elif priority > existing[1]:
+            # Higher priority wins — UNLESS it's garbage (≤3/20) overriding
+            # a much better lower-priority score (≥10.5/20, i.e. ≥7/10 stat).
+            # This prevents AF percentile 1/10 from clobbering understat 10/10.
+            if score_20 <= 3 and existing[0] >= 10.5:
+                pass  # keep the better lower-priority value
+            else:
+                best[attr] = (score_20, priority)
+        elif priority < existing[1]:
+            # Lower priority normally loses — UNLESS existing is garbage
+            # and this source has much better data (same threshold).
+            if existing[0] <= 3 and score_20 >= 10.5:
+                best[attr] = (score_20, priority)
+        elif score_20 > existing[0]:
+            # Equal priority: higher value wins
             best[attr] = (score_20, priority)
 
     # Level-derived anchor: what a player of this level "should" score

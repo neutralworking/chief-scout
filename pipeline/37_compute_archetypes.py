@@ -93,7 +93,7 @@ POSITIONAL_ARCHETYPES = {
     },
 
     # ── BALL-PLAYING DEFENCE / GK ─────────────────────────────────
-    "Distributor": {
+    "Conductor": {
         "positions": {"CD", "WD", "GK"},  # builds from the back — high pass accuracy + volume
         "check": lambda s, p: (s.get("pass_acc", 0) >= 87 and s.get("passes_p90", 0) >= 50),
         "personality": None,
@@ -101,7 +101,7 @@ POSITIONAL_ARCHETYPES = {
     },
 
     # ── PHYSICAL / COMBATIVE ─────────────────────────────────────
-    "Colossus": {
+    "Titan": {
         "positions": None,  # any — dominant physical presence, wins aerial/ground duels
         "check": lambda s, p: (s.get("duel_pct", 0) >= 60 and s.get("height", 0) >= 185),
         "personality": None,
@@ -224,9 +224,9 @@ ARCHETYPE_PRIORITY = [
     # Creative / Authority
     "Architect", "Marshal", "Fulcrum", "Artisan",
     # Tempo / Control
-    "Heartbeat", "Distributor", "Fortress",
+    "Heartbeat", "Conductor", "Fortress",
     # Physical / Combative
-    "Colossus", "Warrior", "Sentinel", "Terrier",
+    "Titan", "Warrior", "Sentinel", "Terrier",
     # Direct
     "Outlet", "Assassin",
     # Defensive

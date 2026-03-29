@@ -482,6 +482,42 @@ export function scorePlayerForRole(
 }
 
 /**
+ * Score a player for a formation slot using pipeline 27's pre-computed best_role_score.
+ * Used by OTP ideal squad computation. Unlike scorePlayerForRole() which matches by
+ * role name, this scores by position compatibility — the role score already encodes
+ * tactical fit via pipeline 27.
+ *
+ * Scoring:
+ * - Position guard: player.position must be in SLOT_POSITION_MAP[slotPosition], else -1
+ * - Exact position match: full best_role_score
+ * - Compatible position: best_role_score * 0.90
+ * - Fallback (no best_role_score): player level
+ */
+export function scorePlayerForSlot(
+  player: {
+    level: number | null;
+    position: string | null;
+    best_role_score: number | null;
+  },
+  slotPosition: string
+): number {
+  // Position guard — reject incompatible positions
+  const validPositions = SLOT_POSITION_MAP[slotPosition];
+  if (!validPositions || !player.position || !validPositions.includes(player.position)) {
+    return -1;
+  }
+
+  // Base score from pipeline 27's pre-computed role score, or level as fallback
+  const base = player.best_role_score ?? player.level ?? 0;
+
+  // Exact position match gets full score; compatible position gets 0.90
+  if (player.position === slotPosition) {
+    return base;
+  }
+  return base * 0.90;
+}
+
+/**
  * Get the historical reference string for a tactical role.
  * Returns null if the role has no intelligence mapping.
  */

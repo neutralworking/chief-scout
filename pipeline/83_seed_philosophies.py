@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-Seed tactical philosophies, philosophy-formation links, and philosophy-role links.
+Seed tactical philosophies, tactical systems, system slots, and slot roles.
 
 10 named philosophies drawn from Inverting the Pyramid, each with visible lineage,
 prophets and disciples, and real names football people use.
 
+28 tactical systems across the 10 philosophies, each with ~11 slots and default roles.
+41 roles total, differentiated by position + model compound.
+
 Usage:
-    python pipeline/31_seed_philosophies.py [--dry-run]
+    python pipeline/83_seed_philosophies.py [--dry-run]
 """
 
 from __future__ import annotations
@@ -315,9 +318,9 @@ PHILOSOPHIES = [
         "fluidity": 7,
     },
     {
-        "name": "Cholismo",
-        "slug": "cholismo",
-        "tagline": "Controlled aggression. The compact block as collective weapon. Win ugly, win always.",
+        "name": "Transizione",
+        "slug": "transizione",
+        "tagline": "Defend with structure, strike on the break. Transition as the decisive moment.",
         "origin_story": (
             "Carlos Bilardo won the 1986 World Cup with Argentina playing cynical, brilliant, ruthless football "
             "— Maradona's genius weaponised by a manager who understood that football is war by other means. "
@@ -327,10 +330,10 @@ PHILOSOPHIES = [
             "cover it with a bedsheet. Every player within 25 metres of every other player. The block absorbs "
             "pressure, then explodes on the counter through Koke's switches and the speed of the front two. "
             "Germán Burgos, his assistant, embodied the mentality — a former goalkeeper with a face like a "
-            "clenched fist. Cholismo demands: you suffer, you sacrifice, you fight for every centimetre, and "
-            "when the moment comes — the transition, the set piece, the second ball — you are clinical. "
-            "Simeone's Atlético spent a decade competing against squads worth three times as much by sheer "
-            "force of collective will and tactical discipline."
+            "clenched fist. Mourinho's Inter in 2010 showed the philosophy at its peak — structured defence, "
+            "lethal transitions, winning the Champions League against Barcelona with discipline and precision. "
+            "Deschamps' France in 2018, Ranieri's Leicester in 2016 — all variants of the same idea: "
+            "absorb, transition, punish."
         ),
         "key_principles": [
             "Compact defensive block — 25m between lines",
@@ -339,7 +342,7 @@ PHILOSOPHIES = [
             "Set pieces as legitimate primary weapon",
             "Collective suffering as path to victory",
         ],
-        "defining_managers": ["Bilardo", "Simeone", "Burgos"],
+        "defining_managers": ["Bilardo", "Simeone", "Mourinho", "Deschamps", "Ranieri"],
         "era": "2011-present",
         "archetype_requirements": {"Cover": 55, "Destroyer": 50, "Sprinter": 55, "Striker": 45},
         "personality_preferences": {"I": 0.6, "C": 0.6, "L": 0.5},
@@ -400,8 +403,8 @@ PHILOSOPHIES = [
         "fluidity": 2,
     },
     {
-        "name": "Fergie Time",
-        "slug": "fergie_time",
+        "name": "Leadership",
+        "slug": "leadership",
         "tagline": "Leadership as philosophy. Mentality monsters. Winning from losing positions.",
         "origin_story": (
             "Bill Shankly built Liverpool on socialist principles — 'The socialism I believe in is everybody "
@@ -425,8 +428,8 @@ PHILOSOPHIES = [
             "Sell a year early, never a year late",
             "Winning culture as self-reinforcing organism",
         ],
-        "defining_managers": ["Shankly", "Clough", "Ferguson"],
-        "era": "1960s-2013",
+        "defining_managers": ["Shankly", "Clough", "Ferguson", "Ancelotti"],
+        "era": "1960s-present",
         "archetype_requirements": {"Commander": 55, "Engine": 50, "Sprinter": 50, "Striker": 45},
         "personality_preferences": {"C": 0.7, "L": 0.6, "X": 0.5},
         "preferred_tags": [
@@ -444,169 +447,623 @@ PHILOSOPHIES = [
     },
 ]
 
-# ── Philosophy ↔ Formation affinities ────────────────────────────────────────
-# Maps philosophy slug → list of (formation_name, affinity)
+# ── 41 Tactical Roles ───────────────────────────────────────────────────────
+# (role_name, position, primary_model, secondary_model)
 
-PHILOSOPHY_FORMATIONS = {
-    "garra_charrua": [
-        ("4-4-2", "primary"),
-        ("4-5-1", "primary"),
-        ("5-4-1", "secondary"),
-        ("5-3-2", "secondary"),
-        ("4-4-1-1", "compatible"),
-    ],
-    "catenaccio": [
-        ("5-3-2", "primary"),
-        ("5-4-1", "primary"),
-        ("3-5-2", "secondary"),
-        ("4-5-1", "secondary"),
-        ("4-4-1-1", "compatible"),
-        ("4-3-1-2", "compatible"),
-    ],
-    "joga_bonito": [
-        ("4-2-4", "primary"),
-        ("4-3-3", "secondary"),
-        ("4-2-3-1", "secondary"),
-        ("3-4-3", "compatible"),
-        ("4-2-2-2", "compatible"),
-    ],
-    "total_football": [
-        ("4-3-3", "primary"),
-        ("3-4-3", "secondary"),
-        ("3-3-4", "secondary"),
-        ("4-2-3-1", "compatible"),
-        ("3-3-1-3", "compatible"),
-    ],
-    "la_masia": [
-        ("4-3-3", "primary"),
-        ("4-6-0", "primary"),
-        ("4-2-3-1", "secondary"),
-        ("3-4-3", "secondary"),
-        ("4-1-2-1-2", "compatible"),
-    ],
-    "gegenpressing": [
-        ("4-2-3-1", "primary"),
-        ("4-3-3", "primary"),
-        ("4-4-2", "secondary"),
-        ("3-4-3", "secondary"),
-        ("4-1-2-1-2", "compatible"),
-    ],
-    "bielsismo": [
-        ("3-3-1-3", "primary"),
-        ("3-4-3", "secondary"),
-        ("3-3-4", "secondary"),
-        ("4-3-3", "compatible"),
-        ("4-2-3-1", "compatible"),
-    ],
-    "cholismo": [
-        ("4-4-2", "primary"),
-        ("4-3-1-2", "primary"),
-        ("4-5-1", "secondary"),
-        ("5-3-2", "secondary"),
-        ("4-4-1-1", "compatible"),
-    ],
-    "pomo": [
-        ("4-4-2", "primary"),
-        ("4-5-1", "primary"),
-        ("5-4-1", "secondary"),
-        ("4-4-1-1", "secondary"),
-        ("3-5-2", "compatible"),
-    ],
-    "fergie_time": [
-        ("4-4-2", "primary"),
-        ("4-3-3", "secondary"),
-        ("4-5-1", "secondary"),
-        ("4-2-3-1", "secondary"),
-        ("4-4-1-1", "compatible"),
-    ],
-}
+ROLES = [
+    ("Comandante",         "GK", "GK",         "Commander"),
+    ("Sweeper Keeper",     "GK", "GK",         "Cover"),
+    ("Distributor",        "GK", "GK",         "Passer"),
+    ("Shotstopper",        "GK", "GK",         "Powerhouse"),
+    ("Centrale",           "CD", "Commander",   "Destroyer"),
+    ("Distributor",        "CD", "Passer",      "Cover"),
+    ("Stopper",            "CD", "Powerhouse",  "Destroyer"),
+    ("Sweeper",            "CD", "Cover",       "Controller"),
+    ("Colossus",           "CD", "Target",      "Powerhouse"),
+    ("Fullback",           "WD", "Engine",      "Passer"),
+    ("Wing-back",          "WD", "Engine",      "Dribbler"),
+    ("Corner Back",        "WD", "Cover",       "Destroyer"),
+    ("Invertido",          "WD", "Controller",  "Passer"),
+    ("Regista",            "DM", "Passer",      "Controller"),
+    ("Pivote",             "DM", "Controller",  "Cover"),
+    ("Anchor",             "DM", "Cover",       "Destroyer"),
+    ("Ball Winner",        "DM", "Engine",      "Destroyer"),
+    ("Segundo Volante",    "DM", "Powerhouse",  "Engine"),
+    ("Playmaker",          "CM", "Passer",      "Creator"),
+    ("Metodista",          "CM", "Controller",  "Passer"),
+    ("Mezzala",            "CM", "Engine",      "Creator"),
+    ("Tuttocampista",      "CM", "Engine",      "Cover"),
+    ("Winger",             "WM", "Dribbler",    "Passer"),
+    ("Tornante",           "WM", "Engine",      "Cover"),
+    ("False Winger",       "WM", "Controller",  "Creator"),
+    ("Wide Playmaker",     "WM", "Creator",     "Passer"),
+    ("Trequartista",       "AM", "Dribbler",    "Creator"),
+    ("Enganche",           "AM", "Creator",     "Controller"),
+    ("Boxcrasher",         "AM", "Sprinter",    "Striker"),
+    ("Inside Forward",     "WF", "Dribbler",    "Striker"),
+    ("Raumdeuter",         "WF", "Engine",      "Striker"),
+    ("Winger",             "WF", "Dribbler",    "Passer"),
+    ("Wide Playmaker",     "WF", "Creator",     "Passer"),
+    ("Wide Target Forward","WF", "Target",      "Powerhouse"),
+    ("Poacher",            "CF", "Striker",     "Engine"),
+    ("Complete Forward",   "CF", "Striker",     "Creator"),
+    ("Falso Nove",         "CF", "Creator",     "Controller"),
+    ("Spearhead",          "CF", "Engine",      "Striker"),
+    ("Target Forward",     "CF", "Target",      "Powerhouse"),
+    ("Seconda Punta",      "CF", "Creator",     "Striker"),
+    ("Shadow Striker",     "CF", "Sprinter",    "Striker"),
+]
 
-# ── Philosophy ↔ Role affinities ─────────────────────────────────────────────
-# Maps philosophy slug → list of (role_name, importance, rationale)
+# Build lookup: (role_name, position) -> (primary, secondary)
+ROLE_LOOKUP = {(r[0], r[1]): (r[2], r[3]) for r in ROLES}
 
-PHILOSOPHY_ROLES = {
-    "garra_charrua": [
-        ("Vorstopper", "essential", "The warrior CB — wins duels, sets the tone"),
-        ("Volante", "essential", "Aggressive midfield enforcer"),
-        ("Anchor", "preferred", "Shields the defence with discipline"),
-        ("Prima Punta", "preferred", "Holds ball up, aerial threat from set pieces"),
-        ("Tuttocampista", "preferred", "Covers every blade of grass"),
-        ("Shotstopper", "compatible", "Traditional keeper, commands area"),
-    ],
-    "catenaccio": [
-        ("Sweeper", "essential", "The libero — last man, reads danger"),
-        ("Vorstopper", "essential", "Marks the striker, wins every duel"),
-        ("Anchor", "essential", "Positional discipline in front of defence"),
-        ("Poacher", "preferred", "Clinical from few chances"),
-        ("Invertido", "preferred", "Tucks in defensively, adds numbers"),
-        ("Regista", "compatible", "Controls tempo from deep"),
-    ],
-    "joga_bonito": [
-        ("Trequartista", "essential", "The free-roaming 10 — pure creativity"),
-        ("Inside Forward", "essential", "Cuts inside, creates and scores"),
-        ("Inventor", "preferred", "Drifts and creates from the flanks"),
-        ("Falso Nove", "preferred", "Drops deep, links play"),
-        ("Mezzala", "preferred", "Arrives in the box from deep"),
-        ("Spearhead", "compatible", "All-round threat"),
-    ],
-    "total_football": [
-        ("Tuttocampista", "essential", "Covers multiple positions seamlessly"),
-        ("Libero", "essential", "Defender who joins the attack"),
-        ("Mezzala", "essential", "Half-space runner, positional interchange"),
-        ("Corredor", "preferred", "Full-pitch coverage"),
-        ("Falso Nove", "preferred", "Positional fluidity in attack"),
-        ("Regista", "preferred", "Deep orchestrator"),
-    ],
-    "la_masia": [
-        ("Regista", "essential", "The Busquets role — dictates tempo from the pivot"),
-        ("Pivote", "essential", "The Xavi role — receives deep, orchestrates"),
-        ("Mezzala", "essential", "The Iniesta role — arrives in the box from the half-space"),
-        ("Libero", "essential", "Builds from the back"),
-        ("Falso Nove", "preferred", "The Messi role — drops deep, creates space"),
-        ("Invertido", "preferred", "Tucks inside to form midfield diamond"),
-        ("Sweeper Keeper", "preferred", "High line, distribution"),
-    ],
-    "gegenpressing": [
-        ("Spearhead", "essential", "Leads the counter-press from the front"),
-        ("Volante", "essential", "Wins the ball in the middle third"),
-        ("Tuttocampista", "essential", "Covers both ends with intensity"),
-        ("Corredor", "preferred", "Full-pitch energy"),
-        ("Inside Forward", "preferred", "Presses and transitions"),
-        ("Sweeper Keeper", "preferred", "High line support, distribution"),
-    ],
-    "bielsismo": [
-        ("Corredor", "essential", "Extreme width, tireless running"),
-        ("Spearhead", "essential", "Man-marks the CB, relentless"),
-        ("Volante", "essential", "Man-oriented pressing in midfield"),
-        ("Direct Winger", "preferred", "Beats fullback 1v1, creates width"),
-        ("Mezzala", "preferred", "Arrives in the box from the half-space"),
-        ("Libero", "compatible", "Starts attacks from the back"),
-    ],
-    "cholismo": [
-        ("Anchor", "essential", "Shields the back four, positional anchor"),
-        ("Vorstopper", "essential", "Aggressive, front-foot CB"),
-        ("Poacher", "essential", "Clinical from counter-attacks"),
-        ("Extremo", "preferred", "Pace on the transition"),
-        ("Tuttocampista", "preferred", "Covers the midfield"),
-        ("Lateral", "compatible", "Provides width when needed"),
-    ],
-    "pomo": [
-        ("Prima Punta", "essential", "Aerial dominance, hold-up play"),
-        ("Vorstopper", "essential", "Physical, aggressive defending"),
-        ("Lateral", "preferred", "Delivers set-piece crosses"),
-        ("Anchor", "preferred", "Sits and protects"),
-        ("Winger", "preferred", "Delivers crosses into the box"),
-        ("Poacher", "compatible", "Feeds off second balls and set pieces"),
-    ],
-    "fergie_time": [
-        ("Tuttocampista", "essential", "The Keane/Scholes engine room"),
-        ("Inside Forward", "essential", "The Ronaldo/Giggs wing threat"),
-        ("Spearhead", "essential", "The all-round 9"),
-        ("Direct Winger", "preferred", "Pace and directness on the flanks"),
-        ("Libero", "preferred", "Builds from the back when needed"),
-        ("Sweeper Keeper", "compatible", "Commands the area"),
-    ],
-}
+# ── 28 Tactical Systems ─────────────────────────────────────────────────────
+# Each system: slug, name, philosophy_slug, formation, defining_team, key_principle, slots
+# Each slot: (label, position, sort_order, default_role, [alt_roles])
+
+SYSTEMS = [
+    # ── Garra Charrua ──
+    {
+        "slug": "la_celeste", "name": "La Celeste",
+        "philosophy_slug": "garra_charrua", "formation": "4-4-2",
+        "defining_team": "Uruguay 1950 / 2010",
+        "key_principle": "Spirit and sacrifice define the team",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",    []),
+            ("LCB", "CD", 2, "Centrale",       []),
+            ("RCB", "CD", 3, "Stopper",        []),
+            ("LB",  "WD", 4, "Corner Back",    []),
+            ("RB",  "WD", 5, "Fullback",       []),
+            ("LM",  "WM", 6, "Tornante",       []),
+            ("RM",  "WM", 7, "Winger",         []),
+            ("LCM", "DM", 8, "Anchor",         []),
+            ("RCM", "CM", 9, "Tuttocampista",  []),
+            ("LF",  "CF", 10, "Target Forward", []),
+            ("RF",  "CF", 11, "Spearhead",     []),
+        ],
+    },
+    {
+        "slug": "muralla", "name": "Muralla",
+        "philosophy_slug": "garra_charrua", "formation": "5-4-1",
+        "defining_team": "Tabarez's Uruguay 2018",
+        "key_principle": "The wall — five-man defensive block",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",    []),
+            ("LCB", "CD", 2, "Stopper",        []),
+            ("CCB", "CD", 3, "Centrale",       []),
+            ("RCB", "CD", 4, "Sweeper",        []),
+            ("LWB", "WD", 5, "Corner Back",    []),
+            ("RWB", "WD", 6, "Corner Back",    []),
+            ("LM",  "WM", 7, "Tornante",       []),
+            ("RM",  "WM", 8, "Winger",         []),
+            ("LCM", "DM", 9, "Anchor",         []),
+            ("RCM", "CM", 10, "Tuttocampista", []),
+            ("CF",  "CF", 11, "Target Forward", []),
+        ],
+    },
+    # ── Catenaccio ──
+    {
+        "slug": "grande_inter", "name": "Grande Inter",
+        "philosophy_slug": "catenaccio", "formation": "5-3-2",
+        "defining_team": "Herrera's Inter 1963-66",
+        "key_principle": "Lock the door, then counter with precision",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",   []),
+            ("LCB", "CD", 2, "Stopper",        []),
+            ("CCB", "CD", 3, "Sweeper",        []),
+            ("RCB", "CD", 4, "Stopper",        []),
+            ("LWB", "WD", 5, "Wing-back",      []),
+            ("RWB", "WD", 6, "Wing-back",      []),
+            ("LCM", "CM", 7, "Metodista",      []),
+            ("CDM", "DM", 8, "Anchor",         []),
+            ("RCM", "CM", 9, "Mezzala",        []),
+            ("LF",  "CF", 10, "Seconda Punta", []),
+            ("RF",  "CF", 11, "Poacher",       []),
+        ],
+    },
+    {
+        "slug": "trincea", "name": "Trincea",
+        "philosophy_slug": "catenaccio", "formation": "4-5-1",
+        "defining_team": "Capello's Milan / Allegri's Juventus",
+        "key_principle": "Trench warfare, disciplined low block",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",    []),
+            ("LCB", "CD", 2, "Centrale",        []),
+            ("RCB", "CD", 3, "Stopper",         []),
+            ("LB",  "WD", 4, "Corner Back",     []),
+            ("RB",  "WD", 5, "Corner Back",     []),
+            ("LM",  "WM", 6, "Tornante",        []),
+            ("RM",  "WM", 7, "Tornante",        []),
+            ("LCM", "CM", 8, "Tuttocampista",   []),
+            ("CDM", "DM", 9, "Anchor",          []),
+            ("RCM", "CM", 10, "Metodista",      []),
+            ("CF",  "CF", 11, "Target Forward",  []),
+        ],
+    },
+    {
+        "slug": "il_muro", "name": "Il Muro",
+        "philosophy_slug": "catenaccio", "formation": "3-5-2",
+        "defining_team": "Conte's Italy Euro 2016",
+        "key_principle": "The wall of three, wing-backs provide width",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",     []),
+            ("LCB", "CD", 2, "Stopper",         []),
+            ("CCB", "CD", 3, "Centrale",        []),
+            ("RCB", "CD", 4, "Stopper",         []),
+            ("LWB", "WD", 5, "Wing-back",       []),
+            ("RWB", "WD", 6, "Wing-back",       []),
+            ("LCM", "CM", 7, "Tuttocampista",   []),
+            ("CDM", "DM", 8, "Anchor",          []),
+            ("RCM", "CM", 9, "Mezzala",         []),
+            ("LF",  "CF", 10, "Seconda Punta",  []),
+            ("RF",  "CF", 11, "Spearhead",      []),
+        ],
+    },
+    # ── Joga Bonito ──
+    {
+        "slug": "samba", "name": "Samba",
+        "philosophy_slug": "joga_bonito", "formation": "4-2-4",
+        "defining_team": "Brazil 1958-62",
+        "key_principle": "Four forwards, two holding — pure attacking expression",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",      []),
+            ("LCB", "CD", 2, "Sweeper",           []),
+            ("RCB", "CD", 3, "Centrale",          []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LDM", "DM", 6, "Pivote",            []),
+            ("RDM", "DM", 7, "Segundo Volante",   []),
+            ("LW",  "WF", 8, "Winger",            []),
+            ("RW",  "WF", 9, "Winger",            []),
+            ("LF",  "CF", 10, "Complete Forward",  []),
+            ("RF",  "CF", 11, "Poacher",           []),
+        ],
+    },
+    {
+        "slug": "o_jogo", "name": "O Jogo",
+        "philosophy_slug": "joga_bonito", "formation": "4-2-3-1",
+        "defining_team": "Brazil 1970",
+        "key_principle": "The beautiful game at its peak",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",      []),
+            ("LCB", "CD", 2, "Sweeper",           []),
+            ("RCB", "CD", 3, "Centrale",          []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LDM", "DM", 6, "Pivote",            []),
+            ("RDM", "DM", 7, "Segundo Volante",   []),
+            ("LW",  "WF", 8, "Wide Playmaker",    []),
+            ("AM",  "AM", 9, "Trequartista",      []),
+            ("RW",  "WF", 10, "Winger",           []),
+            ("CF",  "CF", 11, "Complete Forward",  []),
+        ],
+    },
+    {
+        "slug": "ginga", "name": "Ginga",
+        "philosophy_slug": "joga_bonito", "formation": "4-3-3",
+        "defining_team": "Santos (Pele) / Flamengo 2019",
+        "key_principle": "Rhythm, flair, improvisation",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",     []),
+            ("LCB", "CD", 2, "Sweeper",          []),
+            ("RCB", "CD", 3, "Centrale",         []),
+            ("LB",  "WD", 4, "Fullback",         []),
+            ("RB",  "WD", 5, "Wing-back",        []),
+            ("LCM", "CM", 6, "Playmaker",        []),
+            ("CDM", "DM", 7, "Pivote",           []),
+            ("RCM", "CM", 8, "Mezzala",          []),
+            ("LW",  "WF", 9, "Winger",           []),
+            ("RW",  "WF", 10, "Inside Forward",  []),
+            ("CF",  "CF", 11, "Complete Forward", []),
+        ],
+    },
+    # ── Total Football ──
+    {
+        "slug": "ajax_model", "name": "Ajax Model",
+        "philosophy_slug": "total_football", "formation": "4-3-3",
+        "defining_team": "Michels/Cruyff Ajax 1970-73",
+        "key_principle": "Every player can play every position",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Distributor",       []),
+            ("RCB", "CD", 3, "Sweeper",           []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LCM", "CM", 6, "Playmaker",         []),
+            ("CDM", "DM", 7, "Pivote",            []),
+            ("RCM", "CM", 8, "Tuttocampista",     []),
+            ("LW",  "WF", 9, "Winger",            []),
+            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("CF",  "CF", 11, "Complete Forward",  []),
+        ],
+    },
+    {
+        "slug": "oranje", "name": "Oranje",
+        "philosophy_slug": "total_football", "formation": "3-4-3",
+        "defining_team": "Netherlands 1974 WC",
+        "key_principle": "Positional interchange as philosophy",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Distributor",       []),
+            ("CCB", "CD", 3, "Sweeper",           []),
+            ("RCB", "CD", 4, "Distributor",       []),
+            ("LM",  "WM", 5, "Winger",            []),
+            ("LCM", "CM", 6, "Tuttocampista",     []),
+            ("RCM", "CM", 7, "Playmaker",         []),
+            ("RM",  "WM", 8, "Winger",            []),
+            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("CF",  "CF", 10, "Falso Nove",       []),
+            ("RW",  "WF", 11, "Inside Forward",   []),
+        ],
+    },
+    {
+        "slug": "van_gaal_system", "name": "Van Gaal System",
+        "philosophy_slug": "total_football", "formation": "4-3-3",
+        "defining_team": "Ajax 1995 / Van Gaal's Barcelona",
+        "key_principle": "Structured positional play with width",
+        "slots": [
+            ("GK",  "GK", 1, "Distributor",      []),
+            ("LCB", "CD", 2, "Distributor",       []),
+            ("RCB", "CD", 3, "Sweeper",           []),
+            ("LB",  "WD", 4, "Wing-back",         []),
+            ("RB",  "WD", 5, "Wing-back",         []),
+            ("LCM", "CM", 6, "Metodista",         []),
+            ("CDM", "DM", 7, "Regista",           []),
+            ("RCM", "CM", 8, "Mezzala",           []),
+            ("LW",  "WF", 9, "Winger",            []),
+            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("CF",  "CF", 11, "Complete Forward",  []),
+        ],
+    },
+    # ── La Masia ──
+    {
+        "slug": "positional_play", "name": "Positional Play",
+        "philosophy_slug": "la_masia", "formation": "4-3-3",
+        "defining_team": "Guardiola's Barcelona 2008-12",
+        "key_principle": "Positional superiority through systematic spacing",
+        "slots": [
+            ("GK",  "GK", 1, "Distributor",      []),
+            ("LCB", "CD", 2, "Distributor",       []),
+            ("RCB", "CD", 3, "Sweeper",           []),
+            ("LB",  "WD", 4, "Invertido",         []),
+            ("RB",  "WD", 5, "Invertido",         []),
+            ("CDM", "DM", 6, "Pivote",            []),
+            ("LCM", "CM", 7, "Mezzala",           []),
+            ("RCM", "CM", 8, "Metodista",         []),
+            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("CF",  "CF", 11, "Falso Nove",       []),
+        ],
+    },
+    {
+        "slug": "inverted_build", "name": "Inverted Build",
+        "philosophy_slug": "la_masia", "formation": "3-2-4-1",
+        "defining_team": "Guardiola's City 2022-24",
+        "key_principle": "Fullbacks invert, overloads everywhere",
+        "slots": [
+            ("GK",  "GK", 1, "Distributor",       []),
+            ("LCB", "CD", 2, "Distributor",        []),
+            ("CCB", "CD", 3, "Centrale",           []),
+            ("RCB", "CD", 4, "Distributor",        []),
+            ("LDM", "DM", 5, "Pivote",             []),
+            ("RDM", "DM", 6, "Regista",            []),
+            ("LW",  "WF", 7, "Inside Forward",     []),
+            ("LAM", "AM", 8, "Enganche",           []),
+            ("RAM", "AM", 9, "Trequartista",       []),
+            ("RW",  "WF", 10, "Wide Playmaker",    []),
+            ("CF",  "CF", 11, "Complete Forward",   []),
+        ],
+    },
+    {
+        "slug": "relational_play", "name": "Relational Play",
+        "philosophy_slug": "la_masia", "formation": "4-2-3-1",
+        "defining_team": "De Zerbi's Brighton",
+        "key_principle": "Position as suggestion, relation as rule",
+        "slots": [
+            ("GK",  "GK", 1, "Distributor",      []),
+            ("LCB", "CD", 2, "Distributor",       []),
+            ("RCB", "CD", 3, "Sweeper",           []),
+            ("LB",  "WD", 4, "Invertido",         []),
+            ("RB",  "WD", 5, "Invertido",         []),
+            ("LDM", "DM", 6, "Pivote",            []),
+            ("RDM", "DM", 7, "Regista",           []),
+            ("LW",  "WF", 8, "Wide Playmaker",    []),
+            ("AM",  "AM", 9, "Enganche",          []),
+            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("CF",  "CF", 11, "Falso Nove",       []),
+        ],
+    },
+    # ── Gegenpressing ──
+    {
+        "slug": "heavy_metal", "name": "Heavy Metal",
+        "philosophy_slug": "gegenpressing", "formation": "4-2-3-1",
+        "defining_team": "Klopp's Dortmund 2010-13",
+        "key_principle": "Win the ball, go for the throat",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Stopper",           []),
+            ("RCB", "CD", 3, "Centrale",          []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LDM", "DM", 6, "Ball Winner",       []),
+            ("RDM", "DM", 7, "Anchor",            []),
+            ("LW",  "WF", 8, "Raumdeuter",        []),
+            ("AM",  "AM", 9, "Trequartista",      []),
+            ("RW",  "WF", 10, "Raumdeuter",       []),
+            ("CF",  "CF", 11, "Spearhead",        []),
+        ],
+    },
+    {
+        "slug": "red_machine", "name": "Red Machine",
+        "philosophy_slug": "gegenpressing", "formation": "4-3-3",
+        "defining_team": "Klopp's Liverpool 2018-20",
+        "key_principle": "Organised chaos with relentless intensity",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Centrale",          []),
+            ("RCB", "CD", 3, "Stopper",           []),
+            ("LB",  "WD", 4, "Wing-back",         []),
+            ("RB",  "WD", 5, "Wing-back",         []),
+            ("CDM", "DM", 6, "Anchor",            []),
+            ("LCM", "CM", 7, "Mezzala",           []),
+            ("RCM", "CM", 8, "Tuttocampista",     []),
+            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("CF",  "CF", 11, "Spearhead",        []),
+        ],
+    },
+    {
+        "slug": "red_bull_model", "name": "Red Bull Model",
+        "philosophy_slug": "gegenpressing", "formation": "4-4-2",
+        "defining_team": "Rangnick's Leipzig / Salzburg",
+        "key_principle": "Press in pairs, transition in seconds",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Stopper",           []),
+            ("RCB", "CD", 3, "Stopper",           []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LM",  "WM", 6, "Tornante",          []),
+            ("RM",  "WM", 7, "Tornante",          []),
+            ("LDM", "DM", 8, "Ball Winner",       []),
+            ("RCM", "CM", 9, "Tuttocampista",     []),
+            ("LF",  "CF", 10, "Spearhead",        []),
+            ("RF",  "CF", 11, "Shadow Striker",    []),
+        ],
+    },
+    {
+        "slug": "kyiv_prototype", "name": "Kyiv Prototype",
+        "philosophy_slug": "gegenpressing", "formation": "4-4-2",
+        "defining_team": "Lobanovskyi's Dynamo 1986-88",
+        "key_principle": "Scientific football, universal pressing",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",      []),
+            ("LCB", "CD", 2, "Centrale",          []),
+            ("RCB", "CD", 3, "Stopper",           []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LM",  "WM", 6, "False Winger",      []),
+            ("RM",  "WM", 7, "Winger",            []),
+            ("LCM", "CM", 8, "Tuttocampista",     []),
+            ("RCM", "CM", 9, "Playmaker",         []),
+            ("LF",  "CF", 10, "Spearhead",        []),
+            ("RF",  "CF", 11, "Poacher",           []),
+        ],
+    },
+    # ── Bielsismo ──
+    {
+        "slug": "el_loco", "name": "El Loco",
+        "philosophy_slug": "bielsismo", "formation": "3-3-1-3",
+        "defining_team": "Bielsa's Athletic Bilbao / Leeds",
+        "key_principle": "Geometric width, man-for-man, no compromise",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Stopper",           []),
+            ("CCB", "CD", 3, "Distributor",       []),
+            ("RCB", "CD", 4, "Stopper",           []),
+            ("LM",  "WM", 5, "Winger",            []),
+            ("CDM", "DM", 6, "Ball Winner",       []),
+            ("RM",  "WM", 7, "Winger",            []),
+            ("AM",  "AM", 8, "Trequartista",      []),
+            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("CF",  "CF", 10, "Spearhead",        []),
+            ("RW",  "WF", 11, "Inside Forward",   []),
+        ],
+    },
+    {
+        "slug": "la_furia", "name": "La Furia",
+        "philosophy_slug": "bielsismo", "formation": "3-4-3",
+        "defining_team": "Gasperini's Atalanta / Sampaoli's Chile",
+        "key_principle": "Aggressive 3-at-back, wing-back mayhem",
+        "slots": [
+            ("GK",  "GK", 1, "Sweeper Keeper",   []),
+            ("LCB", "CD", 2, "Stopper",           []),
+            ("CCB", "CD", 3, "Centrale",          []),
+            ("RCB", "CD", 4, "Stopper",           []),
+            ("LWB", "WD", 5, "Wing-back",         []),
+            ("LCM", "CM", 6, "Mezzala",           []),
+            ("RCM", "CM", 7, "Tuttocampista",     []),
+            ("RWB", "WD", 8, "Wing-back",         []),
+            ("LW",  "WF", 9, "Raumdeuter",        []),
+            ("CF",  "CF", 10, "Complete Forward",  []),
+            ("RW",  "WF", 11, "Inside Forward",   []),
+        ],
+    },
+    # ── Transizione ──
+    {
+        "slug": "the_special_one", "name": "The Special One",
+        "philosophy_slug": "transizione", "formation": "4-2-3-1",
+        "defining_team": "Mourinho's Inter 2010",
+        "key_principle": "Defend with structure, kill on the break",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",     []),
+            ("LCB", "CD", 2, "Centrale",         []),
+            ("RCB", "CD", 3, "Stopper",          []),
+            ("LB",  "WD", 4, "Corner Back",      []),
+            ("RB",  "WD", 5, "Corner Back",      []),
+            ("LDM", "DM", 6, "Anchor",           []),
+            ("RDM", "DM", 7, "Ball Winner",      []),
+            ("LW",  "WF", 8, "Raumdeuter",       []),
+            ("AM",  "AM", 9, "Enganche",         []),
+            ("RW",  "WF", 10, "Inside Forward",  []),
+            ("CF",  "CF", 11, "Poacher",         []),
+        ],
+    },
+    {
+        "slug": "les_bleus", "name": "Les Bleus",
+        "philosophy_slug": "transizione", "formation": "4-2-3-1",
+        "defining_team": "Deschamps' France 2018",
+        "key_principle": "Talent managed through discipline and transitions",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",           []),
+            ("LCB", "CD", 2, "Centrale",              []),
+            ("RCB", "CD", 3, "Colossus",              []),
+            ("LB",  "WD", 4, "Corner Back",           []),
+            ("RB",  "WD", 5, "Fullback",              []),
+            ("LDM", "DM", 6, "Anchor",                []),
+            ("RDM", "DM", 7, "Segundo Volante",       []),
+            ("LW",  "WF", 8, "Wide Target Forward",   []),
+            ("AM",  "AM", 9, "Boxcrasher",            []),
+            ("RW",  "WF", 10, "Raumdeuter",           []),
+            ("CF",  "CF", 11, "Target Forward",        []),
+        ],
+    },
+    {
+        "slug": "foxes", "name": "Foxes",
+        "philosophy_slug": "transizione", "formation": "4-4-2",
+        "defining_team": "Ranieri's Leicester 2016",
+        "key_principle": "Counter-attack perfection with pace and heart",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",      []),
+            ("LCB", "CD", 2, "Colossus",          []),
+            ("RCB", "CD", 3, "Centrale",          []),
+            ("LB",  "WD", 4, "Fullback",          []),
+            ("RB",  "WD", 5, "Fullback",          []),
+            ("LM",  "WM", 6, "Winger",            []),
+            ("RM",  "WM", 7, "Winger",            []),
+            ("LDM", "DM", 8, "Anchor",            []),
+            ("RCM", "CM", 9, "Tuttocampista",     []),
+            ("LF",  "CF", 10, "Shadow Striker",    []),
+            ("RF",  "CF", 11, "Target Forward",    []),
+        ],
+    },
+    # ── POMO ──
+    {
+        "slug": "route_one", "name": "Route One",
+        "philosophy_slug": "pomo", "formation": "4-4-2",
+        "defining_team": "Wimbledon 1988 / Allardyce's Bolton",
+        "key_principle": "Direct, territorial, set-piece kings",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",       []),
+            ("LCB", "CD", 2, "Colossus",           []),
+            ("RCB", "CD", 3, "Stopper",            []),
+            ("LB",  "WD", 4, "Fullback",           []),
+            ("RB",  "WD", 5, "Fullback",           []),
+            ("LM",  "WM", 6, "Winger",             []),
+            ("RM",  "WM", 7, "Wide Playmaker",     []),
+            ("LDM", "DM", 8, "Ball Winner",        []),
+            ("RCM", "CM", 9, "Tuttocampista",      []),
+            ("LF",  "CF", 10, "Poacher",           []),
+            ("RF",  "CF", 11, "Target Forward",    []),
+        ],
+    },
+    {
+        "slug": "fortress", "name": "Fortress",
+        "philosophy_slug": "pomo", "formation": "4-5-1",
+        "defining_team": "Pulis's Stoke / Dyche's Burnley",
+        "key_principle": "Defend deep, win ugly, never surrender",
+        "slots": [
+            ("GK",  "GK", 1, "Shotstopper",       []),
+            ("LCB", "CD", 2, "Colossus",           []),
+            ("RCB", "CD", 3, "Stopper",            []),
+            ("LB",  "WD", 4, "Corner Back",        []),
+            ("RB",  "WD", 5, "Corner Back",        []),
+            ("LM",  "WM", 6, "Tornante",           []),
+            ("RM",  "WM", 7, "Tornante",           []),
+            ("LDM", "DM", 8, "Anchor",             []),
+            ("CDM", "DM", 9, "Ball Winner",        []),
+            ("RCM", "CM", 10, "Tuttocampista",     []),
+            ("CF",  "CF", 11, "Target Forward",    []),
+        ],
+    },
+    # ── Leadership ──
+    {
+        "slug": "wing_play", "name": "Wing Play",
+        "philosophy_slug": "leadership", "formation": "4-4-2",
+        "defining_team": "Ferguson's United 1996-2001",
+        "key_principle": "Width, pace, and never-say-die spirit",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",        []),
+            ("LCB", "CD", 2, "Centrale",           []),
+            ("RCB", "CD", 3, "Stopper",            []),
+            ("LB",  "WD", 4, "Fullback",           []),
+            ("RB",  "WD", 5, "Fullback",           []),
+            ("LM",  "WM", 6, "Winger",             []),
+            ("RM",  "WM", 7, "Wide Playmaker",     []),
+            ("LCM", "CM", 8, "Playmaker",          []),
+            ("RCM", "CM", 9, "Mezzala",            []),
+            ("LF",  "CF", 10, "Poacher",           []),
+            ("RF",  "CF", 11, "Complete Forward",   []),
+        ],
+    },
+    {
+        "slug": "european_nights", "name": "European Nights",
+        "philosophy_slug": "leadership", "formation": "4-5-1",
+        "defining_team": "Ferguson's United 2008 CL",
+        "key_principle": "Adapt, contain, then unleash",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",        []),
+            ("LCB", "CD", 2, "Centrale",           []),
+            ("RCB", "CD", 3, "Stopper",            []),
+            ("LB",  "WD", 4, "Corner Back",        []),
+            ("RB",  "WD", 5, "Fullback",           []),
+            ("LM",  "WM", 6, "Tornante",           []),
+            ("RM",  "WM", 7, "False Winger",       []),
+            ("LCM", "CM", 8, "Tuttocampista",      []),
+            ("CDM", "DM", 9, "Anchor",             []),
+            ("RCM", "CM", 10, "Playmaker",         []),
+            ("CF",  "CF", 11, "Complete Forward",   []),
+        ],
+    },
+    {
+        "slug": "ancelotti_ball", "name": "Ancelotti Ball",
+        "philosophy_slug": "leadership", "formation": "4-3-3",
+        "defining_team": "Ancelotti's Real Madrid 2022-24",
+        "key_principle": "Balance, experience, big-game mentality",
+        "slots": [
+            ("GK",  "GK", 1, "Comandante",        []),
+            ("LCB", "CD", 2, "Centrale",           []),
+            ("RCB", "CD", 3, "Stopper",            []),
+            ("LB",  "WD", 4, "Fullback",           []),
+            ("RB",  "WD", 5, "Fullback",           []),
+            ("CDM", "DM", 6, "Anchor",             []),
+            ("LCM", "CM", 7, "Mezzala",            []),
+            ("RCM", "CM", 8, "Playmaker",          []),
+            ("LW",  "WF", 9, "Inside Forward",     []),
+            ("RW",  "WF", 10, "Winger",            []),
+            ("CF",  "CF", 11, "Complete Forward",   []),
+        ],
+    },
+]
+
+
+# ── Functions ────────────────────────────────────────────────────────────────
+
+
+def rename_philosophies(dry_run: bool = False) -> None:
+    """Rename Cholismo -> Transizione, Fergie Time -> Leadership in-place."""
+    renames = [
+        ("cholismo", "transizione", "Transizione"),
+        ("fergie_time", "leadership", "Leadership"),
+    ]
+    for old_slug, new_slug, new_name in renames:
+        if dry_run:
+            print(f"  [DRY] Rename {old_slug} -> {new_slug}")
+            continue
+        sb.table("tactical_philosophies").update({
+            "slug": new_slug, "name": new_name
+        }).eq("slug", old_slug).execute()
+        print(f"  Renamed {old_slug} -> {new_slug}")
 
 
 def seed_philosophies(dry_run: bool = False) -> None:
@@ -640,90 +1097,103 @@ def seed_philosophies(dry_run: bool = False) -> None:
     print("Done seeding philosophies.\n")
 
 
-def seed_philosophy_formations(dry_run: bool = False) -> None:
-    # Fetch formation name→id map
-    formations_resp = sb.table("formations").select("id, name").execute()
-    formation_map = {f["name"]: f["id"] for f in (formations_resp.data or [])}
+def seed_systems(dry_run: bool = False) -> None:
+    """Seed tactical_systems, system_slots, and slot_roles."""
+    # Get philosophy ID map
+    result = sb.table("tactical_philosophies").select("id, slug").execute()
+    phil_map = {r["slug"]: r["id"] for r in result.data}
 
-    # Fetch philosophy slug→id map
-    phil_resp = sb.table("tactical_philosophies").select("id, slug").execute()
-    phil_map = {p["slug"]: p["id"] for p in (phil_resp.data or [])}
+    if not dry_run:
+        # Clear existing data (cascade will handle slots + roles)
+        sb.table("tactical_systems").delete().neq("id", 0).execute()
 
-    print(f"{'[DRY RUN] ' if dry_run else ''}Seeding philosophy-formation links...")
-    inserted = 0
-    skipped = 0
+    total_systems = 0
+    total_slots = 0
+    total_roles = 0
 
-    for slug, links in PHILOSOPHY_FORMATIONS.items():
-        phil_id = phil_map.get(slug)
+    for sys_def in SYSTEMS:
+        phil_id = phil_map.get(sys_def["philosophy_slug"])
         if not phil_id:
-            print(f"  WARNING: philosophy '{slug}' not found in DB")
+            print(f"  WARNING: philosophy '{sys_def['philosophy_slug']}' not found")
             continue
-        for formation_name, affinity in links:
-            formation_id = formation_map.get(formation_name)
-            if not formation_id:
-                print(f"  WARNING: formation '{formation_name}' not found for {slug}")
-                skipped += 1
-                continue
-            row = {
-                "philosophy_id": phil_id,
-                "formation_id": formation_id,
-                "affinity": affinity,
-            }
-            if not dry_run:
-                sb.table("philosophy_formations").upsert(
-                    row, on_conflict="philosophy_id,formation_id"
-                ).execute()
-            inserted += 1
 
-    print(f"  {inserted} links inserted, {skipped} skipped\n")
+        system_row = {
+            "philosophy_id": phil_id,
+            "slug": sys_def["slug"],
+            "name": sys_def["name"],
+            "formation": sys_def["formation"],
+            "defining_team": sys_def.get("defining_team"),
+            "key_principle": sys_def.get("key_principle"),
+        }
 
-
-def seed_philosophy_roles(dry_run: bool = False) -> None:
-    # Fetch role name→id map
-    roles_resp = sb.table("tactical_roles").select("id, name").execute()
-    role_map = {r["name"]: r["id"] for r in (roles_resp.data or [])}
-
-    # Fetch philosophy slug→id map
-    phil_resp = sb.table("tactical_philosophies").select("id, slug").execute()
-    phil_map = {p["slug"]: p["id"] for p in (phil_resp.data or [])}
-
-    print(f"{'[DRY RUN] ' if dry_run else ''}Seeding philosophy-role links...")
-    inserted = 0
-    skipped = 0
-
-    for slug, links in PHILOSOPHY_ROLES.items():
-        phil_id = phil_map.get(slug)
-        if not phil_id:
-            print(f"  WARNING: philosophy '{slug}' not found in DB")
+        if dry_run:
+            print(f"  [DRY] System: {sys_def['name']} ({sys_def['formation']})")
+            total_systems += 1
+            for label, pos, sort, default_role, alts in sys_def["slots"]:
+                total_slots += 1
+                total_roles += 1 + len(alts)
             continue
-        for role_name, importance, rationale in links:
-            role_id = role_map.get(role_name)
-            if not role_id:
-                print(f"  WARNING: role '{role_name}' not found for {slug}")
-                skipped += 1
-                continue
-            row = {
-                "philosophy_id": phil_id,
-                "role_id": role_id,
-                "importance": importance,
-                "rationale": rationale,
-            }
-            if not dry_run:
-                sb.table("philosophy_roles").upsert(
-                    row, on_conflict="philosophy_id,role_id"
-                ).execute()
-            inserted += 1
 
-    print(f"  {inserted} links inserted, {skipped} skipped\n")
+        # Insert system
+        res = sb.table("tactical_systems").insert(system_row).execute()
+        system_id = res.data[0]["id"]
+        total_systems += 1
+
+        for label, pos, sort, default_role, alts in sys_def["slots"]:
+            # Insert slot
+            slot_row = {
+                "system_id": system_id,
+                "slot_label": label,
+                "position": pos,
+                "sort_order": sort,
+            }
+            slot_res = sb.table("system_slots").insert(slot_row).execute()
+            slot_id = slot_res.data[0]["id"]
+            total_slots += 1
+
+            # Insert default role
+            key = (default_role, pos)
+            if key not in ROLE_LOOKUP:
+                print(f"  WARNING: role '{default_role}' at {pos} not in ROLE_LOOKUP")
+                continue
+            primary, secondary = ROLE_LOOKUP[key]
+            role_row = {
+                "slot_id": slot_id,
+                "role_name": default_role,
+                "is_default": True,
+                "primary_model": primary,
+                "secondary_model": secondary,
+            }
+            sb.table("slot_roles").insert(role_row).execute()
+            total_roles += 1
+
+            # Insert alt roles
+            for alt_role in alts:
+                alt_key = (alt_role, pos)
+                if alt_key not in ROLE_LOOKUP:
+                    print(f"  WARNING: alt role '{alt_role}' at {pos} not in ROLE_LOOKUP")
+                    continue
+                ap, as_ = ROLE_LOOKUP[alt_key]
+                alt_row = {
+                    "slot_id": slot_id,
+                    "role_name": alt_role,
+                    "is_default": False,
+                    "primary_model": ap,
+                    "secondary_model": as_,
+                }
+                sb.table("slot_roles").insert(alt_row).execute()
+                total_roles += 1
+
+    print(f"  {total_systems} systems, {total_slots} slots, {total_roles} roles seeded")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Seed tactical philosophies")
+    parser = argparse.ArgumentParser(description="Seed tactical philosophies + systems")
     parser.add_argument("--dry-run", action="store_true", help="Preview without writing")
     args = parser.parse_args()
 
+    rename_philosophies(dry_run=args.dry_run)
     seed_philosophies(dry_run=args.dry_run)
-    seed_philosophy_formations(dry_run=args.dry_run)
-    seed_philosophy_roles(dry_run=args.dry_run)
+    seed_systems(dry_run=args.dry_run)
 
     print("All done!")

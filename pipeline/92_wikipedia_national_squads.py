@@ -731,6 +731,15 @@ def main():
                     else:
                         skipped += 1
 
+            # Mark as cap-tied for this nation (player appeared in senior squad)
+            if person_id and not DRY_RUN:
+                cur.execute("""
+                    INSERT INTO player_nationalities (person_id, nation_name, nation_id, is_cap_tied)
+                    VALUES (%s, %s, %s, true)
+                    ON CONFLICT (person_id, nation_name)
+                    DO UPDATE SET is_cap_tied = true
+                """, (person_id, name, nation_id))
+
         total_matched += matched
         total_inserted += inserted
         count_after = count_before + inserted

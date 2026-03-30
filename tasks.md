@@ -100,6 +100,38 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ---
 
+## Completed (2026-03-31, session 36 — Rating Calibration Overhaul)
+- [x] Pipeline 27: unified stat compression (all sources ×1.5 cap 15)
+- [x] Pipeline 27: proxy_inferred + llm_inferred exempt from league strength
+- [x] Pipeline 27: level-scaled proxy grades (Commander differentiation)
+- [x] Pipeline 27: single-model penalty normalization fix
+- [x] Pipeline 27: anchored scores for role computation (replaces raw/anchored cutoff)
+- [x] Pipeline 27: soft level blend + safety net (replaces hard floor)
+- [x] Pipeline 27: normalized role selection bug fix (Yamal 84→89)
+- [x] Pipeline 66: AF tackles_p90→tackling mapping removed + 6,733 grades purged
+- [x] Pipeline 56e: trait→grade bridge (47,155 grades for 12,521 players)
+- [x] 96 scout grades for 11 elite attackers (Creator + Striker attrs)
+- [x] Gakpo CF→WF, Foden WM→AM position fixes
+- [x] 13,132 ratings recomputed, view refreshed
+
+## Completed (2026-03-31, session 35 — EAFC PlayStyle Enrichment)
+- [x] SportMonks API assessed — free tier, 4 leagues, not worth integrating
+- [x] EAFC PlayStyles imported (56b): 11,024 trait rows for 5,692 players, 28 mapped tags
+- [x] PlayStyle inference from grades (56c): 5,489 traits for 2,535 players, 12 rules with position gating
+- [x] EAFC metadata enrichment (56d): 6,532 preferred_foot backfills, 1,993 Two Footed + 937 Skill Moves traits
+- [x] Side inference re-run (38c): 5,352 new sides filled from foot data
+- [x] Trait→grade bridge re-run (56e): 47,155 attribute grades for 12,521 players
+- [x] Ratings recompute (27): 13,132 ratings + 50,082 compound scores updated
+
+## Completed (2026-03-31, session 34 — SportsAPIPro Integration)
+- [x] SportsAPIPro API key added to `.env.local`
+- [x] Migration 051: `sportsapi_attributes`, `sportsapi_position_averages` tables, transfers source constraint
+- [x] Pipeline 67: attribute radar ingestion (search + fuzzy match + 5-axis fetch)
+- [x] Pipeline 68: transfer history ingestion (fees, types, window inference)
+- [x] 12 players enriched as proof of concept (47 attr rows, 39 transfers, 17 with fees)
+- [x] `sportsapi_refresh.sh` — daily cron at noon, 30 players/batch, incremental
+- [x] Rate limit handling: global bail on 429, 404 tolerance, partial commit
+
 ## Completed (2026-03-30, session 33 — Data Cleanup + Archetype Tuning)
 - [x] Stale data cleanup: pipeline 30 recency decay (last_season), dedup fix, 35,586 grades rewritten
 - [x] 3 name collision dupes fixed (Pape Sarr 1977, Matt Clarke 1973, Iliya Gruev 1969) — 171 mis-attributed grades deleted

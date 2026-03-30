@@ -27,6 +27,8 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY", "")
+SPORTSAPI_PRO_KEY = os.environ.get("SPORTSAPI_PRO_KEY", "")
+ALLSPORTSAPI_KEY = os.environ.get("ALLSPORTSAPI_KEY", "")
 
 # Common paths
 REPO_ROOT = Path(__file__).resolve().parent.parent

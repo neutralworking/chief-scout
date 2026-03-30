@@ -10,7 +10,7 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 2. **Prod DB fix** — PROD_POSTGRES_DSN broken ("Tenant or user not found")
 3. **Stripe E2E** — keys missing, billing flow untested
 4. ~~**OTP 48 nations**~~ — DONE: 48/48 playable, squads precomputed, women filtered
-5. **OTP conversion hook** — post-submit CS rating + upgrade CTA (not yet verified)
+5. ~~**OTP conversion hook**~~ — DONE: UpgradeCTA on reveal, verified session 32
 6. **Stale branch cleanup** — only 1 unmerged remote remains
 
 ### Done (from previous sprint)
@@ -20,9 +20,25 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 4. ~~**Fixture Predictions**~~ — PRs #107-108, migration 044, pipeline 69
 5. ~~**Systems & Roles**~~ — 28 systems, 308 slots, AF calibration, GK weight fix
 
+### Session 35 (2026-03-31)
+- **SportMonks API assessed**: free tier = 4 leagues, no advanced stats, not worth integrating
+- **EAFC PlayStyle pipeline**: 4 new scripts (56b/c/d/e) extracting non-statistical attributes
+- **56b**: 11,024 PlayStyle traits imported (Finesse Shot, Rapid, Tiki Taka, etc.) for 5,692 players
+- **56c**: 5,489 inferred traits from grade thresholds for 2,535 players (12 rules, position-gated)
+- **56d**: 6,532 preferred_foot backfills (44%→59% coverage) + 2,870 Two Footed/Skill Moves traits
+- **38c re-run**: 5,352 sides inferred from new foot data
+- **56e re-run**: 47,155 playstyle-derived attribute grades bridged
+- **27 re-run**: 13,132 ratings + 50,082 compound scores recomputed with enriched data
+- All traits in `player_trait_scores` only — NOT surfaced in UI, used as pipeline input signals
+
 ### Session 32 (2026-03-30)
-- **Migration 050 applied**: dropped `tactical_roles`, `philosophy_formations`, `philosophy_roles` + `formation_slots.role_id`
-- **6 files migrated** to derive old data shapes from `tactical_systems` → `system_slots` → `slot_roles`
+- **Migration 050 applied**: dropped old role tables
+- **OTP audit**: 5 design questions validated, 5 UX fixes (dedup, balance, retry, formation preserve, back-nav)
+- **11 domestic leagues** added to AF pipeline (Egypt, SA, DR Congo, Iran, Iraq, Indonesia, Peru, Costa Rica, Panama, Honduras, Qatar)
+- **Fuzzy name matching** (Strategy 4): last-name-exact + first-name JW + nationality boost, 21 new matches
+- **SA PSL**: 531 stat rows, 63 player matches
+- **Daily cron**: `af_refresh.sh` at 6am+6pm UTC via macOS crontab (AF Pro expires 2026-04-18)
+- **Full pipeline runs**: 113k AF grades, 11,412 ratings, 17,681 archetypes, 48/48 OTP squads
 - All migrations through 050 on staging. (045 on prod)
 
 ### Session 30 (2026-03-29/30)
@@ -116,7 +132,7 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 | Metric | Value |
 |--------|-------|
 | people | 28,636 |
-| attribute_grades | 646k+ |
+| attribute_grades | 693k+ |
 | Players rated | 14,063 |
 | Tier 1 profiles | 9,227+ |
 | Tests | 370+ (Python + TS + KC 201) |
@@ -125,7 +141,7 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 | KC characters | 500 (DB-wired) |
 | Tactical roles | 36 |
 | Gaffer questions | 135 (10 categories) |
-| Pipeline scripts | 01-90 |
+| Pipeline scripts | 01-92 |
 | Migrations | through 048 |
 | App pages | 20+ routes |
 | UI waves completed | 3/3 |

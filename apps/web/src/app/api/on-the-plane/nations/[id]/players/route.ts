@@ -36,15 +36,13 @@ export async function GET(
     return NextResponse.json({ error: "Nation not in World Cup 2026" }, { status: 404 });
   }
 
-  // Get dual nationals for this nation (exclude women)
-  const { data: dualNationals } = await sb
-    .from("player_nationalities")
-    .select("person_id, people!inner(active, is_female)")
-    .eq("nation_id", nationId)
-    .eq("people.active", true)
-    .neq("people.is_female", true);
+  // Cap-tied aware: only include dual nationals who are either cap-tied
+  // to this nation or uncapped (no is_cap_tied=true row anywhere)
+  const { data: dualNationals } = await sb.rpc("get_eligible_dual_nationals", {
+    p_nation_id: nationId,
+  });
 
-  const dualIds = (dualNationals ?? []).map((d) => d.person_id);
+  const dualIds = (dualNationals ?? []).map((d: { person_id: number }) => d.person_id);
 
   // Step 1: Get person IDs from people table (primary nation)
   // Use range queries to bypass Supabase 1000-row default limit

@@ -107,7 +107,6 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
     physical: player.physical_score ?? null,
   };
   const hasPillars = hasAnyPillarScore(pillarScores);
-  const overall = player.overall_pillar_score;
   const flag = nationFlag(player.nation_code);
   const value = player.market_value_eur;
 
@@ -159,10 +158,17 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             <h2 className="text-lg font-[family-name:var(--font-display)] uppercase text-[var(--text-primary)] min-w-0 group-hover:text-[var(--accent-personality)] transition-colors">
               {player.name}
             </h2>
-            {overall != null && (
-              <span className="text-xl font-data font-bold shrink-0 ml-auto text-gradient-brand">
-                {overall}
-              </span>
+            {player.best_role_score != null && (
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                {player.best_role && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    {player.best_role}
+                  </span>
+                )}
+                <span className="text-xl font-data font-bold text-gradient-brand">
+                  {player.best_role_score}
+                </span>
+              </div>
             )}
           </div>
         </Link>
@@ -177,7 +183,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           {(player.earned_archetype || player.archetype) && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>{player.earned_archetype ?? player.archetype}</span></>
           )}
-          {player.best_role && (
+          {player.best_role && player.best_role_score == null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 text-[var(--text-muted)]">{player.best_role}</span></>
           )}
           {value != null && (

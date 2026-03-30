@@ -96,19 +96,19 @@ TF_WEIGHTS = {
     "interceptions": -1.0,
 }
 
-# Archetype adjustments to tf dimension
+# Archetype adjustments to tf dimension (increased range for differentiation)
 TF_ARCHETYPE_MODS = {
-    "Controller": -10, "Commander": -15, "Cover": -5,
-    "Destroyer": 5, "Passer": -10,
-    "Dribbler": 10, "Sprinter": 5, "Striker": 5,
+    "Controller": -12, "Commander": -18, "Cover": -8,
+    "Destroyer": 6, "Passer": -12,
+    "Dribbler": 14, "Sprinter": 8, "Striker": 6,
     "Creator": 0, "Engine": 0, "Target": 0,
-    "GK": -5, "GK-Controller": -10,
+    "GK": -8, "GK-Controller": -12,
 }
 
-# Position adjustments to tf
+# Position adjustments to tf (widened)
 TF_POSITION_MODS = {
-    "GK": -5, "CD": -5, "WD": 0, "DM": -5,
-    "CM": -5, "WM": 5, "AM": 5, "WF": 10, "CF": 5,
+    "GK": -8, "CD": -8, "WD": 0, "DM": -8,
+    "CM": -5, "WM": 6, "AM": 8, "WF": 14, "CF": 8,
 }
 
 # Competitiveness heuristic: aggression + duels + pressing + intensity
@@ -138,8 +138,30 @@ def get_grade(grades: dict, attr: str) -> float | None:
     return None
 
 
+# ── Per-attribute population stats ────────────────────────────────────────────
+# Computed at script start from all attribute_grades. Used for z-score normalization
+# so that each attribute is relative to its own distribution, not a raw 0-20 scale.
+# Without this, pace (avg 13.3) looks "high" and creativity (avg 5.0) looks "low"
+# for EVERY player, destroying personality differentiation.
+ATTR_STATS: dict[str, dict[str, float]] = {}  # populated in main()
+
+
+def z_normalize(grade: float, attr: str) -> float:
+    """Z-score normalize a grade relative to its attribute's population distribution.
+
+    Returns 0-1 centered at 0.5. One stddev from mean = ±0.2.
+    Full range spans ±2.5 stddev (covers ~99% of players).
+    """
+    stats = ATTR_STATS.get(attr)
+    if not stats or stats["std"] < 0.5:
+        # Fallback: raw normalization (shouldn't happen for attributes with 10k+ grades)
+        return grade / 20.0
+    z = (grade - stats["mean"]) / stats["std"]
+    return max(0.0, min(1.0, 0.5 + z * 0.2))
+
+
 def compute_dimension(grades: dict, weights: dict, base: float = 50.0) -> int:
-    """Compute a personality dimension (0-100) from weighted attributes."""
+    """Compute a personality dimension (0-100) from z-score-normalized weighted attributes."""
     total_weight = 0.0
     score = 0.0
 
@@ -147,10 +169,10 @@ def compute_dimension(grades: dict, weights: dict, base: float = 50.0) -> int:
         grade = get_grade(grades, attr)
         if grade is None:
             continue
-        # Normalize grade to 0-1 scale (grades are 0-20)
-        normalized = grade / 20.0
-        # Positive weight: high grade → high score
-        # Negative weight: high grade → low score
+        # Z-score normalize: 0.5 = population average for this attribute
+        normalized = z_normalize(grade, attr)
+        # Positive weight: above-average grade → high score
+        # Negative weight: above-average grade → low score
         if weight > 0:
             score += normalized * weight
         else:
@@ -162,15 +184,15 @@ def compute_dimension(grades: dict, weights: dict, base: float = 50.0) -> int:
 
     # Scale to 0-100 centered around base
     raw = score / total_weight  # 0-1
-    result = base + (raw - 0.5) * 60  # spread ±30 around base
+    result = base + (raw - 0.5) * 100  # spread ±50 around base (was ±30)
     return max(0, min(100, int(round(result))))
 
 
 def compute_tf(grades: dict, position: str | None, archetype: str | None) -> int:
     """Compute tf dimension with position/archetype modifiers."""
-    base = compute_dimension(grades, TF_WEIGHTS, base=55.0)
+    base = compute_dimension(grades, TF_WEIGHTS, base=50.0)  # was 55 (biased toward Soloist)
 
-    # Apply archetype modifier
+    # Apply archetype modifier (increased range for real differentiation)
     if archetype:
         primary = archetype.split("-")[0] if "-" in archetype else archetype
         mod = TF_ARCHETYPE_MODS.get(primary, 0)
@@ -258,6 +280,25 @@ for pid, attr, scout, stat in cur.fetchall():
         all_grades[pid][attr_lower] = {"scout": scout, "stat": stat}
 
 print(f"  {len(all_grades)} players with attribute grades")
+
+# ── Compute per-attribute population stats for z-score normalization ──────────
+from collections import defaultdict
+import math
+
+attr_values: dict[str, list[float]] = defaultdict(list)
+for pid, pgrades in all_grades.items():
+    for attr, entry in pgrades.items():
+        g = entry.get("scout") if entry.get("scout") is not None else entry.get("stat")
+        if g is not None:
+            attr_values[attr].append(g)
+
+for attr, vals in attr_values.items():
+    if len(vals) >= 10:
+        mean = sum(vals) / len(vals)
+        variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+        ATTR_STATS[attr] = {"mean": mean, "std": math.sqrt(variance)}
+
+print(f"  {len(ATTR_STATS)} attributes with population stats")
 
 # ── Calibration mode ──────────────────────────────────────────────────────────
 if args.calibrate:

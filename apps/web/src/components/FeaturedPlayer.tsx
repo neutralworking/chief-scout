@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { PERSONALITY_TYPES } from "@/lib/personality";
-import { getArchetypeColor } from "@/lib/archetype-styles";
+import { computeIdentityLabel } from "@/lib/identity-label";
 import { ScoutingNotes } from "./ScoutingNotes";
 
 interface FeaturedPlayerData {
@@ -73,7 +73,7 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
   const player = currentPlayer;
   const pt = player.personality_type ? PERSONALITY_TYPES[player.personality_type] : null;
-  const personality = pt ? { name: pt.fullName, oneLiner: pt.oneLiner } : null;
+  const identityLabel = computeIdentityLabel(player.blueprint, player.best_role, player.personality_type);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;
@@ -144,18 +144,25 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           </div>
         </Link>
 
-        {/* Flag + Club + Age + Archetype + Best Role + Value */}
+        {/* Identity label */}
+        {identityLabel && (
+          <p className="text-[12px] font-semibold tracking-wide text-[var(--color-accent-personality)] mt-1">
+            {identityLabel}
+          </p>
+        )}
+
+        {/* Flag + Club + Age + Value + Personality code */}
         <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] mt-1 min-w-0 flex-wrap">
           {flag && <span className="shrink-0">{flag}</span>}
           {player.club && <span className="truncate">{player.club}</span>}
           {age !== null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0">{age}y</span></>
           )}
-          {player.best_role && player.best_role_score == null && (
-            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 text-[var(--text-muted)]">{player.best_role}</span></>
-          )}
           {value != null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 font-data font-semibold">{formatValue(value)}</span></>
+          )}
+          {pt && (
+            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 font-data text-[var(--text-muted)]">{player.personality_type}</span></>
           )}
         </div>
 
@@ -174,23 +181,6 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           <ScoutingNotes text={player.scouting_notes} clamp={6} className="mt-2" />
         )}
 
-        {/* Personality + Archetype chips */}
-        {(personality || player.earned_archetype || player.archetype) && (
-          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            {personality && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
-                <svg className="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
-                <span className="text-[10px] font-semibold text-[var(--text-secondary)]">{player.personality_type} {personality.name}</span>
-              </div>
-            )}
-            {(player.earned_archetype || player.archetype) && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
-                <svg className="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                <span className="text-[10px] font-semibold" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>{player.earned_archetype ?? player.archetype}</span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

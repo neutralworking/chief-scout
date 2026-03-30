@@ -60,21 +60,33 @@ export default function OnThePlanePage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       {/* Hero */}
-      <div className="px-4 pt-8 pb-4 text-center max-w-3xl mx-auto">
-        <div className="text-4xl mb-2">✈️</div>
+      <div className="px-4 pt-10 pb-6 text-center max-w-3xl mx-auto">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="mx-auto mb-4 opacity-80">
+          <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z" fill="url(#otp-grad)"/>
+          <defs>
+            <linearGradient id="otp-grad" x1="2" y1="3" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#e91e8c"/>
+              <stop offset="0.5" stopColor="#ff6b35"/>
+              <stop offset="1" stopColor="#fbbf24"/>
+            </linearGradient>
+          </defs>
+        </svg>
         <h1
-          className="text-3xl sm:text-4xl font-bold tracking-tight mb-2"
-          style={{ color: "var(--text-primary)" }}
+          className="text-3xl sm:text-4xl font-bold uppercase tracking-[3px] mb-3"
+          style={{
+            fontFamily: "var(--font-display)",
+            background: "var(--gradient-brand)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
         >
           On The Plane
         </h1>
-        <p
-          className="text-base sm:text-lg mb-1"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <p className="text-sm sm:text-base mb-1" style={{ color: "var(--text-secondary)" }}>
           Pick your 26-man World Cup squad. Choose your starting XI.
         </p>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           Then see how your picks compare to the Chief Scout&apos;s ideal selection.
         </p>
       </div>
@@ -132,15 +144,17 @@ export default function OnThePlanePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {filtered.map((nation) => {
               const thinPool = nation.player_count < 11;
+              const tierColor = strengthColor(nation.strength);
               const cardContent = (
                 <>
                   <div className="flex items-start justify-between mb-2">
-                    <span className="text-2xl">{nation.kit_emoji}</span>
+                    <span className="text-3xl leading-none">{nation.kit_emoji}</span>
                     <span
-                      className="text-xs font-mono px-1.5 py-0.5 rounded"
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded-full"
                       style={{
-                        background: "var(--bg-elevated)",
+                        background: "rgba(255,255,255,0.06)",
                         color: "var(--text-muted)",
+                        border: "1px solid var(--border-subtle)",
                       }}
                     >
                       #{nation.fifa_ranking}
@@ -152,10 +166,16 @@ export default function OnThePlanePage() {
                   >
                     {nation.name}
                   </h3>
-                  <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                  <div className="flex items-center gap-1.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
                     <span>{nation.confederation}</span>
                     <span>·</span>
                     <span>{nation.player_count} players</span>
+                    {nation.total_entries > 0 && (
+                      <>
+                        <span>·</span>
+                        <span>{nation.total_entries} picked</span>
+                      </>
+                    )}
                   </div>
                   {thinPool && (
                     <p className="text-[10px] mt-2" style={{ color: "var(--color-accent-physical)" }}>
@@ -163,48 +183,46 @@ export default function OnThePlanePage() {
                     </p>
                   )}
                   {nation.strength !== null && (
-                    <div className="mt-2">
+                    <div className="mt-3">
                       <div
-                        className="h-1.5 rounded-full overflow-hidden"
+                        className="h-1 rounded-full overflow-hidden"
                         style={{ background: "var(--bg-elevated)" }}
                       >
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
                             width: `${nation.strength}%`,
-                            background: strengthColor(nation.strength),
+                            background: tierColor,
                           }}
                         />
                       </div>
                       <div className="flex justify-between mt-1">
                         <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                          Squad Strength
+                          Strength
                         </span>
                         <span
-                          className="text-[10px] font-mono"
-                          style={{ color: strengthColor(nation.strength) }}
+                          className="text-[10px] font-mono font-bold"
+                          style={{ color: tierColor }}
                         >
                           {nation.strength}
                         </span>
                       </div>
                     </div>
                   )}
-                  {nation.total_entries > 0 && (
-                    <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>
-                      {nation.total_entries} squad{nation.total_entries !== 1 ? "s" : ""} picked
-                    </p>
-                  )}
                 </>
               );
+
+              const cardStyle = {
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border-subtle)",
+                borderLeft: thinPool ? undefined : `3px solid ${tierColor}`,
+              };
 
               return thinPool ? (
                 <div
                   key={nation.nation_id}
-                  className="block rounded-xl p-4 opacity-50 cursor-not-allowed"
-                  style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-subtle)",
-                  }}
+                  className="block rounded-xl p-4 opacity-40 cursor-not-allowed"
+                  style={cardStyle}
                 >
                   {cardContent}
                 </div>
@@ -213,10 +231,7 @@ export default function OnThePlanePage() {
                   key={nation.nation_id}
                   href={`/on-the-plane/${nation.slug}`}
                   className="block rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-subtle)",
-                  }}
+                  style={cardStyle}
                 >
                   {cardContent}
                 </Link>

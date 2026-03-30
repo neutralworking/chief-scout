@@ -221,6 +221,27 @@ body {
   from { width: 0%; }
 }
 
+/* OTP reveal animations */
+@keyframes scoreCountUp {
+  from { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.15); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tierReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes statCardReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.otp-score-reveal { animation: scoreCountUp 0.6s ease-out forwards; }
+.otp-tier-reveal { animation: tierReveal 0.4s ease-out 0.5s forwards; opacity: 0; }
+.otp-stat-reveal { animation: statCardReveal 0.4s ease-out forwards; opacity: 0; }
+
 .gaffer-option-enter {
   opacity: 0;
   animation: optionEntrance 0.3s ease-out forwards;
@@ -275,5 +296,12 @@ body {
   .mobile-bottom-nav * {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+  .otp-score-reveal,
+  .otp-tier-reveal,
+  .otp-stat-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }

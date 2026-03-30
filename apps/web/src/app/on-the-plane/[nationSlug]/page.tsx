@@ -79,6 +79,69 @@ const FORMATION_SLOTS: Record<string, string[]> = {
   "4-1-2-1-2": ["GK", "WD", "CD", "CD", "WD", "DM", "CM", "CM", "AM", "CF", "CF"],
 };
 
+// ── Step Progress Bar ────────────────────────────────────────────────────────
+
+const STEPS: { key: Step; label: string }[] = [
+  { key: "pick-squad", label: "Squad" },
+  { key: "pick-xi", label: "Starting XI" },
+  { key: "reveal", label: "Results" },
+];
+
+function StepBar({ current }: { current: Step }) {
+  const currentIdx = STEPS.findIndex((s) => s.key === current);
+  return (
+    <div className="flex items-center justify-center gap-1 py-2 px-4"
+      style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-subtle)" }}>
+      {STEPS.map((s, i) => {
+        const done = i < currentIdx;
+        const active = i === currentIdx;
+        return (
+          <div key={s.key} className="flex items-center gap-1">
+            {i > 0 && (
+              <div className="w-8 h-px" style={{ background: done ? "var(--color-accent-personality)" : "var(--border-subtle)" }} />
+            )}
+            <div className="flex items-center gap-1.5">
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold"
+                style={{
+                  background: done ? "var(--color-accent-personality)" : active ? "var(--bg-elevated)" : "transparent",
+                  border: `1.5px solid ${done || active ? "var(--color-accent-personality)" : "var(--border-subtle)"}`,
+                  color: done ? "var(--bg-base)" : active ? "var(--color-accent-personality)" : "var(--text-muted)",
+                }}
+              >
+                {done ? "✓" : i + 1}
+              </div>
+              <span className="text-[10px] hidden sm:inline"
+                style={{ color: active ? "var(--text-primary)" : "var(--text-muted)" }}>
+                {s.label}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Score Count-Up Hook ─────────────────────────────────────────────────────
+
+function useCountUp(target: number, duration = 1200) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (target === 0) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target, duration]);
+  return value;
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export default function SquadBuilderPage() {
@@ -96,6 +159,9 @@ export default function SquadBuilderPage() {
   const [formation, setFormation] = useState("4-3-3");
   const [xiIds, setXiIds] = useState<Set<number>>(new Set());
 
+  // UI state
+  const [pitchOpen, setPitchOpen] = useState(false);
+
   // Filters
   const [posFilter, setPosFilter] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState("all");
@@ -112,6 +178,9 @@ export default function SquadBuilderPage() {
     tier: string;
   } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // ── Score animation (must be before early returns — hooks rule) ──────────
+  const displayScore = useCountUp(comparison?.score ?? 0);
 
   // ── Back-nav warning ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -390,84 +459,91 @@ export default function SquadBuilderPage() {
     return (
       <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
         {/* Header */}
-        <div
-          className="sticky top-0 z-10 px-4 py-3 border-b"
-          style={{ background: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}
-        >
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <Link href="/on-the-plane" className="text-xs" style={{ color: "var(--text-muted)" }}>
-              ← Nations
-            </Link>
-            <div className="text-center">
-              <h1 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                ✈️ Pick Your Squad
-              </h1>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                {selectedIds.size}/26 selected
-              </p>
+        <div className="sticky top-0 z-10" style={{ background: "var(--bg-surface)" }}>
+          <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <Link href="/on-the-plane" className="text-xs" style={{ color: "var(--text-muted)" }}>
+                ← Nations
+              </Link>
+              <div className="text-center">
+                <h1
+                  className="text-sm font-bold uppercase tracking-[1px]"
+                  style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+                >
+                  Pick Your Squad
+                </h1>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {selectedIds.size}/26
+                </p>
+              </div>
+              <button
+                onClick={() => selectedIds.size === 26 && setStep("pick-xi")}
+                disabled={selectedIds.size !== 26}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
+              >
+                Next →
+              </button>
             </div>
-            <button
-              onClick={() => selectedIds.size === 26 && setStep("pick-xi")}
-              disabled={selectedIds.size !== 26}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
-            >
-              Next →
-            </button>
           </div>
-          {/* Balance bar */}
-          <div className="max-w-5xl mx-auto mt-2 flex gap-2 text-[10px]">
-            {Object.entries(squadBalance).map(([grp, cnt]) => (
-              <span key={grp} className="px-2 py-0.5 rounded" style={{ background: "var(--bg-elevated)", color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
-                {grp} {cnt}
-              </span>
-            ))}
-            {balanceWarnings.length > 0 && (
-              <span className="px-2 py-0.5 rounded text-[10px]" style={{ background: "rgba(217,63,11,0.15)", color: "#ef4444" }}>
-                ⚠ {balanceWarnings[0]}
-              </span>
-            )}
-            {/* Formation selector inline */}
-            <select
-              value={formation}
-              onChange={(e) => setFormation(e.target.value)}
-              className="ml-auto px-1.5 py-0.5 rounded text-[10px] font-mono cursor-pointer"
-              style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
-            >
-              {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
+          <StepBar current={step} />
         </div>
 
-        {/* ── Split: Pitch + Additions ── */}
+        {/* Collapsible pitch toggle */}
         <div className="max-w-5xl mx-auto px-4 pt-3 pb-2">
-          <div className="flex gap-3" style={{ minHeight: "260px" }}>
-            {/* LEFT: Pitch + Bench */}
-            <div className="w-1/2 flex flex-col gap-2">
-              {/* Pitch */}
+          <button
+            onClick={() => setPitchOpen(!pitchOpen)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs cursor-pointer"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
+          >
+            <div className="flex items-center gap-2">
+              <span style={{ color: "var(--text-secondary)" }}>Formation</span>
+              <select
+                value={formation}
+                onChange={(e) => { e.stopPropagation(); setFormation(e.target.value); }}
+                onClick={(e) => e.stopPropagation()}
+                className="px-1.5 py-0.5 rounded text-[10px] font-mono cursor-pointer"
+                style={{ background: "var(--bg-elevated)", color: "var(--color-accent-personality)", border: "1px solid var(--border-subtle)" }}
+              >
+                {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              {Object.entries(squadBalance).map(([grp, cnt]) => (
+                <span key={grp} className="text-[10px] font-mono" style={{ color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
+                  {grp} {cnt}
+                </span>
+              ))}
+              <span style={{ color: "var(--text-muted)", fontSize: "10px" }}>{pitchOpen ? "▲" : "▼"}</span>
+            </div>
+          </button>
+
+          {balanceWarnings.length > 0 && (
+            <div className="mt-1.5 px-3 py-1.5 rounded-lg text-[10px]" style={{ background: "rgba(217,63,11,0.1)", color: "#ef4444" }}>
+              ⚠ {balanceWarnings[0]}
+            </div>
+          )}
+
+          {pitchOpen && (
+            <div className="mt-2 animate-slideUp">
+              {/* Full-width pitch */}
               <div
-                className="rounded-lg p-2 flex flex-col justify-between relative"
+                className="rounded-lg p-3 flex flex-col justify-between relative"
                 style={{
                   background: "linear-gradient(180deg, #0d3b1e 0%, #0a2e17 100%)",
                   border: "1px solid rgba(111,195,223,0.15)",
-                  minHeight: "200px",
+                  minHeight: "280px",
                 }}
               >
-                {/* Center circle decoration */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-12 h-12 rounded-full border border-white/10" />
+                  <div className="w-16 h-16 rounded-full border border-white/10" />
                 </div>
-                {/* Halfway line */}
                 <div className="absolute left-0 right-0 top-1/2 border-t border-white/10" />
 
                 {pitchRows.map((row, ri) => (
-                  <div key={ri} className="flex justify-center gap-1 relative z-10" style={{ flex: 1, alignItems: "center" }}>
+                  <div key={ri} className="flex justify-center gap-2 relative z-10" style={{ flex: 1, alignItems: "center" }}>
                     {row.map((s) => (
-                      <div
-                        key={s.idx}
-                        className="flex flex-col items-center"
-                        style={{ width: "48px" }}
-                      >
+                      <div key={s.idx} className="flex flex-col items-center" style={{ width: "56px" }}>
                         {s.player ? (
                           <button
                             onClick={() => togglePlayer(s.player!.person_id)}
@@ -475,19 +551,19 @@ export default function SquadBuilderPage() {
                             title={`Remove ${s.player.name}`}
                           >
                             <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-[8px] font-bold mx-auto"
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-bold mx-auto"
                               style={{ background: "var(--color-accent-personality)", color: "#000" }}
                             >
                               {s.player.position}
                             </div>
-                            <div className="text-[7px] mt-0.5 truncate leading-tight" style={{ color: "#fff", maxWidth: "48px" }}>
+                            <div className="text-[8px] mt-0.5 truncate leading-tight" style={{ color: "#fff", maxWidth: "56px" }}>
                               {s.player.name.split(" ").pop()}
                             </div>
                           </button>
                         ) : (
                           <div className="text-center">
                             <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-[8px] font-mono mx-auto"
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-mono mx-auto"
                               style={{ border: "1px dashed rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.3)" }}
                             >
                               {s.slot}
@@ -500,9 +576,9 @@ export default function SquadBuilderPage() {
                 ))}
               </div>
 
-              {/* Bench */}
+              {/* Bench under pitch */}
               {benchPlayers.length > 0 && (
-                <div className="rounded-lg p-2" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
+                <div className="mt-2 rounded-lg p-2" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
                   <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
                     Bench ({benchPlayers.length})
                   </div>
@@ -523,60 +599,18 @@ export default function SquadBuilderPage() {
                 </div>
               )}
             </div>
-
-            {/* RIGHT: Additions list */}
-            <div className="w-1/2 rounded-lg overflow-hidden flex flex-col" style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
-              <div className="px-2 py-1.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)", borderBottom: "1px solid var(--border-subtle)" }}>
-                Squad ({selectedIds.size}/26)
-              </div>
-              <div className="flex-1 overflow-y-auto" style={{ maxHeight: "280px" }}>
-                {selectedPlayers.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-[10px]" style={{ color: "var(--text-muted)" }}>
-                    Tap players below to add
-                  </div>
-                ) : (
-                  [...selectedPlayers]
-                    .sort((a, b) => {
-                      const posOrder = POSITIONS.indexOf(a.position ?? "CM") - POSITIONS.indexOf(b.position ?? "CM");
-                      return posOrder !== 0 ? posOrder : (b.level ?? 0) - (a.level ?? 0);
-                    })
-                    .map((p) => (
-                      <button
-                        key={p.person_id}
-                        onClick={() => togglePlayer(p.person_id)}
-                        className="w-full flex items-center gap-1.5 px-2 py-1 text-left cursor-pointer hover:bg-[var(--bg-elevated)] transition-colors"
-                        title={`Remove ${p.name}`}
-                      >
-                        <span
-                          className={`text-[8px] font-mono px-1 py-0.5 rounded shrink-0 ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
-                          style={{ color: "white" }}
-                        >
-                          {p.position}
-                        </span>
-                        <span className="text-[11px] truncate flex-1" style={{ color: "var(--text-primary)" }}>
-                          {p.name}
-                        </span>
-                        <span className="text-[10px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
-                          {p.level ?? "—"}
-                        </span>
-                        <span className="text-[9px] shrink-0" style={{ color: "var(--text-muted)" }}>✕</span>
-                      </button>
-                    ))
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* ── Filters ── */}
         <div className="max-w-5xl mx-auto px-4 pt-2 pb-2 space-y-2">
-          <div className="flex gap-1 overflow-x-auto pb-1">
+          <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
+            <button onClick={() => setPosFilter(null)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: !posFilter ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>All</button>
             {POSITIONS.map((pos) => (
-              <button key={pos} onClick={() => setPosFilter(posFilter === pos ? null : pos)} className="px-2 py-1 rounded-full text-[9px] font-medium shrink-0 cursor-pointer" style={{ background: posFilter === pos ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{pos}</button>
+              <button key={pos} onClick={() => setPosFilter(posFilter === pos ? null : pos)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: posFilter === pos ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: posFilter === pos ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${posFilter === pos ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{pos}</button>
             ))}
-            <button onClick={() => setPosFilter(null)} className="px-2 py-1 rounded-full text-[9px] font-medium shrink-0 cursor-pointer" style={{ background: !posFilter ? "rgba(232,197,71,0.15)" : "var(--bg-surface)", color: !posFilter ? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${!posFilter ? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>All</button>
           </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
             {POOL_CATEGORIES.map((cat) => (
               <button key={cat.key} onClick={() => setCatFilter(cat.key)} className="px-2.5 py-1 rounded-full text-[10px] font-medium shrink-0 cursor-pointer" style={{ background: catFilter === cat.key ? `${CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)"}20` : "var(--bg-surface)", color: catFilter === cat.key ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)" : "var(--text-muted)", border: `1px solid ${catFilter === cat.key ? CATEGORY_COLORS[cat.key] ?? "var(--color-accent-personality)" : "var(--border-subtle)"}` }}>{cat.label}</button>
             ))}
@@ -591,7 +625,7 @@ export default function SquadBuilderPage() {
           </div>
         </div>
 
-        {/* ── Player List (full width) ── */}
+        {/* ── Player List ── */}
         <div className="max-w-5xl mx-auto px-4 pb-24">
           {filteredPlayers.map((p) => {
             const selected = selectedIds.has(p.person_id);
@@ -636,54 +670,76 @@ export default function SquadBuilderPage() {
 
   if (step === "pick-xi") {
     const squadPlayers = nationData.players.filter((p) => selectedIds.has(p.person_id));
-    const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
+
+    // Map XI players to formation slots
+    const xiPitchSlots = (() => {
+      const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
+      const used = new Set<number>();
+      return slots.map((slotPos, idx) => {
+        const candidate = squadPlayers
+          .filter((p) => !used.has(p.person_id) && xiIds.has(p.person_id) && p.position === slotPos)
+          .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))[0];
+        if (candidate) {
+          used.add(candidate.person_id);
+          return { slot: slotPos, idx, player: candidate };
+        }
+        return { slot: slotPos, idx, player: null as PoolPlayer | null };
+      });
+    })();
+
+    const xiPitchRowSizes = PITCH_ROWS[formation] ?? [1, 4, 3, 3];
+    const xiPitchRows: (typeof xiPitchSlots)[] = [];
+    let xiOffset = 0;
+    for (const size of xiPitchRowSizes) {
+      xiPitchRows.push(xiPitchSlots.slice(xiOffset, xiOffset + size));
+      xiOffset += size;
+    }
 
     return (
       <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
         {/* Header */}
-        <div
-          className="sticky top-0 z-10 px-4 py-3 border-b"
-          style={{ background: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}
-        >
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <button
-              onClick={() => setStep("pick-squad")}
-              className="text-xs cursor-pointer"
-              style={{ color: "var(--text-muted)" }}
-            >
-              ← Squad
-            </button>
-            <div className="text-center">
-              <h1 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                ✈️ Pick Your XI
-              </h1>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                {xiIds.size}/11 starters
-              </p>
+        <div className="sticky top-0 z-10" style={{ background: "var(--bg-surface)" }}>
+          <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <button
+                onClick={() => setStep("pick-squad")}
+                className="text-xs cursor-pointer"
+                style={{ color: "var(--text-muted)" }}
+              >
+                ← Squad
+              </button>
+              <div className="text-center">
+                <h1
+                  className="text-sm font-bold uppercase tracking-[1px]"
+                  style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+                >
+                  Pick Your XI
+                </h1>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {xiIds.size}/11 starters
+                </p>
+              </div>
+              <button
+                onClick={handleSubmit}
+                disabled={xiIds.size !== 11 || submitting}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
+              >
+                {submitting ? "..." : "Reveal →"}
+              </button>
             </div>
-            <button
-              onClick={handleSubmit}
-              disabled={xiIds.size !== 11 || submitting}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{
-                background: "var(--color-accent-personality)",
-                color: "var(--bg-base)",
-              }}
-            >
-              {submitting ? "..." : "Reveal →"}
-            </button>
           </div>
+          <StepBar current={step} />
         </div>
 
         {/* Formation picker */}
         <div className="max-w-5xl mx-auto px-4 pt-3 pb-2">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             {FORMATIONS.map((f) => (
               <button
                 key={f}
                 onClick={() => {
                   setFormation(f);
-                  // Preserve XI picks that are compatible with new formation
                   const newSlots = FORMATION_SLOTS[f] ?? FORMATION_SLOTS["4-3-3"];
                   const slotCounts: Record<string, number> = {};
                   for (const s of newSlots) slotCounts[s] = (slotCounts[s] ?? 0) + 1;
@@ -708,27 +764,68 @@ export default function SquadBuilderPage() {
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Formation slots needed */}
-          <div className="flex gap-1.5 text-[10px] mb-3" style={{ color: "var(--text-muted)" }}>
-            {Object.entries(
-              slots.reduce<Record<string, number>>((acc, pos) => {
-                acc[pos] = (acc[pos] ?? 0) + 1;
-                return acc;
-              }, {})
-            ).map(([pos, cnt]) => (
-              <span key={pos} className="px-1.5 py-0.5 rounded" style={{ background: "var(--bg-elevated)" }}>
-                {pos} ×{cnt}
-              </span>
+        {/* Pitch — primary XI selection UI */}
+        <div className="max-w-5xl mx-auto px-4 pb-3">
+          <div
+            className="rounded-lg p-4 flex flex-col justify-between relative"
+            style={{
+              background: "linear-gradient(180deg, #0d3b1e 0%, #0a2e17 100%)",
+              border: "1px solid rgba(111,195,223,0.15)",
+              minHeight: "320px",
+            }}
+          >
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-16 h-16 rounded-full border border-white/10" />
+            </div>
+            <div className="absolute left-0 right-0 top-1/2 border-t border-white/10" />
+
+            {xiPitchRows.map((row, ri) => (
+              <div key={ri} className="flex justify-center gap-3 relative z-10" style={{ flex: 1, alignItems: "center" }}>
+                {row.map((s) => (
+                  <div key={s.idx} className="flex flex-col items-center" style={{ width: "60px" }}>
+                    {s.player ? (
+                      <button
+                        onClick={() => toggleXI(s.player!.person_id)}
+                        className="cursor-pointer text-center"
+                        title={`Remove ${s.player.name} from XI`}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-[9px] font-bold mx-auto"
+                          style={{ background: "var(--color-accent-tactical)", color: "#000" }}
+                        >
+                          {s.player.position}
+                        </div>
+                        <div className="text-[8px] mt-0.5 truncate leading-tight font-medium" style={{ color: "#fff", maxWidth: "60px" }}>
+                          {s.player.name.split(" ").pop()}
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="text-center">
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-[9px] font-mono mx-auto"
+                          style={{ border: "1.5px dashed rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.35)" }}
+                        >
+                          {s.slot}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Squad list for XI selection */}
+        {/* Bench — tap to add to XI */}
         <div className="max-w-5xl mx-auto px-4 pb-24">
-          {squadPlayers
+          <div className="text-[10px] font-bold uppercase tracking-wider px-1 mb-2"
+            style={{ color: "var(--text-muted)", fontFamily: "var(--font-display)", letterSpacing: "1.5px" }}>
+            Bench — tap to start ({11 - xiIds.size} {11 - xiIds.size === 1 ? "spot" : "spots"} left)
+          </div>
+          {[...squadPlayers]
             .sort((a, b) => {
-              // Sort: starters first, then by position order, then by level
               const aXI = xiIds.has(a.person_id) ? 0 : 1;
               const bXI = xiIds.has(b.person_id) ? 0 : 1;
               if (aXI !== bXI) return aXI - bXI;
@@ -736,55 +833,83 @@ export default function SquadBuilderPage() {
               if (posOrder !== 0) return posOrder;
               return (b.level ?? 0) - (a.level ?? 0);
             })
-            .map((p) => {
-              const inXI = xiIds.has(p.person_id);
-              return (
-                <button
-                  key={p.person_id}
-                  onClick={() => toggleXI(p.person_id)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1.5 transition-all text-left cursor-pointer"
-                  style={{
-                    background: inXI ? "var(--bg-elevated)" : "var(--bg-surface)",
-                    border: `1px solid ${inXI ? "var(--color-accent-tactical)" : "var(--border-subtle)"}`,
-                    opacity: !inXI && xiIds.size >= 11 ? 0.4 : 1,
-                  }}
+            .filter((p) => !xiIds.has(p.person_id))
+            .map((p) => (
+              <button
+                key={p.person_id}
+                onClick={() => toggleXI(p.person_id)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1 transition-all text-left cursor-pointer"
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-subtle)",
+                  opacity: xiIds.size >= 11 ? 0.4 : 1,
+                }}
+              >
+                <span
+                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
+                  style={{ color: "white" }}
                 >
-                  {/* XI badge */}
-                  <div
-                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 text-[9px] font-bold"
+                  {p.position ?? "?"}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                    {p.name}
+                  </span>
+                  <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    {p.club && <span>{p.club}</span>}
+                    {p.age && <span>· {p.age}y</span>}
+                    {p.best_role && <span>· {p.best_role}</span>}
+                  </div>
+                </div>
+                <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                  {p.level ?? "—"}
+                </span>
+              </button>
+            ))}
+          {xiIds.size > 0 && (
+            <>
+              <div className="text-[10px] font-bold uppercase tracking-wider px-1 mt-4 mb-2"
+                style={{ color: "var(--color-accent-tactical)", fontFamily: "var(--font-display)", letterSpacing: "1.5px" }}>
+                Starting XI
+              </div>
+              {[...squadPlayers]
+                .filter((p) => xiIds.has(p.person_id))
+                .sort((a, b) => {
+                  const posOrder = POSITIONS.indexOf(a.position ?? "CM") - POSITIONS.indexOf(b.position ?? "CM");
+                  return posOrder !== 0 ? posOrder : (b.level ?? 0) - (a.level ?? 0);
+                })
+                .map((p) => (
+                  <button
+                    key={p.person_id}
+                    onClick={() => toggleXI(p.person_id)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1 transition-all text-left cursor-pointer"
                     style={{
-                      borderColor: inXI ? "var(--color-accent-tactical)" : "var(--border-subtle)",
-                      background: inXI ? "var(--color-accent-tactical)" : "transparent",
-                      color: inXI ? "var(--bg-base)" : "var(--text-muted)",
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--color-accent-tactical)",
                     }}
                   >
-                    {inXI ? "XI" : ""}
-                  </div>
-
-                  <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
-                    style={{ color: "white" }}
-                  >
-                    {p.position ?? "?"}
-                  </span>
-
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[8px] font-bold"
+                      style={{ background: "var(--color-accent-tactical)", color: "var(--bg-base)" }}
+                    >
+                      XI
+                    </div>
+                    <span
+                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${POSITION_COLORS[p.position ?? "CM"] ?? ""}`}
+                      style={{ color: "white" }}
+                    >
+                      {p.position ?? "?"}
+                    </span>
+                    <span className="text-xs font-medium truncate flex-1" style={{ color: "var(--text-primary)" }}>
                       {p.name}
                     </span>
-                    <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                      {p.club && <span>{p.club}</span>}
-                      {p.age && <span>· {p.age}y</span>}
-                      {p.best_role && <span>· {p.best_role}</span>}
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>
-                    {p.level ?? "—"}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                      {p.level ?? "—"}
+                    </span>
+                  </button>
+                ))}
+            </>
+          )}
         </div>
       </div>
     );
@@ -801,12 +926,28 @@ export default function SquadBuilderPage() {
   );
   const userSelectedPlayers = nationData.players.filter((p) => selectedIds.has(p.person_id));
 
+  const scoreColor = comparison
+    ? comparison.score >= 75
+      ? "var(--color-accent-technical)"
+      : comparison.score >= 50
+        ? "var(--color-accent-tactical)"
+        : comparison.score >= 25
+          ? "var(--color-accent-mental)"
+          : "var(--color-accent-physical)"
+    : "var(--text-muted)";
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
       {/* Header */}
-      <div className="px-4 pt-8 pb-4 text-center max-w-3xl mx-auto">
-        <div className="text-4xl mb-3">✈️</div>
-        <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+      <div style={{ background: "var(--bg-surface)" }}>
+        <StepBar current={step} />
+      </div>
+
+      <div className="px-4 pt-8 pb-6 text-center max-w-3xl mx-auto">
+        <h1
+          className="text-2xl sm:text-3xl font-bold uppercase tracking-[2px] mb-4"
+          style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+        >
           The Results Are In
         </h1>
 
@@ -823,71 +964,50 @@ export default function SquadBuilderPage() {
 
         {comparison && (
           <>
-            {/* Score */}
-            <div
-              className="text-5xl font-bold font-mono mb-1"
-              style={{
-                color:
-                  comparison.score >= 75
-                    ? "var(--color-accent-technical)"
-                    : comparison.score >= 50
-                      ? "var(--color-accent-tactical)"
-                      : comparison.score >= 25
-                        ? "var(--color-accent-mental)"
-                        : "var(--color-accent-physical)",
-              }}
-            >
-              {comparison.score}
+            {/* Animated score */}
+            <div className="otp-score-reveal">
+              <div
+                className="text-6xl sm:text-7xl font-bold mb-2"
+                style={{ fontFamily: "var(--font-display)", color: scoreColor }}
+              >
+                {displayScore}
+              </div>
             </div>
-            <p
-              className="text-lg font-semibold mb-4"
-              style={{
-                color:
-                  comparison.score >= 75
-                    ? "var(--color-accent-technical)"
-                    : comparison.score >= 50
-                      ? "var(--color-accent-tactical)"
-                      : "var(--text-secondary)",
-              }}
-            >
-              {comparison.tier}
-            </p>
 
-            {/* Breakdown */}
-            <div className="flex justify-center gap-4 mb-6">
-              <div
-                className="px-4 py-3 rounded-xl text-center"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
+            {/* Tier — delayed reveal */}
+            <div className="otp-tier-reveal">
+              <p
+                className="text-lg font-semibold uppercase tracking-[2px] mb-6"
+                style={{ fontFamily: "var(--font-display)", color: scoreColor }}
               >
-                <div className="text-xl font-bold font-mono" style={{ color: "var(--text-primary)" }}>
-                  {comparison.squad_matches}/26
+                {comparison.tier}
+              </p>
+            </div>
+
+            {/* Staggered stat cards */}
+            <div className="flex justify-center gap-3 sm:gap-4 mb-6">
+              {[
+                { value: `${comparison.squad_matches}/26`, label: "Squad", color: "var(--text-primary)" },
+                { value: `${comparison.xi_matches}/11`, label: "XI", color: "var(--text-primary)" },
+                { value: comparison.formation_match ? "✓" : "✗", label: "Formation", color: comparison.formation_match ? "var(--color-accent-tactical)" : "var(--text-muted)" },
+              ].map((stat, i) => (
+                <div
+                  key={stat.label}
+                  className="otp-stat-reveal px-4 py-3 rounded-xl text-center"
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border-subtle)",
+                    animationDelay: `${0.8 + i * 0.15}s`,
+                  }}
+                >
+                  <div className="text-xl font-bold font-mono" style={{ color: stat.color }}>
+                    {stat.value}
+                  </div>
+                  <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                  Squad Matches
-                </div>
-              </div>
-              <div
-                className="px-4 py-3 rounded-xl text-center"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
-              >
-                <div className="text-xl font-bold font-mono" style={{ color: "var(--text-primary)" }}>
-                  {comparison.xi_matches}/11
-                </div>
-                <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                  XI Matches
-                </div>
-              </div>
-              <div
-                className="px-4 py-3 rounded-xl text-center"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
-              >
-                <div className="text-xl font-bold font-mono" style={{ color: comparison.formation_match ? "var(--color-accent-tactical)" : "var(--text-muted)" }}>
-                  {comparison.formation_match ? "✓" : "✗"}
-                </div>
-                <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                  Formation
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Conversion CTA */}
@@ -907,14 +1027,17 @@ export default function SquadBuilderPage() {
             className="rounded-xl p-4"
             style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
           >
-            <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-[1.5px] mb-1"
+              style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}
+            >
               Your Squad ({formation})
             </h2>
             <p className="text-[10px] mb-3" style={{ color: "var(--text-muted)" }}>
               {selectedIds.size} players
             </p>
-            <div className="space-y-1">
-              {userSelectedPlayers
+            <div className="space-y-0.5">
+              {[...userSelectedPlayers]
                 .sort((a, b) => POSITIONS.indexOf(a.position ?? "CM") - POSITIONS.indexOf(b.position ?? "CM"))
                 .map((p) => {
                   const inIdeal = idealSquadPlayers.some((ip) => ip.person_id === p.person_id);
@@ -923,7 +1046,7 @@ export default function SquadBuilderPage() {
                       key={p.person_id}
                       className="flex items-center gap-2 px-2 py-1 rounded text-xs"
                       style={{
-                        background: inIdeal ? "var(--color-accent-tactical)/10" : "transparent",
+                        background: inIdeal ? "rgba(168,85,247,0.08)" : "transparent",
                       }}
                     >
                       <span
@@ -962,13 +1085,16 @@ export default function SquadBuilderPage() {
             className="rounded-xl p-4"
             style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
           >
-            <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--color-accent-technical)" }}>
+            <h2
+              className="text-xs font-bold uppercase tracking-[1.5px] mb-1"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-accent-technical)" }}
+            >
               Chief Scout&apos;s Squad ({idealData?.formation ?? "—"})
             </h2>
             <p className="text-[10px] mb-3" style={{ color: "var(--text-muted)" }}>
               Strength: {idealData?.strength ?? "—"}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {idealSquadPlayers.map((p) => {
                 const inUser = selectedIds.has(p.person_id);
                 const isStarter = idealXIIds.has(p.person_id);
@@ -977,7 +1103,7 @@ export default function SquadBuilderPage() {
                     key={p.person_id}
                     className="flex items-center gap-2 px-2 py-1 rounded text-xs"
                     style={{
-                      background: inUser ? "var(--color-accent-tactical)/10" : "transparent",
+                      background: inUser ? "rgba(168,85,247,0.08)" : "transparent",
                     }}
                   >
                     <span
@@ -1045,7 +1171,7 @@ export default function SquadBuilderPage() {
           </button>
           <button
             onClick={() => {
-              const text = `✈️ On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
+              const text = `On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
               navigator.clipboard?.writeText(text);
             }}
             className="px-4 py-2 rounded-lg text-sm cursor-pointer"

@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
   const force = req.nextUrl.searchParams.get("force") === "true";
 
   // Fetch WC nations
-  let nationsQuery = sb.from("wc_nations").select("nation_id, slug, kit_emoji");
+  let nationsQuery = sb.from("wc_nations").select("nation_id, slug, kit_emoji, coach_name, preferred_formation");
   if (singleSlug) {
     nationsQuery = nationsQuery.eq("slug", singleSlug);
   }
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
   const today = new Date();
 
   for (const nation of nations) {
-    const { nation_id, slug, kit_emoji } = nation;
+    const { nation_id, slug, kit_emoji, preferred_formation } = nation;
 
     if (skipIds.has(nation_id)) {
       results.push({ slug, emoji: kit_emoji, nation_id, status: "cached" });
@@ -147,6 +147,7 @@ export async function GET(req: NextRequest) {
         overall_pillar_score: p.overall_pillar_score,
         archetype: p.archetype,
         personality_type: p.personality_type,
+        preferred_foot: null,
         age: null,
         club: p.club,
         best_role: p.best_role,
@@ -158,8 +159,8 @@ export async function GET(req: NextRequest) {
       // Enrich with age, caps, national team history
       if (allPlayers.length > 0) {
         const enrichIds = allPlayers.map((p) => p.person_id);
-        const people = await fetchAll<{ id: number; date_of_birth: string | null; international_caps: number | null }>(
-          () => sb.from("people").select("id, date_of_birth, international_caps").in("id", enrichIds)
+        const people = await fetchAll<{ id: number; date_of_birth: string | null; international_caps: number | null; preferred_foot: string | null }>(
+          () => sb.from("people").select("id, date_of_birth, international_caps, preferred_foot").in("id", enrichIds)
         );
 
         const peopleMap = new Map(people.map((pp) => [pp.id, pp]));
@@ -172,6 +173,7 @@ export async function GET(req: NextRequest) {
             );
           }
           player.international_caps = info?.international_caps ?? null;
+          player.preferred_foot = info?.preferred_foot ?? null;
         }
 
         // National team career history
@@ -189,8 +191,8 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Compute ideal squad
-      const ideal = computeIdealSquad(allPlayers);
+      // Compute ideal squad using coach's preferred formation
+      const ideal = computeIdealSquad(allPlayers, preferred_formation);
       if (!ideal) {
         results.push({
           slug,

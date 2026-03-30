@@ -113,6 +113,7 @@ export async function GET(
       overall_pillar_score: p.overall_pillar_score,
       archetype: p.archetype,
       personality_type: p.personality_type,
+      preferred_foot: null,
       age: null,
       club: p.club,
       best_role: p.best_role,

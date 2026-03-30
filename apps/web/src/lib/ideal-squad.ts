@@ -21,6 +21,7 @@ export interface PoolPlayer {
   overall_pillar_score: number | null;
   archetype: string | null;
   personality_type: string | null;
+  preferred_foot: string | null;
   age: number | null;
   club: string | null;
   best_role: string | null;
@@ -151,11 +152,11 @@ const CANDIDATE_FORMATIONS = [
 
 // ── Core Algorithm ───────────────────────────────────────────────────────────
 
-function flattenBlueprint(bp: FormationBlueprint): { position: string; role: string }[] {
-  const slots: { position: string; role: string }[] = [];
+function flattenBlueprint(bp: FormationBlueprint): { position: string; role: string; side?: "L" | "R" }[] {
+  const slots: { position: string; role: string; side?: "L" | "R" }[] = [];
   for (const [pos, slotArr] of Object.entries(bp.slots)) {
     for (const slot of slotArr) {
-      slots.push({ position: pos, role: slot.role });
+      slots.push({ position: pos, role: slot.role, side: slot.side });
     }
   }
   return slots;
@@ -186,8 +187,10 @@ function scoreFormation(
           archetype: p.archetype,
           personality_type: p.personality_type,
           position: p.position,
+          preferred_foot: p.preferred_foot,
         },
-        slot.role
+        slot.role,
+        slot.side
       );
       if (s > bestScore) {
         bestScore = s;
@@ -214,23 +217,43 @@ function scoreFormation(
 
 /**
  * Compute the ideal 26-man squad and starting XI for a national pool.
+ *
+ * @param rawPlayers - the full national pool
+ * @param coachFormation - optional preferred formation from the national team coach.
+ *   When provided, uses this formation directly instead of brute-forcing all candidates.
+ *   Falls back to best-of-candidates if the coach formation has no blueprint.
  */
-export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | null {
+export function computeIdealSquad(
+  rawPlayers: PoolPlayer[],
+  coachFormation?: string | null
+): IdealSquadResult | null {
   if (rawPlayers.length < 11) return null;
 
   const players = categorizePool(rawPlayers);
 
-  // Try each candidate formation — pick the one with highest total XI score
   let bestFormation = "";
   let bestXI: SquadSlot[] = [];
   let bestScore = -Infinity;
 
-  for (const fname of CANDIDATE_FORMATIONS) {
-    const result = scoreFormation(fname, players);
-    if (result && result.totalScore > bestScore) {
-      bestScore = result.totalScore;
+  // If coach has a preferred formation with a blueprint, use it directly
+  if (coachFormation && FORMATION_BLUEPRINTS[coachFormation]) {
+    const result = scoreFormation(coachFormation, players);
+    if (result) {
+      bestFormation = coachFormation;
       bestXI = result.xi;
-      bestFormation = fname;
+      bestScore = result.totalScore;
+    }
+  }
+
+  // Fallback: try each candidate formation if coach formation didn't work
+  if (!bestFormation) {
+    for (const fname of CANDIDATE_FORMATIONS) {
+      const result = scoreFormation(fname, players);
+      if (result && result.totalScore > bestScore) {
+        bestScore = result.totalScore;
+        bestXI = result.xi;
+        bestFormation = fname;
+      }
     }
   }
 
@@ -240,11 +263,11 @@ export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | 
   const starterIds = new Set(bestXI.map((s) => s.person_id));
   const remaining = players.filter((p) => !starterIds.has(p.person_id));
 
-  // Sort remaining by overall score descending
+  // Sort remaining by level descending (primary), then overall pillar score (tiebreak)
   remaining.sort(
     (a, b) =>
-      (b.overall_pillar_score ?? b.level ?? 0) -
-      (a.overall_pillar_score ?? a.level ?? 0)
+      (b.level ?? 0) - (a.level ?? 0) ||
+      (b.overall_pillar_score ?? 0) - (a.overall_pillar_score ?? 0)
   );
 
   // Ensure positional balance: need 2 backup GKs + balanced DEF/MID/FWD
@@ -271,7 +294,7 @@ export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | 
         name: p.name,
         position: p.position ?? "GK",
         pool_category: p.pool_category ?? "uncapped",
-        overall: p.overall_pillar_score ?? p.level ?? 0,
+        overall: p.level ?? p.overall_pillar_score ?? 0,
       });
       benchGroups.GK++;
     }
@@ -297,7 +320,7 @@ export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | 
       name: p.name,
       position: p.position ?? "CM",
       pool_category: p.pool_category ?? "uncapped",
-      overall: p.overall_pillar_score ?? p.level ?? 0,
+      overall: p.level ?? p.overall_pillar_score ?? 0,
     });
     benchGroups[grp] = (benchGroups[grp] ?? 0) + 1;
     benchedIds.add(p.person_id);
@@ -313,16 +336,17 @@ export function computeIdealSquad(rawPlayers: PoolPlayer[]): IdealSquadResult | 
       name: p.name,
       position: p.position ?? "CM",
       pool_category: p.pool_category ?? "uncapped",
-      overall: p.overall_pillar_score ?? p.level ?? 0,
+      overall: p.level ?? p.overall_pillar_score ?? 0,
     });
     benchedIds.add(p.person_id);
   }
 
   // Compute strength: average role score of starting XI normalized to 0-100
-  // Max theoretical role score ~230 (level 20 + 120 archetype + 60 personality + 30 position)
+  // Scores are dominated by level (0-100) with small bonuses (arch +2, pers +1, pos +3, side +2)
+  // Practical range: ~80-100 for strong nations. Use raw average, capped at 100.
   const avgRoleScore =
     bestXI.reduce((sum, s) => sum + s.role_score, 0) / bestXI.length;
-  const strength = Math.min(100, Math.round((avgRoleScore / 230) * 100));
+  const strength = Math.min(100, Math.round(avgRoleScore));
 
   return {
     formation: bestFormation,

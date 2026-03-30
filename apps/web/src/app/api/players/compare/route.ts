@@ -3,17 +3,17 @@ import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 // ── Tactical roles: position → [primary, secondary, roleName] tuples ──
-// Mirrors pipeline 27_player_ratings.py TACTICAL_ROLES (36-role four-pillar taxonomy)
+// 40-role taxonomy validated against real tactical systems (2026-03-30)
 const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
-  GK: [["GK", "Passer", "Libero GK"], ["GK", "Cover", "Sweeper Keeper"], ["GK", "Commander", "Comandante"], ["GK", "Target", "Shotstopper"]],
-  CD: [["Passer", "Cover", "Libero"], ["Cover", "Controller", "Sweeper"], ["Commander", "Destroyer", "Zagueiro"], ["Powerhouse", "Destroyer", "Stopper"]],
-  WD: [["Passer", "Dribbler", "Lateral"], ["Engine", "Cover", "Fluidificante"], ["Controller", "Passer", "Invertido"], ["Sprinter", "Engine", "Corredor"]],
-  DM: [["Passer", "Controller", "Regista"], ["Cover", "Destroyer", "Anchor"], ["Controller", "Cover", "Pivote"], ["Powerhouse", "Destroyer", "Volante"]],
-  CM: [["Passer", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Controller", "Passer", "Metodista"], ["Sprinter", "Engine", "Relayeur"]],
-  WM: [["Dribbler", "Passer", "Winger"], ["Engine", "Cover", "Tornante"], ["Controller", "Cover", "False Winger"], ["Sprinter", "Engine", "Shuttler"]],
-  AM: [["Dribbler", "Creator", "Trequartista"], ["Engine", "Striker", "Seconda Punta"], ["Controller", "Creator", "Enganche"], ["Sprinter", "Striker", "Boxcrasher"]],
-  WF: [["Dribbler", "Sprinter", "Inside Forward"], ["Engine", "Striker", "Raumdeuter"], ["Creator", "Dribbler", "Inventor"], ["Sprinter", "Striker", "Extremo"]],
-  CF: [["Striker", "Dribbler", "Poacher"], ["Engine", "Destroyer", "Spearhead"], ["Creator", "Controller", "Falso Nove"], ["Target", "Powerhouse", "Prima Punta"]],
+  GK: [["GK", "Commander", "Comandante"], ["GK", "Cover", "Sweeper Keeper"], ["GK", "Passer", "Distributor"], ["GK", "Powerhouse", "Shotstopper"]],
+  CD: [["Commander", "Destroyer", "Centrale"], ["Passer", "Cover", "Distributor"], ["Powerhouse", "Destroyer", "Stopper"], ["Cover", "Controller", "Sweeper"]],
+  WD: [["Engine", "Passer", "Fullback"], ["Engine", "Dribbler", "Wing-back"], ["Cover", "Destroyer", "Corner Back"], ["Controller", "Passer", "Invertido"]],
+  DM: [["Passer", "Controller", "Regista"], ["Controller", "Cover", "Pivote"], ["Cover", "Engine", "Anchor"], ["Destroyer", "Engine", "Ballwinner"], ["Powerhouse", "Engine", "Segundo Volante"]],
+  CM: [["Creator", "Passer", "Playmaker"], ["Controller", "Passer", "Metodista"], ["Engine", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Engine", "Destroyer", "Ballwinner"]],
+  WM: [["Sprinter", "Dribbler", "Winger"], ["Engine", "Cover", "Tornante"], ["Controller", "Creator", "False Winger"], ["Creator", "Passer", "Wide Playmaker"]],
+  AM: [["Dribbler", "Creator", "Trequartista"], ["Creator", "Controller", "Enganche"], ["Engine", "Striker", "Incursore"], ["Controller", "Creator", "Mediapunta"]],
+  WF: [["Dribbler", "Striker", "Inside Forward"], ["Sprinter", "Dribbler", "Winger"], ["Creator", "Passer", "Wide Playmaker"], ["Target", "Powerhouse", "Wide Target Forward"]],
+  CF: [["Striker", "Target", "Prima Punta"], ["Striker", "Creator", "Complete Forward"], ["Creator", "Controller", "Falso Nove"], ["Engine", "Destroyer", "Spearhead"], ["Target", "Powerhouse", "Target Forward"], ["Creator", "Striker", "Seconda Punta"], ["Sprinter", "Striker", "Shadow Striker"]],
 };
 
 const IDENTITY_FIELDS = [

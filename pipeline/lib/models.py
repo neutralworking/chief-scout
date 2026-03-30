@@ -38,6 +38,7 @@ SOURCE_PRIORITY = {
     "kaggle_pl": 2,
     "kaggle_euro": 2,
     "understat": 2,
+    "llm_inferred": 1,  # LLM-estimated mental/tactical attrs (pipeline 93)
     "computed": 1,
     "eafc_inferred": 0,
 }

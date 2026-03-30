@@ -40,24 +40,25 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [x] ~~**Back-nav warning**~~ — beforeunload listener when squad has selections (#128)
 
 ### Product & UX
-- [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
+- [x] ~~**Mobile nav: More sheet polish**~~ — swipe-to-dismiss, haptic pulse, backdrop blur, spring easing, escape key
+- [ ] **Players filter redesign** — role/archetype filters, level prominence, dropdowns instead of position/age buttons (desktop + mobile)
 - [ ] **Onboarding** — no help docs or tour for new users
 - [ ] **Transfer comps on player detail** — "Similar Transfers" widget using /api/transfers/comps/[playerId]
 
 ### Data Quality
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables
 - [x] ~~Role distribution tuning~~ — superseded by Systems & Roles (41 roles, all positions balanced)
-- [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15%
+- [x] ~~**Archetype threshold tuning**~~ — inference cascade removed, Connector/Wall/Terrier tightened, aspiring 67%→15%, max archetype 2,874→461
 - [x] ~~Systems & Roles implementation~~ — DONE: migration 049, pipeline 83 rewrite, pipeline 27 update, frontend. 41 roles, 28 systems, all calibrated.
 - [x] ~~Stat source calibration~~ — AF + understat unified to ×1.5 cap 15, garbage override, GK/DM/WF weight fixes. Gap ≥+15: 54→8.
 - [x] ~~**Apply migration 050**~~ — old tactical_roles/philosophy_formations/philosophy_roles dropped, code migrated to tactical_systems hierarchy
-- [ ] **Stale data cleanup** — 8 players with RS ≥+15 over level (Džeko, Zapata, etc.) have prime-era stats with low current levels
+- [x] ~~**Stale data cleanup**~~ — recency decay in pipeline 30, 3 name collision dupes fixed, 7 retired marked inactive, RS≥+15 gap: 31→2
 
 ## Medium Priority
 
 ### Data Quality
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling
-- [ ] **Dedup improvements** — upgrade player matching from exact name to fuzzy (Levenshtein/Jaro-Winkler)
+- [x] ~~**Dedup improvements**~~ — fuzzy matching (Strategy 4) added to pipeline 65: last-name-exact + first-name JW + nationality boost. 21 new matches.
 - [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`
 - [ ] **StatsBomb event extraction** — progressive carries, pressure events, shot-creating actions from `sb_events`
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty
@@ -98,6 +99,33 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo
 
 ---
+
+## Completed (2026-03-30, session 33 — Data Cleanup + Archetype Tuning)
+- [x] Stale data cleanup: pipeline 30 recency decay (last_season), dedup fix, 35,586 grades rewritten
+- [x] 3 name collision dupes fixed (Pape Sarr 1977, Matt Clarke 1973, Iliya Gruev 1969) — 171 mis-attributed grades deleted
+- [x] 7 retired players marked inactive (Charles, Ashley Young, Pablo Ibáñez, John O'Shea, + 3 women's)
+- [x] RS≥+15 over level gap: 31→2 players (both inactive legends)
+- [x] Džeko: level 52→82, club→Fenerbahçe
+- [x] Archetype tuning: Connector threshold (pass_acc 85→88, passes_p90 45→55, added kp90≥0.8)
+- [x] Archetype tuning: Wall threshold (rating 6.8→7.0), Terrier (def_actions 4.0→5.0, tackles 2.0→2.5)
+- [x] Archetype tuning: aspiring relaxation 1.25→1.18, inference cascade removed entirely
+- [x] Archetype distribution: max archetype 2,874→461, aspiring tier 67%→15%
+- [x] Pipeline 27 rerun: 11,376 role scores recomputed
+- [x] Mobile nav: swipe-to-dismiss, haptic pulse, backdrop blur, spring easing, escape key dismiss
+- [x] Git merge: 12 remote commits integrated, 6 conflicts resolved, pushed
+
+## Completed (2026-03-30, session 32 — AF Expansion + OTP Polish)
+- [x] OTP audit: 5 design questions validated as resolved, 5 UX fixes shipped
+- [x] GitHub issues: #124-#128 created+closed (OTP), #117+#122 closed (Systems & Roles)
+- [x] OTP UX: dedup protection, balance warnings, try again button, formation preserves XI, back-nav guard
+- [x] 11 domestic leagues added to pipeline 65 (Egypt, SA, DR Congo, Iran, Iraq, Indonesia, Peru, Costa Rica, Panama, Honduras, Qatar)
+- [x] 14 league coefficients seeded for new domestic leagues
+- [x] SA PSL ingested: 531 stat rows, 63 player matches
+- [x] Fuzzy name matching (Strategy 4): rapidfuzz JW + nationality constraint, 21 new matches
+- [x] Full pipeline chain: 66 (113k grades) → 27 (11,412 ratings) → 37 (17,681 archetypes) → OTP (48/48)
+- [x] `pipeline/af_refresh.sh` — one-command daily refresh script
+- [x] macOS crontab: af_refresh.sh at 6am+6pm UTC daily until April 18
+- [x] Full AF --all-leagues --force refresh running (background)
 
 ## Completed (2026-03-30, session 31 — OTP QA)
 - [x] OTP scoring rebalance: `scorePlayerForSlot()` using pipeline 27 `best_role_score` + position guard

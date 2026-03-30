@@ -96,12 +96,11 @@ export async function GET(req: NextRequest) {
       const primaryPeople = await fetchAll<{ id: number }>(() =>
         sb.from("people").select("id").eq("nation_id", nation_id).eq("active", true).neq("is_female", true)
       );
-      const { data: dualNationals } = await sb
-        .from("player_nationalities")
-        .select("person_id, people!inner(active, is_female)")
-        .eq("nation_id", nation_id)
-        .eq("people.active", true)
-        .neq("people.is_female", true);
+      // Cap-tied aware: only include dual nationals who are either cap-tied
+      // to this nation or uncapped (no is_cap_tied=true row anywhere)
+      const { data: dualNationals } = await sb.rpc("get_eligible_dual_nationals", {
+        p_nation_id: nation_id,
+      });
 
       const allIds = new Set<number>();
       for (const p of primaryPeople) allIds.add(p.id);
@@ -194,7 +193,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Compute ideal squad using coach's preferred formation
-      const ideal = computeIdealSquad(allPlayers, preferred_formation);
+      const ideal = computeIdealSquad(allPlayers);
       if (!ideal) {
         results.push({
           slug,

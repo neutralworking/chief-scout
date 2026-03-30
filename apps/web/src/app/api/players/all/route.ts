@@ -49,6 +49,10 @@ export async function GET(req: NextRequest) {
   if (tier) query = query.eq("profile_tier", parseInt(tier, 10));
   const league = searchParams.get("league");
   if (league) query = query.eq("league_name", league);
+  const role = searchParams.get("role");
+  if (role) query = query.eq("best_role", role);
+  const archetype = searchParams.get("archetype");
+  if (archetype) query = query.eq("earned_archetype", archetype);
   const maxAge = searchParams.get("max_age");
   if (maxAge) {
     const cutoff = new Date();

@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback, useRef, forwardRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS } from "@/lib/types";
+import { PlayerCard as PlayerCardType, computeAge, POSITION_COLORS, PURSUIT_STATUSES } from "@/lib/types";
 import { EditableCell } from "@/components/EditableCell";
 import { getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
@@ -117,12 +118,34 @@ function PlayersContent() {
 
   const position = searchParams.get("position") ?? "";
   const q = searchParams.get("q") ?? "";
-  const sort = searchParams.get("sort") ?? "level_raw";
+  const sort = searchParams.get("sort") ?? "role_score";
   const league = searchParams.get("league") ?? "";
+  const role = searchParams.get("role") ?? "";
+  const archetype = searchParams.get("archetype") ?? "";
+  const pursuit = searchParams.get("pursuit") ?? "";
+  const tier = searchParams.get("tier") ?? "";
   const maxAge = searchParams.get("max_age") ?? "";
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+  const [availableArchetypes, setAvailableArchetypes] = useState<string[]>([]);
 
   useEffect(() => {
     setIsAdmin(sessionStorage.getItem("network_admin") === "1");
+  }, []);
+
+  // Fetch distinct roles and archetypes once on mount
+  useEffect(() => {
+    async function fetchFilterOptions() {
+      try {
+        const res = await fetch("/api/players/filter-options");
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableRoles(data.roles ?? []);
+          setAvailableArchetypes(data.archetypes ?? []);
+        }
+      } catch { /* silent */ }
+    }
+    fetchFilterOptions();
   }, []);
 
   function handleLogin() {
@@ -146,15 +169,29 @@ function PlayersContent() {
     if (q) params.set("q", q);
     if (sort) params.set("sort", sort);
     if (league) params.set("league", league);
+    if (role) params.set("role", role);
+    if (archetype) params.set("archetype", archetype);
+    if (pursuit) params.set("pursuit", pursuit);
+    if (tier) params.set("tier", tier);
     if (maxAge) params.set("max_age", maxAge);
     params.set("limit", String(pageSize));
     params.set("offset", String(offset));
     params.set("stats", "1");
     return `/api/players/all?${params}`;
-  }, [position, q, sort, league, maxAge, pageSize]);
+  }, [position, q, sort, league, role, archetype, pursuit, tier, maxAge, pageSize]);
 
   // Reset page when filters or page size change
-  useEffect(() => { setPage(0); }, [position, q, sort, league, maxAge, pageSize]);
+  useEffect(() => { setPage(0); }, [position, q, sort, league, role, archetype, pursuit, tier, maxAge, pageSize]);
+
+  // Clear role filter when position changes and role is no longer valid for that position
+  useEffect(() => {
+    if (role && position) {
+      const intel = ROLE_INTELLIGENCE[role];
+      if (intel && !intel.positions.includes(position)) {
+        updateParam("role", "");
+      }
+    }
+  }, [position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync page to URL (for back-button retention)
   useEffect(() => {
@@ -219,7 +256,16 @@ function PlayersContent() {
     );
   }
 
-  const hasFilters = !!(position || q || league || maxAge);
+  const hasFilters = !!(position || q || league || role || archetype || pursuit || tier || maxAge);
+  const secondaryFilterCount = [pursuit, tier, maxAge].filter(Boolean).length;
+
+  // Position-aware role list
+  const filteredRoles = position
+    ? Object.entries(ROLE_INTELLIGENCE)
+        .filter(([, info]) => info.positions.includes(position))
+        .map(([name]) => name)
+        .sort()
+    : availableRoles;
 
   const [searchOpen, setSearchOpen] = useState(!!q);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -322,62 +368,116 @@ function PlayersContent() {
 
         {/* Compact controls */}
         <div className="card-vibrant p-1.5 mb-2 overflow-hidden">
-          {/* Row 1: Position pills + dropdowns */}
-          <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
-            <div className="flex gap-0.5 shrink-0">
-              <button onClick={() => updateParam("position", "")}
-                className={`text-[11px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
-                  !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
+          {/* Row 1: Position pills */}
+          <div className="flex items-center gap-0.5 mb-1 overflow-x-auto scrollbar-none">
+            <button onClick={() => updateParam("position", "")}
+              className={`text-[11px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
+                !position ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              }`}>
+              ALL
+            </button>
+            {POSITIONS.map((pos) => (
+              <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
+                className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                  position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                 }`}>
-                ALL
+                {pos}
               </button>
-              {POSITIONS.map((pos) => (
-                <button key={pos} onClick={() => updateParam("position", position === pos ? "" : pos)}
-                  className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
-                    position === pos ? "bg-[var(--color-accent-personality)]/20 text-[var(--color-accent-personality)]"
-                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                  }`}>
-                  {pos}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-0.5 shrink-0 ml-1">
-              {[["U16", "16"], ["U18", "18"], ["U21", "21"], ["U23", "23"]].map(([label, val]) => (
-                <button key={val} onClick={() => updateParam("max_age", maxAge === val ? "" : val)}
-                  className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
-                    maxAge === val ? "bg-blue-500/20 text-blue-400"
-                      : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                  }`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-1 shrink-0 ml-auto">
-              <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[11px]">
-                <option value="role_score">Role Score</option>
-                <option value="level">Overall</option>
-                <option value="level_raw">Level</option>
-                <option value="review">Review</option>
-                <option value="cs_value">CS Value</option>
-                <option value="tm_value">TM Value</option>
-                <option value="rating">Rating</option>
-                <option value="name">Name</option>
-              </select>
-              <select value={league} onChange={(e) => updateParam("league", e.target.value)}
-                className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[11px] max-w-[120px]">
-                <option value="">League</option>
-                {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
-              </select>
-              {hasFilters && (
-                <button onClick={() => { setSearchInput(""); setSearchOpen(false); router.push("/players"); }}
-                  className="px-1.5 py-0.5 rounded text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
-                  Clear
-                </button>
-              )}
-            </div>
+            ))}
           </div>
+
+          {/* Row 2: Role + Archetype + League dropdowns */}
+          <div className="flex items-center gap-1 mb-1 overflow-x-auto scrollbar-none">
+            <select value={role} onChange={(e) => updateParam("role", e.target.value)}
+              className={`px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border text-[11px] max-w-[130px] ${
+                role ? "border-[var(--color-accent-personality)]/50 text-[var(--color-accent-personality)]"
+                  : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+              }`}>
+              <option value="">Role</option>
+              {filteredRoles.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <select value={archetype} onChange={(e) => updateParam("archetype", e.target.value)}
+              className={`px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border text-[11px] max-w-[130px] ${
+                archetype ? "border-[var(--color-accent-personality)]/50 text-[var(--color-accent-personality)]"
+                  : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+              }`}>
+              <option value="">Archetype</option>
+              {availableArchetypes.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+            <select value={league} onChange={(e) => updateParam("league", e.target.value)}
+              className={`px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border text-[11px] max-w-[120px] ${
+                league ? "border-[var(--color-accent-personality)]/50 text-[var(--color-accent-personality)]"
+                  : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+              }`}>
+              <option value="">League</option>
+              {LEAGUES.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+
+          {/* Row 3: Sort + More toggle */}
+          <div className="flex items-center gap-1">
+            <select value={sort} onChange={(e) => updateParam("sort", e.target.value)}
+              className="px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-[11px]">
+              <option value="role_score">Role Score</option>
+              <option value="level">Overall</option>
+              <option value="level_raw">Level</option>
+              <option value="cs_value">CS Value</option>
+              <option value="tm_value">TM Value</option>
+              <option value="rating">Rating</option>
+              <option value="review">Review</option>
+              <option value="name">Name</option>
+            </select>
+            <button onClick={() => setMoreOpen(!moreOpen)}
+              className={`text-[11px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap transition-colors ${
+                moreOpen || secondaryFilterCount > 0
+                  ? "bg-[var(--color-accent-tactical)]/20 text-[var(--color-accent-tactical)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              }`}>
+              {moreOpen ? "− Less" : `+ More${secondaryFilterCount > 0 ? ` (${secondaryFilterCount})` : ""}`}
+            </button>
+            {hasFilters && (
+              <button onClick={() => { setSearchInput(""); setSearchOpen(false); setMoreOpen(false); router.push("/players"); }}
+                className="px-1.5 py-0.5 rounded text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] ml-auto shrink-0">
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {/* Row 4: More filters (collapsed by default) */}
+          {moreOpen && (
+            <div className="flex items-center gap-1 mt-1 pt-1 border-t border-[var(--border-subtle)]/30 overflow-x-auto scrollbar-none">
+              <div className="flex gap-0.5 shrink-0">
+                {[["U16", "16"], ["U18", "18"], ["U21", "21"], ["U23", "23"], ["U25", "25"]].map(([label, val]) => (
+                  <button key={val} onClick={() => updateParam("max_age", maxAge === val ? "" : val)}
+                    className={`text-[11px] font-bold px-1 py-0.5 rounded whitespace-nowrap transition-colors ${
+                      maxAge === val ? "bg-blue-500/20 text-blue-400"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                    }`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <select value={pursuit} onChange={(e) => updateParam("pursuit", e.target.value)}
+                className={`px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border text-[11px] ${
+                  pursuit ? "border-[var(--color-accent-personality)]/50 text-[var(--color-accent-personality)]"
+                    : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+                }`}>
+                <option value="">Pursuit</option>
+                {PURSUIT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select value={tier} onChange={(e) => updateParam("tier", e.target.value)}
+                className={`px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border text-[11px] ${
+                  tier ? "border-[var(--color-accent-personality)]/50 text-[var(--color-accent-personality)]"
+                    : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+                }`}>
+                <option value="">Tier</option>
+                <option value="1">Tier 1 — Scout Assessed</option>
+                <option value="2">Tier 2 — Profiled</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 

@@ -59,13 +59,13 @@ export async function GET(
     .eq("nation_id", nationId)
     .eq("active", true);
 
-  // Dual nationals
-  const { data: dualNationals } = await sb
-    .from("player_nationalities")
-    .select("person_id")
-    .eq("nation_id", nationId);
+  // Cap-tied aware: only include dual nationals who are either cap-tied
+  // to this nation or uncapped (no is_cap_tied=true row anywhere)
+  const { data: dualNationals } = await sb.rpc("get_eligible_dual_nationals", {
+    p_nation_id: nationId,
+  });
 
-  const dualIds = (dualNationals ?? []).map((d) => d.person_id);
+  const dualIds = (dualNationals ?? []).map((d: { person_id: number }) => d.person_id);
   let dualPlayers: typeof primaryPlayers = [];
   if (dualIds.length > 0) {
     const { data } = await sb
@@ -147,7 +147,7 @@ export async function GET(
     .eq("nation_id", nationId)
     .single();
 
-  const ideal = computeIdealSquad(allPlayers, wcNation?.preferred_formation);
+  const ideal = computeIdealSquad(allPlayers);
 
   if (!ideal) {
     return NextResponse.json(

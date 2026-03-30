@@ -25,6 +25,7 @@ export interface PoolPlayer {
   club: string | null;
   best_role: string | null;
   best_role_score: number | null;
+  preferred_foot: string | null;
   international_caps: number | null;
   has_national_team_history: boolean;
   pool_category?: PoolCategory;

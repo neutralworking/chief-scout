@@ -5,12 +5,6 @@ import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { PERSONALITY_TYPES } from "@/lib/personality";
 import { getArchetypeColor } from "@/lib/archetype-styles";
-import {
-  PILLAR_KEYS,
-  PILLAR_HEX,
-  hasAnyPillarScore,
-  type PillarKey,
-} from "@/lib/pillar-colors";
 import { ScoutingNotes } from "./ScoutingNotes";
 
 interface FeaturedPlayerData {
@@ -45,13 +39,6 @@ interface FeaturedPlayerData {
   af_rating?: number | null;
 }
 
-const PILLAR_BORDER: Record<PillarKey, string> = {
-  technical: "border-l-amber-500",
-  tactical: "border-l-purple-500",
-  mental: "border-l-green-500",
-  physical: "border-l-blue-500",
-};
-
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
   const c = code.toUpperCase();
@@ -77,15 +64,6 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
   discovery: { label: "Discovery", color: "var(--accent-personality)" },
 };
 
-function IntelChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
-      <span className="font-data text-[10px] font-bold uppercase tracking-[1px] opacity-50">{label}</span>
-      <span className="text-[10px] font-semibold text-[var(--text-secondary)]">{value}</span>
-    </div>
-  );
-}
-
 export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { player: FeaturedPlayerData; reason?: string; pool?: FeaturedPlayerData[] }) {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
   const [poolIndex, setPoolIndex] = useState(() => {
@@ -100,13 +78,6 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;
 
-  const pillarScores = {
-    technical: player.technical_score ?? null,
-    tactical: player.tactical_score ?? null,
-    mental: player.mental_score ?? null,
-    physical: player.physical_score ?? null,
-  };
-  const hasPillars = hasAnyPillarScore(pillarScores);
   const flag = nationFlag(player.nation_code);
   const value = player.market_value_eur;
 
@@ -180,9 +151,6 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
           {age !== null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0">{age}y</span></>
           )}
-          {(player.earned_archetype || player.archetype) && (
-            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>{player.earned_archetype ?? player.archetype}</span></>
-          )}
           {player.best_role && player.best_role_score == null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 text-[var(--text-muted)]">{player.best_role}</span></>
           )}
@@ -203,24 +171,23 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
         {/* Scout assessment */}
         {player.scouting_notes && (
-          <ScoutingNotes text={player.scouting_notes} clamp={3} className="mt-2" />
+          <ScoutingNotes text={player.scouting_notes} clamp={6} className="mt-2" />
         )}
 
-        {/* Pillar badges + Intel chips — inline row */}
-        {(hasPillars || personality) && (
+        {/* Personality + Archetype chips */}
+        {(personality || player.earned_archetype || player.archetype) && (
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            {hasPillars && PILLAR_KEYS.map((key) => {
-              const v = pillarScores[key];
-              if (v == null) return null;
-              return (
-                <div key={key} className={`flex items-center gap-1 px-2 py-0.5 border-l-2 ${PILLAR_BORDER[key]} bg-[var(--bg-pit)]`}>
-                  <span className="text-[10px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
-                  <span className="text-[10px] font-data font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
-                </div>
-              );
-            })}
             {personality && (
-              <IntelChip label="Type" value={`${player.personality_type} ${personality.name}`} />
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
+                <svg className="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+                <span className="text-[10px] font-semibold text-[var(--text-secondary)]">{player.personality_type} {personality.name}</span>
+              </div>
+            )}
+            {(player.earned_archetype || player.archetype) && (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
+                <svg className="w-3 h-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <span className="text-[10px] font-semibold" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>{player.earned_archetype ?? player.archetype}</span>
+              </div>
             )}
           </div>
         )}

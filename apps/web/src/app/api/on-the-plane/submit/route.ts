@@ -27,12 +27,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  if (squad.length !== 26) {
-    return NextResponse.json({ error: "Squad must have exactly 26 players" }, { status: 400 });
+  // Deduplicate by person_id
+  const seenSquad = new Set<number>();
+  const dedupedSquad = squad.filter((s) => {
+    if (seenSquad.has(s.person_id)) return false;
+    seenSquad.add(s.person_id);
+    return true;
+  });
+  const dedupedXI = [...new Set(starting_xi)];
+
+  if (dedupedSquad.length !== 26) {
+    return NextResponse.json({ error: "Squad must have exactly 26 unique players" }, { status: 400 });
   }
 
-  if (starting_xi.length !== 11) {
-    return NextResponse.json({ error: "Starting XI must have exactly 11 players" }, { status: 400 });
+  if (dedupedXI.length !== 11) {
+    return NextResponse.json({ error: "Starting XI must have exactly 11 unique players" }, { status: 400 });
   }
 
   const sb = createClient(supabaseUrl, supabaseKey);
@@ -71,8 +80,8 @@ export async function POST(request: Request) {
       strength: ideal.strength ?? 0,
     };
 
-    const userSquadIds = squad.map((s) => s.person_id);
-    comparison = compareSquads(userSquadIds, starting_xi, formation, idealResult);
+    const userSquadIds = dedupedSquad.map((s) => s.person_id);
+    comparison = compareSquads(userSquadIds, dedupedXI, formation, idealResult);
   }
 
   // Save entry (upsert — one per user per nation)
@@ -81,7 +90,7 @@ export async function POST(request: Request) {
       user_id,
       nation_id,
       formation,
-      squad_json: squad,
+      squad_json: dedupedSquad,
       score: comparison?.score ?? null,
       score_breakdown: comparison ?? null,
     },

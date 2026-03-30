@@ -57,20 +57,30 @@ export async function GET(req: NextRequest) {
     picMap.set(row.person_id as number, row);
   }
 
-  // Enrich with season stats + tactical roles
+  // Enrich with season stats + tactical roles (from system_slots + slot_roles)
   const validPids = personIds.filter((id: number) => picMap.has(id));
-  const [statsMap, rolesResult] = await Promise.all([
+  const [statsMap, slotsResult, slotRolesResult] = await Promise.all([
     validPids.length > 0 ? fetchSeasonStats(supabase, validPids) : Promise.resolve(new Map()),
-    // Fetch tactical roles for all positions in the result set
-    supabase.from("tactical_roles").select("name, position, formations"),
+    supabase.from("system_slots").select("id, position"),
+    supabase.from("slot_roles").select("slot_id, role_name"),
   ]);
 
-  // Build position → roles map
+  // Build position → unique role names
+  const slotPosMap = new Map<number, string>();
+  for (const s of (slotsResult.data ?? []) as { id: number; position: string }[]) {
+    slotPosMap.set(s.id, s.position);
+  }
   const rolesByPosition = new Map<string, { name: string; formations: string[] }[]>();
-  for (const r of (rolesResult.data ?? []) as { name: string; position: string; formations: string[] | null }[]) {
-    const list = rolesByPosition.get(r.position) ?? [];
-    list.push({ name: r.name, formations: (r.formations ?? []).slice(0, 3) });
-    rolesByPosition.set(r.position, list);
+  const seenRoles = new Set<string>();
+  for (const sr of (slotRolesResult.data ?? []) as { slot_id: number; role_name: string }[]) {
+    const pos = slotPosMap.get(sr.slot_id);
+    if (!pos) continue;
+    const key = `${sr.role_name}|${pos}`;
+    if (seenRoles.has(key)) continue;
+    seenRoles.add(key);
+    const list = rolesByPosition.get(pos) ?? [];
+    list.push({ name: sr.role_name, formations: [] });
+    rolesByPosition.set(pos, list);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

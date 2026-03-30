@@ -113,6 +113,17 @@ export default function SquadBuilderPage() {
   } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Back-nav warning ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (selectedIds.size > 0 && step !== "reveal") {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [selectedIds.size, step]);
+
   // ── Fetch nation data ────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -174,6 +185,19 @@ export default function SquadBuilderPage() {
     }
     return counts;
   }, [selectedIds, nationData]);
+
+  // ── Squad balance warnings ────────────────────────────────────────────────
+  const balanceWarnings = useMemo(() => {
+    if (selectedIds.size < 20) return []; // Don't nag early
+    const warnings: string[] = [];
+    if (squadBalance.GK === 0) warnings.push("No goalkeeper selected");
+    if (squadBalance.GK > 3) warnings.push(`${squadBalance.GK} goalkeepers is excessive`);
+    if (squadBalance.DEF < 4) warnings.push(`Only ${squadBalance.DEF} defenders — most squads take 7-9`);
+    if (squadBalance.MID < 3) warnings.push(`Only ${squadBalance.MID} midfielders — most squads take 6-8`);
+    if (squadBalance.FWD < 2) warnings.push(`Only ${squadBalance.FWD} forward(s) — most squads take 4-6`);
+    if (squadBalance.FWD > 8) warnings.push(`${squadBalance.FWD} forwards is a lot`);
+    return warnings;
+  }, [selectedIds.size, squadBalance]);
 
   // ── Toggle player selection ──────────────────────────────────────────────
 
@@ -398,6 +422,11 @@ export default function SquadBuilderPage() {
                 {grp} {cnt}
               </span>
             ))}
+            {balanceWarnings.length > 0 && (
+              <span className="px-2 py-0.5 rounded text-[10px]" style={{ background: "rgba(217,63,11,0.15)", color: "#ef4444" }}>
+                ⚠ {balanceWarnings[0]}
+              </span>
+            )}
             {/* Formation selector inline */}
             <select
               value={formation}
@@ -654,7 +683,19 @@ export default function SquadBuilderPage() {
                 key={f}
                 onClick={() => {
                   setFormation(f);
-                  setXiIds(new Set());
+                  // Preserve XI picks that are compatible with new formation
+                  const newSlots = FORMATION_SLOTS[f] ?? FORMATION_SLOTS["4-3-3"];
+                  const slotCounts: Record<string, number> = {};
+                  for (const s of newSlots) slotCounts[s] = (slotCounts[s] ?? 0) + 1;
+                  const kept = new Set<number>();
+                  const used: Record<string, number> = {};
+                  for (const id of xiIds) {
+                    const p = nationData?.players.find((pp) => pp.person_id === id);
+                    const pos = p?.position ?? "";
+                    used[pos] = (used[pos] ?? 0) + 1;
+                    if (used[pos] <= (slotCounts[pos] ?? 0)) kept.add(id);
+                  }
+                  setXiIds(kept);
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 cursor-pointer"
                 style={{
@@ -972,7 +1013,7 @@ export default function SquadBuilderPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-center gap-3 mt-8">
+        <div className="flex justify-center gap-3 mt-8 flex-wrap">
           <Link
             href="/on-the-plane"
             className="px-4 py-2 rounded-lg text-sm"
@@ -984,6 +1025,24 @@ export default function SquadBuilderPage() {
           >
             Pick Another Nation
           </Link>
+          <button
+            onClick={() => {
+              setSelectedIds(new Set());
+              setXiIds(new Set());
+              setFormation("4-3-3");
+              setComparison(null);
+              setIdealData(null);
+              setStep("pick-squad");
+            }}
+            className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+            style={{
+              background: "var(--bg-surface)",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
+            Try Again
+          </button>
           <button
             onClick={() => {
               const text = `✈️ On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;

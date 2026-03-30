@@ -62,26 +62,23 @@ LEAGUES = {
     262: "Liga MX",
     239: "Colombian Primera A",
     253: "MLS",
-    # ── Americas tier 2 ──
-    242: "Ecuadorian Liga Pro",
-    252: "Paraguayan Division Profesional",
     281: "Peruvian Primera División",
-    234: "Honduran Liga Nacional",
-    304: "Panamanian LPF",
     162: "Costa Rican Primera División",
-    322: "Jamaican Premier League",
+    304: "Liga Panameña de Fútbol",
+    234: "Honduran Liga Nacional",
     # ── Africa ──
     233: "Egyptian Premier League",
-    386: "Ivorian Ligue 1",
+    288: "South African Premier Soccer League",
+    844: "DR Congo Ligue 1",
     # ── Asia / Middle East / Oceania ──
     307: "Saudi Pro League",
     292: "K League 1",
     169: "Chinese Super League",
     188: "A-League",
     305: "Qatar Stars League",
-    274: "Indonesian Liga 1",
-    542: "Iraqi League",
     290: "Iranian Persian Gulf Pro League",
+    542: "Iraqi League",
+    274: "Indonesian Liga 1",
     # ── Youth / Academy ──
     14:  "UEFA Youth League",
     705: "Campionato Primavera 1",
@@ -341,6 +338,7 @@ def match_players(conn):
     matched_last_club = 0
     links_to_insert = []
     stats_to_update = []
+    matched_ids = set()  # track AF IDs matched by strategies 1-3
 
     for af_id, af_name, team_name in unmatched:
         if str(af_id) in already_linked:
@@ -394,19 +392,126 @@ def match_players(conn):
                     matched_last_club += 1
 
         if person_id:
-            links_to_insert.append((person_id, "api_football", str(af_id), af_name, method, 0.9 if method == "exact" else 0.8))
+            conf = 0.9 if method == "exact" else 0.8
+            links_to_insert.append((person_id, "api_football", str(af_id), af_name, method, conf))
             stats_to_update.append((person_id, af_id))
+            matched_ids.add(af_id)
 
-    total_matched = matched_exact + matched_initial + matched_last_club
+    # ── Strategy 4: Fuzzy matching (last name exact + first name fuzzy, or high JW score + club) ──
+    from rapidfuzz import fuzz
+
+    # League → nation_id mapping for domestic leagues
+    LEAGUE_NATION = {
+        233: 67,   # Egyptian Premier League → Egypt
+        274: 106,  # Indonesian Liga 1 → Indonesia
+        542: 108,  # Iraqi League → Iraq
+        162: 54,   # Costa Rican Primera → Costa Rica
+        288: 203,  # SA Premier Soccer → South Africa
+        281: 177,  # Peruvian Primera → Peru
+        290: 107,  # Persian Gulf Pro → Iran
+        304: 174,  # Liga Panameña → Panama
+        234: 101,  # Liga Nacional → Honduras
+        305: 183,  # Stars League → Qatar
+        844: 65,   # DR Congo Ligue 1 → DR Congo
+        307: 191,  # Saudi Pro League → Saudi Arabia
+    }
+
+    # Load nation_id for people (for nationality constraint)
+    cur.execute("SELECT id, nation_id FROM people WHERE active = true")
+    people_nation = {r[0]: r[1] for r in cur.fetchall()}
+
+    # Load AF stats league_id per player
+    cur.execute("""
+        SELECT DISTINCT api_football_id, league_id FROM api_football_player_stats
+        WHERE person_id IS NULL
+    """)
+    af_leagues = {}
+    for af_id, lid in cur.fetchall():
+        af_leagues.setdefault(af_id, set()).add(lid)
+
+    matched_fuzzy = 0
+    still_unmatched = [(af_id, af_name, team_name) for af_id, af_name, team_name in unmatched
+                       if af_id not in matched_ids and str(af_id) not in already_linked]
+
+    for af_id, af_name, team_name in still_unmatched:
+        norm_name = normalize(af_name)
+        parts = norm_name.split()
+        if len(parts) < 2:
+            continue
+
+        af_last = parts[-1]
+        af_first = " ".join(parts[:-1])
+
+        # Get candidate nation_ids from league data
+        af_nation_ids = set()
+        for lid in af_leagues.get(af_id, []):
+            if lid in LEAGUE_NATION:
+                af_nation_ids.add(LEAGUE_NATION[lid])
+
+        # Find people with same last name
+        candidates = people_by_last.get(af_last, [])
+        if not candidates:
+            continue
+
+        best_score = 0
+        best_pid = None
+
+        for pid, pname in candidates:
+            pnorm = normalize(pname)
+            pparts = pnorm.split()
+            if len(pparts) < 2:
+                continue
+            p_first = " ".join(pparts[:-1])
+
+            # Full name Jaro-Winkler
+            jw = fuzz.ratio(norm_name, pnorm) / 100.0
+
+            # First name similarity (handles "Mohamed" vs "Mohammed", "Ahmed" vs "Ahmad")
+            first_jw = fuzz.ratio(af_first, p_first) / 100.0
+
+            # Nationality boost: if AF league maps to a nation and person matches
+            nation_match = bool(af_nation_ids) and people_nation.get(pid) in af_nation_ids
+
+            # Club boost
+            club_match = False
+            if team_name:
+                norm_team = normalize_club(team_name)
+                club_match = norm_team in people_club.get(pid, "")
+
+            # Reject if first names are clearly different (e.g. Ahmed vs Mohamed)
+            if first_jw < 0.65:
+                continue
+
+            # Scoring: require last name exact (already filtered) + high first name or full name score
+            # With nationality match, lower the threshold
+            score = jw * 0.5 + first_jw * 0.5
+            if nation_match:
+                score += 0.08
+            if club_match:
+                score += 0.05
+
+            if score > best_score:
+                best_score = score
+                best_pid = pid
+
+        # Threshold: 0.88 with nationality, 0.92 without
+        min_threshold = 0.88 if af_nation_ids and people_nation.get(best_pid) in af_nation_ids else 0.92
+        if best_pid and best_score >= min_threshold:
+            links_to_insert.append((best_pid, "api_football", str(af_id), af_name, "fuzzy", 0.7))
+            stats_to_update.append((best_pid, af_id))
+            matched_fuzzy += 1
+
+    total_matched = matched_exact + matched_initial + matched_last_club + matched_fuzzy
     print(f"  Matched: {total_matched} total")
     print(f"    Exact name: {matched_exact}")
     print(f"    Initial + last: {matched_initial}")
     print(f"    Mononym/last + club: {matched_last_club}")
+    print(f"    Fuzzy (last+first/JW): {matched_fuzzy}")
     print(f"  Unmatched: {len(unmatched) - total_matched}")
 
     if DRY_RUN:
         print("  [dry-run] Would insert links and update person_ids")
-        return matched
+        return total_matched
 
     if links_to_insert:
         from psycopg2.extras import execute_values

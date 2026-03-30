@@ -246,25 +246,31 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            if source in ("understat", "api_football"):
-                # Both sources cluster high / use percentile ranking.
-                # ×1.5, cap 15: 10/10 → 15/20 (very good, not elite).
-                # Without this, stat-only players score as world-class.
-                # Only scout_assessment can reach 16-20.
-                score_20 = min(g["stat_score"] * 1.5, 15)
-            else:
-                # StatsBomb, computed, fbref: 1-10 → 2-18
-                # Cap at 18: scores of 19-20 reserved for scout assessment
-                score_20 = min(g["stat_score"] * 2, 18)
+            # Unified stat compression: all stat sources ×1.5, cap 15.
+            # Only scout_assessment can reach 16-20. This prevents
+            # volume-based stats (tackles, blocks) from producing
+            # inflated model scores (Destroyer was 90 for mid-tier CBs).
+            score_20 = min(g["stat_score"] * 1.5, 15)
         else:
             continue
         # League strength scaling: discount stat grades from weaker leagues.
         # Scout grades reflect context-aware human assessment — no scaling.
         # API-Football grades are already pre-scaled in pipeline 66.
         # Computed grades are derived — no scaling.
-        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football"}
+        # League strength scaling: discount stat grades from weaker leagues.
+        # Scout grades, computed, API-Football (pre-scaled in p66), LLM and
+        # proxy grades are all context-aware or synthetic — no league scaling.
+        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football", "llm_inferred", "proxy_inferred"}
         if source not in PRESCALED_SOURCES and league_strength is not None:
             score_20 = score_20 * league_strength
+        # Level-scale proxy_inferred: these are synthetic estimates that
+        # should reflect the player's calibre. Without this, Commander is
+        # a flat 80 for everyone — VVD and Milenković get the same proxy.
+        # Steeper curve: level IS the signal for unobservable traits like
+        # leadership and concentration. 80→0.85, 85→1.0, 88→1.09, 90→1.15
+        if source == "proxy_inferred" and level:
+            level_factor = min(0.70 + (level - 75) * 0.030, 1.15)
+            score_20 = score_20 * level_factor
         priority = SOURCE_PRIORITY.get(source, 0)
         existing = best.get(attr)
         if existing is None:
@@ -447,8 +453,11 @@ def compute_best_role(model_scores, position):
         p_weight = pos_weights.get(primary, 0.2)
         s_weight = pos_weights.get(secondary, 0.2)
         if s_raw is None:
-            score = p_raw * p_weight * 0.85
-            max_possible = 99 * p_weight * 0.85
+            # Single-model penalty: keep max_possible at the two-model
+            # level so the normalisation actually penalises missing data.
+            # Previously 0.85 on both score AND max cancelled out.
+            score = p_raw * p_weight * 0.6
+            max_possible = 99 * p_weight * 0.6 + 99 * s_weight * 0.4
         else:
             score = p_raw * p_weight * 0.6 + s_raw * s_weight * 0.4
             max_possible = 99 * p_weight * 0.6 + 99 * s_weight * 0.4

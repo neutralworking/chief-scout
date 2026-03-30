@@ -17,7 +17,6 @@ interface FormationSlot {
   position: string;
   slot_count: number;
   slot_label: string | null;
-  role_id: number | null;
 }
 
 interface TacticalRole {
@@ -50,35 +49,16 @@ export default async function TacticsPageRoute() {
     );
   }
 
-  // Fetch tactical_roles with error handling
-  let roles: TacticalRole[] = [];
+  // Fetch philosophies
+  let philosophies: TacticalPhilosophy[] = [];
   try {
-    const rolesResult = await supabaseServer
-      .from("tactical_roles")
-      .select("id, name, position, description, primary_archetype, secondary_archetype");
-    roles = (rolesResult.data ?? []) as TacticalRole[];
+    const philResult = await supabaseServer.from("tactical_philosophies").select("*").order("name");
+    philosophies = (philResult.data ?? []) as TacticalPhilosophy[];
   } catch {
     // Table doesn't exist yet
   }
 
-  // Fetch philosophies with error handling
-  let philosophies: TacticalPhilosophy[] = [];
-  let philosophyFormations: PhilosophyFormation[] = [];
-  let philosophyRoles: PhilosophyRole[] = [];
-  try {
-    const [philResult, pfResult, prResult] = await Promise.all([
-      supabaseServer.from("tactical_philosophies").select("*").order("name"),
-      supabaseServer.from("philosophy_formations").select("philosophy_id, formation_id, affinity, notes"),
-      supabaseServer.from("philosophy_roles").select("philosophy_id, role_id, importance, rationale"),
-    ]);
-    philosophies = (philResult.data ?? []) as TacticalPhilosophy[];
-    philosophyFormations = (pfResult.data ?? []) as PhilosophyFormation[];
-    philosophyRoles = (prResult.data ?? []) as PhilosophyRole[];
-  } catch {
-    // Tables don't exist yet
-  }
-
-  // Fetch new systems hierarchy (tactical_systems → system_slots → slot_roles)
+  // Fetch systems hierarchy (tactical_systems → system_slots → slot_roles)
   let systems: TacticalSystem[] = [];
   let systemSlots: SystemSlot[] = [];
   let slotRoles: SlotRole[] = [];
@@ -97,7 +77,7 @@ export default async function TacticsPageRoute() {
 
   const [formationsResult, slotsResult, playersResult] = await Promise.all([
     supabaseServer.from("formations").select("id, name, structure, notes, era, position_count").order("name"),
-    supabaseServer.from("formation_slots").select("formation_id, position, slot_count, slot_label, role_id"),
+    supabaseServer.from("formation_slots").select("formation_id, position, slot_count, slot_label"),
     supabaseServer
       .from("player_intelligence_card")
       .select("person_id, name, position, club, level, archetype, pursuit_status, personality_type")
@@ -109,7 +89,94 @@ export default async function TacticsPageRoute() {
   const allSlots = (slotsResult.data ?? []) as FormationSlot[];
   const players = (playersResult.data ?? []) as TrackedPlayer[];
 
-  // Build role lookups
+  // ── Derive old-shape data from new systems hierarchy ──────────────────────
+
+  // Build slot_id → position map
+  const slotPositionMap = new Map<number, string>();
+  const slotSystemMap = new Map<number, number>();
+  for (const ss of systemSlots) {
+    slotPositionMap.set(ss.id, ss.position);
+    slotSystemMap.set(ss.id, ss.system_id);
+  }
+
+  // Derive TacticalRole[] from unique (role_name, position) in slot_roles
+  const derivedRoleMap = new Map<string, TacticalRole>();
+  let roleIdCounter = 1;
+  for (const sr of slotRoles) {
+    const position = slotPositionMap.get(sr.slot_id);
+    if (!position) continue;
+    const key = `${sr.role_name}|${position}`;
+    if (!derivedRoleMap.has(key)) {
+      derivedRoleMap.set(key, {
+        id: roleIdCounter++,
+        name: sr.role_name,
+        position,
+        description: sr.rationale ?? null,
+        primary_archetype: sr.primary_model,
+        secondary_archetype: sr.secondary_model,
+      });
+    }
+  }
+  const roles: TacticalRole[] = Array.from(derivedRoleMap.values());
+
+  // Derived role lookup: "name|position" → synthetic id
+  const derivedRoleByNamePos = new Map<string, number>();
+  for (const role of roles) {
+    derivedRoleByNamePos.set(`${role.name}|${role.position}`, role.id);
+  }
+
+  // system_id → philosophy_id
+  const systemPhilMap = new Map<number, number>();
+  for (const sys of systems) {
+    if (sys.philosophy_id) systemPhilMap.set(sys.id, sys.philosophy_id);
+  }
+
+  // Formation name → id
+  const allFormationsList = formations;
+  const formationNameToId = new Map(allFormationsList.map((f) => [f.name, f.id]));
+
+  // Derive PhilosophyFormation[] from tactical_systems
+  const pfSet = new Set<string>();
+  const philosophyFormations: PhilosophyFormation[] = [];
+  for (const sys of systems) {
+    const formationId = formationNameToId.get(sys.formation);
+    if (!formationId || !sys.philosophy_id) continue;
+    const key = `${sys.philosophy_id}|${formationId}`;
+    if (pfSet.has(key)) continue;
+    pfSet.add(key);
+    philosophyFormations.push({
+      philosophy_id: sys.philosophy_id,
+      formation_id: formationId,
+      affinity: "primary" as const,
+      notes: sys.key_principle,
+    });
+  }
+
+  // Derive PhilosophyRole[] from systems → slots → roles
+  const prSet = new Set<string>();
+  const philosophyRoles: PhilosophyRole[] = [];
+  for (const sr of slotRoles) {
+    const systemId = slotSystemMap.get(sr.slot_id);
+    if (!systemId) continue;
+    const philId = systemPhilMap.get(systemId);
+    if (!philId) continue;
+    const position = slotPositionMap.get(sr.slot_id);
+    if (!position) continue;
+    const roleId = derivedRoleByNamePos.get(`${sr.role_name}|${position}`);
+    if (!roleId) continue;
+    const key = `${philId}|${roleId}`;
+    if (prSet.has(key)) continue;
+    prSet.add(key);
+    philosophyRoles.push({
+      philosophy_id: philId,
+      role_id: roleId,
+      importance: sr.is_default ? "essential" : "preferred",
+      rationale: sr.rationale,
+    });
+  }
+
+  // ── Build lookups ─────────────────────────────────────────────────────────
+
   const rolesById: Record<number, TacticalRole> = {};
   const rolesByPosition: Record<string, TacticalRole[]> = {};
   for (const role of roles) {
@@ -140,29 +207,39 @@ export default async function TacticsPageRoute() {
   // Unmapped formations
   const unmappedFormations = formations.filter((f) => !slotsByFormation.has(f.id));
 
-  // Count how many formations each role is used in
+  // Count how many systems/formations use each role
   const formationSlotCounts: Record<number, number> = {};
-  for (const slot of allSlots) {
-    if (slot.role_id) {
-      formationSlotCounts[slot.role_id] = (formationSlotCounts[slot.role_id] ?? 0) + 1;
-    }
+  const roleFormationSets = new Map<number, Set<string>>();
+  for (const sr of slotRoles) {
+    const systemId = slotSystemMap.get(sr.slot_id);
+    if (!systemId) continue;
+    const sys = systems.find((s) => s.id === systemId);
+    if (!sys) continue;
+    const position = slotPositionMap.get(sr.slot_id);
+    if (!position) continue;
+    const roleId = derivedRoleByNamePos.get(`${sr.role_name}|${position}`);
+    if (!roleId) continue;
+    if (!roleFormationSets.has(roleId)) roleFormationSets.set(roleId, new Set());
+    roleFormationSets.get(roleId)!.add(sys.formation);
+  }
+  for (const [roleId, fSet] of roleFormationSets) {
+    formationSlotCounts[roleId] = fSet.size;
   }
 
-  // Build formation → philosophies map for FormationDetail badges
+  // Build formation → philosophies map from tactical_systems
   const formationPhilosophies: Record<number, Array<{ philosophy: { name: string; slug: string }; affinity: string }>> = {};
-  for (const pf of philosophyFormations) {
-    const phil = philosophies.find((p) => p.id === pf.philosophy_id);
+  for (const sys of systems) {
+    const fid = formationNameToId.get(sys.formation);
+    if (!fid || !sys.philosophy_id) continue;
+    const phil = philosophies.find((p) => p.id === sys.philosophy_id);
     if (!phil) continue;
-    if (!formationPhilosophies[pf.formation_id]) formationPhilosophies[pf.formation_id] = [];
-    formationPhilosophies[pf.formation_id].push({
-      philosophy: { name: phil.name, slug: phil.slug },
-      affinity: pf.affinity,
-    });
-  }
-  // Sort each formation's philosophies by affinity
-  const affinityOrder: Record<string, number> = { primary: 0, secondary: 1, compatible: 2 };
-  for (const fid of Object.keys(formationPhilosophies)) {
-    formationPhilosophies[Number(fid)].sort((a, b) => (affinityOrder[a.affinity] ?? 3) - (affinityOrder[b.affinity] ?? 3));
+    if (!formationPhilosophies[fid]) formationPhilosophies[fid] = [];
+    if (!formationPhilosophies[fid].some((fp) => fp.philosophy.slug === phil.slug)) {
+      formationPhilosophies[fid].push({
+        philosophy: { name: phil.name, slug: phil.slug },
+        affinity: "primary",
+      });
+    }
   }
 
   return (

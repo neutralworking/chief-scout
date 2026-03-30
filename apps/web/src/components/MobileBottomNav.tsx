@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isProduction } from "@/lib/env";
@@ -142,20 +142,73 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef(0);
+  const dragStartTime = useRef(0);
   const tabs = PRIMARY_TABS;
+
+  // Haptic pulse (no-op on unsupported browsers)
+  const haptic = useCallback((ms = 10) => {
+    try { navigator?.vibrate?.(ms); } catch {}
+  }, []);
 
   // Animate open/close
   const openSheet = useCallback(() => {
     setSheetOpen(true);
+    haptic(10);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setSheetVisible(true));
     });
-  }, []);
+  }, [haptic]);
 
   const closeSheet = useCallback(() => {
     setSheetVisible(false);
+    setDragOffset(0);
     setTimeout(() => setSheetOpen(false), 200);
   }, []);
+
+  // Swipe-to-dismiss touch handlers
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    dragStartTime.current = Date.now();
+    setIsDragging(true);
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    // Only allow downward drag
+    if (dy > 0) {
+      setDragOffset(dy);
+    }
+  }, [isDragging]);
+
+  const onTouchEnd = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const sheetHeight = sheetRef.current?.offsetHeight || 400;
+    const elapsed = Date.now() - dragStartTime.current;
+    const velocity = dragOffset / Math.max(elapsed, 1);
+
+    // Dismiss if dragged > 30% or fast flick (velocity > 0.5px/ms)
+    if (dragOffset > sheetHeight * 0.3 || velocity > 0.5) {
+      closeSheet();
+    } else {
+      setDragOffset(0);
+    }
+  }, [isDragging, dragOffset, closeSheet]);
+
+  // Escape key to dismiss
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeSheet();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sheetOpen, closeSheet]);
 
   // Lock body scroll when sheet is open
   useEffect(() => {
@@ -222,25 +275,34 @@ export function MobileBottomNav() {
           <div
             className="absolute inset-0 transition-opacity duration-300"
             style={{
-              background: "rgba(0,0,0,0.6)",
-              opacity: sheetVisible ? 1 : 0,
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              opacity: sheetVisible && !isDragging ? 1 : sheetVisible ? Math.max(0, 1 - dragOffset / 400) : 0,
             }}
             onClick={closeSheet}
           />
 
           {/* Sheet */}
           <div
-            className="absolute bottom-0 left-0 right-0 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] rounded-t-2xl transition-transform duration-300 ease-out"
+            ref={sheetRef}
+            className="absolute bottom-0 left-0 right-0 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] rounded-t-2xl"
             style={{
               maxHeight: "70vh",
-              overflowY: "auto",
-              transform: sheetVisible ? "translateY(0)" : "translateY(100%)",
+              overflowY: isDragging ? "hidden" : "auto",
+              transform: sheetVisible
+                ? `translateY(${dragOffset}px)`
+                : "translateY(100%)",
+              transition: isDragging ? "none" : "transform 300ms cubic-bezier(0.32, 0.72, 0, 1)",
               paddingBottom: "calc(56px + env(safe-area-inset-bottom, 0px) + 8px)",
             }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-[var(--text-muted)] opacity-40" />
+            <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
+              <div className="w-10 h-1.5 rounded-full bg-[var(--text-muted)] opacity-50" />
             </div>
 
             {/* Grouped nav */}

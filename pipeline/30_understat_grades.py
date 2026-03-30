@@ -95,6 +95,8 @@ def main():
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Read pre-aggregated Understat stats (from understat_player_agg table)
+    # Include last_season for recency decay — career aggregates from years ago
+    # shouldn't carry the same weight as current-season data.
     print(f"Loading Understat aggregates (min {MIN_MINUTES} mins)...")
     cur.execute("""
         SELECT
@@ -110,7 +112,8 @@ def main():
             ua.xgchain::numeric as total_chain,
             ua.xgbuildup::numeric as total_buildup,
             ua.npg::numeric as total_npg,
-            ua.xg::numeric as total_npxg_approx
+            ua.xg::numeric as total_npxg_approx,
+            ua.last_season
         FROM player_id_links pil
         JOIN understat_player_agg ua ON ua.player_id::text = pil.external_id
         WHERE pil.source = 'understat'
@@ -122,10 +125,29 @@ def main():
     # Build attribute grades
     grades_to_write: list[tuple] = []  # (player_id, attribute, stat_score)
 
+    # Recency decay: career aggregates from years ago get discounted.
+    # Understat data is career-aggregated, so a player whose last season was
+    # 2018 has stats dominated by their prime, not their current ability.
+    # Current season = 2025 (2025/26).
+    CURRENT_SEASON = 2025
+    recency_applied = 0
+
     for p in players:
         mins = float(p["total_mins"])
         if mins <= 0:
             continue
+
+        # Recency decay based on how stale the data is
+        last = int(p["last_season"]) if p.get("last_season") else CURRENT_SEASON
+        staleness = CURRENT_SEASON - last
+        if staleness <= 1:
+            recency_factor = 1.0    # current or last season
+        elif staleness <= 3:
+            recency_factor = 0.85   # 2-3 seasons ago
+        else:
+            recency_factor = 0.70   # 4+ seasons ago
+        if recency_factor < 1.0:
+            recency_applied += 1
 
         # Compute per-90 stats
         per90 = {
@@ -145,11 +167,14 @@ def main():
             score = 0.0
             for metric, weight in metric_weights:
                 score += percentile_to_score(per90.get(metric, 0), metric) * weight
+            # Apply recency decay — stale career aggregates get discounted
+            score *= recency_factor
             # Round to nearest 0.5 and clamp to 1-10 (DB constraint: stat_score >= 1)
             score = max(1, min(10, round(score * 2) / 2))
             grades_to_write.append((p["person_id"], attr, score))
 
     print(f"  {len(grades_to_write):,} attribute grades to write")
+    print(f"  {recency_applied:,} players had recency decay applied")
 
     if DRY_RUN:
         # Show sample
@@ -163,6 +188,15 @@ def main():
         conn.rollback()
         conn.close()
         return
+
+    # Deduplicate: keep highest score per (player_id, attribute)
+    deduped = {}
+    for pid, attr, score in grades_to_write:
+        key = (pid, attr)
+        if key not in deduped or score > deduped[key]:
+            deduped[key] = score
+    grades_to_write = [(k[0], k[1], v) for k, v in deduped.items()]
+    print(f"  {len(grades_to_write):,} after dedup")
 
     # Delete existing understat-sourced grades and write new ones
     print("  Clearing old understat grades...")

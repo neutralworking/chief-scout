@@ -25,6 +25,20 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ## High Priority
 
+### OTP Game Design (decide before April 7)
+- [x] ~~**OTP positional validation**~~ — SLOT_POSITION_MAP enforces position constraints
+- [x] ~~**OTP scoring model**~~ — quality-based (50% squad + 35% XI + 15% formation)
+- [x] ~~**OTP formation bonus**~~ — all-or-nothing 15pts (kept)
+- [x] ~~**OTP reveal insight**~~ — free teaser (score + comparison) + UpgradeCTA paywall
+- [x] ~~**OTP strength bar**~~ — kept as 0-100% bar on nation cards
+
+### OTP Medium Fixes (after design decisions)
+- [x] ~~**Duplicate protection**~~ — server-side person_id dedup in submit route (#124)
+- [x] ~~**Squad balance warnings**~~ — warns on 0 GK, excess FWD, etc. when >20 selected (#125)
+- [x] ~~**Replay/try again button**~~ — resets squad for same nation on reveal (#126)
+- [x] ~~**Formation change preserves XI**~~ — keeps compatible picks, drops only mismatches (#127)
+- [x] ~~**Back-nav warning**~~ — beforeunload listener when squad has selections (#128)
+
 ### Product & UX
 - [ ] **Mobile nav: More sheet polish** — test swipe-to-dismiss, add haptic feedback consideration
 - [ ] **Onboarding** — no help docs or tour for new users
@@ -32,9 +46,12 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ### Data Quality
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables
-- [ ] **Role distribution tuning** — superseded by Systems & Roles redesign (new role set will rebalance)
+- [x] ~~Role distribution tuning~~ — superseded by Systems & Roles (41 roles, all positions balanced)
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15%
-- [ ] **Systems & Roles implementation** — spec at `docs/superpowers/specs/2026-03-29-systems-and-roles-design.md`. Migration + pipeline 83 rewrite + pipeline 27 update + frontend rewrite. Fixes Matheus Cunha problem.
+- [x] ~~Systems & Roles implementation~~ — DONE: migration 049, pipeline 83 rewrite, pipeline 27 update, frontend. 41 roles, 28 systems, all calibrated.
+- [x] ~~Stat source calibration~~ — AF + understat unified to ×1.5 cap 15, garbage override, GK/DM/WF weight fixes. Gap ≥+15: 54→8.
+- [x] ~~**Apply migration 050**~~ — old tactical_roles/philosophy_formations/philosophy_roles dropped, code migrated to tactical_systems hierarchy
+- [ ] **Stale data cleanup** — 8 players with RS ≥+15 over level (Džeko, Zapata, etc.) have prime-era stats with low current levels
 
 ## Medium Priority
 
@@ -81,6 +98,40 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo
 
 ---
+
+## Completed (2026-03-30, session 31 — OTP QA)
+- [x] OTP scoring rebalance: `scorePlayerForSlot()` using pipeline 27 `best_role_score` + position guard
+- [x] Star players now appear in ideal XIs (Rice, Bellingham, Kane, Mbappe, Saliba, Dembele)
+- [x] GKs can no longer fill outfield slots (SLOT_POSITION_MAP enforced)
+- [x] Strength normalisation fixed: /230 → direct (role score = percentage)
+- [x] Women's filter: `.eq("is_female", false)` → `.neq("is_female", true)` across 3 endpoints
+- [x] Dual nationals now filtered for is_female in cron + players route
+- [x] 91 women flagged by club name + 1 manual (Selma Bacha)
+- [x] BLUEPRINT_ROLE_MAP: duplicate Prima Punta key fixed, Shuttler→Winger added
+- [x] Default position filter: GK → All (users see full pool on load)
+- [x] Share text includes URL
+- [x] Recall threshold: age>28 caps<20 → age>30 caps<50
+- [x] 48/48 ideal squads recomputed with new scoring, 0 errors
+- [x] 18 new vitest tests for scorePlayerForSlot
+
+## Completed (2026-03-29/30, session 30)
+- [x] Systems & Roles: migration 049 (3 tables), pipeline 83 rewrite (28 systems, 308 slots, 41 roles)
+- [x] Pipeline 27: 41-role TACTICAL_ROLES, POSITION_WEIGHTS fixed (6 missing models, 2 stale GK names)
+- [x] Frontend: formation-intelligence.ts (41 roles), tactics pages query new tables, TS interfaces
+- [x] SACROSANCT System 4 updated, migration 050 created (not applied)
+- [x] Poacher → Prima Punta (Striker+Target) — not a system role, was inflating scores
+- [x] API-Football compression ×1.5 cap 15 — percentile ranks treated as quality (gap 54→9)
+- [x] Garbage override: AF ≤3/20 doesn't clobber understat ≥10.5/20
+- [x] GK POSITION_WEIGHTS: "Organiser"/"Shotstopper" → Commander(0.95)/Powerhouse(0.9)
+- [x] DM/WF POSITION_WEIGHTS: Engine added to DM, Target/Powerhouse/Passer added to WF
+- [x] Archetype renames: Distributor→Conductor (961), Colossus→Titan (318)
+- [x] Position fixes: Dembélé→CF, Bellingham→AM, Ronaldo→CF
+- [x] Enzo Fernández dupe merged (accented + unaccented)
+- [x] 68 scout grades across 9 players (Bruno→Enganche, Kane→Complete Forward, Donnarumma→Comandante, etc.)
+- [x] Philosophy renames: Cholismo→Transizione, Fergie Time→Leadership
+- [x] All 41 roles have assigned players, uniform -5 to -8 RS vs level delta
+- [x] Understat compression unified with AF: both ×1.5 cap 15. Gap ≥+15: 13→8.
+- [x] Dembélé moved back to WF (Inside Forward 89) — no CF role uses Dribbler model
 
 ## Completed (2026-03-27, session 28)
 - [x] Pipeline 92 parser fixed: 4 bugs (sort-key positions, table class ordering, federation club links, redlink names)

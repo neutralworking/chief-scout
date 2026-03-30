@@ -22,7 +22,6 @@ interface FormationSlot {
   position: string;
   slot_count: number;
   slot_label: string | null;
-  role_id: number | null;
 }
 
 interface TacticalRole {

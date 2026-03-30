@@ -119,7 +119,7 @@ POSITIONAL_ARCHETYPES = {
     },
     "Terrier": {
         "positions": {"DM", "CM", "WD", "CD"},  # ball-winner, high energy, never stops pressing
-        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 4.0 and s.get("tackles_p90", 0) >= 2.0),
+        "check": lambda s, p: (s.get("def_actions_p90", 0) >= 5.0 and s.get("tackles_p90", 0) >= 2.5),
         "personality": None,
     },
 
@@ -179,7 +179,7 @@ POSITIONAL_ARCHETYPES = {
     # ── MID-TIER / CATCH-ALL ────────────────────────────────────
     "Connector": {
         "positions": {"CM", "DM", "AM"},  # midfielders — links play, keeps possession moving
-        "check": lambda s, p: (s.get("pass_acc", 0) >= 85 and s.get("passes_p90", 0) >= 45),
+        "check": lambda s, p: (s.get("pass_acc", 0) >= 88 and s.get("passes_p90", 0) >= 55 and s.get("kp90", 0) >= 0.8),
         "personality": None,
     },
     "Battering Ram": {
@@ -206,9 +206,9 @@ POSITIONAL_ARCHETYPES = {
     # ── GOALKEEPERS ──────────────────────────────────────────────
     "Wall": {
         "positions": {"GK"},
-        "check": lambda s, p: (s.get("rating", 0) >= 6.8 and s.get("minutes", 0) >= 1500),
+        "check": lambda s, p: (s.get("rating", 0) >= 7.0 and s.get("minutes", 0) >= 1500),
         "personality": None,
-        "tier_elite": lambda s: s.get("rating", 0) >= 6.95,
+        "tier_elite": lambda s: s.get("rating", 0) >= 7.15,
     },
     "Sweeper": {
         "positions": {"GK"},
@@ -406,11 +406,14 @@ def main():
         ORDER BY position, archetype, cnt DESC
     """)
     similar_archetypes = {}  # (pos, skillset) → most common earned archetype
+    similar_archetype_counts = {}  # (pos, skillset) → count of established+ examples
     for r in cur.fetchall():
         key = (r["position"], r["archetype"])
         if key not in similar_archetypes:
             similar_archetypes[key] = r["earned_archetype"]
-    print(f"  {len(similar_archetypes)} position+skillset → archetype mappings for inference")
+            similar_archetype_counts[key] = int(r["cnt"])
+    qualified = sum(1 for v in similar_archetype_counts.values() if v >= 5)
+    print(f"  {len(similar_archetypes)} position+skillset → archetype mappings ({qualified} with 5+ examples)")
 
     # ── Compute ───────────────────────────────────────────────────────────
 
@@ -481,21 +484,20 @@ def main():
                 if defn["personality"] is not None:
                     if not pers_type or not pers_matches(pers_type, defn["personality"]):
                         continue
-                # Create relaxed stats (multiply rate thresholds by 1.25, keep fixed attrs)
+                # Create relaxed stats (multiply rate thresholds by 1.18, keep fixed attrs)
+                # Was 1.25 — too generous, inflated aspiring tier to 80%+ of most archetypes
                 fixed_keys = {"height", "age", "minutes", "goals", "assists", "pace_grade"}
-                relaxed = {k: v * 1.25 if isinstance(v, (int, float)) and k not in fixed_keys else v for k, v in stats.items()}
+                relaxed = {k: v * 1.18 if isinstance(v, (int, float)) and k not in fixed_keys else v for k, v in stats.items()}
                 if defn["check"](relaxed, pers):
                     earned = arch_name
                     tier = "aspiring"
                     break
 
-        # ── Inferred from similar players (last resort) ──────────────
-        if not earned and pos and prof.get("archetype"):
-            key = (pos, prof["archetype"])
-            if key in similar_archetypes:
-                earned = similar_archetypes[key]
-                tier = "aspiring"
-                inferred_count += 1
+        # ── Inferred from similar players (disabled) ─────────────────
+        # Previously inferred archetype from (position, skillset) mapping,
+        # but this created popularity cascades — Connector/Wall/Terrier
+        # absorbed every unclassified player. "Most players don't earn one"
+        # is the correct design: unclassified is a valid state.
 
         # ── Legacy tag ────────────────────────────────────────────────
         legacy = None

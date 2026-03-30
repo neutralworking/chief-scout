@@ -47,7 +47,9 @@ METRIC_MAP = {
     "assists_p90":        {"attr": "vision",        "positions": {"attacker", "midfielder"}},
     "pass_accuracy":      {"attr": "pass_accuracy", "positions": {"attacker", "midfielder", "defender"}},
     # Defending
-    "tackles_p90":        {"attr": "tackling",      "positions": {"midfielder", "defender"}},
+    # tackles_p90 REMOVED: volume metric, not quality. Positional CBs (Dias,
+    # VVD) get 1/10 because they rarely need to tackle. def_actions_p90
+    # already captures overall defensive contribution via awareness.
     "blocks_p90":         {"attr": "blocking",      "positions": {"midfielder", "defender"}},
     "interceptions_p90":  {"attr": "interceptions", "positions": {"midfielder", "defender"}},
     "def_actions_p90":    {"attr": "awareness",     "positions": {"midfielder", "defender"}},

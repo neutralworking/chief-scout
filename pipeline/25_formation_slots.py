@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """
-13_formation_slots.py — Populate formation_slots with role-assigned slots.
+25_formation_slots.py — Populate formation_slots with position-assigned slots.
 
-Each slot in a formation now has a named tactical role (e.g. Regista, Inside Forward)
-instead of just a position code. Roles link to the tactical_roles table which
-defines archetype affinity for player-role fit scoring.
+Each slot in a formation has a position code and a slot label (LCB, RCB, etc.).
+Role assignments now live in the systems hierarchy (tactical_systems → system_slots → slot_roles).
 
 Usage:
-    python 13_formation_slots.py [--dry-run]
-
-Requires migration 018_tactical_roles.sql to be applied first.
+    python 25_formation_slots.py [--dry-run]
 """
 
 import argparse
@@ -370,15 +367,6 @@ def main():
     formations = {f["name"]: f for f in result.data}
     print(f"Found {len(formations)} formations in database")
 
-    # Fetch tactical roles for ID lookup
-    result = sb.table("tactical_roles").select("id, name, position").execute()
-    role_lookup = {(r["name"], r["position"]): r["id"] for r in result.data}
-    print(f"Found {len(role_lookup)} tactical roles in database")
-
-    if not role_lookup:
-        print("ERROR: No tactical roles found. Run migration 018_tactical_roles.sql first.")
-        sys.exit(1)
-
     matched = 0
     skipped = 0
     rows_to_insert = []
@@ -402,9 +390,7 @@ def main():
         if args.dry_run:
             print(f"\n  {name} (id={fid}) | era={era}")
             for pos, role, label in slots:
-                role_id = role_lookup.get((role, pos))
-                status = "OK" if role_id else "MISSING"
-                print(f"    {label:6s} {pos:3s} → {role} [{status}]")
+                print(f"    {label:6s} {pos:3s} → {role}")
         else:
             sb.table("formations").update({
                 "era": era,
@@ -412,15 +398,11 @@ def main():
             }).eq("id", fid).execute()
 
             for pos, role, label in slots:
-                role_id = role_lookup.get((role, pos))
-                if not role_id:
-                    print(f"  WARNING: role '{role}' for position '{pos}' not found in tactical_roles")
                 rows_to_insert.append({
                     "formation_id": fid,
                     "position": pos,
                     "slot_count": 1,  # each row is now one slot
                     "slot_label": label,
-                    "role_id": role_id,
                 })
 
         matched += 1

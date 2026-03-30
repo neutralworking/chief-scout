@@ -13,7 +13,7 @@ Only players with complete data across all 6 tables are promoted:
 Also promotes supporting reference data:
   - nations, clubs (referenced by promoted players)
   - tags (referenced by player_tags)
-  - tactical_roles, formation_slots
+  - formation_slots
 
 Usage:
     python 40_promote_to_prod.py --dry-run          # Preview what would be promoted

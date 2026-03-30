@@ -290,21 +290,22 @@ export async function GET(
 
   // Fetch philosophy + primary formation for clubs that have a philosophy
   const philIds = (clubsData ?? []).map((c: any) => c.philosophy_id).filter(Boolean);
-  const [{ data: philData }, { data: philFormData }] = await Promise.all([
+  const [{ data: philData }, { data: systemsData }] = await Promise.all([
     philIds.length > 0
       ? supabaseServer.from("tactical_philosophies").select("id, name, slug, pressing_intensity, directness, defensive_depth, possession_orientation").in("id", philIds)
       : Promise.resolve({ data: [] }),
     philIds.length > 0
-      ? supabaseServer.from("philosophy_formations").select("philosophy_id, formation_id, formations(name)").eq("affinity", "primary").in("philosophy_id", philIds)
+      ? supabaseServer.from("tactical_systems").select("philosophy_id, formation").in("philosophy_id", philIds)
       : Promise.resolve({ data: [] }),
   ]);
 
   const philMap = new Map<number, any>();
   for (const p of (philData ?? []) as any[]) philMap.set(p.id, p);
+  // Map philosophy → first system's formation name
   const philFormMap = new Map<number, string>();
-  for (const pf of (philFormData ?? []) as any[]) {
-    if (!philFormMap.has(pf.philosophy_id)) {
-      philFormMap.set(pf.philosophy_id, pf.formations?.name ?? null);
+  for (const sys of (systemsData ?? []) as any[]) {
+    if (!philFormMap.has(sys.philosophy_id)) {
+      philFormMap.set(sys.philosophy_id, sys.formation ?? null);
     }
   }
 

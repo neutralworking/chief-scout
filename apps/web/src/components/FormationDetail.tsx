@@ -13,7 +13,6 @@ interface FormationSlot {
   position: string;
   slot_count: number;
   slot_label: string | null;
-  role_id: number | null;
 }
 
 interface TacticalRole {
@@ -105,11 +104,9 @@ function expandSlots(
         // Check for formation-specific blueprint first
         const bp = getSlotBlueprint(formationName, pos, idx);
 
-        // Assign role: blueprint > explicit role_id > cycle through position roles
+        // Assign role: blueprint > cycle through position roles
         let role: TacticalRole | null = null;
-        if (slot.role_id) {
-          role = rolesMap[slot.role_id] ?? null;
-        } else if (bp) {
+        if (bp) {
           // Find the matching tactical role by name from the blueprint
           role = posRoles.find(r => r.name === bp.role)
             ?? Object.values(rolesMap).find(r => r.name === bp.role)

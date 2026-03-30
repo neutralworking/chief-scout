@@ -1,5 +1,5 @@
 # Working Context — Chief Scout
-> Last updated: 2026-03-27 (session 28)
+> Last updated: 2026-03-30 (session 32)
 
 ## Current Sprint: Launch Prep
 Target: **May 1, 2026** (from CEO assessment PR #113)
@@ -14,10 +14,24 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 6. **Stale branch cleanup** — only 1 unmerged remote remains
 
 ### Done (from previous sprint)
-1. ~~**Data Density**~~ — 27,918 people in staging
+1. ~~**Data Density**~~ — 28,633 people in staging
 2. ~~**Four-Pillar QA**~~ — precomputed daily via cron
-3. ~~**36-Role Taxonomy**~~ — PR #106, migration 043, 14,063 recomputed
+3. ~~**41-Role Taxonomy**~~ — migration 049, pipeline 83+27, 41 system-validated roles
 4. ~~**Fixture Predictions**~~ — PRs #107-108, migration 044, pipeline 69
+5. ~~**Systems & Roles**~~ — 28 systems, 308 slots, AF calibration, GK weight fix
+
+### Session 32 (2026-03-30)
+- **Migration 050 applied**: dropped `tactical_roles`, `philosophy_formations`, `philosophy_roles` + `formation_slots.role_id`
+- **6 files migrated** to derive old data shapes from `tactical_systems` → `system_slots` → `slot_roles`
+- All migrations through 050 on staging. (045 on prod)
+
+### Session 30 (2026-03-29/30)
+- **Systems & Roles LIVE**: philosophy→system→slot→role hierarchy. 41 roles, 28 systems.
+- **Calibration**: AF ×1.5 cap 15, garbage override, GK weights fixed, DM/WF weights fixed
+- **Poacher → Prima Punta** (Striker+Target) — not a system role
+- **Archetypes**: Distributor→Conductor (961), Colossus→Titan (318) — role name collisions
+- **Position fixes**: Dembélé→CF, Bellingham→AM, Ronaldo→CF. Enzo dupe merged.
+- **68 scout grades** across 9 data-limited top players
 
 ## What's New (sessions 24-26)
 

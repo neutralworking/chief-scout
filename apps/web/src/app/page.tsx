@@ -131,7 +131,8 @@ async function getDashboardData() {
 
   // Reject retired, clubless, skeleton, or too-old players
   const isViableFeatured = (p: FeaturedProfile) => {
-    if (!p.club || !p.position || p.overall_pillar_score == null) return false;
+    if (!p.club || !p.position) return false;
+    if (p.best_role_score == null && p.overall_pillar_score == null) return false;
     if (!hasQualityBio(p)) return false;
     // Age gate: skip players over 40 (semi-retired edge cases with active=true)
     if (p.dob) {

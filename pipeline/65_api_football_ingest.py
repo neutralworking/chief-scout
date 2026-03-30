@@ -62,11 +62,26 @@ LEAGUES = {
     262: "Liga MX",
     239: "Colombian Primera A",
     253: "MLS",
+    # ── Americas tier 2 ──
+    242: "Ecuadorian Liga Pro",
+    252: "Paraguayan Division Profesional",
+    281: "Peruvian Primera División",
+    234: "Honduran Liga Nacional",
+    304: "Panamanian LPF",
+    162: "Costa Rican Primera División",
+    322: "Jamaican Premier League",
+    # ── Africa ──
+    233: "Egyptian Premier League",
+    386: "Ivorian Ligue 1",
     # ── Asia / Middle East / Oceania ──
     307: "Saudi Pro League",
     292: "K League 1",
     169: "Chinese Super League",
     188: "A-League",
+    305: "Qatar Stars League",
+    274: "Indonesian Liga 1",
+    542: "Iraqi League",
+    290: "Iranian Persian Gulf Pro League",
     # ── Youth / Academy ──
     14:  "UEFA Youth League",
     705: "Campionato Primavera 1",

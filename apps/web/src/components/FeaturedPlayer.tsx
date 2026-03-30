@@ -4,13 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { PERSONALITY_TYPES } from "@/lib/personality";
-import { getArchetypeColor } from "@/lib/archetype-styles";
-import {
-  PILLAR_KEYS,
-  PILLAR_HEX,
-  hasAnyPillarScore,
-  type PillarKey,
-} from "@/lib/pillar-colors";
+import { computeIdentityLabel } from "@/lib/identity-label";
 import { ScoutingNotes } from "./ScoutingNotes";
 
 interface FeaturedPlayerData {
@@ -45,13 +39,6 @@ interface FeaturedPlayerData {
   af_rating?: number | null;
 }
 
-const PILLAR_BORDER: Record<PillarKey, string> = {
-  technical: "border-l-amber-500",
-  tactical: "border-l-purple-500",
-  mental: "border-l-green-500",
-  physical: "border-l-blue-500",
-};
-
 function nationFlag(code: string | null | undefined): string {
   if (!code) return "";
   const c = code.toUpperCase();
@@ -77,15 +64,6 @@ const REASON_LABELS: Record<string, { label: string; color: string }> = {
   discovery: { label: "Discovery", color: "var(--accent-personality)" },
 };
 
-function IntelChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-pit)] border border-[var(--border-panel)]/20">
-      <span className="font-data text-[10px] font-bold uppercase tracking-[1px] opacity-50">{label}</span>
-      <span className="text-[10px] font-semibold text-[var(--text-secondary)]">{value}</span>
-    </div>
-  );
-}
-
 export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { player: FeaturedPlayerData; reason?: string; pool?: FeaturedPlayerData[] }) {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
   const [poolIndex, setPoolIndex] = useState(() => {
@@ -95,19 +73,11 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
   const player = currentPlayer;
   const pt = player.personality_type ? PERSONALITY_TYPES[player.personality_type] : null;
-  const personality = pt ? { name: pt.fullName, oneLiner: pt.oneLiner } : null;
+  const identityLabel = computeIdentityLabel(player.blueprint, player.best_role, player.personality_type);
   const posColor = POSITION_COLORS[player.position ?? ""] ?? "bg-zinc-700/60";
   const reasonInfo = reason ? REASON_LABELS[reason] : null;
   const canCycle = pool.length > 1;
 
-  const pillarScores = {
-    technical: player.technical_score ?? null,
-    tactical: player.tactical_score ?? null,
-    mental: player.mental_score ?? null,
-    physical: player.physical_score ?? null,
-  };
-  const hasPillars = hasAnyPillarScore(pillarScores);
-  const overall = player.overall_pillar_score;
   const flag = nationFlag(player.nation_code);
   const value = player.market_value_eur;
 
@@ -159,29 +129,40 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
             <h2 className="text-lg font-[family-name:var(--font-display)] uppercase text-[var(--text-primary)] min-w-0 group-hover:text-[var(--accent-personality)] transition-colors">
               {player.name}
             </h2>
-            {overall != null && (
-              <span className="text-xl font-data font-bold shrink-0 ml-auto text-gradient-brand">
-                {overall}
-              </span>
+            {player.best_role_score != null && (
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                {player.best_role && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    {player.best_role}
+                  </span>
+                )}
+                <span className="text-xl font-data font-bold text-gradient-brand">
+                  {player.best_role_score}
+                </span>
+              </div>
             )}
           </div>
         </Link>
 
-        {/* Flag + Club + Age + Archetype + Best Role + Value */}
+        {/* Identity label */}
+        {identityLabel && (
+          <p className="text-[12px] font-semibold tracking-wide text-[var(--color-accent-personality)] mt-1">
+            {identityLabel}
+          </p>
+        )}
+
+        {/* Flag + Club + Age + Value + Personality code */}
         <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)] mt-1 min-w-0 flex-wrap">
           {flag && <span className="shrink-0">{flag}</span>}
           {player.club && <span className="truncate">{player.club}</span>}
           {age !== null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0">{age}y</span></>
           )}
-          {(player.earned_archetype || player.archetype) && (
-            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0" style={{ color: getArchetypeColor(player.earned_archetype ?? player.archetype ?? "") }}>{player.earned_archetype ?? player.archetype}</span></>
-          )}
-          {player.best_role && (
-            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 text-[var(--text-muted)]">{player.best_role}</span></>
-          )}
           {value != null && (
             <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 font-data font-semibold">{formatValue(value)}</span></>
+          )}
+          {pt && (
+            <><span className="text-[var(--text-muted)] shrink-0">·</span><span className="shrink-0 font-data text-[var(--text-muted)]">{player.personality_type}</span></>
           )}
         </div>
 
@@ -197,27 +178,9 @@ export function FeaturedPlayer({ player: initialPlayer, reason, pool = [] }: { p
 
         {/* Scout assessment */}
         {player.scouting_notes && (
-          <ScoutingNotes text={player.scouting_notes} clamp={3} className="mt-2" />
+          <ScoutingNotes text={player.scouting_notes} clamp={6} className="mt-2" />
         )}
 
-        {/* Pillar badges + Intel chips — inline row */}
-        {(hasPillars || personality) && (
-          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-            {hasPillars && PILLAR_KEYS.map((key) => {
-              const v = pillarScores[key];
-              if (v == null) return null;
-              return (
-                <div key={key} className={`flex items-center gap-1 px-2 py-0.5 border-l-2 ${PILLAR_BORDER[key]} bg-[var(--bg-pit)]`}>
-                  <span className="text-[10px] font-bold uppercase tracking-[1px] text-[var(--text-muted)]">{key.slice(0, 3)}</span>
-                  <span className="text-[10px] font-data font-bold" style={{ color: PILLAR_HEX[key] }}>{v}</span>
-                </div>
-              );
-            })}
-            {personality && (
-              <IntelChip label="Type" value={`${player.personality_type} ${personality.name}`} />
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

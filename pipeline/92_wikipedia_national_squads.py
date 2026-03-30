@@ -374,51 +374,129 @@ def parse_squad_from_html(html_text: str, nation_slug: str) -> list[dict]:
                 "club_name": club_name,
             })
 
-    # Strategy B: If we got very few from tables, try a broader regex on the full HTML
+    # Strategy B: Always parse "Recent call-ups" section for additional players
+    # Wikipedia pages have a separate table of players called up in recent windows
+    # who aren't in the current squad — these are important for OTP pool completeness
+    # Wikipedia uses both <span id="..."> and <h3 id="..."> depending on skin/era
+    recent_sections = re.findall(
+        r'id="[^"]*(?:Recent_call-ups|Recent_callups)[^"]*"[^>]*>.*?(?:</span>|</h[23]>)(.*?)(?:<(?:span|h[23])[^>]*id="|<div class="mw-heading|$)',
+        html_text, re.DOTALL | re.IGNORECASE
+    )
+
+    # Also grab from main squad section as fallback if Strategy A found very few
     if len(players) < 11:
         if VERBOSE:
-            print(f"  [info] Only {len(players)} from tables, trying broader extraction...")
+            print(f"  [info] Only {len(players)} from tables, trying broader squad extraction...")
+        squad_fallback = re.findall(
+            r'id="[^"]*(?:Current_squad|Squad|Players)[^"]*"[^>]*>.*?(?:</span>|</h[23]>)(.*?)(?:<(?:span|h[23])[^>]*id="|<div class="mw-heading|$)',
+            html_text, re.DOTALL | re.IGNORECASE
+        )
+        recent_sections = squad_fallback + recent_sections
 
-        # Look for player links in a "Current squad" or "Squad" section
-        # Find section boundaries
-        squad_section = None
-        for header_pattern in [
-            r'(?:Current squad|Squad|Players|Recent call-ups)',
-        ]:
-            match = re.search(
-                rf'<span[^>]*id="[^"]*(?:Current_squad|Squad|Players|Recent_call-ups)[^"]*"[^>]*>.*?</span>(.*?)(?:<span[^>]*id="|$)',
-                html_text, re.DOTALL | re.IGNORECASE
-            )
-            if match:
-                squad_section = match.group(1)
-                break
-
-        if squad_section:
-            # Find player links with position context
-            entries = re.findall(
-                r'(GK|DF|MF|FW)\s*</td>\s*<td[^>]*>.*?title="([^"]+)"',
-                squad_section, re.DOTALL | re.IGNORECASE
-            )
-            for pos_raw, player_title in entries:
-                player_name = re.sub(r'\s*\(footballer[^)]*\)', '', player_title)
-                player_name = re.sub(r'\s*\(soccer[^)]*\)', '', player_name)
-                player_name = re.sub(r'\s*\(born \d{4}\)', '', player_name)
+    recent_count = 0
+    for section_html in recent_sections:
+        # Try table-based extraction first (same logic as Strategy A)
+        section_tables = re.findall(
+            r'<table[^>]*class="[^"]*(?:wikitable|sortable)[^"]*"[^>]*>(.*?)</table>',
+            section_html, re.DOTALL
+        )
+        for table_html in section_tables:
+            if not re.search(r'>\d*(?:GK|DF|MF|FW)<', table_html, re.IGNORECASE):
+                continue
+            rows = re.findall(r'<tr[^>]*>(.*?)</tr>', table_html, re.DOTALL)
+            for row_html in rows:
+                cells = re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', row_html, re.DOTALL)
+                if len(cells) < 3:
+                    continue
+                pos_idx = None
+                pos_val = None
+                for i, cell in enumerate(cells):
+                    cell_text = re.sub(r'<[^>]+>', '', cell).strip()
+                    cell_clean = re.sub(r'^\d+', '', cell_text).strip()
+                    if cell_clean.upper() in ("GK", "DF", "MF", "FW"):
+                        pos_idx = i
+                        pos_val = cell_clean.upper()
+                        break
+                if pos_idx is None:
+                    continue
+                name_idx = pos_idx + 1
+                if name_idx >= len(cells):
+                    continue
+                name_cell = cells[name_idx]
+                name_match = re.search(r'title="([^"]+)"', name_cell)
+                if name_match:
+                    player_name = name_match.group(1)
+                    player_name = re.sub(r'\s*\(footballer[^)]*\)', '', player_name)
+                    player_name = re.sub(r'\s*\(soccer[^)]*\)', '', player_name)
+                    player_name = re.sub(r'\s*\(born \d{4}\)', '', player_name)
+                    player_name = re.sub(r'\s*\(page does not exist\)', '', player_name)
+                else:
+                    player_name = re.sub(r'<[^>]+>', '', name_cell).strip()
+                if not player_name or len(player_name) < 2:
+                    continue
                 norm = normalize_name(player_name)
-                if norm in seen_names or len(player_name) < 2:
+                if norm in seen_names:
                     continue
                 seen_names.add(norm)
-                position = normalize_position(pos_raw.strip())
+                position = normalize_position(pos_val)
+                # Extract caps from later cells
+                caps = None
+                goals = None
+                for i in range(name_idx + 1, min(len(cells), name_idx + 5)):
+                    cell_text = re.sub(r'<[^>]+>', '', cells[i]).strip().replace(',', '')
+                    if cell_text.isdigit() and len(cell_text) <= 3:
+                        if caps is None:
+                            caps = int(cell_text)
+                        elif goals is None:
+                            goals = int(cell_text)
+                recent_count += 1
                 players.append({
                     "name": player_name.strip(),
                     "name_normalized": norm,
                     "position": position or "CM",
-                    "position_raw": pos_raw.strip().upper(),
+                    "position_raw": pos_val,
                     "jersey_number": None,
-                    "caps": None,
-                    "goals": None,
+                    "caps": caps,
+                    "goals": goals,
                     "dob": None,
                     "club_name": None,
                 })
+
+        # Fallback: find player links with position context in non-table markup
+        # Handle both <td>...<td> and <td>...<th> patterns (recent call-ups use <th> for names)
+        entries = re.findall(
+            r'(GK|DF|MF|FW)\s*</(?:a\s*)?</td>\s*<t[dh][^>]*>.*?title="([^"]+)"',
+            section_html, re.DOTALL | re.IGNORECASE
+        )
+        if not entries:
+            entries = re.findall(
+                r'(GK|DF|MF|FW)\s*</td>\s*<t[dh][^>]*>.*?title="([^"]+)"',
+                section_html, re.DOTALL | re.IGNORECASE
+            )
+        for pos_raw, player_title in entries:
+            player_name = re.sub(r'\s*\(footballer[^)]*\)', '', player_title)
+            player_name = re.sub(r'\s*\(soccer[^)]*\)', '', player_name)
+            player_name = re.sub(r'\s*\(born \d{4}\)', '', player_name)
+            norm = normalize_name(player_name)
+            if norm in seen_names or len(player_name) < 2:
+                continue
+            seen_names.add(norm)
+            position = normalize_position(pos_raw.strip())
+            recent_count += 1
+            players.append({
+                "name": player_name.strip(),
+                "name_normalized": norm,
+                "position": position or "CM",
+                "position_raw": pos_raw.strip().upper(),
+                "jersey_number": None,
+                "caps": None,
+                "goals": None,
+                "dob": None,
+                "club_name": None,
+            })
+
+    if recent_count > 0 and VERBOSE:
+        print(f"  [info] Added {recent_count} players from recent call-ups")
 
     return players
 

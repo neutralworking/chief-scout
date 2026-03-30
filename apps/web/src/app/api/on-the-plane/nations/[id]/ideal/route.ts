@@ -94,6 +94,7 @@ export async function GET(
       overall_pillar_score: p.overall_pillar_score,
       archetype: p.archetype,
       personality_type: p.personality_type,
+      preferred_foot: null,
       age: null,
       club: p.club,
       best_role: p.best_role,
@@ -111,7 +112,7 @@ export async function GET(
   if (personIds.length > 0) {
     const { data: people } = await sb
       .from("people")
-      .select("id, dob, international_caps")
+      .select("id, dob, international_caps, preferred_foot")
       .in("id", personIds);
 
     for (const player of allPlayers) {
@@ -123,6 +124,7 @@ export async function GET(
         );
       }
       player.international_caps = info?.international_caps ?? null;
+      player.preferred_foot = info?.preferred_foot ?? null;
     }
 
     // Check national team history
@@ -138,7 +140,14 @@ export async function GET(
     }
   }
 
-  const ideal = computeIdealSquad(allPlayers);
+  // Fetch coach's preferred formation
+  const { data: wcNation } = await sb
+    .from("wc_nations")
+    .select("preferred_formation")
+    .eq("nation_id", nationId)
+    .single();
+
+  const ideal = computeIdealSquad(allPlayers, wcNation?.preferred_formation);
 
   if (!ideal) {
     return NextResponse.json(

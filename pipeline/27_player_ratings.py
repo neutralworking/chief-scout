@@ -268,15 +268,26 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
             score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
+            ss = g["stat_score"]
             if source == "understat":
                 # Understat clusters high (9-10 for any decent player).
                 # Compress: 10→17, 8→14, 5→9. Prevents understat-only
                 # players from scoring as if they had elite scout grades.
-                score_20 = min(g["stat_score"] * 1.7, 17)
+                score_20 = min(ss * 1.7, 17)
             else:
-                # StatsBomb, API-Football, computed, fbref: 1-10 → 2-18
-                # Cap at 18: scores of 19-20 reserved for scout assessment
-                score_20 = min(g["stat_score"] * 2, 18)
+                # StatsBomb, API-Football, computed, fbref: 1-10 scale.
+                # Linear ×2 up to 7 (preserves low/mid range), then
+                # diminishing returns above 7 so top decile doesn't
+                # all compress to the same ceiling.
+                #   stat 5→10, 7→14, 8→14.7, 9→15.3, 10→16
+                # Cap at 16: scores 17+ reserved for scout assessment.
+                # Previously ×2 cap 18 — meant 1,500 players all scored
+                # 18/20 on Striker attrs, making Prima Punta OP.
+                if ss <= 7:
+                    score_20 = ss * 2.0
+                else:
+                    score_20 = 14.0 + (ss - 7) * 0.67
+                score_20 = min(score_20, 16)
         else:
             continue
         # League strength scaling: discount stat grades from weaker leagues.

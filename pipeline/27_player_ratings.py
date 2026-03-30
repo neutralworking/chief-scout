@@ -60,11 +60,6 @@ sb_client = get_supabase()
 MODEL_ATTRIBUTES = {
     **_BASE_MODEL_ATTRIBUTES,
     "GK": ["positioning", "awareness", "pass_range", "throwing"],
-    # Shotstopper: reflex/athletic shot-stopping — blocking, jumping, reactions, aerial.
-    "Shotstopper": ["blocking", "aerial_duels", "jumping", "reactions"],
-    # Organiser: commanding GK — composure, discipline, aerial authority, aggression.
-    # Uses attrs that exist in scout data (unlike Commander's leadership/communication).
-    "Organiser": ["composure", "discipline", "aerial_duels", "aggression"],
 }
 
 # Fallback aliases: when the primary attribute is missing, try these instead.
@@ -112,81 +107,106 @@ GK_COMPOUND_MODELS = {
 # the player's actual profile. A tight range means a player with genuinely
 # strong Engine data CAN beat a player with strong Dribbler data.
 POSITION_WEIGHTS = {
-    "GK":  {"GK": 1.0, "Passer": 0.9, "Cover": 0.9, "Organiser": 0.9, "Shotstopper": 0.9, "Controller": 0.8},
+    "GK":  {"GK": 1.0, "Passer": 0.9, "Cover": 0.9, "Commander": 0.9, "Powerhouse": 0.9, "Controller": 0.8},
     "CD":  {"Destroyer": 1.0, "Cover": 0.95, "Commander": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85, "Controller": 0.8},
     "WD":  {"Engine": 1.0, "Dribbler": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Cover": 0.85, "Controller": 0.85, "Destroyer": 0.8},
     "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Commander": 0.85, "Powerhouse": 0.85},
     "CM":  {"Controller": 1.0, "Passer": 0.95, "Engine": 0.95, "Cover": 0.85, "Creator": 0.85, "Sprinter": 0.85},
     "WM":  {"Dribbler": 1.0, "Engine": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Creator": 0.85, "Controller": 0.85, "Cover": 0.8},
-    "AM":  {"Creator": 1.0, "Dribbler": 0.95, "Engine": 0.9, "Passer": 0.9, "Controller": 0.85, "Striker": 0.85, "Sprinter": 0.85},
+    "AM":  {"Creator": 1.0, "Dribbler": 0.95, "Controller": 0.95, "Engine": 0.9, "Passer": 0.9, "Striker": 0.85, "Sprinter": 0.85},
     "WF":  {"Dribbler": 1.0, "Sprinter": 0.95, "Striker": 0.9, "Creator": 0.9, "Engine": 0.85},
     "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 
-# Tactical roles — each name is the term the football world actually uses.
-# If the word came from Italian, Spanish, Portuguese, German, French, or
-# Argentine football culture and became THE word for that role, we use it.
-# No FIFA/FM generic compound names.
-#
-# Lineage in SACROSANCT System 4.
-TACTICAL_ROLES = {
-    "GK": [
-        ("GK", "Passer",     "Libero GK"),        # Ederson, Ter Stegen: distribution specialist
-        ("GK", "Cover",      "Sweeper Keeper"),    # Neuer, Alisson: high line, reads danger
-        ("GK", "Organiser",  "Comandante"),        # Buffon, Casillas: organizer, commands area
-        ("GK", "Shotstopper","Shotstopper"),       # Kahn, Courtois: reflexes, shot-stopping
-    ],
-    "CD": [
-        ("Passer", "Cover",        "Libero"),       # Beckenbauer, Stones: ball-playing CB
-        ("Cover", "Controller",    "Sweeper"),       # Sammer, Hummels: last man, reads play
-        ("Commander", "Destroyer", "Zagueiro"),      # Thiago Silva, Van Dijk: commanding CB
-        ("Powerhouse", "Destroyer","Stopper"),    # Chiellini, Konate: aggressive, wins duels
-    ],
-    "WD": [
-        ("Passer", "Dribbler",   "Lateral"),        # TAA, Cafu: attacking fullback, final ball
-        ("Engine", "Cover",      "Fluidificante"),   # Zanetti, Robertson: covers full flank
-        ("Controller", "Passer", "Invertido"),       # Lahm, Cancelo: inverted FB, tucks inside
-        ("Sprinter", "Engine",   "Corredor"),        # Walker, Theo Hernandez: pace-based fullback
-    ],
-    "DM": [
-        ("Passer", "Controller",   "Regista"),       # Pirlo, Jorginho: deep playmaker
-        ("Cover", "Destroyer",     "Anchor"),        # Makelele, Casemiro: shield, guards gate
-        ("Controller", "Cover",    "Pivote"),        # Busquets, Rodri: midfield brain
-        ("Powerhouse", "Destroyer","Volante"),       # Gattuso, Kante: ball-winner, aggressive
-    ],
-    "CM": [
-        ("Passer", "Creator",      "Mezzala"),       # Barella, Kovacic: half-space creator
-        ("Engine", "Cover",        "Tuttocampista"), # Lampard, Gerrard: all-pitch midfielder
-        ("Controller", "Passer",   "Metodista"),     # Xavi, Kroos: orchestrator
-        ("Sprinter", "Engine",     "Relayeur"),      # Valverde, Toure: tireless shuttle
-    ],
-    "WM": [
-        ("Dribbler", "Passer",    "Winger"),         # Garrincha, Figo, Saka: beats man with skill
-        ("Engine", "Cover",       "Tornante"),       # Moses, Kostic: full-flank, both phases
-        ("Controller", "Cover",   "False Winger"),   # Bernardo Silva, Foden: drifts inside
-        ("Sprinter", "Engine",    "Shuttler"),       # Sterling, Sane: pace + stamina from wide
-    ],
-    "AM": [
-        ("Dribbler", "Creator",   "Trequartista"),   # Baggio, Zidane: free-roaming 10
-        ("Engine", "Striker",     "Seconda Punta"),  # Del Piero, Griezmann: reads space, links play
-        ("Controller", "Creator", "Enganche"),       # Riquelme, Dybala: the hook, sees everything
-        ("Sprinter", "Striker",   "Boxcrasher"),     # Havertz, Bruno Fernandes: arrives in box
-    ],
-    "WF": [
-        ("Dribbler", "Sprinter",  "Inside Forward"), # Robben, Salah: cuts inside to shoot
-        ("Engine", "Striker",     "Raumdeuter"),     # Son, Mane: space interpreter, presses + scores
-        ("Creator", "Dribbler",   "Inventor"),       # Grealish, Neymar: creates from nothing
-        ("Sprinter", "Striker",   "Extremo"),        # Henry, Mbappe: electric pace + power
-    ],
-    "CF": [
-        ("Striker", "Dribbler",    "Poacher"),       # Gerd Muller, Inzaghi: pure finisher in the box
-        ("Sprinter", "Striker",    "Assassin"),        # Mbappe, Henry: pace-based direct forward
-        ("Engine", "Striker",      "Spearhead"),      # Vardy, Suarez, Jesus: presses + scores
-        ("Striker", "Creator",     "Complete Forward"),        # Kane, Benzema: finishing + vision + link-up
-        ("Creator", "Controller",  "Falso Nove"),     # Messi (2009), Firmino: false 9, orchestrates
-        ("Target", "Powerhouse",   "Prima Punta"),    # Toni, Giroud: target striker, aerial threat
-    ],
-}
+# Tactical roles — loaded from DB (valid_position_roles view).
+# Roles are validated bottom-up: only roles that appear in real tactical
+# systems (slot_roles → system_slots) are valid candidates.
+# Fallback: hardcoded dict for offline/test use if DB view unavailable.
+
+def _load_tactical_roles(cursor):
+    """Load valid roles per position from the systems hierarchy.
+
+    Returns dict: position → [(primary_model, secondary_model, role_name), ...]
+    """
+    try:
+        cursor.execute("""
+            SELECT position, role_name, primary_model, secondary_model
+            FROM valid_position_roles
+            ORDER BY position, role_name
+        """)
+        roles = {}
+        for pos, name, primary, secondary in cursor.fetchall():
+            roles.setdefault(pos, []).append((primary, secondary, name))
+        if roles:
+            return roles
+    except Exception as e:
+        print(f"  WARNING: Could not load roles from DB ({e}), using fallback")
+
+    # Fallback: 40-role set from the Systems & Roles redesign (2026-03-30)
+    return {
+        "GK": [
+            ("GK", "Commander",    "Comandante"),
+            ("GK", "Cover",        "Sweeper Keeper"),
+            ("GK", "Passer",       "Distributor"),
+            ("GK", "Powerhouse",   "Shotstopper"),
+        ],
+        "CD": [
+            ("Commander", "Destroyer", "Centrale"),
+            ("Passer",    "Cover",     "Distributor"),
+            ("Powerhouse","Destroyer", "Stopper"),
+            ("Cover",     "Controller","Sweeper"),
+        ],
+        "WD": [
+            ("Engine",     "Passer",    "Fullback"),
+            ("Engine",     "Dribbler",  "Wing-back"),
+            ("Cover",      "Destroyer", "Corner Back"),
+            ("Controller", "Passer",    "Invertido"),
+        ],
+        "DM": [
+            ("Passer",     "Controller","Regista"),
+            ("Controller", "Cover",     "Pivote"),
+            ("Cover",      "Engine",    "Anchor"),
+            ("Destroyer",  "Engine",    "Ballwinner"),
+            ("Powerhouse", "Engine",    "Segundo Volante"),
+        ],
+        "CM": [
+            ("Creator",    "Passer",    "Playmaker"),
+            ("Controller", "Passer",    "Metodista"),
+            ("Engine",     "Creator",   "Mezzala"),
+            ("Engine",     "Cover",     "Tuttocampista"),
+            ("Engine",     "Destroyer", "Ballwinner"),
+        ],
+        "WM": [
+            ("Sprinter",   "Dribbler",  "Winger"),
+            ("Engine",     "Cover",     "Tornante"),
+            ("Controller", "Creator",   "False Winger"),
+            ("Creator",    "Passer",    "Wide Playmaker"),
+        ],
+        "AM": [
+            ("Dribbler",   "Creator",   "Trequartista"),
+            ("Creator",    "Controller","Enganche"),
+            ("Engine",     "Striker",   "Incursore"),
+            ("Controller", "Creator",   "Mediapunta"),
+        ],
+        "WF": [
+            ("Dribbler",   "Striker",   "Inside Forward"),
+            ("Sprinter",   "Dribbler",  "Winger"),
+            ("Creator",    "Passer",    "Wide Playmaker"),
+            ("Target",     "Powerhouse","Wide Target Forward"),
+        ],
+        "CF": [
+            ("Striker",    "Target",    "Prima Punta"),
+            ("Striker",    "Creator",   "Complete Forward"),
+            ("Creator",    "Controller","Falso Nove"),
+            ("Engine",     "Destroyer", "Spearhead"),
+            ("Target",     "Powerhouse","Target Forward"),
+            ("Creator",    "Striker",   "Seconda Punta"),
+            ("Sprinter",   "Striker",   "Shadow Striker"),
+        ],
+    }
+
+
+TACTICAL_ROLES = _load_tactical_roles(conn.cursor())
 
 # Position weights for overall calculation (which compounds matter per position)
 POSITION_COMPOUND_WEIGHTS = {
@@ -236,8 +256,10 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
     for g in grades:
         source = g.get("source", "")
         # EAFC ratings are video game numbers, not scouting data.
-        # They stay in DB for reference but don't feed model scores.
-        if source == "eafc_inferred":
+        # Proxy grades are derived from other attrs for personality inference
+        # only — they inflate model scores (esp. Commander for CDs).
+        # Both stay in DB for reference but don't feed role scoring.
+        if source in ("eafc_inferred", "proxy_inferred"):
             continue
         attr = g["attribute"].lower().replace(" ", "_")
         # Normalise to 0-20 scale regardless of source.

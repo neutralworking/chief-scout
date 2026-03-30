@@ -110,8 +110,8 @@ POSITION_WEIGHTS = {
     "GK":  {"GK": 1.0, "Passer": 0.9, "Cover": 0.9, "Commander": 0.9, "Powerhouse": 0.9, "Controller": 0.8},
     "CD":  {"Destroyer": 1.0, "Cover": 0.95, "Commander": 0.9, "Passer": 0.85, "Target": 0.85, "Powerhouse": 0.85, "Controller": 0.8},
     "WD":  {"Engine": 1.0, "Dribbler": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Cover": 0.85, "Controller": 0.85, "Destroyer": 0.8},
-    "DM":  {"Controller": 1.0, "Cover": 0.95, "Passer": 0.95, "Destroyer": 0.9, "Commander": 0.85, "Powerhouse": 0.85},
-    "CM":  {"Controller": 1.0, "Passer": 0.95, "Engine": 0.95, "Cover": 0.85, "Creator": 0.85, "Sprinter": 0.85},
+    "DM":  {"Cover": 1.0, "Destroyer": 0.95, "Controller": 0.90, "Passer": 0.90, "Commander": 0.85, "Powerhouse": 0.85},
+    "CM":  {"Engine": 1.0, "Passer": 0.90, "Cover": 0.85, "Sprinter": 0.85, "Controller": 0.80, "Creator": 0.80},
     "WM":  {"Dribbler": 1.0, "Engine": 0.95, "Passer": 0.95, "Sprinter": 0.9, "Creator": 0.85, "Controller": 0.85, "Cover": 0.8},
     "AM":  {"Creator": 1.0, "Dribbler": 0.95, "Controller": 0.95, "Engine": 0.9, "Passer": 0.9, "Striker": 0.85, "Sprinter": 0.85},
     "WF":  {"Dribbler": 1.0, "Sprinter": 0.95, "Striker": 0.9, "Creator": 0.9, "Engine": 0.85},
@@ -253,13 +253,22 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
     """
     # Build best-grade-per-attribute map (prefer highest-priority source)
     best = {}  # attr -> (normalised_score_0_20, priority)
+    # Check if this player has any non-EAFC/proxy grades. If not, allow EAFC
+    # as fallback — better than no data at all (critical for thin OTP nations).
+    has_real_grades = any(
+        g.get("source", "") not in ("eafc_inferred", "proxy_inferred")
+        for g in grades
+    )
     for g in grades:
         source = g.get("source", "")
         # EAFC ratings are video game numbers, not scouting data.
         # Proxy grades are derived from other attrs for personality inference
         # only — they inflate model scores (esp. Commander for CDs).
-        # Both stay in DB for reference but don't feed role scoring.
-        if source in ("eafc_inferred", "proxy_inferred"):
+        # Both stay in DB for reference but don't feed role scoring
+        # UNLESS the player has no real data at all (thin nation fallback).
+        if source == "proxy_inferred":
+            continue
+        if source == "eafc_inferred" and has_real_grades:
             continue
         attr = g["attribute"].lower().replace(" ", "_")
         # Normalise to 0-20 scale regardless of source.
@@ -766,16 +775,30 @@ def main():
             if base_gk_score is not None:
                 role_scores["GK"] = base_gk_score
 
-        # Real grade count excludes eafc/proxy (which are skipped in model scoring)
-        real_gc = sum(1 for g in grades if g.get("source") not in ("eafc_inferred", "proxy_inferred"))
-        best_role, best_role_score = compute_best_role(role_scores, position, grade_count=real_gc)
+        # Real grade count excludes proxy (always skipped) and eafc (unless fallback)
+        has_real = any(g.get("source", "") not in ("eafc_inferred", "proxy_inferred") for g in grades)
+        if has_real:
+            effective_gc = sum(1 for g in grades if g.get("source") not in ("eafc_inferred", "proxy_inferred"))
+        else:
+            # EAFC-only player: count EAFC grades as effective
+            effective_gc = sum(1 for g in grades if g.get("source") == "eafc_inferred")
+
+        best_role, best_role_score = compute_best_role(role_scores, position, grade_count=effective_gc)
 
         # Minimum grade threshold: insufficient data → no role score.
         # Level 87+ players get a lower threshold (10) because they're
         # editorially calibrated and some stat data exists.
+        # EAFC-only players get an even lower threshold (5) — it's sparse
+        # but enough for a baseline level for OTP.
         # UI shows level instead for NULL role scores.
-        real_grade_count = sum(1 for g in grades if g.get("source") != "eafc_inferred")
-        min_grades = 10 if level and level >= 87 else 15
+        if has_real:
+            real_grade_count = sum(1 for g in grades if g.get("source") not in ("eafc_inferred", "proxy_inferred"))
+            min_grades = 10 if level and level >= 87 else 15
+        else:
+            # EAFC-only: no real scouting data. Suppress role score entirely —
+            # these are video game numbers, not scouting assessments.
+            real_grade_count = 0
+            min_grades = 1  # effectively always fails
         if real_grade_count < min_grades:
             best_role_score = None
 

@@ -266,7 +266,15 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
         # Only scout_assessment can reach 19-20; all stat sources cap at 18.
         # This reserves the top of the scale for human assessment.
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
-            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
+            if source == "llm_inferred":
+                # LLM grades cluster 12-16 (too generous for average players,
+                # reasonable for elite). Compress to match stat source ceiling:
+                #   LLM 18→16, 16→15, 14→13.5, 12→12, 10→10.5
+                # Cap at 16 (same as stat sources) so LLM never exceeds
+                # the stat ceiling. Only real scout assessment reaches 17+.
+                score_20 = min(g["scout_grade"] * 0.85 + 2, 16)
+            else:
+                score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
             ss = g["stat_score"]
             if source == "understat":
@@ -434,7 +442,7 @@ def compute_overall(compound_scores, position, level=None, peak=None, grade_coun
     return round(min(max(overall, 1), 99))
 
 
-def compute_best_role(model_scores, position):
+def compute_best_role(model_scores, position, grade_count=0):
     """Compute the best tactical role and its score for a player.
 
     Returns (role_name, role_score) where role_score is 0-100.
@@ -444,6 +452,11 @@ def compute_best_role(model_scores, position):
     Model scores are weighted by POSITION_WEIGHTS so that position-relevant
     models contribute more to role fit (e.g. Destroyer matters more for CD
     than Passer does).
+
+    Thin-data damper: players with <25 real grades get their role score
+    compressed toward 70 to prevent thin stat profiles from producing
+    inflated scores (e.g. backup strikers with 15 API Football grades
+    all at the top decile).
     """
     roles = TACTICAL_ROLES.get(position, [])
     if not roles:
@@ -487,6 +500,14 @@ def compute_best_role(model_scores, position):
         max_excess = 29  # 99 - 70
         stretched = (excess / max_excess) ** 0.55 * max_excess
         normalised = 70 + stretched
+
+    # Thin-data damper: compress toward 70 when data is sparse.
+    # 40+ grades → no damping, 20 grades → 25% pull toward 70,
+    # 10 grades → 50% pull. Prevents backup strikers with 15 high-decile
+    # API Football grades from scoring 89.
+    if grade_count < 40 and normalised > 70:
+        confidence = min(1.0, grade_count / 40)
+        normalised = 70 + (normalised - 70) * confidence
 
     return best_role, round(min(max(normalised, 0), 99))
 
@@ -745,7 +766,9 @@ def main():
             if base_gk_score is not None:
                 role_scores["GK"] = base_gk_score
 
-        best_role, best_role_score = compute_best_role(role_scores, position)
+        # Real grade count excludes eafc/proxy (which are skipped in model scoring)
+        real_gc = sum(1 for g in grades if g.get("source") not in ("eafc_inferred", "proxy_inferred"))
+        best_role, best_role_score = compute_best_role(role_scores, position, grade_count=real_gc)
 
         # Minimum grade threshold: insufficient data → no role score.
         # Level 87+ players get a lower threshold (10) because they're

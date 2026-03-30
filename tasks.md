@@ -8,7 +8,11 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [x] ~~Pre-compute ideal squads~~ — OTP cron run with force, 48/48 computed
 - [x] ~~OTP smoke test~~ — all 48 nations clickable, squads return, ideal squad cached
 - [x] ~~Women filtered from OTP~~ — `is_female` column added to `people`, 90 flagged, API filters applied
-- [ ] **Manual roster augmentation** — user can feed up-to-date squad info for thin nations if needed
+- [x] ~~Coach formations~~ — migration 050, preferred_formation seeded for 48 nations, ideal squad uses coach's real formation
+- [x] ~~Formation role flexibility~~ — widened archetype lists so thin-pool nations fill slots
+- [x] ~~Pipeline 92 rewrite~~ — parses "Recent call-ups" Wikipedia sections for deeper pools
+- [ ] **AF ingest new leagues** — 11 leagues added to script 65 (ECU, PAR, PER, HON, PAN, CRC, JAM, EGY, CIV, QAT, IDN, IRQ, IRN) — code ready, not yet run
+- [ ] **Re-run OTP cron with force** — recompute ideal squads using coach formations (after AF ingest)
 - [ ] **Verify OTP conversion hook** — post-submit CS rating + upgrade CTA functional
 
 ### Production Readiness
@@ -31,7 +35,9 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 
 ### Data Quality
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables
-- [ ] **Role distribution tuning** — CM Tuttocampista 62%, WM Winger 82%, DM Anchor 71% dominant. Root cause: data coverage gaps
+- [ ] **LLM attribute inference expansion** — pipeline 93 covers ~190 players (level 75+). Run for more players across sessions (quota-limited). Fixes Controller/Engine/Commander model coverage.
+- [ ] **Role distribution tuning** — Tuttocampista still dominant at CM. Root cause: data coverage gaps. LLM inference helps but needs broader coverage.
+- [ ] **Raumdeuter → archetype** — removed as WF role, needs adding to archetype system (SACROSANCT System 2)
 - [ ] **Archetype threshold tuning** — Pulse (1,037) and Outlet (1,041) still heavy; aspiring tier at 15%
 
 ## Medium Priority
@@ -79,6 +85,15 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo
 
 ---
+
+## Completed (2026-03-30, session 30)
+- [x] Systems & Roles Redesign — migration 049, 28 systems, 41 roles, pipeline 83 seed, pipeline 27 DB-driven
+- [x] LLM Attribute Inference — pipeline 93, 3,475 grades for thin mental/tactical models
+- [x] AM role distribution fix — Controller weight bump + LLM data → 45% Enganche / 31% Trequartista / 20% Mediapunta
+- [x] GitHub Issues cleanup — 4 closed, 7 created, "Launch — May 1" milestone, labels
+- [x] SACROSANCT System 4 rewritten for 41-role taxonomy
+- [x] Frontend synced — role-definitions.ts, ratings.ts, compare/route.ts all updated
+- [x] QA passed — all 9 checks green, TypeScript clean, zero orphan roles
 
 ## Completed (2026-03-27, session 28)
 - [x] Pipeline 92 parser fixed: 4 bugs (sort-key positions, table class ordering, federation club links, redlink names)

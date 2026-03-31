@@ -264,7 +264,7 @@ export default function SquadBuilderPage() {
   const [posFilter, setPosFilter] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
-  const [sortBy, setSortBy] = useState<"level" | "role_score" | "age" | "name">("level");
+  const [sortBy, setSortBy] = useState<"level" | "role_score" | "age" | "name">("role_score");
 
   // Reveal state
   const [idealData, setIdealData] = useState<IdealData | null>(null);
@@ -586,45 +586,43 @@ export default function SquadBuilderPage() {
             </div>
           </div>
           <StepBar current={step} />
+          {/* Info bar — always visible */}
+          <div className="px-4 py-2 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px]" style={{ color: "var(--text-secondary)" }}>Formation</span>
+                <select
+                  value={formation}
+                  onChange={(e) => setFormation(e.target.value)}
+                  className="px-1.5 py-0.5 rounded text-[10px] font-mono cursor-pointer"
+                  style={{ background: "var(--bg-elevated)", color: "var(--color-accent-personality)", border: "1px solid var(--border-subtle)" }}
+                >
+                  {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                {Object.entries(squadBalance).map(([grp, cnt]) => (
+                  <span key={grp} className="text-[10px] font-mono" style={{ color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
+                    {grp} {cnt}
+                  </span>
+                ))}
+                <button onClick={() => setPitchOpen(!pitchOpen)} className="cursor-pointer" style={{ color: "var(--text-muted)", fontSize: "10px" }}>
+                  {pitchOpen ? "▲" : "▼"}
+                </button>
+              </div>
+            </div>
+            {balanceWarnings.length > 0 && (
+              <div className="max-w-5xl mx-auto mt-1.5 px-3 py-1 rounded text-[10px]" style={{ background: "rgba(217,63,11,0.1)", color: "#ef4444" }}>
+                ⚠ {balanceWarnings[0]}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Collapsible pitch toggle */}
-        <div className="max-w-5xl mx-auto px-4 pt-3 pb-2">
-          <button
-            onClick={() => setPitchOpen(!pitchOpen)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs cursor-pointer"
-            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}
-          >
-            <div className="flex items-center gap-2">
-              <span style={{ color: "var(--text-secondary)" }}>Formation</span>
-              <select
-                value={formation}
-                onChange={(e) => { e.stopPropagation(); setFormation(e.target.value); }}
-                onClick={(e) => e.stopPropagation()}
-                className="px-1.5 py-0.5 rounded text-[10px] font-mono cursor-pointer"
-                style={{ background: "var(--bg-elevated)", color: "var(--color-accent-personality)", border: "1px solid var(--border-subtle)" }}
-              >
-                {FORMATIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-              </select>
-            </div>
-            <div className="flex items-center gap-3">
-              {Object.entries(squadBalance).map(([grp, cnt]) => (
-                <span key={grp} className="text-[10px] font-mono" style={{ color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
-                  {grp} {cnt}
-                </span>
-              ))}
-              <span style={{ color: "var(--text-muted)", fontSize: "10px" }}>{pitchOpen ? "▲" : "▼"}</span>
-            </div>
-          </button>
-
-          {balanceWarnings.length > 0 && (
-            <div className="mt-1.5 px-3 py-1.5 rounded-lg text-[10px]" style={{ background: "rgba(217,63,11,0.1)", color: "#ef4444" }}>
-              ⚠ {balanceWarnings[0]}
-            </div>
-          )}
-
-          {pitchOpen && (
-            <div className="mt-2 animate-slideUp">
+        {/* Collapsible pitch */}
+        {pitchOpen && (
+          <div className="max-w-5xl mx-auto px-4 pt-3 pb-2">
+            <div className="animate-slideUp">
               {/* Full-width pitch */}
               <div
                 className="rounded-lg p-3 flex flex-col justify-between relative"
@@ -698,8 +696,8 @@ export default function SquadBuilderPage() {
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Filters ── */}
         <div className="max-w-5xl mx-auto px-4 pt-2 pb-2 space-y-2">

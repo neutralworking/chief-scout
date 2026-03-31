@@ -2,68 +2,27 @@
 
 ## Launch Blockers (P0)
 
-### OTP Launch — Hard Deadline: April 7
-WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and all 48 nations playable.
-- [x] ~~Wikipedia squad enrichment~~ — pipeline 92 fixed + run, 720 players inserted, 48/48 nations playable
-- [x] ~~Pre-compute ideal squads~~ — OTP cron run with force, 48/48 computed
-- [x] ~~OTP smoke test~~ — all 48 nations clickable, squads return, ideal squad cached
-- [x] ~~Women filtered from OTP~~ — `is_female` column added to `people`, 90 flagged, API filters applied
+### OTP Launch — April 7 ✓ (all design + UX + QA done)
 - [ ] **Manual roster augmentation** — user can feed up-to-date squad info for thin nations if needed
-- [x] ~~Verify OTP conversion hook~~ — post-submit scoring + UpgradeCTA + /pricing page all wired up
 - [ ] **Stripe price IDs in Vercel** — create products in Stripe, add NEXT_PUBLIC_STRIPE_SCOUT_PRICE_ID + annual + pro variants to Vercel env
-
-### Production Readiness
-- [x] ~~Fix Prod DB~~ — region migrated eu-central-1→eu-west-1, pooler endpoint updated
-- [x] ~~Stripe keys~~ — test keys set in both .env.local files. Still need adding to Vercel for deploy.
-- [x] ~~Production build verification~~ — clean build confirmed session 26
-- [x] ~~Scouting notes gap~~ — 250/250 top players now have notes (pipeline 90, 249 generated via Anthropic)
-- [x] ~~NEXT_PUBLIC_SITE_URL~~ — set to chief-scout.vercel.app in Vercel + all 16 env vars pushed
-
-### Data Quality (launch-critical)
-- [x] ~~Top-end role score compression~~ — Fixed: curved model conversion + top-end stretch. Mbappé 87→90, ceiling 89→92
-- [x] ~~3 manual profiles not found~~ (Tchouameni, Cubarsi, Dembele) — stale no-accent dupes deleted, accented entries have full data
 
 ## High Priority
 
-### OTP Game Design (decide before April 7)
-- [x] ~~**OTP positional validation**~~ — SLOT_POSITION_MAP enforces position constraints
-- [x] ~~**OTP scoring model**~~ — quality-based (50% squad + 35% XI + 15% formation)
-- [x] ~~**OTP formation bonus**~~ — all-or-nothing 15pts (kept)
-- [x] ~~**OTP reveal insight**~~ — free teaser (score + comparison) + UpgradeCTA paywall
-- [x] ~~**OTP strength bar**~~ — kept as 0-100% bar on nation cards
-
-### OTP Medium Fixes (after design decisions)
-- [x] ~~**Duplicate protection**~~ — server-side person_id dedup in submit route (#124)
-- [x] ~~**Squad balance warnings**~~ — warns on 0 GK, excess FWD, etc. when >20 selected (#125)
-- [x] ~~**Replay/try again button**~~ — resets squad for same nation on reveal (#126)
-- [x] ~~**Formation change preserves XI**~~ — keeps compatible picks, drops only mismatches (#127)
-- [x] ~~**Back-nav warning**~~ — beforeunload listener when squad has selections (#128)
-
 ### Product & UX
-- [x] ~~**Mobile nav: More sheet polish**~~ — swipe-to-dismiss, haptic pulse, backdrop blur, spring easing, escape key
-- [ ] **Players filter redesign** — role/archetype filters, level prominence, dropdowns instead of position/age buttons (desktop + mobile)
 - [ ] **Onboarding** — no help docs or tour for new users
 - [ ] **Transfer comps on player detail** — "Similar Transfers" widget using /api/transfers/comps/[playerId]
 
 ### Data Quality
 - [ ] **FBRef re-import with advanced stats** — current CSV only has goals/assists. Need shooting/passing/defense HTML tables
-- [x] ~~Role distribution tuning~~ — superseded by Systems & Roles (41 roles, all positions balanced)
-- [x] ~~**Archetype threshold tuning**~~ — inference cascade removed, Connector/Wall/Terrier tightened, aspiring 67%→15%, max archetype 2,874→461
-- [x] ~~Systems & Roles implementation~~ — DONE: migration 049, pipeline 83 rewrite, pipeline 27 update, frontend. 41 roles, 28 systems, all calibrated.
-- [x] ~~Stat source calibration~~ — AF + understat unified to ×1.5 cap 15, garbage override, GK/DM/WF weight fixes. Gap ≥+15: 54→8.
-- [x] ~~**Apply migration 050**~~ — old tactical_roles/philosophy_formations/philosophy_roles dropped, code migrated to tactical_systems hierarchy
-- [x] ~~**Stale data cleanup**~~ — recency decay in pipeline 30, 3 name collision dupes fixed, 7 retired marked inactive, RS≥+15 gap: 31→2
 
 ## Medium Priority
 
 ### Data Quality
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling
-- [x] ~~**Dedup improvements**~~ — fuzzy matching (Strategy 4) added to pipeline 65: last-name-exact + first-name JW + nationality boost. 21 new matches.
 - [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`
 - [ ] **StatsBomb event extraction** — progressive carries, pressure events, shot-creating actions from `sb_events`
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
-- [x] ~~Women's players~~ — `is_female` column on `people`, 90 flagged, filtered from OTP. Longer-term: separate pipeline TBD
 - [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)
 - [ ] **Expand transfer seed data** — 19 unmatched players (accent mismatches), find Kaggle transfer fee dataset
 
@@ -87,10 +46,8 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] EA FC 25 fuzzy matching — ~6,900 unmatched players
 - [ ] **LLM-powered name matching** — build `pipeline/lib/llm_match.py` for transliteration/accent resolution
 - [ ] **Pricing page visual alignment** — redesigned to match landing page
-- [x] ~~Thin-pool OTP nations~~ — pipeline 92 (Wikipedia national squads) built, covers all 48 nations
 
 ## Kickoff Clash
-- [x] ~~KC DB wiring~~ — migration 036, 201 tests, pack opening, card art, rarity rebalance
 - [ ] **KC v2 polish** — pack opening animation, manager cards, meta-progression, more formations
 - [ ] **KC standalone theme** — felt green/amber/leather redesign
 
@@ -99,6 +56,21 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [ ] **Punter's Pad scaffold** — `punters-pad` repo
 
 ---
+
+## Completed (2026-03-31, session 38 — OTP Polish + Taxonomy Refinement)
+- [x] OTP design overhaul: branded SVG hero, Clash Display gradient, collapsible pitch, animated reveal, mobile-first layout (75483be)
+- [x] OTP smart XI slot assignment with preferred side + role score sort (41ceb1b)
+- [x] OTP best role shown in player list + contextual score column (97b9c21)
+- [x] OTP sticky info bar + role score default + Pogba nationality fix (86eaca5)
+- [x] Players filter redesign: role/archetype/league dropdowns, position-aware, More overflow (42ea370)
+- [x] 42-role taxonomy: Carrilero added (CM), Inside Forward → Inverted Winger rename (09fd7c3)
+- [x] Complete Forward moved from role to earned archetype, Raumdeuter → archetype (ec1ec4f, b258644)
+
+## Completed (2026-03-31, session 37 — AllSportsAPI + Cap-Tied Tracking)
+- [x] AllSportsAPI pipeline: scripts 67 (squad/stats ingest) + 68 (grade conversion) (0612ee0)
+- [x] Migration 052: `allsportsapi_stats` table
+- [x] Migration 053: `cap_tied` nationality tracking
+- [x] Cap-tied nationality resolution for dual-national players
 
 ## Completed (2026-03-31, session 36 — Rating Calibration Overhaul)
 - [x] Pipeline 27: unified stat compression (all sources ×1.5 cap 15)
@@ -193,74 +165,16 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [x] Understat compression unified with AF: both ×1.5 cap 15. Gap ≥+15: 13→8.
 - [x] Dembélé moved back to WF (Inverted Winger 89) — no CF role uses Dribbler model
 
-## Completed (2026-03-27, session 28)
-- [x] Pipeline 92 parser fixed: 4 bugs (sort-key positions, table class ordering, federation club links, redlink names)
-- [x] Pipeline 92 data fixes: `date_of_birth` column name, manual ID generation, South Africa redirect, New Zealand disambiguation
-- [x] 720 new players inserted across 15 thin/low nations — 48/48 WC nations now playable
-- [x] Materialized view refreshed: 28,636 rows (up from 27,918)
-- [x] OTP ideal squads precomputed: 48/48 nations, zero errors
-- [x] Women filtered from OTP: `is_female` boolean on `people` (90 flagged), API filters on 3 endpoints
-- [x] Codespace POSTGRES_DSN secret stale (eu-west-1) — needs GitHub secret update
-
-## Completed (2026-03-26, session 27)
-- [x] Fixture predictions fix: club enrichment was broken (selecting nonexistent columns), 130/149 predictions now live
-- [x] Fixture preview fix: philosophy/formation data from tactical_philosophies, 11/11 predicted XI
-- [x] Paywall bypass: staging + admin login skip all tier gates
-- [x] Role score decompression: curved model conversion + top-end stretch (Mbappé 87→90, ceiling 89→92)
-- [x] POSTGRES_DSN fixed: was pointing to eu-west-1, corrected to eu-central-1
-- [x] .superpowers/ gitignored, outstanding session artifacts committed
-
-## Completed (2026-03-26, session 26)
-- [x] All 5 P0 launch blockers cleared
-- [x] Prod DB fixed — region migrated eu-central-1→eu-west-1
-- [x] Stripe keys set (test) in .env.local + Vercel
-- [x] Scouting notes gap closed — 250/250 top players have notes (pipeline 90)
-- [x] NEXT_PUBLIC_SITE_URL set in Vercel + 16 env vars pushed
-- [x] 13 codespace secrets configured (no manual pasting on rebuild)
-- [x] Scout Grading Queue — `/admin?tab=grading`, compact 0-10 click-to-grade, auto-advance
-- [x] PM sync — WORKING.md, tasks.md, FEATURES.md, BRANCHES.md all updated
-- [x] Revenue gating: PaywallGate + TierGatedSection on all tier-restricted pages
-- [x] Gaffer Sprint 2: identity reveal, era bias fix, OTP conversion hook, onboarding
-- [x] CEO assessment + launch readiness plan (May 1 target), PR #113
-
-## Completed (2026-03-25, session 25)
-- [x] Gaffer question quality pass: dated refs fixed, ACL dilemma rewritten, GOAT dupes rethemed
-- [x] control_vs_chaos dimension expanded (~20→~130 across 25+ options)
-- [x] Two new Gaffer categories: Contract Talks + International Duty (135 total)
-- [x] Crowd intelligence feedback loop: migration 046, pipeline 46, admin widget
-- [x] Materialized view: migration 047, 7 indexes, 27,918 rows, pg_trgm, RPC refresh
-- [x] All migrations applied through 047 on staging
-- [x] Vercel deploy fixed (hobby plan quota from rapid pushes)
-
-## Completed (2026-03-25, session 24)
-- [x] EAFC grades excluded from role scoring (pipeline 27)
-- [x] GK 1.2× scout rescale removed
-- [x] Level floors inverted, min grade thresholds
-- [x] League strength integrated via `lib/calibration.py`
-- [x] Position deflators (later removed — defender RS gap)
-- [x] Proxy model inference for Sprinter/Engine/Controller/Target
-- [x] CF roles expanded: Assassin, Complete Forward, Spearhead
-- [x] Fox→Assassin, Sentinelle→Anchor, Vorstopper→Stopper renames
-- [x] 68 tests passing (15 new)
-
-## Completed (2026-03-24, sessions 22-23)
-- [x] Transfer Comparables: migration 045, pipelines 87-89, /transfers page, 147 seed + 737 Kaggle
-- [x] Scouting Notes v2: pipeline 90, migration 048, multi-perspective, admin panel
-- [x] Player detail: no-scroll redesign with tab groups
-- [x] Wave 2 UI: Clubs, Leagues, News, Free Agents redesigned
-- [x] Wave 3 UI: Compare, Tactics, Squad redesigned
-- [x] KC DB wiring: 201 tests, pack opening, card art, rarity rebalance
-- [x] OTP fixes: GK filter, positions-first layout, React #310
-- [x] KC mobile: full XI formations, starter packs, manager cards
-- [x] Tactical philosophies: 10 seeded, 22 clubs assigned, /tactics detail
-- [x] Legend archetype inference: 313 legends via compound mapping + 1,291 active players
-- [x] Football-culture archetypes: Fenômeno, Kaiser, Pendolino, Tractor, etc.
-- [x] Playing style traits: 16 editorial traits, pipeline 04d, trait pills
-- [x] Archetype styling: centralized `lib/archetype-styles.ts`
-- [x] Secondary model enrichment: 827/924 single-model compounds fixed (71%→7%)
+## Completed (sessions 24-28 — see git log for details)
+- [x] Pipeline 92 parser + data fixes, 720 new players, 48/48 OTP nations (session 28)
+- [x] Fixture predictions fix, paywall bypass, role score decompression (session 27)
+- [x] All P0 launch blockers cleared, Gaffer Sprint 2, revenue gating (session 26)
+- [x] Gaffer quality pass, crowd intelligence, materialized view (session 25)
+- [x] Role score overhaul: EAFC excluded, league strength, proxy models (session 24)
+- [x] Transfer Comparables, Scouting Notes v2, Wave 2+3 UI, KC DB wiring (sessions 22-23)
 
 ## Completed (earlier sessions — see git log for details)
-- [x] 36-Role Taxonomy, Fixture Predictions, GK Ratings, Nav v2, Design System v2
+- [x] 36→42-Role Taxonomy, Fixture Predictions, GK Ratings, Nav v2, Design System v2
 - [x] Valuation pillar integration, position audit, grade backfill
 - [x] Legends system (195), On The Plane (48 nations), Kickoff Clash v4
 - [x] Freemium + billing tier, per-player SEO, career XP v2

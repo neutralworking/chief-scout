@@ -24,6 +24,8 @@ import { SystemFit } from "@/components/SystemFit";
 import { TierGatedSection } from "@/components/TierGatedSection";
 import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
+import { ProfileOnboarding } from "@/components/ProfileOnboarding";
+import { isProduction } from "@/lib/env";
 
 
 function nationFlag(code: string | null | undefined): string {
@@ -423,7 +425,7 @@ export default async function PlayerDetailPage({
             </div>
 
             {/* Role badge — right side (editable for admins) */}
-            <div className="shrink-0">
+            <div className="shrink-0" data-onboarding="role-score">
               <RoleScoreEditor
                 personId={player.person_id}
                 bestRole={player.best_role}
@@ -454,7 +456,7 @@ export default async function PlayerDetailPage({
             )}
 
             {player.personality_type && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" data-onboarding="personality">
                 <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">Type</span>
                 <span className="text-[11px] font-data font-bold text-[var(--color-accent-personality)]">{player.personality_type}</span>
                 {personalityName && (
@@ -530,7 +532,9 @@ export default async function PlayerDetailPage({
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Left: Radar + System Fit + Tab group (Career / Stats / News) */}
         <div className="flex flex-col gap-2 min-h-0">
-          <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
+          <div data-onboarding="radar">
+            <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
+          </div>
 
           <SystemFit
             clubId={player.club_id}
@@ -574,6 +578,9 @@ export default async function PlayerDetailPage({
         </div>
       </div>
       </TierGatedSection>
+
+      {/* First-visit onboarding tooltips — production only */}
+      {isProduction() && <ProfileOnboarding />}
     </div>
   );
 }

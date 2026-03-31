@@ -7,6 +7,7 @@ import { LandingPage } from "@/components/LandingPage";
 import { FeaturedPlayer } from "@/components/FeaturedPlayer";
 import { TrendingPlayers } from "@/components/TrendingPlayers";
 import { SectionHeader } from "@/components/SectionHeader";
+import { WelcomeBanner } from "@/components/WelcomeBanner";
 
 interface NewsStoryWithTags {
   id: string;
@@ -381,6 +382,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="surface-vibrant rounded-[var(--radius-lg)] flex flex-col gap-2 sm:gap-3 pb-20 lg:pb-0 lg:h-[calc(100vh-2rem)] lg:overflow-hidden">
+      {/* Welcome banner — first-time visitors, production only */}
+      {isProduction() && (
+        <div className="shrink-0">
+          <WelcomeBanner />
+        </div>
+      )}
+
       {/* Row 1: Featured Player — hero, full width */}
       <div className="shrink-0">
         {featured ? (

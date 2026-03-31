@@ -6,7 +6,7 @@ const FEATURES = [
   {
     title: "Role-Fit Scoring",
     description:
-      "Every player scored against 26 tactical roles. Don't just know if they're good — know where they're good.",
+      "Every player scored against 42 tactical roles. Don't just know if they're good — know where they're good.",
     accent: "var(--color-accent-tactical)",
   },
   {
@@ -24,10 +24,10 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: "19,000+", label: "Players" },
-  { value: "26", label: "Tactical Roles" },
+  { value: "28,000+", label: "Players" },
+  { value: "42", label: "Tactical Roles" },
   { value: "16", label: "Personality Types" },
-  { value: "276", label: "Full Dossiers" },
+  { value: "9,200+", label: "Full Profiles" },
 ];
 
 export function LandingPage({

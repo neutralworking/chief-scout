@@ -85,7 +85,6 @@ export default function PlayerCard({
           transform: selected ? 'translateY(-1px)' : undefined,
         }}
         className="relative flex items-center gap-1.5 rounded-lg px-2 py-1 transition-all duration-150"
-        style-width="100px"
       >
         {/* Position badge */}
         <span

@@ -44,6 +44,8 @@ interface PlayerCardProps {
   selected?: boolean;
   dimmed?: boolean;
   showSellPrice?: boolean;
+  assignment?: 'attacking' | 'defending' | null; // v5 attack/defend state
+  diminished?: boolean; // beyond soft cap (50% power)
 }
 
 // ---------------------------------------------------------------------------
@@ -57,6 +59,8 @@ export default function PlayerCard({
   selected = false,
   dimmed = false,
   showSellPrice = false,
+  assignment = null,
+  diminished = false,
 }: PlayerCardProps) {
   const rarityColor = RARITY_COLORS[card.rarity] ?? RARITY_COLORS.Common;
   const rarityGlow = RARITY_GLOW[card.rarity] ?? RARITY_GLOW.Common;
@@ -120,9 +124,36 @@ export default function PlayerCard({
   const w = isMini ? 72 : 130;
   const h = isMini ? 98 : 170;
 
+  // v5 assignment styling
+  const isAttacking = assignment === 'attacking';
+  const isDefending = assignment === 'defending';
+  const isInjured = !!card.injured;
+
+  const borderColor = isInjured
+    ? '#ef4444'
+    : isAttacking
+      ? '#fbbf24'
+      : isDefending
+        ? '#60a5fa'
+        : rarityColor;
+
+  const assignmentTransform = isAttacking
+    ? 'translateY(-2px)'
+    : selected
+      ? 'translateY(-3px) scale(1.03)'
+      : undefined;
+
+  const assignmentShadow = isAttacking
+    ? '0 0 12px rgba(251,191,36,0.4), 0 4px 12px rgba(0,0,0,0.4)'
+    : isDefending
+      ? '0 0 8px rgba(96,165,250,0.3), 0 4px 12px rgba(0,0,0,0.4)'
+      : selected
+        ? `${rarityGlow}, 0 8px 20px rgba(0,0,0,0.5)`
+        : '0 4px 12px rgba(0,0,0,0.4)';
+
   return (
     <div
-      onClick={onClick}
+      onClick={isInjured && isAttacking ? undefined : onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className="relative flex flex-col justify-between overflow-hidden transition-all duration-150"
@@ -130,14 +161,16 @@ export default function PlayerCard({
         width: w,
         height: h,
         background: gradient,
-        border: `2px solid ${rarityColor}`,
+        borderLeft: assignment ? `3px solid ${borderColor}` : undefined,
+        border: assignment ? undefined : `2px solid ${rarityColor}`,
+        borderTop: assignment ? `1px solid ${borderColor}` : undefined,
+        borderRight: assignment ? `1px solid ${borderColor}` : undefined,
+        borderBottom: assignment ? `1px solid ${borderColor}` : undefined,
         borderRadius: 10,
-        boxShadow: selected
-          ? `${rarityGlow}, 0 8px 20px rgba(0,0,0,0.5)`
-          : '0 4px 12px rgba(0,0,0,0.4)',
-        opacity: dimmed ? 0.3 : 1,
-        transform: selected ? 'translateY(-3px) scale(1.03)' : undefined,
-        cursor: onClick ? 'pointer' : 'default',
+        boxShadow: assignmentShadow,
+        opacity: dimmed ? 0.3 : isInjured ? 0.6 : 1,
+        transform: assignmentTransform,
+        cursor: onClick && !(isInjured && isAttacking) ? 'pointer' : 'default',
       }}
     >
       {/* ---- Top row: position badge + power ---- */}
@@ -220,6 +253,45 @@ export default function PlayerCard({
           width: '100%',
         }}
       />
+
+      {/* ---- Injured overlay ---- */}
+      {isInjured && assignment !== null && (
+        <div
+          className="absolute inset-0 flex items-center justify-center rounded-[8px]"
+          style={{ background: 'rgba(239,68,68,0.2)', pointerEvents: 'none' }}
+        >
+          <span
+            className="rounded px-1.5 py-0.5 font-black uppercase"
+            style={{
+              background: 'rgba(239,68,68,0.85)',
+              color: '#fff',
+              fontSize: isMini ? 8 : 11,
+            }}
+          >
+            Injured
+          </span>
+        </div>
+      )}
+
+      {/* ---- Diminished badge (soft cap) ---- */}
+      {diminished && (
+        <div
+          className="absolute flex items-center justify-center rounded-full"
+          style={{
+            top: isMini ? 2 : 4,
+            right: isMini ? 2 : 4,
+            width: isMini ? 18 : 24,
+            height: isMini ? 18 : 24,
+            background: 'rgba(239,68,68,0.9)',
+            color: '#fff',
+            fontSize: isMini ? 8 : 10,
+            fontWeight: 900,
+            pointerEvents: 'none',
+          }}
+        >
+          50%
+        </div>
+      )}
 
       {/* ---- Sell price overlay ---- */}
       {showSellPrice && (

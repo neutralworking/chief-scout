@@ -75,7 +75,7 @@ export const ROLE_COMBOS: {
 // Personality theme constants (Tier 3)
 // ---------------------------------------------------------------------------
 
-const PERSONALITY_THEMES = ["General", "Catalyst", "Maestro", "Captain", "Professor"] as const;
+export const PERSONALITY_THEMES = ["General", "Catalyst", "Maestro", "Captain", "Professor"] as const;
 type PersonalityTheme = (typeof PERSONALITY_THEMES)[number];
 
 interface ThemeResonance {
@@ -85,7 +85,9 @@ interface ThemeResonance {
   computeBonus: (lineupPower: number, seed: number) => number;
 }
 
-const THEME_RESONANCES: Record<PersonalityTheme, ThemeResonance> = {
+export type { PersonalityTheme };
+
+export const THEME_RESONANCES: Record<PersonalityTheme, ThemeResonance> = {
   General: {
     name: "Chain of Command",
     key: "t3_general",
@@ -136,7 +138,7 @@ function lineupPower(cards: SlottedCard[]): number {
 // Tier 1 — Archetype Pairs
 // ---------------------------------------------------------------------------
 
-function findArchetypePairs(cards: SlottedCard[]): Connection[] {
+export function findArchetypePairs(cards: SlottedCard[]): Connection[] {
   const connections: Connection[] = [];
   const groups = new Map<string, SlottedCard[]>();
   for (const sc of cards) {
@@ -181,7 +183,7 @@ function findArchetypePairs(cards: SlottedCard[]): Connection[] {
 // Tier 2 — Role Combos
 // ---------------------------------------------------------------------------
 
-function findRoleCombos(cards: SlottedCard[]): Connection[] {
+export function findRoleCombos(cards: SlottedCard[]): Connection[] {
   const connections: Connection[] = [];
   const roleMap = new Map<string, SlottedCard[]>();
   for (const sc of cards) {
@@ -297,6 +299,133 @@ export function findConnections(cards: SlottedCard[], _round?: number): Connecti
   });
 
   return connections;
+}
+
+// ---------------------------------------------------------------------------
+// Cross Synergy Types (v5)
+// ---------------------------------------------------------------------------
+
+export interface CrossSynergy extends Connection {
+  attackBonus: number;  // points added to attack score
+  defenceBonus: number; // points added to defence score
+}
+
+interface CrossSynergyDef {
+  name: string;
+  key: string;
+  defenceArchetype: string | string[]; // archetype(s) required in defence
+  attackArchetype: string | null;       // archetype required in attack (null = any)
+  defenderBonusPct: number;
+  attackerBonusPct: number;
+}
+
+const CROSS_SYNERGY_DEFS: CrossSynergyDef[] = [
+  {
+    name: 'Counter Punch',
+    key: 'cross_counter_punch',
+    defenceArchetype: 'Destroyer',
+    attackArchetype: 'Sprinter',
+    defenderBonusPct: 0,
+    attackerBonusPct: 0.25,
+  },
+  {
+    name: 'The Link',
+    key: 'cross_the_link',
+    defenceArchetype: ['Creator', 'Passer'],
+    attackArchetype: 'Striker',
+    defenderBonusPct: 0,
+    attackerBonusPct: 0.20,
+  },
+  {
+    name: 'Pressing Trap',
+    key: 'cross_pressing_trap',
+    defenceArchetype: 'Engine',
+    attackArchetype: 'Engine',
+    defenderBonusPct: 0.15,
+    attackerBonusPct: 0.15,
+  },
+  {
+    name: 'Shield & Sword',
+    key: 'cross_shield_sword',
+    defenceArchetype: 'Cover',
+    attackArchetype: null, // any attacker
+    defenderBonusPct: 0.15,
+    attackerBonusPct: 0.10,
+  },
+];
+
+function findCrossSynergies(
+  attackers: SlottedCard[],
+  defenders: SlottedCard[],
+): CrossSynergy[] {
+  const synergies: CrossSynergy[] = [];
+
+  for (const def of CROSS_SYNERGY_DEFS) {
+    const defArchetypes = Array.isArray(def.defenceArchetype)
+      ? def.defenceArchetype
+      : [def.defenceArchetype];
+
+    const matchingDefenders = defenders.filter(
+      (sc) => defArchetypes.includes(sc.card.archetype),
+    );
+    if (matchingDefenders.length === 0) continue;
+
+    const matchingAttackers = def.attackArchetype === null
+      ? attackers
+      : attackers.filter((sc) => sc.card.archetype === def.attackArchetype);
+    if (matchingAttackers.length === 0) continue;
+
+    // Take first matching pair
+    const defender = matchingDefenders[0];
+    const attacker = matchingAttackers[0];
+
+    const attackBonus = Math.round(attacker.card.power * def.attackerBonusPct);
+    const defenceBonus = Math.round(defender.card.power * def.defenderBonusPct);
+
+    synergies.push({
+      name: def.name,
+      tier: 1,
+      cards: [defender.card.name, attacker.card.name],
+      bonus: attackBonus + defenceBonus,
+      key: def.key,
+      attackBonus,
+      defenceBonus,
+    });
+  }
+
+  return synergies;
+}
+
+// ---------------------------------------------------------------------------
+// Positional Connections (v5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Detects synergies based on attack/defence card assignment.
+ * Attack synergies fire when all participants are attacking.
+ * Defence synergies fire when all participants are defending.
+ * Cross synergies fire when participants are split across sides.
+ */
+export function findPositionalConnections(
+  attackers: SlottedCard[],
+  defenders: SlottedCard[],
+  _round?: number,
+): {
+  attackSynergies: Connection[];
+  defenceSynergies: Connection[];
+  crossSynergies: CrossSynergy[];
+} {
+  return {
+    attackSynergies: [
+      ...findArchetypePairs(attackers),
+      ...findRoleCombos(attackers),
+    ],
+    defenceSynergies: [
+      ...findArchetypePairs(defenders),
+      ...findRoleCombos(defenders),
+    ],
+    crossSynergies: findCrossSynergies(attackers, defenders),
+  };
 }
 
 // Re-export Card/SlottedCard for backward compatibility

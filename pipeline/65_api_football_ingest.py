@@ -532,6 +532,20 @@ def match_players(conn):
             UPDATE api_football_players SET person_id = %s WHERE api_football_id = %s
         """, stats_to_update)
 
+    # Backfill: propagate person_id to any stats rows for already-matched players
+    # This catches stats ingested AFTER the player was originally matched
+    cur.execute("""
+        UPDATE api_football_player_stats s
+        SET person_id = p.person_id
+        FROM api_football_players p
+        WHERE s.api_football_id = p.api_football_id
+          AND s.person_id IS NULL
+          AND p.person_id IS NOT NULL
+    """)
+    backfilled = cur.rowcount
+    if backfilled > 0:
+        print(f"  Backfilled {backfilled} stats rows from previously matched players")
+
     conn.commit()
     return total_matched
 

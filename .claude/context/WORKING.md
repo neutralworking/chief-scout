@@ -25,11 +25,17 @@ OTP Deadline: **April 7, 2026** — WC 2026 playoffs buzz
 9. ~~**EAFC PlayStyles**~~ — 11,024 traits imported, 5,489 inferred, foot/side enrichment (session 35)
 10. ~~**AllSportsAPI pipeline**~~ — scripts 67/68, migrations 052-053, cap-tied tracking (session 37)
 
-### Session 38 (2026-03-31 — current)
-- **OTP smart XI**: preferred side + role score sort, best role in player list, contextual score column
-- **OTP UX**: sticky info bar, role score default, Pogba nationality fix
+### Session 39 (2026-03-31 — current)
+- **OTP smart XI**: preferred side restored to formation blueprints + `scorePlayerForRole`, greedy best-fit slot assignment
+- **OTP UX**: removed player count from index, role score sort + default, best role in player list, sticky info bar, contextual score column
+- **Pogba fix**: nation_id 69 (England) → 79 (France), cap-tied flags corrected
+- **AF stats backfill**: `api_football_player_stats.person_id` was null for 15,247 rows — stats ingested after initial matching never got linked. Backfill propagated from `api_football_players`. Script 65 patched to auto-backfill on every run.
+- **Archetype recompute**: 213 → 9,900 players with AF stats. Earned archetypes: 287 elite + 2,483 established + 3,144 aspiring (was 2 + 41 + 6,869)
+
+### Session 38 (2026-03-31)
 - **42-role taxonomy**: Carrilero CM added, Inside Forward → Inverted Winger, Complete Forward → earned archetype
 - **Raumdeuter** moved from role to archetype
+- **OTP design overhaul**: branded hero, animated reveal, mobile-first
 
 ### Session 37 (2026-03-31)
 - **AllSportsAPI pipeline**: scripts 67 (squad/stats) + 68 (grade conversion)

@@ -57,11 +57,17 @@
 
 ---
 
-## Completed (2026-03-31, session 38 — OTP Polish + Taxonomy Refinement)
+## Completed (2026-03-31, session 39 — AF Backfill + OTP Side Awareness)
+- [x] AF stats person_id backfill: 15,247 orphaned stat rows linked (442 → 15,689 matched) (b87c752)
+- [x] Script 65 patched: auto-backfill on every match run prevents future drift
+- [x] Archetype recompute: 287 elite + 2,483 established + 3,144 aspiring (was 2/41/6,869)
+- [x] OTP: preferred side restored to formation blueprints + scorePlayerForRole (41ceb1b)
+- [x] OTP: sticky info bar, role score default sort, best role in player list (97b9c21, 86eaca5)
+- [x] OTP: removed player count from nation index cards
+- [x] Pogba nationality fix: England → France, cap-tied flags corrected
+
+## Completed (2026-03-31, session 38 — OTP Design + Taxonomy Refinement)
 - [x] OTP design overhaul: branded SVG hero, Clash Display gradient, collapsible pitch, animated reveal, mobile-first layout (75483be)
-- [x] OTP smart XI slot assignment with preferred side + role score sort (41ceb1b)
-- [x] OTP best role shown in player list + contextual score column (97b9c21)
-- [x] OTP sticky info bar + role score default + Pogba nationality fix (86eaca5)
 - [x] Players filter redesign: role/archetype/league dropdowns, position-aware, More overflow (42ea370)
 - [x] 42-role taxonomy: Carrilero added (CM), Inside Forward → Inverted Winger rename (09fd7c3)
 - [x] Complete Forward moved from role to earned archetype, Raumdeuter → archetype (ec1ec4f, b258644)

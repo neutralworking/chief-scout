@@ -302,7 +302,7 @@ ROLE_ABILITIES = {
     "Sweeper":          ("The Shield",      "Lowest-scoring card gets +30%"),
     "Zagueiro":         ("Command Line",    "All cards in adjacent slots get +10%"),
     # WD roles
-    "Lateral":          ("Overlap",         "If paired with Inside Forward or Winger, both +15%"),
+    "Lateral":          ("Overlap",         "If paired with Inverted Winger or Winger, both +15%"),
     "Invertido":        ("Tuck Inside",     "Counts as both WD and CM for synergies"),
     "Carrilero":        ("Lane Runner",     "+20% in WD slot, +5% per Sprinter in lineup"),
     "Fluidificante":    ("Fluid Motion",    "+15% when lineup has 3+ different archetypes"),
@@ -318,21 +318,20 @@ ROLE_ABILITIES = {
     # WM roles
     "Fantasista":       ("Silk Touch",      "30% chance to double connection bonuses for lineup"),
     "Winger":           ("Touchline",       "+25% in wide slot, -10% in central slot"),
-    "Raumdeuter":       ("Space Finder",    "Ignores opponent's defensive abilities"),
+    # Raumdeuter moved to archetypes
     "Tornante":         ("Full Flank",      "+10% for each Engine or Sprinter in lineup"),
     # AM roles
     "Trequartista":     ("Moment of Genius","30% chance of doubling own score, or +0%"),
     "Enganche":         ("The Hook",        "Pick one card: it gets +25%, this card gets -10%"),
     "Seconda Punta":    ("Between Lines",   "Counts as both AM and CF for synergies"),
     # WF roles
-    "Inside Forward":   ("Cut Inside",      "+20% when on opposite flank to strong foot"),
+    "Inverted Winger":   ("Cut Inside",      "+20% when on opposite flank to strong foot"),
     "Extremo":          ("Jet Heels",       "+30% if lineup has no other Sprinter"),
     "Inverted Winger":  ("Creator's Cut",   "+15% and generates +10 gate pull per match"),
     "Inventor":         ("Something From Nothing", "20% chance to trigger a bonus synergy"),
     # CF roles
     "Prima Punta":      ("Target Man",      "+40% when receiving crosses (paired with Lateral/Winger)"),
     "Poacher":          ("Box Presence",    "+40% in CF slot, +0% elsewhere"),
-    "Complete Forward": ("Total Striker",   "+10% per unique compound category in lineup"),
     "Falso Nove":       ("The Drop",        "Counts as both CF and AM for synergies"),
 }
 

@@ -123,7 +123,7 @@ POSITION_WEIGHTS = {
     "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 
-# Tactical roles — 41 roles validated against real tactical systems.
+# Tactical roles — 42 roles synced from role-definitions.ts (single source of truth).
 # Each role exists in at least one system in the tactical_systems hierarchy.
 # See docs/superpowers/specs/2026-03-29-systems-and-roles-design.md
 TACTICAL_ROLES = {
@@ -150,38 +150,39 @@ TACTICAL_ROLES = {
         ("Passer",     "Controller", "Regista"),
         ("Controller", "Cover",      "Pivote"),
         ("Cover",      "Destroyer",  "Anchor"),
-        ("Engine",     "Destroyer",  "Ball Winner"),
+        ("Destroyer",  "Engine",     "Ball Winner"),
         ("Powerhouse", "Engine",     "Segundo Volante"),
     ],
     "CM": [
-        ("Passer",     "Creator",  "Playmaker"),
-        ("Controller", "Passer",   "Metodista"),
-        ("Engine",     "Creator",  "Mezzala"),
-        ("Engine",     "Cover",    "Tuttocampista"),
+        ("Creator",    "Passer",    "Playmaker"),
+        ("Controller", "Passer",    "Metodista"),
+        ("Engine",     "Creator",   "Mezzala"),
+        ("Engine",     "Cover",     "Tuttocampista"),
+        ("Engine",     "Destroyer", "Ball Winner"),
+        ("Engine",     "Cover",     "Carrilero"),
     ],
     "WM": [
-        ("Dribbler",   "Passer",  "Winger"),
-        ("Engine",     "Cover",   "Tornante"),
-        ("Controller", "Creator", "False Winger"),
-        ("Creator",    "Passer",  "Wide Playmaker"),
+        ("Sprinter",   "Dribbler", "Winger"),
+        ("Engine",     "Cover",    "Tornante"),
+        ("Controller", "Creator",  "False Winger"),
+        ("Creator",    "Passer",   "Wide Playmaker"),
     ],
     "AM": [
-        ("Dribbler", "Creator",    "Trequartista"),
-        ("Creator",  "Controller", "Enganche"),
-        ("Sprinter", "Striker",    "Boxcrasher"),
+        ("Dribbler",   "Creator",    "Trequartista"),
+        ("Creator",    "Controller", "Enganche"),
+        ("Engine",     "Striker",    "Incursore"),
+        ("Controller", "Creator",    "Mediapunta"),
     ],
     "WF": [
-        ("Dribbler", "Striker",    "Inside Forward"),
-        ("Engine",   "Striker",    "Raumdeuter"),
-        ("Dribbler", "Passer",     "Winger"),
+        ("Dribbler", "Striker",    "Inverted Winger"),
+        ("Sprinter", "Dribbler",   "Winger"),
         ("Creator",  "Passer",     "Wide Playmaker"),
         ("Target",   "Powerhouse", "Wide Target Forward"),
     ],
     "CF": [
         ("Striker",  "Target",     "Prima Punta"),
-        ("Striker",  "Creator",    "Complete Forward"),
         ("Creator",  "Controller", "Falso Nove"),
-        ("Engine",   "Striker",    "Spearhead"),
+        ("Engine",   "Destroyer",  "Spearhead"),
         ("Target",   "Powerhouse", "Target Forward"),
         ("Creator",  "Striker",    "Seconda Punta"),
         ("Sprinter", "Striker",    "Shadow Striker"),

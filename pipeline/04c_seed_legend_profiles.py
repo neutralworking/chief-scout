@@ -33,25 +33,25 @@ LEGEND_SEEDS = {
     # ══════════════════════════════════════════════════════════════════════════
 
     10296: (
-        "Dribbler-Creator", "Complete Forward", 96,
+        "Dribbler-Creator", "Prima Punta", 96,
         "Supreme dribbler who could beat entire teams single-handedly. "
         "Combined low centre of gravity with magical close control and devastating finishing."
     ),  # Diego Maradona
 
     16251: (
-        "Striker-Creator", "Complete Forward", 96,
+        "Striker-Creator", "Prima Punta", 96,
         "The most complete forward in history — scored over 1,000 goals with breathtaking athleticism. "
         "Combined explosive finishing with vision, creativity, and an instinct for the spectacular."
     ),  # Pelé
 
     16832: (
-        "Striker-Sprinter", "Complete Forward", 96,
+        "Striker-Sprinter", "Prima Punta", 96,
         "Explosive pace married to clinical finishing — the most devastating striker of his generation. "
         "Could score from anywhere, at any speed, in any situation."
     ),  # Ronaldo Nazário
 
     8224: (
-        "Commander-Engine", "Complete Forward", 95,
+        "Commander-Engine", "Prima Punta", 95,
         "The original total footballer — led Real Madrid from the front with relentless energy. "
         "Commanded every area of the pitch, equally capable of scoring, creating, and defending."
     ),  # Alfredo Di Stéfano
@@ -121,7 +121,7 @@ LEGEND_SEEDS = {
     ),  # Edwin van der Sar
 
     10830: (
-        "Striker-Sprinter", "Complete Forward", 94,
+        "Striker-Sprinter", "Prima Punta", 94,
         "The Black Panther — devastating pace, powerful shooting, and predatory instincts. "
         "Portugal's greatest ever goalscorer with explosive acceleration and clinical finishing."
     ),  # Eusébio
@@ -133,7 +133,7 @@ LEGEND_SEEDS = {
     ),  # Franco Baresi
 
     11306: (
-        "Dribbler-Creator", "Inside Forward", 94,
+        "Dribbler-Creator", "Inverted Winger", 94,
         "Mercurial talent who could do things with a football that defied physics. "
         "Mesmerising close control, devastating acceleration, and an eye for the spectacular."
     ),  # George Best
@@ -175,7 +175,7 @@ LEGEND_SEEDS = {
     ),  # Ronaldinho
 
     17905: (
-        "Sprinter-Striker", "Inside Forward", 94,
+        "Sprinter-Striker", "Inverted Winger", 94,
         "Explosive pace cutting in from the left flank with devastating finishing. "
         "Glided past defenders before slotting home with ice-cold precision — reinvented the inside forward role."
     ),  # Thierry Henry
@@ -201,7 +201,7 @@ LEGEND_SEEDS = {
     ),  # Andrés Iniesta
 
     8691: (
-        "Striker-Sprinter", "Inside Forward", 93,
+        "Striker-Sprinter", "Inverted Winger", 93,
         "Le cut inside man — devastating left foot after jinking in from the right wing. "
         "Explosive pace, direct running, and a signature move that defenders could never stop."
     ),  # Arjen Robben
@@ -225,7 +225,7 @@ LEGEND_SEEDS = {
     ),  # Dani Alves
 
     10474: (
-        "Dribbler-Creator", "Inside Forward", 93,
+        "Dribbler-Creator", "Inverted Winger", 93,
         "Low centre of gravity, devastating acceleration, and silky close control. "
         "Drifted past defenders as if they weren't there — the most complete dribbler of his generation."
     ),  # Eden Hazard
@@ -243,7 +243,7 @@ LEGEND_SEEDS = {
     ),  # Gaetano Scirea
 
     11263: (
-        "Sprinter-Striker", "Inside Forward", 93,
+        "Sprinter-Striker", "Inverted Winger", 93,
         "Explosive pace and thunderous left foot — transformed from a winger into a goal machine. "
         "Raw speed, powerful running, and an ability to score in the biggest moments."
     ),  # Gareth Bale
@@ -291,7 +291,7 @@ LEGEND_SEEDS = {
     ),  # Marcel Desailly
 
     14482: (
-        "Striker-Controller", "Complete Forward", 93,
+        "Striker-Controller", "Prima Punta", 93,
         "The most technically gifted striker of his era — acrobatic volleys, clinical finishing, and composure. "
         "Could score the impossible with balletic grace and ice-cold precision."
     ),  # Marco van Basten
@@ -427,7 +427,7 @@ LEGEND_SEEDS = {
     ),  # Jaap Stam
 
     12225: (
-        "Sprinter-Striker", "Inside Forward", 92,
+        "Sprinter-Striker", "Inverted Winger", 92,
         "The hurricane — explosive pace and finishing that lit up the 1970 World Cup. "
         "Scored in every round of the tournament with blistering runs and clinical accuracy."
     ),  # Jairzinho
@@ -445,7 +445,7 @@ LEGEND_SEEDS = {
     ),  # Johan Neeskens
 
     13329: (
-        "Striker-Sprinter", "Complete Forward", 92,
+        "Striker-Sprinter", "Prima Punta", 92,
         "Explosive pace married to predatory finishing — a deadly combination of speed and precision. "
         "Led the line for Bayern and West Germany with clinical efficiency and electric acceleration."
     ),  # Karl-Heinz Rummenigge
@@ -529,7 +529,7 @@ LEGEND_SEEDS = {
     ),  # Roberto Carlos
 
     16745: (
-        "Striker-Controller", "Complete Forward", 92,
+        "Striker-Controller", "Prima Punta", 92,
         "Elegant technique married to clinical finishing — scored with both feet from any position. "
         "Controlled the ball beautifully before finishing with precision and composure."
     ),  # Robin van Persie
@@ -583,7 +583,7 @@ LEGEND_SEEDS = {
     ),  # Yaya Touré
 
     18796: (
-        "Striker-Target", "Complete Forward", 92,
+        "Striker-Target", "Prima Punta", 92,
         "Acrobatic genius in a towering frame — spectacular goals from impossible positions. "
         "Combined aerial dominance with martial arts-inspired technique and supreme self-confidence."
     ),  # Zlatan Ibrahimović
@@ -641,7 +641,7 @@ LEGEND_SEEDS = {
     ),  # Carles Puyol
 
     9408: (
-        "Striker-Destroyer", "Complete Forward", 91,
+        "Striker-Destroyer", "Prima Punta", 91,
         "The Apache — relentless pressing, fierce combativeness, and clinical finishing. "
         "Never stopped running, never stopped fighting, and terrified defenders with his aggression."
     ),  # Carlos Tévez
@@ -719,7 +719,7 @@ LEGEND_SEEDS = {
     ),  # Fernando Torres
 
     11077: (
-        "Dribbler-Creator", "Complete Forward", 91,
+        "Dribbler-Creator", "Prima Punta", 91,
         "Magical Hungarian forward with balletic dribbling and creative vision. "
         "Won the 1967 Ballon d'Or with spectacular individual skills and imaginative play."
     ),  # Flórián Albert
@@ -755,7 +755,7 @@ LEGEND_SEEDS = {
     ),  # Hernán Crespo
 
     11828: (
-        "Striker-Powerhouse", "Inside Forward", 91,
+        "Striker-Powerhouse", "Inverted Winger", 91,
         "Fiery Bulgarian with a devastating left foot and combative spirit. "
         "Could dribble past opponents before unleashing powerful shots — a true match-winner."
     ),  # Hristo Stoichkov
@@ -881,7 +881,7 @@ LEGEND_SEEDS = {
     ),  # Sol Campbell
 
     18469: (
-        "Striker-Engine", "Complete Forward", 91,
+        "Striker-Engine", "Prima Punta", 91,
         "Streetwise forward who could play anywhere across the front line. "
         "Combined explosive power with technical skill, overhead kicks, and an insatiable appetite for goals."
     ),  # Wayne Rooney
@@ -903,7 +903,7 @@ LEGEND_SEEDS = {
     ),  # Andriy Shevchenko
 
     8543: (
-        "Creator-Striker", "Inside Forward", 90,
+        "Creator-Striker", "Inverted Winger", 90,
         "La Máquina's left-winger — intelligent movement and clinical finishing. "
         "Combined creative vision with goal-scoring ability in River Plate's legendary forward line."
     ),  # Ángel Labruna
@@ -999,7 +999,7 @@ LEGEND_SEEDS = {
     ),  # Gaizka Mendieta
 
     11337: (
-        "Sprinter-Striker", "Complete Forward", 90,
+        "Sprinter-Striker", "Prima Punta", 90,
         "King George — explosive pace, raw power, and devastating finishing. "
         "The only African to win the Ballon d'Or, combining athleticism with clinical goal-scoring."
     ),  # George Weah
@@ -1029,7 +1029,7 @@ LEGEND_SEEDS = {
     ),  # Günter Netzer
 
     12369: (
-        "Striker-Engine", "Complete Forward", 90,
+        "Striker-Engine", "Prima Punta", 90,
         "Belgium's greatest — combined aerial presence with tireless running and goal-scoring prowess. "
         "Led the line with intelligence and work rate across an illustrious international career."
     ),  # Jan Ceulemans
@@ -1047,7 +1047,7 @@ LEGEND_SEEDS = {
     ),  # John Barnes
 
     12803: (
-        "Striker-Target", "Complete Forward", 90,
+        "Striker-Target", "Prima Punta", 90,
         "The Gentle Giant — dominated as both a centre-forward and centre-back. "
         "Aerial supremacy, powerful shooting, and surprising finesse in a towering frame."
     ),  # John Charles
@@ -1065,7 +1065,7 @@ LEGEND_SEEDS = {
     ),  # José Andrade
 
     13000: (
-        "Creator-Dribbler", "Inside Forward", 90,
+        "Creator-Dribbler", "Inverted Winger", 90,
         "Argentine genius of the 1940s — dribbling artistry and creative vision. "
         "Mesmerised opponents with tricks and flicks across South American football."
     ),  # José Manuel Moreno
@@ -1089,7 +1089,7 @@ LEGEND_SEEDS = {
     ),  # Kenny Dalglish
 
     13474: (
-        "Sprinter-Striker", "Complete Forward", 90,
+        "Sprinter-Striker", "Prima Punta", 90,
         "Mighty Mouse — explosive pace, tireless work rate, and infectious enthusiasm. "
         "Ran at defenders with fearless energy and converted chances with predatory instinct."
     ),  # Kevin Keegan
@@ -1113,7 +1113,7 @@ LEGEND_SEEDS = {
     ),  # Marc Overmars
 
     15857: (
-        "Sprinter-Striker", "Inside Forward", 90,
+        "Sprinter-Striker", "Inverted Winger", 90,
         "Devastating pace and explosive finishing — Soviet football's greatest ever player. "
         "Burned past defenders with blistering speed before slotting home with precision."
     ),  # Oleg Blokhin
@@ -1161,7 +1161,7 @@ LEGEND_SEEDS = {
     ),  # Raúl
 
     16530: (
-        "Creator-Sprinter", "Inside Forward", 90,
+        "Creator-Sprinter", "Inverted Winger", 90,
         "Little Napoleon — combined dribbling skill with explosive pace and creative vision. "
         "Lit up the 1958 World Cup and became the first Frenchman to win the Ballon d'Or."
     ),  # Raymond Kopa
@@ -1185,7 +1185,7 @@ LEGEND_SEEDS = {
     ),  # Ruud van Nistelrooy
 
     17125: (
-        "Sprinter-Striker", "Complete Forward", 90,
+        "Sprinter-Striker", "Prima Punta", 90,
         "Explosive pace, clinical finishing, and relentless work rate up front. "
         "Dominated across multiple leagues with speed, skill, and a hunger for goals."
     ),  # Samuel Eto'o
@@ -1209,7 +1209,7 @@ LEGEND_SEEDS = {
     ),  # Toni Kroos
 
     18762: (
-        "Sprinter-Striker", "Inside Forward", 90,
+        "Sprinter-Striker", "Inverted Winger", 90,
         "Explosive Polish attacker with pace and lethal finishing in big games. "
         "Combined speed with goal-scoring ability to shine at two World Cups and in Serie A."
     ),  # Zbigniew Boniek

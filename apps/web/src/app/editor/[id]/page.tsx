@@ -27,7 +27,7 @@ const BLUEPRINT_BY_POSITION: Record<string, string[]> = {
   CM: ["Metronome", "Maestro", "Conductor", "Deep-Lying Playmaker", "Tuttocampista", "Box-to-Box Creator", "Driver", "Interior Playmaker", "Playmaker", "Technical Midfielder", "Volante", "Holding Midfielder", "General"],
   WM: ["Tireless Technician", "Free-Roaming Attacker", "False Winger", "Work-Rate Winger", "Wide Runner"],
   AM: ["Playmaker", "Floating Playmaker", "Pressing Playmaker", "No.10", "Seconda Punta"],
-  WF: ["Wizard", "Explosive Winger", "Inventor", "Work-Rate Winger", "Shuttler", "Inside Forward", "False Winger", "Flanker", "Defensive Winger", "No.10"],
+  WF: ["Wizard", "Explosive Winger", "Inventor", "Work-Rate Winger", "Shuttler", "Inverted Winger", "False Winger", "Flanker", "Defensive Winger", "No.10"],
   CF: ["Poacher", "Colossus", "Prima Punta", "Goal Machine", "Runner", "Mobile Striker", "Falso Nove", "Spearhead"],
 };
 

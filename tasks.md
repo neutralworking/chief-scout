@@ -191,7 +191,7 @@ WC 2026 playoffs complete by April 7, buzz is building now. OTP must be live and
 - [x] Philosophy renames: Cholismo→Transizione, Fergie Time→Leadership
 - [x] All 41 roles have assigned players, uniform -5 to -8 RS vs level delta
 - [x] Understat compression unified with AF: both ×1.5 cap 15. Gap ≥+15: 13→8.
-- [x] Dembélé moved back to WF (Inside Forward 89) — no CF role uses Dribbler model
+- [x] Dembélé moved back to WF (Inverted Winger 89) — no CF role uses Dribbler model
 
 ## Completed (2026-03-27, session 28)
 - [x] Pipeline 92 parser fixed: 4 bugs (sort-key positions, table class ordering, federation club links, redlink names)

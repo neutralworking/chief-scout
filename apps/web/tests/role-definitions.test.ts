@@ -55,7 +55,7 @@ const PIPELINE_TACTICAL_ROLES: Record<string, [string, string, string][]> = {
     ["Sprinter", "Striker", "Boxcrasher"],
   ],
   WF: [
-    ["Dribbler", "Sprinter", "Inside Forward"],
+    ["Dribbler", "Sprinter", "Inverted Winger"],
     ["Engine", "Striker", "Raumdeuter"],
     ["Creator", "Dribbler", "Inventor"],
     ["Sprinter", "Striker", "Extremo"],

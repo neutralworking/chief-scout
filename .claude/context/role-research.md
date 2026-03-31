@@ -31,7 +31,7 @@
 - **Second Striker** — Wikipedia has own section. Deep-lying forward, "in the hole". Bergkamp, Totti, Rooney.
   - Italian: *seconda punta*, *rifinitore*
   - Also called: shadow striker, support striker
-- **Inside Forward** — historical, evolved into modern inverted winger/false 9
+- **Inverted Winger** — historical, evolved into modern inverted winger/false 9
 - **False 9** — Messi, Totti, Firmino. Drops deep to drag defenders. Own section.
 - **Target Forward / Target Man** — Drogba, Giroud. Hold-up play, aerial presence. Own section.
 - **Winger** — traditional wide forward. Includes inverted winger variant.
@@ -45,7 +45,7 @@
 - Wide Playmaker — Silva type
 - Wide Provider — Beckham type
 - Direct Winger — standard analysis term
-- Inside Forward (modern) — Salah type, cuts inside to shoot
+- Inverted Winger (modern) — Salah type, cuts inside to shoot
 - Complete Forward — Benzema, does everything
 - Pressing Forward — Firmino, defends from the front
 - Anchor — Busquets, positional DM (Wikipedia calls this "holding midfielder")
@@ -95,7 +95,7 @@ This would distinguish the Yaya/Vieira/Gerrard type from the Kanté Engine (pure
 
 ### Formation → Role Slot Mapping (for formations page)
 Key insight: each formation slot implies a tactical role. E.g.:
-- 4-2-3-1 wide mids = Inside Forward or Inverted Winger (not traditional winger)
+- 4-2-3-1 wide mids = Inverted Winger or Inverted Winger (not traditional winger)
 - 3-5-2 wide players = Wing-Back (not winger, not full-back)
 - 4-3-3 with DM = Anchor/Regista + 2x (Mezzala/Box-to-Box/Carrier)
 - 4-4-2 diamond AM = Trequartista or Advanced Playmaker

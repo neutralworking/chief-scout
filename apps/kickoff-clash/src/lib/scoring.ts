@@ -322,7 +322,7 @@ function applyRoleAbilities(
       }
       case 'Lateral': {
         for (let j = 0; j < cards.length; j++) {
-          if (j !== i && (cards[j].card.tacticalRole === 'Inside Forward' || cards[j].card.tacticalRole === 'Winger')) {
+          if (j !== i && (cards[j].card.tacticalRole === 'Inverted Winger' || cards[j].card.tacticalRole === 'Winger')) {
             states[i].powerMultiplier += 0.15;
             states[j].powerMultiplier += 0.15;
             addEffect(i, 'Overlap', `Paired with ${cards[j].card.name} — both +15%`, (sc.card.power + cards[j].card.power) * 0.15);
@@ -396,7 +396,7 @@ function applyRoleAbilities(
         }
         break;
       }
-      case 'Inside Forward': {
+      case 'Inverted Winger': {
         if (sc.card.archetype === 'Dribbler' || sc.card.archetype === 'Striker') {
           states[i].powerMultiplier += 0.15;
           addEffect(i, 'Cut Inside', `+15% (${sc.card.archetype})`, sc.card.power * 0.15);
@@ -440,11 +440,7 @@ function applyRoleAbilities(
         }
         break;
       }
-      case 'Raumdeuter': {
-        states[i].powerMultiplier += 0.20;
-        addEffect(i, 'Space', '+20% to self', sc.card.power * 0.20);
-        break;
-      }
+      // Raumdeuter role removed — now an earned archetype
       case 'Invertido': {
         if (sc.card.archetype === 'Controller' || sc.card.archetype === 'Passer') {
           states[i].powerMultiplier += 0.15;
@@ -461,21 +457,7 @@ function applyRoleAbilities(
         addEffect(i, 'Relay', 'Engine cards get +5%', 0);
         break;
       }
-      case 'Complete Forward': {
-        const cats = new Set<string>();
-        for (const c of cards) {
-          for (const [cat, archetypes] of Object.entries(COMPOUND_CATEGORIES)) {
-            if (archetypes.includes(c.card.archetype) ||
-                (c.card.secondaryArchetype && archetypes.includes(c.card.secondaryArchetype))) {
-              cats.add(cat);
-            }
-          }
-        }
-        const bonus = Math.min(cats.size, 4) * 0.05;
-        states[i].powerMultiplier += bonus;
-        addEffect(i, 'Total', `+${(bonus * 100).toFixed(0)}% (${cats.size} categories)`, sc.card.power * bonus);
-        break;
-      }
+      // Complete Forward role removed — now an earned archetype
       case 'Prima Punta': {
         if (sc.card.archetype === 'Target') {
           states[i].powerMultiplier += 0.20;

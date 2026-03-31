@@ -282,7 +282,7 @@ Every role below emerged from at least one real system during the audit. No role
 
 | Role | What it is | Primary Model | Secondary Model | Examples |
 |---|---|---|---|---|
-| **Inside Forward** | Cuts inside on strong foot to shoot/create | Dribbler | Striker | Salah, Robben, Mané, Ronaldo 2008 |
+| **Inverted Winger** | Cuts inside on strong foot to shoot/create | Dribbler | Striker | Salah, Robben, Mané, Ronaldo 2008 |
 | **Raumdeuter** | Space interpreter — finds pockets, arrives | Engine | Striker | Müller, Pedro, Foden, Rodrygo |
 | **Winger** | Wide, beats man, delivers | Dribbler | Passer | Vinícius, Overmars, Finidi |
 | **Wide Playmaker** | Creates from wide — vision, passing, dictates | Creator | Passer | Neymar, Grealish, Rui Costa (wide) |

@@ -22,7 +22,7 @@ const TACTICAL_ROLES = [
   // AM
   "Trequartista", "Seconda Punta", "Enganche", "Boxcrasher",
   // WF
-  "Inside Forward", "Raumdeuter", "Inventor", "Extremo",
+  "Inverted Winger", "Raumdeuter", "Inventor", "Extremo",
   // CF
   "Poacher", "Spearhead", "Falso Nove", "Prima Punta",
 ];

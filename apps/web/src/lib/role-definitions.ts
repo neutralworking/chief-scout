@@ -1,8 +1,10 @@
 /**
- * Tactical role definitions — mirrors pipeline 27 + DB slot_roles.
+ * Tactical role definitions — SINGLE SOURCE OF TRUTH for the role taxonomy.
+ * Pipeline (27_player_ratings.py), ratings.ts, compare/route.ts, and
+ * SACROSANCT.md must all stay in sync with this file.
  *
- * 38 roles validated bottom-up against real tactical systems.
- * Variable count per position (WM: 3, CF: 7).
+ * 42 roles validated bottom-up against real tactical systems.
+ * Variable count per position (AM/WD/WM/WF: 4, CD/DM: 5, CM: 6, CF: 6).
  */
 
 export type Pillar = 'technical' | 'tactical' | 'mental' | 'physical';
@@ -26,11 +28,12 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Distributor", position: "GK", pillar: "technical", primaryModel: "GK", secondaryModel: "Passer", tooltip: "Distribution specialist, passing outlet", description: "Distribution specialist who starts attacks from the back with pinpoint passing under pressure.", examples: "Ederson, Valdés", origin: "English" },
   { name: "Shotstopper", position: "GK", pillar: "physical", primaryModel: "GK", secondaryModel: "Powerhouse", tooltip: "Reflexes, dominates the box", description: "Traditional shot-stopper who dominates the six-yard box with reflexes, agility, and physical presence.", examples: "Courtois, Pope, Begović", origin: "English" },
 
-  // CD (4)
+  // CD (5)
   { name: "Centrale", position: "CD", pillar: "mental", primaryModel: "Commander", secondaryModel: "Destroyer", tooltip: "Commanding CB — organises, leads, sets the line", description: "Commanding centre-back who leads by example, wins aerial battles, and organises the backline.", examples: "Van Dijk, Terry, Puyol, Morgan", origin: "Italian" },
   { name: "Distributor", position: "CD", pillar: "technical", primaryModel: "Passer", secondaryModel: "Cover", tooltip: "Ball-playing CB — progressive passing from deep", description: "Ball-playing centre-back who steps into midfield to build attacks with progressive passing.", examples: "Bonucci, Stones, Piqué, Ferdinand", origin: "English" },
   { name: "Stopper", position: "CD", pillar: "physical", primaryModel: "Powerhouse", secondaryModel: "Destroyer", tooltip: "Aggressive, front-foot, wins duels", description: "Aggressive front stopper who wins duels, presses high, and physically dominates attackers.", examples: "Chiellini, Vidić, Stam, Konaté", origin: "German" },
   { name: "Sweeper", position: "CD", pillar: "tactical", primaryModel: "Cover", secondaryModel: "Controller", tooltip: "Last man — reads play, covers space", description: "Last man who reads the game two moves ahead and covers space behind the defensive line.", examples: "Beckenbauer, Varane, Hummels, Picchi", origin: "English" },
+  { name: "Colossus", position: "CD", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Dominant aerial CB — physical presence, imposing", description: "Physically dominant centre-back who wins everything in the air and imposes through sheer presence.", examples: "Lucio, Thiago Silva, Konaté, Maguire", origin: "English" },
 
   // WD (4)
   { name: "Fullback", position: "WD", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Passer", tooltip: "Gets forward, supports attacks", description: "Gets forward to support attacks, delivers crosses, and provides width in the final third.", examples: "Neville, Irwin, Carvajal, Evra", origin: "English" },
@@ -42,15 +45,17 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Regista", position: "DM", pillar: "technical", primaryModel: "Passer", secondaryModel: "Controller", tooltip: "Deep quarterback — dictates with long passing", description: "Deep-lying playmaker who dictates tempo from a withdrawn position with vision and precise passing.", examples: "Pirlo, Jorginho, Gérson", origin: "Italian" },
   { name: "Pivote", position: "DM", pillar: "mental", primaryModel: "Controller", secondaryModel: "Cover", tooltip: "Creative holding mid — controls, distributes", description: "The midfield brain — organizes shape, reads everything, and controls tempo through intelligence.", examples: "Busquets, Rodri, Rijkaard", origin: "Spanish" },
   { name: "Anchor", position: "DM", pillar: "tactical", primaryModel: "Cover", secondaryModel: "Engine", tooltip: "Sits, screens, protects the back line", description: "Positional sentinel who screens the back line, reads danger, and covers space.", examples: "Makélélé, Kanté, Fabinho", origin: "English" },
-  { name: "Ballwinner", position: "DM", pillar: "tactical", primaryModel: "Destroyer", secondaryModel: "Engine", tooltip: "Aggressive ball-winner, disrupts and drives", description: "High-energy ball-winner who disrupts opponents aggressively and drives forward after winning possession.", examples: "Gattuso, Kanté, Caicedo", origin: "English" },
+  { name: "Ball Winner", position: "DM", pillar: "tactical", primaryModel: "Destroyer", secondaryModel: "Engine", tooltip: "Aggressive ball-winner, disrupts and drives", description: "High-energy ball-winner who disrupts opponents aggressively and drives forward after winning possession.", examples: "Gattuso, Kanté, Caicedo", origin: "English" },
   { name: "Segundo Volante", position: "DM", pillar: "physical", primaryModel: "Powerhouse", secondaryModel: "Engine", tooltip: "DM who drives forward, scores from deep", description: "High-energy DM who drives forward with the ball and arrives to score from deep positions.", examples: "Touré, Pogba, Caicedo, Keïta", origin: "Brazilian" },
 
   // CM (5)
+
   { name: "Playmaker", position: "CM", pillar: "mental", primaryModel: "Creator", secondaryModel: "Passer", tooltip: "Runs the game with vision and range", description: "Runs the game with vision and range — the orchestrator who sees passes others cannot.", examples: "Scholes, Modric, Didi, Van Hanegem", origin: "English" },
   { name: "Metodista", position: "CM", pillar: "mental", primaryModel: "Controller", secondaryModel: "Passer", tooltip: "Metronome — controls rhythm, never wastes a ball", description: "Metronome who controls the rhythm of play with short, intelligent passing.", examples: "Xavi, Kroos, Carrick, Thiago", origin: "Italian" },
   { name: "Mezzala", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Creator", tooltip: "Half-space creator, arrives in the box", description: "Engine-first half-space specialist who arrives late in dangerous positions between the lines.", examples: "Iniesta, Bellingham, Mazzola, Litmanen", origin: "Italian" },
   { name: "Tuttocampista", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Cover", tooltip: "Box-to-box, covers every blade", description: "Complete midfielder who covers every blade of grass — tackles, passes, scores, and leads.", examples: "Keane, Vidal, Neeskens, Davids", origin: "Italian" },
-  { name: "Ballwinner", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Destroyer", tooltip: "Engine-first ball-winner in midfield", description: "Engine-driven midfielder who wins the ball back with intensity and keeps the team ticking.", examples: "Kanté, Gattuso, Vidal", origin: "English" },
+  { name: "Ball Winner", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Destroyer", tooltip: "Engine-first ball-winner in midfield", description: "Engine-driven midfielder who wins the ball back with intensity and keeps the team ticking.", examples: "Kanté, Gattuso, Vidal", origin: "English" },
+  { name: "Carrilero", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Cover", tooltip: "Wide shuttle — screens the flank, links play", description: "Wide-shuttling midfielder who patrols the channel between midfield and defence, screening the flank and recycling possession.", examples: "Matuidi, Valverde, Herrera, Zubimendia", origin: "Spanish" },
 
   // WM (4)
   { name: "Winger", position: "WM", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Dribbler", tooltip: "Pace and skill from wide", description: "Wide midfielder who beats defenders with pace and dribbling, providing width and direct running.", examples: "Garrincha, Giggs, Beckham, Raphinha", origin: "English" },
@@ -64,15 +69,14 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Incursore", position: "AM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Striker", tooltip: "Arriving AM — reads space, arrives in the box", description: "The raider — an AM who reads space and arrives in the box with timing, converting half-chances.", examples: "Müller, Lampard, Bruno Fernandes, Havertz", origin: "Italian" },
   { name: "Mediapunta", position: "AM", pillar: "mental", primaryModel: "Controller", secondaryModel: "Creator", tooltip: "Combinational 10 — links through short passing", description: "The half-point — a mobile, intelligent 10 who links play through short combinations and positional intelligence.", examples: "David Silva, Isco, Pedri, Odegaard", origin: "Spanish" },
 
-  // WF (5)
-  { name: "Inside Forward", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Striker", tooltip: "Cuts inside on strong foot to shoot/create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create.", examples: "Salah, Robben, Mané, Ronaldo 2008", origin: "English" },
-{ name: "Winger", position: "WF", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Dribbler", tooltip: "Pace and skill from wide", description: "Wide attacker who beats defenders with pace and dribbling, stretching the defence.", examples: "Vinícius, Overmars, Finidi", origin: "English" },
+  // WF (4)
+  { name: "Inverted Winger", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Striker", tooltip: "Cuts inside on strong foot to shoot/create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create.", examples: "Salah, Robben, Mané, Ronaldo 2008", origin: "English" },
+  { name: "Winger", position: "WF", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Dribbler", tooltip: "Pace and skill from wide", description: "Wide attacker who beats defenders with pace and dribbling, stretching the defence.", examples: "Vinícius, Overmars, Finidi", origin: "English" },
   { name: "Wide Playmaker", position: "WF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Passer", tooltip: "Creates from wide — vision, passing, dictates", description: "Creates from wide areas with vision and passing, dictating play from the flank.", examples: "Neymar, Grealish, Rui Costa (wide)", origin: "English" },
   { name: "Wide Target Forward", position: "WF", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Physical presence from wide — holds up, wins aerials", description: "Physical wide forward who holds up the ball and wins aerial duels from wide positions.", examples: "Mandžukić (LW), Weghorst (wide), Arnautović", origin: "English" },
 
-  // CF (7)
+  // CF (6)
   { name: "Prima Punta", position: "CF", pillar: "technical", primaryModel: "Striker", secondaryModel: "Target", tooltip: "Clinical finisher with aerial presence", description: "The first striker — clinical finishing combined with aerial ability and box instinct.", examples: "Inzaghi, Haaland, Gerd Müller, Toni", origin: "Italian" },
-  { name: "Complete Forward", position: "CF", pillar: "technical", primaryModel: "Striker", secondaryModel: "Creator", tooltip: "Scores, creates, links, does everything", description: "The complete package — scores, creates, links play, and can do everything asked of a striker.", examples: "Lewandowski, Kane, Benzema, Rooney", origin: "English" },
   { name: "Falso Nove", position: "CF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Controller", tooltip: "Drops deep, creates space, false 9", description: "False nine who drops deep to create, pulling centre-backs out of position and opening space.", examples: "Messi 2011, Firmino, Cruyff", origin: "Spanish" },
   { name: "Spearhead", position: "CF", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Destroyer", tooltip: "Leads the press from front, work rate", description: "Leads the press from the front with relentless work rate, setting the tempo for the whole team.", examples: "Suárez, Okazaki, Bamford", origin: "English" },
   { name: "Target Forward", position: "CF", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Aerial, holds up, physical reference point", description: "Target striker who holds up the ball, wins aerial duels, and brings teammates into play.", examples: "Giroud, Crouch, Mandžukić, Llorente", origin: "English" },

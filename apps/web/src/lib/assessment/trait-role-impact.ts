@@ -73,12 +73,12 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Sweeper Keeper": 6, "Libero GK": 6,
   },
   flamboyant: {
-    "Trequartista": 8, "Inside Forward": 5, "Inventor": 5, "Falso Nove": 4,
+    "Trequartista": 8, "Inverted Winger": 5, "Inventor": 5, "Falso Nove": 4,
     "False Winger": 4, "Shuttler": 3,
     "Anchor": -5, "Stopper": -4, "Volante": -3,
   },
   direct: {
-    "Shuttler": 8, "Extremo": 7, "Inside Forward": 6, "Spearhead": 5,
+    "Shuttler": 8, "Extremo": 7, "Inverted Winger": 6, "Spearhead": 5,
     "Poacher": 4, "Seconda Punta": 5, "Counter Attack Threat": 6,
     "Regista": -3, "Metodista": -3, "Falso Nove": -2,
   },
@@ -104,7 +104,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   progressive_carrier: {
     "Libero": 10, "Mezzala": 8, "Invertido": 7, "Tuttocampista": 6,
-    "False Winger": 5, "Inside Forward": 5, "Shuttler": 4,
+    "False Winger": 5, "Inverted Winger": 5, "Shuttler": 4,
     "Anchor": -3, "Pivote": -3, "Poacher": -2,
   },
   set_piece_specialist: {
@@ -123,7 +123,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Regista": -3, "Sweeper": -2,
   },
   counter_attack_threat: {
-    "Extremo": 8, "Inside Forward": 7, "Shuttler": 7,
+    "Extremo": 8, "Inverted Winger": 7, "Shuttler": 7,
     "Seconda Punta": 6, "Boxcrasher": 6, "Poacher": 5, "Lateral": 4,
   },
   build_up_contributor: {
@@ -133,7 +133,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
   },
   big_game_player: {
     "Poacher": 7, "Prima Punta": 6,
-    "Stopper": 5, "Tuttocampista": 5, "Inside Forward": 5,
+    "Stopper": 5, "Tuttocampista": 5, "Inverted Winger": 5,
     "Regista": 4, "Enganche": 4,
   },
   inconsistent: {
@@ -142,7 +142,7 @@ export const TRAIT_ROLE_IMPACT: Record<string, Record<string, number>> = {
     "Trequartista": -2, // mercurial players tolerated here
   },
   clutch: {
-    "Poacher": 8, "Inside Forward": 6,
+    "Poacher": 8, "Inverted Winger": 6,
     "Seconda Punta": 5, "Boxcrasher": 5, "Prima Punta": 5, "Tuttocampista": 4,
   },
   hot_headed: {

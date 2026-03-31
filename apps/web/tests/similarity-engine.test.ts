@@ -6,7 +6,7 @@ const makePlayers = (overrides: Partial<PlayerCandidate>[] = []): [PlayerCandida
   const base: PlayerCandidate = {
     person_id: 1, name: "Player A", position: "WF", level: 85, peak: null,
     archetype: "Striker-Sprinter", earned_archetype: "Marksman",
-    best_role: "Inside Forward", best_role_score: 85,
+    best_role: "Inverted Winger", best_role_score: 85,
     technical_score: 75, tactical_score: 60, mental_score: 65, physical_score: 80,
     personality_type: "ESTJ", preferred_foot: "Right", side: "R",
     height_cm: 180, club: "Arsenal", club_id: 1, nation: "England",

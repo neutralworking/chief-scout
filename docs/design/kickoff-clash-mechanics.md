@@ -277,7 +277,7 @@ Three = **Trio** (+25% each).
 |-------|-------|-----------|
 | The Pirlo-Barella | Regista + Mezzala | ×1.3 |
 | Shield & Sword | Anchor + Trequartista | ×1.3 |
-| Overlap | Lateral + Inside Forward | ×1.2 |
+| Overlap | Lateral + Inverted Winger | ×1.2 |
 | The Guardiola | Falso Nove + Winger | ×1.2 |
 | The Double Pivot | Anchor + Volante | ×1.2 |
 | Counter Punch | Volante + Extremo | ×1.2 |
@@ -326,7 +326,7 @@ Each tactical role contributes a passive ability to the XI:
 | Trequartista | Moment of Genius | 30% chance of doubling own power each round |
 | Poacher | Box Presence | +15% goal chance when you play attacking cards |
 | Tuttocampista | Box to Box | +3% per different archetype in XI |
-| Lateral | Overlap | If Inside Forward/Winger also in XI, both +15% |
+| Lateral | Overlap | If Inverted Winger/Winger also in XI, both +15% |
 | Falso Nove | The Drop | Counts as both CF and AM for synergies |
 | Enganche | The Hook | Highest-power teammate +25%, this card -10% |
 | Libero | Surgical Pass | Each attacker in XI gets +10% |

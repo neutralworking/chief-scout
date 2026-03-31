@@ -208,11 +208,11 @@ Philosophy → System → Formation → Slot → Role(s)
 | **System** | Named tactical system within a philosophy (e.g. 4-3-3 Gegenpressing) | `tactical_systems` |
 | **Formation** | Shape — the numeric layout (e.g. 4-3-3, 4-2-3-1) | `formations` |
 | **Slot** | A positional role-slot in a formation (e.g. Left Wing, Pivot DM) | `system_slots` |
-| **Role** | The specific job assigned to that slot (e.g. Inside Forward, Anchor) | `slot_roles` |
+| **Role** | The specific job assigned to that slot (e.g. Inverted Winger, Anchor) | `slot_roles` |
 
 Roles are validated **bottom-up**: every role in this taxonomy exists in at least one real tactical system. No role is invented to fill a grid.
 
-### The 41 Roles
+### The 42 Roles
 
 Role names use the term the football world actually uses. If the word came from Italian, Spanish, Portuguese, German, French, or Argentine football culture and became THE word for that role, we use it. No FIFA/FM generic compound names.
 
@@ -262,7 +262,7 @@ Each role's **primary model** determines its pillar alignment:
 | **Ball Winner** | Ball-winner — aggressive, physical, disrupts. Gattuso → Kante → Caicedo |
 | **Segundo Volante** | Dynamic DM who arrives late into the box from deep |
 
-#### CM (4 roles)
+#### CM (6 roles)
 
 | Role | Description |
 |------|-------------|
@@ -270,6 +270,8 @@ Each role's **primary model** determines its pillar alignment:
 | **Metodista** | Orchestrator — controls rhythm with intelligent passing. Xavi → Kroos → Pedri |
 | **Mezzala** | Half-space runner — breaks lines, links wide and central. Barella → Valverde |
 | **Tuttocampista** | All-pitch midfielder — covers every blade, arrives in box. Lampard → Gerrard → Bellingham |
+| **Ball Winner** | Engine-driven midfielder who wins the ball back with intensity. Kanté → Gattuso → Vidal |
+| **Carrilero** | Wide shuttle — screens the flank, links play, patrols the channel. Matuidi → Valverde → Herrera |
 
 #### WM (4 roles)
 
@@ -280,30 +282,29 @@ Each role's **primary model** determines its pillar alignment:
 | **False Winger** | Starts wide, drifts inside intelligently to create overloads. Bernardo Silva → Foden → Kulusevski |
 | **Wide Playmaker** | Creative wide presence — combines in tight spaces, picks passes from the flank |
 
-#### AM (3 roles)
+#### AM (4 roles)
 
 | Role | Description |
 |------|-------------|
 | **Trequartista** | Free-roaming 10 — dribbling genius in the final third. Baggio → Zidane → Messi |
 | **Enganche** | The hook — sees everything, threads impossible passes. Maradona → Riquelme → Dybala |
-| **Boxcrasher** | Dynamic AM who arrives in the box with pace and power. Havertz → Bruno Fernandes |
+| **Incursore** | The raider — reads space and arrives in the box with timing. Müller → Lampard → Havertz |
+| **Mediapunta** | The half-point — links play through short combinations and positional intelligence. David Silva → Pedri → Odegaard |
 
-#### WF (5 roles)
+#### WF (4 roles)
 
 | Role | Description |
 |------|-------------|
-| **Inside Forward** | Cuts inside on strong foot to shoot or create. Robben → Salah → Yamal |
-| **Raumdeuter** | Space interpreter — presses and finds pockets to score. Thomas Muller → Son → Mane |
+| **Inverted Winger** | Cuts inside on strong foot to shoot or create. Robben → Salah → Yamal |
 | **Winger** | Wide forward who runs channels, crosses and stretches the defence |
 | **Wide Playmaker** | Creates from wide with vision and combination play. Grealish → Neymar |
 | **Wide Target Forward** | Physical wide forward — holds up play, brings others into the game |
 
-#### CF (7 roles)
+#### CF (6 roles)
 
 | Role | Description |
 |------|-------------|
 | **Prima Punta** | The main striker — clinical finisher, wins headers, occupies CBs. Gerd Müller → Lewandowski → Kane |
-| **Complete Forward** | All-round striker — contributes to build-up, holds up, finishes. Lewandowski → Benzema |
 | **Falso Nove** | False 9 — drops deep, creates, pulls CBs out of shape. Hidegkuti (1953) → Messi (2009) |
 | **Spearhead** | Leads the press from front, relentless work rate. Firmino → Vardy → Suarez |
 | **Target Forward** | Aerial, holds up, physical reference point. Toni → Giroud → Lacazette |
@@ -322,7 +323,7 @@ Normalized to 0-100. A score ≥ 70 = strong fit, 50-69 = adequate, < 50 = poor 
 
 ### Naming Conventions
 
-- Roles are always **Title Case** — Regista, Inside Forward, False Winger
+- Roles are always **Title Case** — Regista, Inverted Winger, False Winger
 - Roles are distinct from positions — a position is WHERE on the pitch, a role is WHAT you do there
 - Roles belong to formations, not to players — a player has archetypes, a formation slot has a role
 - Role names use cultural football terms where established; coined English terms where no cultural term exists

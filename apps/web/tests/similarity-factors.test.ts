@@ -7,19 +7,19 @@ import {
 
 describe("roleMatch", () => {
   it("returns 1.0 for exact role match", () => {
-    expect(roleMatch("Inside Forward", "WF", "Inside Forward", "WF")).toBe(1.0);
+    expect(roleMatch("Inverted Winger", "WF", "Inverted Winger", "WF")).toBe(1.0);
   });
   it("returns 0.5 for same position different role", () => {
-    expect(roleMatch("Inside Forward", "WF", "Winger", "WF")).toBe(0.5);
+    expect(roleMatch("Inverted Winger", "WF", "Winger", "WF")).toBe(0.5);
   });
   it("returns 0.25 for adjacent position role", () => {
-    expect(roleMatch("Inside Forward", "WF", "Mezzala", "AM")).toBe(0.25);
+    expect(roleMatch("Inverted Winger", "WF", "Mezzala", "AM")).toBe(0.25);
   });
   it("returns 0.0 for no match", () => {
-    expect(roleMatch("Inside Forward", "WF", "Anchor", "DM")).toBe(0.0);
+    expect(roleMatch("Inverted Winger", "WF", "Anchor", "DM")).toBe(0.0);
   });
   it("returns 0.0 when either role is null", () => {
-    expect(roleMatch(null, "WF", "Inside Forward", "WF")).toBe(0.0);
+    expect(roleMatch(null, "WF", "Inverted Winger", "WF")).toBe(0.0);
   });
 });
 

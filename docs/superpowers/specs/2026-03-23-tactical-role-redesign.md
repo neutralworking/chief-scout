@@ -90,7 +90,7 @@ Each role's **primary archetype model** determines its pillar alignment:
 
 | Pillar | Role | Primary | Secondary | Tooltip | Exemplars |
 |--------|------|---------|-----------|---------|-----------|
-| Technical | **Inside Forward** | Dribbler | Sprinter | Cuts inside on strong foot to shoot or create | Robben, Salah, Yamal |
+| Technical | **Inverted Winger** | Dribbler | Sprinter | Cuts inside on strong foot to shoot or create | Robben, Salah, Yamal |
 | Tactical | **Raumdeuter** | Engine | Striker | Space interpreter — presses and finds pockets to score | Son, Muller (wide), Mane |
 | Mental | **Inventor** | Creator | Dribbler | Creates something from nothing — vision from wide | Grealish, Neymar |
 | Physical | **Extremo** | Sprinter | Striker | Electric pace and power — stretches the defence | Henry, Mbappe, Vinicius Jr |

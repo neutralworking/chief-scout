@@ -1,7 +1,7 @@
 'use client';
 
-import type { Card } from '../lib/scoring';
-import { getTransferFee } from '../lib/economy';
+import type { Card } from '../../lib/kickoff-clash/scoring';
+import { getTransferFee } from '../../lib/kickoff-clash/economy';
 import { RARITY_COLORS, RARITY_GLOW, THEME_GRADIENTS, THEME_ICONS } from './theme';
 
 // ---------------------------------------------------------------------------

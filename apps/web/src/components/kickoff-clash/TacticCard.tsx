@@ -1,6 +1,6 @@
 'use client';
 
-import type { TacticCard as TacticCardType } from '../lib/tactics';
+import type { TacticCard as TacticCardType } from '../../lib/kickoff-clash/tactics';
 
 // ---------------------------------------------------------------------------
 // Category colour palette

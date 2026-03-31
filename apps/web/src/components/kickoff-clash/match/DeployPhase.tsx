@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MatchV5State, AttackDefenceSplit } from '../../lib/match-v5';
-import { evaluateSplit } from '../../lib/match-v5';
-import type { Formation } from '../../lib/formations';
-import type { JokerCard } from '../../lib/jokers';
-import type { TacticSlots } from '../../lib/tactics';
-import type { Card } from '../../lib/scoring';
+import type { MatchV5State, AttackDefenceSplit } from '../../../lib/kickoff-clash/match-v5';
+import { evaluateSplit } from '../../../lib/kickoff-clash/match-v5';
+import type { Formation } from '../../../lib/kickoff-clash/formations';
+import type { JokerCard } from '../../../lib/kickoff-clash/jokers';
+import type { TacticSlots } from '../../../lib/kickoff-clash/tactics';
+import type { Card } from '../../../lib/kickoff-clash/scoring';
 import PlayerCard from '../PlayerCard';
 import SynergyPreview from './SynergyPreview';
 

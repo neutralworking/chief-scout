@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import type { PackType } from '../lib/packs';
-import { PACK_TYPES } from '../lib/packs';
+import type { PackType } from '../../lib/kickoff-clash/packs';
+import { PACK_TYPES } from '../../lib/kickoff-clash/packs';
 
 // ---------------------------------------------------------------------------
 // CSS vars (defined in global theme):

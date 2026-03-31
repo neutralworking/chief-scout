@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import type { RunState } from '../lib/run';
-import type { HandState } from '../lib/hand';
-import { rollXI, INCREMENT_MINUTES } from '../lib/hand';
-import { getFormation, type Formation } from '../lib/formations';
-import type { JokerCard as JokerCardType } from '../lib/jokers';
-import type { MatchV5State, IncrementResult } from '../lib/match-v5';
+import type { RunState } from '../../lib/kickoff-clash/run';
+import type { HandState } from '../../lib/kickoff-clash/hand';
+import { rollXI, INCREMENT_MINUTES } from '../../lib/kickoff-clash/hand';
+import { getFormation, type Formation } from '../../lib/kickoff-clash/formations';
+import type { JokerCard as JokerCardType } from '../../lib/kickoff-clash/jokers';
+import type { MatchV5State, IncrementResult } from '../../lib/kickoff-clash/match-v5';
 import {
   initMatch,
   commitAttackers,
@@ -17,7 +17,7 @@ import {
   makeSub,
   discardFromBench,
   getMatchResult,
-} from '../lib/match-v5';
+} from '../../lib/kickoff-clash/match-v5';
 import JokerCardComp from './JokerCard';
 import MatchScorebar from './match/MatchScorebar';
 import DeployPhase from './match/DeployPhase';

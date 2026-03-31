@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { MatchV5State } from '../../lib/match-v5';
-import { ALL_FORMATIONS } from '../../lib/formations';
+import type { MatchV5State } from '../../../lib/kickoff-clash/match-v5';
+import { ALL_FORMATIONS } from '../../../lib/kickoff-clash/formations';
 import PlayerCard from '../PlayerCard';
 
 interface BetweenPhaseProps {

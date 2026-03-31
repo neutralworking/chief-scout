@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { IncrementResult, CascadeLine } from '../../lib/match-v5';
+import type { IncrementResult, CascadeLine } from '../../../lib/kickoff-clash/match-v5';
 
 interface ResolvingPhaseProps {
   result: IncrementResult;

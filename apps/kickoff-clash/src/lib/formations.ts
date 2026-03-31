@@ -11,6 +11,7 @@ export interface Formation {
   name: string;
   slots: FormationSlot[]; // always 11 (including GK)
   description: string;
+  maxAttackers: number;   // soft cap for full-power attack commitment (v5)
 }
 
 // Position eligibility rules
@@ -41,6 +42,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '4-3-3',
     name: '4-3-3',
     description: 'Wide and direct. Wingers stretch defences while a lone striker finishes.',
+    maxAttackers: 5,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('FB', 'Left Back',    10, 78),
@@ -61,6 +63,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '4-4-2',
     name: '4-4-2',
     description: 'The classic. Two banks of four with a strike partnership up top.',
+    maxAttackers: 4,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('FB', 'Left Back',    10, 78),
@@ -81,6 +84,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '3-5-2',
     name: '3-5-2',
     description: 'Midfield dominance through numbers. Wing-mids cover the flanks.',
+    maxAttackers: 5,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('CB', 'Centre-Back',  25, 78),
@@ -101,6 +105,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '4-2-3-1',
     name: '4-2-3-1',
     description: 'Press-resistant structure. Double pivot shields a creative #10 and wide attackers.',
+    maxAttackers: 5,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('FB', 'Left Back',    10, 78),
@@ -121,6 +126,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '3-4-3',
     name: '3-4-3',
     description: 'Maximum attacking intent. Three up front supported by energetic wing-mids.',
+    maxAttackers: 6,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('CB', 'Centre-Back',  25, 78),
@@ -141,6 +147,7 @@ export const ALL_FORMATIONS: Formation[] = [
     id: '5-3-2',
     name: '5-3-2',
     description: 'Compact and resolute. Five at the back with wing-backs providing width on the break.',
+    maxAttackers: 3,
     slots: [
       slot('GK', 'Goalkeeper',   50, 92),
       slot('FB', 'Left Wing-Back', 8, 70),
@@ -153,6 +160,48 @@ export const ALL_FORMATIONS: Formation[] = [
       slot('CM', 'Central Mid',  72, 55),
       slot('CF', 'Striker',      35, 18),
       slot('CF', 'Striker',      65, 18),
+    ],
+  },
+
+  // 5-4-1 Ultra Defensive
+  {
+    id: '5-4-1',
+    name: '5-4-1',
+    description: 'Ultra defensive. Packed defence and midfield with a lone striker outlet.',
+    maxAttackers: 3,
+    slots: [
+      slot('GK', 'Goalkeeper',      50, 92),
+      slot('FB', 'Left Wing-Back',   8, 70),
+      slot('CB', 'Centre-Back',     28, 80),
+      slot('CB', 'Centre-Back',     50, 82),
+      slot('CB', 'Centre-Back',     72, 80),
+      slot('FB', 'Right Wing-Back', 92, 70),
+      slot('WM', 'Left Mid',        10, 55),
+      slot('CM', 'Central Mid',     35, 52),
+      slot('CM', 'Central Mid',     65, 52),
+      slot('WM', 'Right Mid',       90, 55),
+      slot('CF', 'Striker',         50, 15),
+    ],
+  },
+
+  // 4-1-2-1-2 Diamond
+  {
+    id: '4-1-2-1-2',
+    name: '4-1-2-1-2',
+    description: 'Narrow diamond midfield. Central overload with a strike partnership.',
+    maxAttackers: 5,
+    slots: [
+      slot('GK', 'Goalkeeper',    50, 92),
+      slot('FB', 'Left Back',     10, 78),
+      slot('CB', 'Centre-Back',   35, 78),
+      slot('CB', 'Centre-Back',   65, 78),
+      slot('FB', 'Right Back',    90, 78),
+      slot('DM', 'Defensive Mid', 50, 62),
+      slot('CM', 'Central Mid',   30, 48),
+      slot('CM', 'Central Mid',   70, 48),
+      slot('AM', 'Attacking Mid', 50, 35),
+      slot('CF', 'Striker',       35, 18),
+      slot('CF', 'Striker',       65, 18),
     ],
   },
 ];

@@ -1,31 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { RunState } from '../lib/run';
-import type {
-  HandState,
-  IncrementScore,
-} from '../lib/hand';
-import {
-  rollXI,
-  discardFromBench,
-  makeSub,
-  evaluateIncrement,
-  advanceIncrement,
-  getMatchResult,
-  INCREMENT_MINUTES,
-} from '../lib/hand';
-import {
-  deployTactic,
-  removeTactic,
-  canDeploy,
-  type TacticCard as TacticCardType,
-} from '../lib/tactics';
-import { getFormation, ALL_FORMATIONS, type Formation } from '../lib/formations';
+import type { HandState } from '../lib/hand';
+import { rollXI, INCREMENT_MINUTES } from '../lib/hand';
+import { getFormation, type Formation } from '../lib/formations';
 import type { JokerCard as JokerCardType } from '../lib/jokers';
-import PlayerCard from './PlayerCard';
-import TacticCardComp from './TacticCard';
+import type { MatchV5State, IncrementResult } from '../lib/match-v5';
+import {
+  initMatch,
+  commitAttackers,
+  evaluateSplit,
+  resolveIncrement,
+  getOpponentBaselines,
+  advanceIncrement,
+  makeSub,
+  discardFromBench,
+  getMatchResult,
+} from '../lib/match-v5';
 import JokerCardComp from './JokerCard';
+import MatchScorebar from './match/MatchScorebar';
+import DeployPhase from './match/DeployPhase';
+import ResolvingPhase from './match/ResolvingPhase';
+import BetweenPhase from './match/BetweenPhase';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,10 +38,10 @@ interface MatchPhaseProps {
   }) => void;
 }
 
-type MatchSubPhase = 'planning' | 'resolving' | 'halftime' | 'finished';
+type MatchSubPhase = 'planning' | 'resolving' | 'between' | 'halftime' | 'finished';
 
 // ---------------------------------------------------------------------------
-// Opponent generation
+// Opponent names
 // ---------------------------------------------------------------------------
 
 const OPPONENT_NAMES = [
@@ -57,12 +54,6 @@ function getOpponentName(seed: number): string {
   return OPPONENT_NAMES[Math.abs(seed) % OPPONENT_NAMES.length];
 }
 
-function getOpponentStrength(round: number, seed: number): number {
-  const base = 500 + round * 150;
-  const variance = ((seed * 7 + 13) % 200) - 100;
-  return Math.max(300, base + variance);
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -70,239 +61,155 @@ function getOpponentStrength(round: number, seed: number): number {
 export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProps) {
   const formation = getFormation(runState.activeFormation);
   const seedRef = useRef(runState.seed + runState.round * 1000);
+  const opponentName = getOpponentName(seedRef.current);
+
+  // Opponent data from runState (if available) or defaults
+  const opponentStyle = 'Balanced';
+  const opponentWeakness = '';
 
   // Core state
-  const [handState, setHandState] = useState<HandState>(() =>
-    rollXI(runState.deck, formation, seedRef.current),
-  );
-  const [subPhase, setSubPhase] = useState<MatchSubPhase>('planning');
-  const [currentFormation, setCurrentFormation] = useState<Formation>(formation);
-
-  // UI interaction state
-  const [selectedBenchId, setSelectedBenchId] = useState<number | null>(null);
-  const [selectedXiId, setSelectedXiId] = useState<number | null>(null);
-  const [showTacticPicker, setShowTacticPicker] = useState<number | null>(null); // slot index
-  const [showDiscardConfirm, setShowDiscardConfirm] = useState<number | null>(null);
-
-  // Cascade animation state
-  const [cascadeLines, setCascadeLines] = useState<string[]>([]);
-  const [cascadeVisible, setCascadeVisible] = useState(0);
-  const [currentEvent, setCurrentEvent] = useState<IncrementScore | null>(null);
-
-  // Warning text
-  const [warning, setWarning] = useState<string | null>(null);
-
-  const opponentName = getOpponentName(seedRef.current);
-  const opponentStrength = getOpponentStrength(runState.round, seedRef.current);
-
-  // ---- Clear warning after timeout ----
-  useEffect(() => {
-    if (!warning) return;
-    const t = setTimeout(() => setWarning(null), 2000);
-    return () => clearTimeout(t);
-  }, [warning]);
-
-  // ---- Sub logic: tap bench then XI ----
-  const handleBenchTap = useCallback(
-    (cardId: number) => {
-      if (subPhase !== 'planning' && subPhase !== 'halftime') return;
-
-      // If same card tapped again, deselect
-      if (selectedBenchId === cardId) {
-        setSelectedBenchId(null);
-        setShowDiscardConfirm(null);
-        return;
-      }
-
-      // If an XI card is already selected, make a sub
-      if (selectedXiId !== null) {
-        const result = makeSub(handState, selectedXiId, cardId);
-        if (result !== handState) {
-          setHandState(result);
-          setSelectedXiId(null);
-          setSelectedBenchId(null);
-        } else {
-          setWarning(handState.isFirstHalf ? 'First half: only injured players can be subbed' : 'Cannot make this sub');
-        }
-        return;
-      }
-
-      setSelectedBenchId(cardId);
-      setShowDiscardConfirm(cardId);
-      setSelectedXiId(null);
-    },
-    [subPhase, selectedBenchId, selectedXiId, handState],
-  );
-
-  const handleXiTap = useCallback(
-    (cardId: number) => {
-      if (subPhase !== 'planning' && subPhase !== 'halftime') return;
-
-      // If a bench card is selected, make a sub
-      if (selectedBenchId !== null) {
-        const result = makeSub(handState, cardId, selectedBenchId);
-        if (result !== handState) {
-          setHandState(result);
-          setSelectedBenchId(null);
-          setSelectedXiId(null);
-          setShowDiscardConfirm(null);
-        } else {
-          setWarning(handState.isFirstHalf ? 'First half: only injured players can be subbed' : 'Cannot make this sub');
-        }
-        return;
-      }
-
-      setSelectedXiId(selectedXiId === cardId ? null : cardId);
-      setSelectedBenchId(null);
-      setShowDiscardConfirm(null);
-    },
-    [subPhase, selectedBenchId, selectedXiId, handState],
-  );
-
-  // ---- Discard from bench ----
-  const handleDiscard = useCallback(
-    (cardId: number) => {
-      const seed = seedRef.current + handState.currentIncrement * 97 + cardId;
-      setHandState(prev => discardFromBench(prev, cardId, seed));
-      setShowDiscardConfirm(null);
-      setSelectedBenchId(null);
-    },
-    [handState.currentIncrement],
-  );
-
-  // ---- Tactic deployment ----
-  const handleTacticSlotTap = useCallback(
-    (slotIdx: number) => {
-      if (subPhase !== 'planning' && subPhase !== 'halftime') return;
-      const current = handState.tacticSlots.slots[slotIdx];
-      if (current) {
-        // Remove deployed tactic
-        setHandState(prev => ({
-          ...prev,
-          tacticSlots: removeTactic(prev.tacticSlots, slotIdx),
-        }));
-        return;
-      }
-      setShowTacticPicker(slotIdx);
-    },
-    [subPhase, handState.tacticSlots],
-  );
-
-  const handleDeployTactic = useCallback(
-    (tactic: TacticCardType, slotIdx: number) => {
-      const check = canDeploy(handState.tacticSlots, tactic);
-      if (!check.canDeploy) {
-        setWarning('Cannot deploy this tactic');
-        setShowTacticPicker(null);
-        return;
-      }
-      if (check.wouldRemove) {
-        setWarning(`Removed contradicting tactic`);
-      }
-      setHandState(prev => ({
-        ...prev,
-        tacticSlots: deployTactic(prev.tacticSlots, tactic, slotIdx),
-      }));
-      setShowTacticPicker(null);
-    },
-    [handState.tacticSlots],
-  );
-
-  // ---- Advance increment ----
-  const handleAdvance = useCallback(() => {
-    if (subPhase !== 'planning') return;
-    setSubPhase('resolving');
-    setSelectedBenchId(null);
-    setSelectedXiId(null);
-    setShowTacticPicker(null);
-    setShowDiscardConfirm(null);
-
-    const seed = seedRef.current + handState.currentIncrement * 113;
-    const score = evaluateIncrement(
-      handState,
+  const [matchState, setMatchState] = useState<MatchV5State>(() => {
+    const hand = rollXI(runState.deck, formation, seedRef.current);
+    return initMatch(
+      hand.xi,
+      hand.bench,
+      hand.remainingDeck,
+      formation,
       runState.playingStyle,
       runState.jokers,
-      opponentStrength,
-      seed,
+      seedRef.current,
+      runState.round,
+      opponentStyle,
+      opponentWeakness,
     );
+  });
 
-    setCurrentEvent(score);
+  const [subPhase, setSubPhase] = useState<MatchSubPhase>('planning');
+  const [currentResult, setCurrentResult] = useState<IncrementResult | null>(null);
 
-    // Build cascade lines
-    const lines: string[] = [
-      `Base: ${score.cascade.basePower}`,
-      `+ Chemistry: +${score.cascade.chemistryBonus}`,
-      `+ Style: +${score.cascade.styleBonus}`,
-      `+ Tactics: +${score.cascade.tacticBonus}`,
-      `+ Managers: +${score.cascade.managerBonus}`,
-      `= ${Math.round((score.cascade.basePower + score.cascade.chemistryBonus + score.cascade.styleBonus + score.cascade.tacticBonus + score.cascade.managerBonus))} x ${score.cascade.chemistryMultiplier.toFixed(2)}`,
-      `= ${score.cascade.total} vs ${score.opponentScore}`,
-    ];
-    setCascadeLines(lines);
-    setCascadeVisible(0);
+  const nextMinute =
+    matchState.currentIncrement < INCREMENT_MINUTES.length
+      ? INCREMENT_MINUTES[matchState.currentIncrement]
+      : 90;
 
-    // Stagger cascade lines
-    lines.forEach((_, i) => {
-      setTimeout(() => setCascadeVisible(i + 1), (i + 1) * 400);
-    });
-
-    // After all lines shown + event, advance
-    const totalDelay = (lines.length + 1) * 400 + 1500;
-    setTimeout(() => {
-      const advanced = advanceIncrement(handState, score);
-      setHandState(advanced);
-
-      // Determine next phase
-      if (handState.currentIncrement === 1) {
-        // Just played 30' -> halftime
-        setSubPhase('halftime');
-      } else if (handState.currentIncrement === 4) {
-        // Just played 90' -> finished
-        setSubPhase('finished');
-      } else {
-        setSubPhase('planning');
-      }
-
-      setCascadeLines([]);
-      setCascadeVisible(0);
-      setCurrentEvent(null);
-    }, totalDelay);
-  }, [subPhase, handState, runState.playingStyle, runState.jokers, opponentStrength]);
-
-  // ---- Halftime: resume ----
-  const handleSecondHalf = useCallback(() => {
-    setSubPhase('planning');
-  }, []);
-
-  // ---- Halftime: formation change ----
-  const handleFormationChange = useCallback(
-    (formationId: string) => {
-      const newFormation = getFormation(formationId);
-      setCurrentFormation(newFormation);
-      // Re-map XI cards to new formation slots (keep same cards, just reorder)
-      // The slot positions change but cards stay in xi array
+  // ---- Toggle attacker ----
+  const handleToggleAttacker = useCallback(
+    (cardId: number) => {
+      setMatchState((prev: MatchV5State) => {
+        const newIds = new Set(prev.attackerIds);
+        if (newIds.has(cardId)) {
+          newIds.delete(cardId);
+        } else {
+          // Check if card is injured
+          const card = prev.xi.find((c) => c.id === cardId);
+          if (card?.injured) return prev;
+          newIds.add(cardId);
+        }
+        return commitAttackers(prev, Array.from(newIds));
+      });
     },
     [],
   );
 
-  // ---- Finished: continue ----
+  // ---- Kick Off: evaluate and resolve ----
+  const handleKickOff = useCallback(() => {
+    const split = evaluateSplit(matchState, runState.jokers, matchState.formation
+      ? { slots: [null, null, null] } // tactic slots from hand state - simplified for v5
+      : { slots: [null, null, null] },
+    );
+
+    const { attack: oppAtk, defence: oppDef } = getOpponentBaselines(
+      matchState.opponentRound,
+      matchState.opponentStyle,
+      matchState.currentIncrement,
+      matchState,
+    );
+
+    const seed = seedRef.current + matchState.currentIncrement * 113;
+    const result = resolveIncrement(matchState, split, oppAtk, oppDef, seed);
+
+    setCurrentResult(result);
+    setSubPhase('resolving');
+  }, [matchState, runState.jokers]);
+
+  // ---- After resolution animation completes ----
+  const handleResolveComplete = useCallback(() => {
+    if (!currentResult) return;
+
+    const advanced = advanceIncrement(matchState, currentResult);
+    setMatchState(advanced);
+    setCurrentResult(null);
+
+    // Determine next phase based on what increment just completed
+    const justPlayed = matchState.currentIncrement;
+    if (justPlayed === 4) {
+      // Just played 90' -> finished
+      setSubPhase('finished');
+    } else if (justPlayed === 1) {
+      // Just played 30' -> halftime
+      setSubPhase('halftime');
+    } else if (justPlayed >= 2) {
+      // Second half increments 2-3 -> between
+      setSubPhase('between');
+    } else {
+      // First half increment 0 -> straight to planning
+      setSubPhase('planning');
+    }
+  }, [matchState, currentResult]);
+
+  // ---- Sub ----
+  const handleSub = useCallback(
+    (xiCardId: number, benchCardId: number) => {
+      setMatchState((prev: MatchV5State) => makeSub(prev, xiCardId, benchCardId));
+    },
+    [],
+  );
+
+  // ---- Discard ----
+  const handleDiscard = useCallback(
+    (benchCardIds: number[]) => {
+      setMatchState((prev: MatchV5State) => discardFromBench(prev, benchCardIds));
+    },
+    [],
+  );
+
+  // ---- Formation change (halftime) ----
+  const handleFormationChange = useCallback(
+    (formationId: string) => {
+      const newFormation = getFormation(formationId);
+      setMatchState((prev: MatchV5State) => ({ ...prev, formation: newFormation }));
+    },
+    [],
+  );
+
+  // ---- Continue from between/halftime ----
   const handleContinue = useCallback(() => {
-    const result = getMatchResult(handState);
+    setSubPhase('planning');
+  }, []);
+
+  // ---- Finished: return result to GameShell ----
+  const handleMatchFinished = useCallback(() => {
+    const result = getMatchResult(matchState);
     onMatchComplete({
       yourGoals: result.yourGoals,
       opponentGoals: result.opponentGoals,
       result: result.result,
-      handState: result.handState,
+      // Bridge to HandState shape for backward compatibility
+      handState: {
+        xi: matchState.xi,
+        bench: matchState.bench,
+        remainingDeck: matchState.remainingDeck,
+        subsRemaining: matchState.subsRemaining,
+        subsUsed: matchState.subsUsed,
+        tacticSlots: { slots: [null, null, null] },
+        currentIncrement: matchState.currentIncrement,
+        isFirstHalf: matchState.isFirstHalf,
+        scores: [],
+        yourGoals: matchState.yourGoals,
+        opponentGoals: matchState.opponentGoals,
+      },
     });
-  }, [handState, onMatchComplete]);
-
-  // ---- Group XI cards by formation rows ----
-  const formationRows = groupByRows(currentFormation, handState.xi);
-
-  const nextMinute =
-    handState.currentIncrement < INCREMENT_MINUTES.length
-      ? INCREMENT_MINUTES[handState.currentIncrement]
-      : 90;
+  }, [matchState, onMatchComplete]);
 
   // ---- Render ----
   return (
@@ -320,7 +227,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
         overflow: 'hidden',
       }}
     >
-      {/* ---- Joker row ---- */}
+      {/* Joker row */}
       <div
         style={{
           display: 'flex',
@@ -337,415 +244,105 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
             No managers active
           </span>
         )}
-        {runState.jokers.map(j => (
+        {runState.jokers.map((j) => (
           <JokerCardComp key={j.id} joker={j} compact />
         ))}
       </div>
 
-      {/* ---- Match bar ---- */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '4px 12px',
-          background: 'linear-gradient(135deg, var(--leather, #3d2b1f), #2a1e15)',
-          borderBottom: '1px solid rgba(245,158,11,0.2)',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span
-            style={{
-              fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 28,
-              color: 'var(--cream, #f5f0e8)',
-              lineHeight: 1,
-            }}
-          >
-            {handState.yourGoals}
-          </span>
-          <span
-            style={{
-              fontSize: 14,
-              color: 'var(--dust, #8a7560)',
-              fontWeight: 600,
-            }}
-          >
-            -
-          </span>
-          <span
-            style={{
-              fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 28,
-              color: 'var(--cream, #f5f0e8)',
-              lineHeight: 1,
-            }}
-          >
-            {handState.opponentGoals}
-          </span>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--amber, #f59e0b)',
-              color: '#1a1a1a',
-              fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 13,
-              borderRadius: 6,
-              padding: '2px 8px',
-              animation: subPhase === 'resolving' ? 'pulse 1s infinite' : undefined,
-            }}
-          >
-            {nextMinute}&apos;
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 2 }}>
-          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
-            vs {opponentName} &middot; Str {opponentStrength}
-          </span>
-          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
-            Round {runState.round}/5
-          </span>
-        </div>
-      </div>
+      {/* Score bar */}
+      <MatchScorebar
+        yourGoals={matchState.yourGoals}
+        opponentGoals={matchState.opponentGoals}
+        minute={nextMinute}
+        opponentName={opponentName}
+        round={runState.round}
+        subPhase={subPhase}
+      />
 
-      {/* ---- Tactic slots ---- */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          padding: '3px 10px',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexShrink: 0,
-        }}
-      >
-        {handState.tacticSlots.slots.map((slot, i) => (
-          <div key={i}>
-            {slot ? (
-              <TacticCardComp
-                tactic={slot}
-                deployed
-                compact
-                onClick={() => handleTacticSlotTap(i)}
-              />
-            ) : (
-              <button
-                onClick={() => handleTacticSlotTap(i)}
-                disabled={subPhase === 'resolving' || subPhase === 'finished'}
-                style={{
-                  width: 120,
-                  height: 42,
-                  borderRadius: 6,
-                  border: '1.5px dashed var(--dust, #8a7560)',
-                  background: 'rgba(0,0,0,0.15)',
-                  color: 'var(--dust, #8a7560)',
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  fontFamily: '"DM Sans", sans-serif',
-                }}
-              >
-                + Tactic
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Main content area by sub-phase */}
+      {subPhase === 'planning' && (
+        <DeployPhase
+          matchState={matchState}
+          formation={matchState.formation}
+          jokers={runState.jokers}
+          tacticSlots={{ slots: [null, null, null] }}
+          onToggleAttacker={handleToggleAttacker}
+          onKickOff={handleKickOff}
+        />
+      )}
 
-      {/* ---- Tactic picker overlay ---- */}
-      {showTacticPicker !== null && (
+      {subPhase === 'resolving' && currentResult && (
+        <ResolvingPhase
+          result={currentResult}
+          onComplete={handleResolveComplete}
+        />
+      )}
+
+      {(subPhase === 'between' || subPhase === 'halftime') && (
+        <BetweenPhase
+          matchState={matchState}
+          ownedFormations={runState.ownedFormations}
+          isHalftime={subPhase === 'halftime'}
+          onSub={handleSub}
+          onDiscard={handleDiscard}
+          onFormationChange={handleFormationChange}
+          onContinue={handleContinue}
+        />
+      )}
+
+      {subPhase === 'finished' && (
         <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.8)',
-            zIndex: 20,
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 16,
             gap: 8,
           }}
         >
-          <span
+          <div
             style={{
               fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 14,
+              fontSize: 18,
               color: 'var(--cream, #f5f0e8)',
-              marginBottom: 8,
             }}
           >
-            Deploy a Tactic
-          </span>
+            FULL TIME
+          </div>
           <div
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 8,
-              justifyContent: 'center',
-              maxHeight: '60vh',
-              overflowY: 'auto',
+              fontFamily: '"Archivo Black", sans-serif',
+              fontSize: 40,
+              color: 'var(--cream, #f5f0e8)',
+              lineHeight: 1,
             }}
           >
-            {runState.tacticsDeck.map(t => {
-              const check = canDeploy(handState.tacticSlots, t);
-              return (
-                <TacticCardComp
-                  key={t.id}
-                  tactic={t}
-                  compact
-                  contradicted={!check.canDeploy}
-                  onClick={
-                    check.canDeploy
-                      ? () => handleDeployTactic(t, showTacticPicker)
-                      : undefined
-                  }
-                />
-              );
-            })}
+            {matchState.yourGoals} - {matchState.opponentGoals}
+          </div>
+          <div
+            style={{
+              fontFamily: '"Archivo Black", sans-serif',
+              fontSize: 16,
+              marginTop: 6,
+              color:
+                matchState.yourGoals > matchState.opponentGoals
+                  ? '#22c55e'
+                  : matchState.yourGoals < matchState.opponentGoals
+                    ? '#ef4444'
+                    : '#f59e0b',
+            }}
+          >
+            {matchState.yourGoals > matchState.opponentGoals
+              ? 'WIN'
+              : matchState.yourGoals < matchState.opponentGoals
+                ? 'LOSS'
+                : 'DRAW'}
           </div>
           <button
-            onClick={() => setShowTacticPicker(null)}
+            onClick={handleMatchFinished}
             style={{
               marginTop: 12,
-              padding: '6px 20px',
-              borderRadius: 6,
-              border: '1px solid var(--dust, #8a7560)',
-              background: 'transparent',
-              color: 'var(--cream, #f5f0e8)',
-              fontSize: 12,
-              cursor: 'pointer',
-              fontFamily: '"DM Sans", sans-serif',
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {/* ---- XI display ---- */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          gap: 3,
-          padding: '2px 4px',
-          minHeight: 0,
-        }}
-      >
-        {formationRows.map((row, ri) => (
-          <div
-            key={ri}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 4,
-            }}
-          >
-            {row.map(card => (
-              <div key={card.id} style={{ position: 'relative' }}>
-                <PlayerCard
-                  card={card}
-                  size="pill"
-                  onClick={() => handleXiTap(card.id)}
-                  selected={selectedXiId === card.id}
-                  dimmed={!!card.injured}
-                />
-                {card.injured && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'rgba(239, 68, 68, 0.25)',
-                      borderRadius: 10,
-                      pointerEvents: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>&#x1F3E5;</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* ---- Cascade / event display ---- */}
-      {(subPhase === 'resolving' || cascadeLines.length > 0) && currentEvent && (
-        <div
-          style={{
-            padding: '6px 10px',
-            background: 'rgba(0,0,0,0.35)',
-            borderRadius: 8,
-            margin: '0 10px',
-            maxHeight: 90,
-            overflowY: 'auto',
-            flexShrink: 0,
-          }}
-        >
-          {cascadeLines.map((line, i) => (
-            <div
-              key={i}
-              style={{
-                opacity: i < cascadeVisible ? 1 : 0,
-                transition: 'opacity 0.3s ease',
-                fontSize: 12,
-                lineHeight: 1.8,
-                fontFamily: line.startsWith('Base') || line.startsWith('=')
-                  ? '"Archivo Black", sans-serif'
-                  : '"DM Sans", sans-serif',
-                color: line.includes('Chemistry')
-                  ? '#f59e0b'
-                  : line.includes('Style')
-                    ? '#22c55e'
-                    : line.includes('Tactics')
-                      ? '#4a9eff'
-                      : line.includes('Managers')
-                        ? '#a855f7'
-                        : 'var(--cream, #f5f0e8)',
-              }}
-            >
-              {line}
-            </div>
-          ))}
-
-          {/* Event line — shown after all cascade lines */}
-          {cascadeVisible >= cascadeLines.length && cascadeLines.length > 0 && (
-            <div
-              style={{
-                marginTop: 8,
-                fontFamily: '"Playfair Display", serif',
-                fontStyle: 'italic',
-                fontSize: 14,
-                fontWeight: 600,
-                color:
-                  currentEvent.event.type === 'goal-yours'
-                    ? 'var(--amber, #f59e0b)'
-                    : currentEvent.event.type === 'goal-opponent'
-                      ? '#ef4444'
-                      : 'var(--dust, #8a7560)',
-              }}
-            >
-              {currentEvent.event.minute}&apos; &mdash;{' '}
-              {currentEvent.event.type === 'goal-yours' && 'GOAL! '}
-              {currentEvent.event.type === 'goal-opponent' && 'They score. '}
-              {currentEvent.event.text}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ---- Warning ---- */}
-      {warning && (
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: 11,
-            color: '#ef4444',
-            padding: '4px 0',
-          }}
-        >
-          {warning}
-        </div>
-      )}
-
-      {/* ---- Bench ---- */}
-      <div
-        style={{
-          padding: '4px 10px',
-          borderTop: '1px solid rgba(245,158,11,0.15)',
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 10,
-            color: 'var(--dust, #8a7560)',
-            marginBottom: 4,
-          }}
-        >
-          <span>Bench</span>
-          <span>Deck: {handState.remainingDeck.length} remaining</span>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            gap: 4,
-            overflowX: 'auto',
-            paddingBottom: 4,
-          }}
-        >
-          {handState.bench.map(card => (
-            <div key={card.id} style={{ position: 'relative', flexShrink: 0 }}>
-              <PlayerCard
-                card={card}
-                size="pill"
-                onClick={() => handleBenchTap(card.id)}
-                selected={selectedBenchId === card.id}
-              />
-              {showDiscardConfirm === card.id && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDiscard(card.id);
-                  }}
-                  style={{
-                    position: 'absolute',
-                    bottom: -2,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    fontSize: 9,
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    border: '1px solid #ef4444',
-                    background: 'rgba(239,68,68,0.2)',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    zIndex: 5,
-                    fontFamily: '"DM Sans", sans-serif',
-                  }}
-                >
-                  Discard
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ---- Action bar ---- */}
-      <div
-        style={{
-          padding: '4px 12px 8px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.3), transparent)',
-          flexShrink: 0,
-        }}
-      >
-        {subPhase === 'planning' && (
-          <button
-            onClick={handleAdvance}
-            style={{
               width: '100%',
               maxWidth: 320,
               padding: '12px 0',
@@ -759,188 +356,12 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
               boxShadow: '0 4px 12px rgba(245,158,11,0.4)',
             }}
           >
-            Advance to {nextMinute}&apos;
+            Continue
           </button>
-        )}
-        {subPhase === 'planning' && (
-          <div style={{ display: 'flex', gap: 16, fontSize: 10, color: 'var(--dust, #8a7560)' }}>
-            <span>Subs: {handState.subsRemaining}/5</span>
-            <span>Bench: {handState.bench.length}</span>
-            <span>Deck: {handState.remainingDeck.length}</span>
-          </div>
-        )}
-
-        {subPhase === 'resolving' && (
-          <div
-            style={{
-              fontSize: 13,
-              color: 'var(--amber, #f59e0b)',
-              fontFamily: '"Archivo Black", sans-serif',
-              padding: '12px 0',
-            }}
-          >
-            Resolving...
-          </div>
-        )}
-
-        {subPhase === 'halftime' && (
-          <>
-            {/* Formation selector */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-                marginBottom: 4,
-              }}
-            >
-              <span style={{ fontSize: 11, color: 'var(--dust, #8a7560)' }}>
-                Formation:
-              </span>
-              <select
-                value={currentFormation.id}
-                onChange={(e) => handleFormationChange(e.target.value)}
-                style={{
-                  background: 'var(--leather, #3d2b1f)',
-                  color: 'var(--cream, #f5f0e8)',
-                  border: '1px solid var(--dust, #8a7560)',
-                  borderRadius: 4,
-                  padding: '3px 6px',
-                  fontSize: 12,
-                  fontFamily: '"DM Sans", sans-serif',
-                }}
-              >
-                {runState.ownedFormations.map(fId => {
-                  const f = ALL_FORMATIONS.find(fm => fm.id === fId);
-                  return f ? (
-                    <option key={fId} value={fId}>
-                      {f.name}
-                    </option>
-                  ) : null;
-                })}
-              </select>
-            </div>
-
-            <button
-              onClick={handleSecondHalf}
-              style={{
-                width: '100%',
-                maxWidth: 320,
-                padding: '12px 0',
-                borderRadius: 8,
-                border: 'none',
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                color: '#1a1a1a',
-                fontFamily: '"Archivo Black", sans-serif',
-                fontSize: 16,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(245,158,11,0.4)',
-              }}
-            >
-              Second Half &rarr;
-            </button>
-          </>
-        )}
-
-        {subPhase === 'finished' && (
-          <div style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                fontFamily: '"Archivo Black", sans-serif',
-                fontSize: 18,
-                color: 'var(--cream, #f5f0e8)',
-                marginBottom: 4,
-              }}
-            >
-              FULL TIME
-            </div>
-            <div
-              style={{
-                fontFamily: '"Archivo Black", sans-serif',
-                fontSize: 40,
-                color: 'var(--cream, #f5f0e8)',
-                lineHeight: 1,
-              }}
-            >
-              {handState.yourGoals} - {handState.opponentGoals}
-            </div>
-            <div
-              style={{
-                fontFamily: '"Archivo Black", sans-serif',
-                fontSize: 16,
-                marginTop: 6,
-                color:
-                  handState.yourGoals > handState.opponentGoals
-                    ? '#22c55e'
-                    : handState.yourGoals < handState.opponentGoals
-                      ? '#ef4444'
-                      : '#f59e0b',
-              }}
-            >
-              {handState.yourGoals > handState.opponentGoals
-                ? 'WIN'
-                : handState.yourGoals < handState.opponentGoals
-                  ? 'LOSS'
-                  : 'DRAW'}
-            </div>
-            <button
-              onClick={handleContinue}
-              style={{
-                marginTop: 12,
-                width: '100%',
-                maxWidth: 320,
-                padding: '12px 0',
-                borderRadius: 8,
-                border: 'none',
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                color: '#1a1a1a',
-                fontFamily: '"Archivo Black", sans-serif',
-                fontSize: 16,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(245,158,11,0.4)',
-              }}
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {/* Subs remaining */}
-        {subPhase !== 'finished' && (
-          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
-            Subs: {handState.subsRemaining} remaining
-          </span>
-        )}
-      </div>
-
-      {/* ---- Halftime overlay ---- */}
-      {subPhase === 'halftime' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
-            padding: '16px 0 32px',
-            textAlign: 'center',
-            pointerEvents: 'none',
-            zIndex: 10,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: '"Archivo Black", sans-serif',
-              fontSize: 24,
-              color: 'var(--amber, #f59e0b)',
-            }}
-          >
-            HALF TIME
-          </span>
         </div>
       )}
 
-      {/* ---- Pulse animation ---- */}
+      {/* Pulse animation */}
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -949,43 +370,4 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
       `}</style>
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Group XI cards into display rows based on formation slot y-coordinates.
- * Rows sorted top (attack) to bottom (GK).
- */
-function groupByRows(formation: Formation, xi: import('../lib/scoring').Card[]): import('../lib/scoring').Card[][] {
-  if (xi.length === 0) return [];
-
-  // Pair each card with its slot's y value
-  const pairs = xi.map((card, i) => ({
-    card,
-    y: formation.slots[i]?.y ?? 50,
-    x: formation.slots[i]?.x ?? 50,
-  }));
-
-  // Group by approximate y (within 10 units = same row)
-  const rows: { y: number; cards: { card: typeof pairs[0]['card']; x: number }[] }[] = [];
-  for (const p of pairs) {
-    const existing = rows.find(r => Math.abs(r.y - p.y) <= 10);
-    if (existing) {
-      existing.cards.push({ card: p.card, x: p.x });
-    } else {
-      rows.push({ y: p.y, cards: [{ card: p.card, x: p.x }] });
-    }
-  }
-
-  // Sort rows: lowest y first (attackers at top)
-  rows.sort((a, b) => a.y - b.y);
-
-  // Sort cards within each row by x
-  return rows.map(r => {
-    r.cards.sort((a, b) => a.x - b.x);
-    return r.cards.map(c => c.card);
-  });
 }

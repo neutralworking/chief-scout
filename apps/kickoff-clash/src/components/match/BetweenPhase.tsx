@@ -90,7 +90,7 @@ export default function BetweenPhase({
       <div style={{ textAlign: 'center' }}>
         <span
           style={{
-            fontFamily: '"Archivo Black", sans-serif',
+            fontFamily: 'var(--font-display, sans-serif)',
             fontSize: 18,
             color: 'var(--amber, #f59e0b)',
           }}
@@ -176,7 +176,7 @@ export default function BetweenPhase({
               fontSize: 12,
               fontWeight: 700,
               cursor: 'pointer',
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: 'var(--font-body, sans-serif)',
             }}
           >
             Discard {markedForDiscard.size} card{markedForDiscard.size > 1 ? 's' : ''} &amp; draw
@@ -205,7 +205,7 @@ export default function BetweenPhase({
               borderRadius: 4,
               padding: '3px 6px',
               fontSize: 12,
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: 'var(--font-body, sans-serif)',
             }}
           >
             {ownedFormations.map((fId) => {
@@ -232,7 +232,7 @@ export default function BetweenPhase({
           border: 'none',
           background: 'linear-gradient(135deg, #f59e0b, #d97706)',
           color: '#1a1a1a',
-          fontFamily: '"Archivo Black", sans-serif',
+          fontFamily: 'var(--font-display, sans-serif)',
           fontSize: 16,
           cursor: 'pointer',
           boxShadow: '0 4px 12px rgba(245,158,11,0.4)',

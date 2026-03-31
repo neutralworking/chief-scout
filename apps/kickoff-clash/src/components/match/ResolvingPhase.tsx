@@ -86,7 +86,7 @@ export default function ResolvingPhase({ result, onComplete }: ResolvingPhasePro
                 transition: 'opacity 0.3s ease',
                 fontSize: isTotal ? 14 : 12,
                 lineHeight: 1.8,
-                fontFamily: isTotal ? '"Archivo Black", sans-serif' : '"DM Sans", sans-serif',
+                fontFamily: isTotal ? 'var(--font-display, sans-serif)' : 'var(--font-body, sans-serif)',
                 fontWeight: isTotal ? 900 : 400,
                 color: isTotal ? sideColor : cascadeColor(line.type),
                 borderTop: isTotal ? `1px solid ${sideColor}40` : undefined,
@@ -118,7 +118,7 @@ export default function ResolvingPhase({ result, onComplete }: ResolvingPhasePro
           <div
             style={{
               marginTop: 12,
-              fontFamily: '"Playfair Display", serif',
+              fontFamily: 'var(--font-flavour, serif)',
               fontStyle: 'italic',
               fontSize: 14,
               fontWeight: 600,
@@ -148,7 +148,7 @@ export default function ResolvingPhase({ result, onComplete }: ResolvingPhasePro
           color: 'var(--cream, #f5f0e8)',
           fontSize: 12,
           cursor: 'pointer',
-          fontFamily: '"DM Sans", sans-serif',
+          fontFamily: 'var(--font-body, sans-serif)',
           opacity: 0.6,
         }}
       >

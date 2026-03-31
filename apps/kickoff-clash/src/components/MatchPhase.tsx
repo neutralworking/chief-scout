@@ -221,7 +221,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--felt, #1a3a1a)',
-        fontFamily: '"DM Sans", sans-serif',
+        fontFamily: 'var(--font-body, sans-serif)',
         color: 'var(--cream, #f5f0e8)',
         position: 'relative',
         overflow: 'hidden',
@@ -303,7 +303,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
         >
           <div
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 18,
               color: 'var(--cream, #f5f0e8)',
             }}
@@ -312,7 +312,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           </div>
           <div
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 40,
               color: 'var(--cream, #f5f0e8)',
               lineHeight: 1,
@@ -322,7 +322,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
           </div>
           <div
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 16,
               marginTop: 6,
               color:
@@ -350,7 +350,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
               border: 'none',
               background: 'linear-gradient(135deg, #f59e0b, #d97706)',
               color: '#1a1a1a',
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 16,
               cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(245,158,11,0.4)',

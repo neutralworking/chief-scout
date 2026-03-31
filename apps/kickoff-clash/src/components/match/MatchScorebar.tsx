@@ -32,7 +32,7 @@ export default function MatchScorebar({
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <span
           style={{
-            fontFamily: '"Archivo Black", sans-serif',
+            fontFamily: 'var(--font-display, sans-serif)',
             fontSize: 28,
             color: 'var(--cream, #f5f0e8)',
             lineHeight: 1,
@@ -45,7 +45,7 @@ export default function MatchScorebar({
         </span>
         <span
           style={{
-            fontFamily: '"Archivo Black", sans-serif',
+            fontFamily: 'var(--font-display, sans-serif)',
             fontSize: 28,
             color: 'var(--cream, #f5f0e8)',
             lineHeight: 1,
@@ -60,7 +60,7 @@ export default function MatchScorebar({
             justifyContent: 'center',
             background: 'var(--amber, #f59e0b)',
             color: '#1a1a1a',
-            fontFamily: '"Archivo Black", sans-serif',
+            fontFamily: 'var(--font-display, sans-serif)',
             fontSize: 13,
             borderRadius: 6,
             padding: '2px 8px',

@@ -74,7 +74,7 @@ export default function DeployPhase({
           <div style={{ fontSize: 10, color: '#fbbf24', fontWeight: 700 }}>ATK</div>
           <div
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 20,
               color: '#fbbf24',
             }}
@@ -99,7 +99,7 @@ export default function DeployPhase({
           <div style={{ fontSize: 10, color: '#60a5fa', fontWeight: 700 }}>DEF</div>
           <div
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 20,
               color: '#60a5fa',
             }}
@@ -226,7 +226,7 @@ export default function DeployPhase({
             border: 'none',
             background: 'linear-gradient(135deg, #f59e0b, #d97706)',
             color: '#1a1a1a',
-            fontFamily: '"Archivo Black", sans-serif',
+            fontFamily: 'var(--font-display, sans-serif)',
             fontSize: 16,
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(245,158,11,0.4)',

@@ -22,9 +22,8 @@
   --radius-sm: 6px;
   --radius-lg: 14px;
 
-  --font-display: 'Archivo Black', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-flavour: 'Playfair Display', serif;
+  /* Font variables set by next/font in layout.tsx via CSS custom properties */
+  /* --font-display, --font-body, --font-flavour are injected as class variables */
 }
 
 body {

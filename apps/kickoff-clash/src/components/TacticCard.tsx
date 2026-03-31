@@ -63,7 +63,7 @@ export default function TacticCard({
       {/* Name */}
       <div
         style={{
-          fontFamily: '"Archivo Black", sans-serif',
+          fontFamily: 'var(--font-display, sans-serif)',
           fontSize: compact ? 10 : 11,
           color: 'var(--cream, #f5f0e8)',
           lineHeight: 1.2,
@@ -78,7 +78,7 @@ export default function TacticCard({
       {/* Effect */}
       <div
         style={{
-          fontFamily: '"DM Sans", sans-serif',
+          fontFamily: 'var(--font-body, sans-serif)',
           fontSize: compact ? 8 : 9,
           color: 'var(--cream-soft, #c8bfb0)',
           lineHeight: 1.3,
@@ -95,7 +95,7 @@ export default function TacticCard({
       {!compact && (
         <div
           style={{
-            fontFamily: '"Playfair Display", serif',
+            fontFamily: 'var(--font-flavour, serif)',
             fontStyle: 'italic',
             fontSize: 8,
             color: 'var(--dust, #8a7560)',
@@ -139,7 +139,7 @@ export default function TacticCard({
         >
           <span
             style={{
-              fontFamily: '"Archivo Black", sans-serif',
+              fontFamily: 'var(--font-display, sans-serif)',
               fontSize: 28,
               color: 'var(--danger, #ef4444)',
               lineHeight: 1,
@@ -158,7 +158,7 @@ export default function TacticCard({
             position: 'absolute',
             bottom: 5,
             right: 6,
-            fontFamily: '"DM Sans", sans-serif',
+            fontFamily: 'var(--font-body, sans-serif)',
             fontSize: 7,
             color: 'var(--amber, #f59e0b)',
             fontWeight: 700,

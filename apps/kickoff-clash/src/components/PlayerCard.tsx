@@ -105,7 +105,7 @@ export default function PlayerCard({
         {/* Power */}
         <span
           className="shrink-0 text-[11px] font-black"
-          style={{ fontFamily: "'Archivo Black', sans-serif", color: rarityColor }}
+          style={{ fontFamily: "var(--font-display, sans-serif)", color: rarityColor }}
         >
           {card.power}
         </span>
@@ -191,7 +191,7 @@ export default function PlayerCard({
         <span
           className="font-black leading-none"
           style={{
-            fontFamily: "'Archivo Black', sans-serif",
+            fontFamily: "var(--font-display, sans-serif)",
             color: rarityColor,
             fontSize: isMini ? 14 : 22,
           }}
@@ -301,7 +301,7 @@ export default function PlayerCard({
           <span
             className="font-black"
             style={{
-              fontFamily: "'Archivo Black', sans-serif",
+              fontFamily: "var(--font-display, sans-serif)",
               color: '#d4a035',
               fontSize: isMini ? 12 : 18,
             }}

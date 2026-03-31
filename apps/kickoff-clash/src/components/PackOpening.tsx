@@ -84,7 +84,7 @@ function PackCard({ pack, onSelect }: { pack: PackType; onSelect: (p: PackType) 
       {/* Pack name */}
       <span
         style={{
-          fontFamily: "'Archivo Black', sans-serif",
+          fontFamily: "var(--font-display, sans-serif)",
           fontSize: 16,
           color: '#f5f0e0',
           lineHeight: 1.2,
@@ -97,7 +97,7 @@ function PackCard({ pack, onSelect }: { pack: PackType; onSelect: (p: PackType) 
       {/* Description */}
       <span
         style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "var(--font-body, sans-serif)",
           fontSize: 11,
           color: '#c8b898',
           lineHeight: 1.4,
@@ -109,7 +109,7 @@ function PackCard({ pack, onSelect }: { pack: PackType; onSelect: (p: PackType) 
       {/* Contents breakdown */}
       <span
         style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "var(--font-body, sans-serif)",
           fontSize: 10,
           color: '#d4a035',
           letterSpacing: '0.02em',
@@ -131,7 +131,7 @@ function PackCard({ pack, onSelect }: { pack: PackType; onSelect: (p: PackType) 
       {/* Flavour text */}
       <span
         style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "var(--font-flavour, serif)",
           fontStyle: 'italic',
           fontSize: 10,
           color: '#9a8b73',
@@ -150,7 +150,7 @@ function PackCard({ pack, onSelect }: { pack: PackType; onSelect: (p: PackType) 
           background: hovered ? '#d4a035' : 'transparent',
           border: '1px solid #d4a035',
           borderRadius: 4,
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "var(--font-body, sans-serif)",
           fontSize: 11,
           fontWeight: 600,
           color: hovered ? '#0b1a10' : '#d4a035',
@@ -183,7 +183,7 @@ export default function PackOpening({ onSelect }: PackOpeningProps) {
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h1
           style={{
-            fontFamily: "'Archivo Black', sans-serif",
+            fontFamily: "var(--font-display, sans-serif)",
             fontSize: 'clamp(22px, 5vw, 32px)',
             color: '#f5f0e0',
             margin: 0,
@@ -194,7 +194,7 @@ export default function PackOpening({ onSelect }: PackOpeningProps) {
         </h1>
         <p
           style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "var(--font-body, sans-serif)",
             fontSize: 13,
             color: '#9a8b73',
             margin: 0,
@@ -223,7 +223,7 @@ export default function PackOpening({ onSelect }: PackOpeningProps) {
       {/* Footer felt texture hint */}
       <p
         style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "var(--font-flavour, serif)",
           fontStyle: 'italic',
           fontSize: 11,
           color: '#4a3e2e',

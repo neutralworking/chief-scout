@@ -752,9 +752,10 @@ export default function SquadBuilderPage() {
                   <div className="flex items-center gap-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
                     {p.club && <span className="truncate" style={{ maxWidth: "100px" }}>{p.club}</span>}
                     {p.age && <span>· {p.age}y</span>}
+                    {p.best_role && <span>· {p.best_role}</span>}
                   </div>
                 </div>
-                <span className="text-xs font-mono shrink-0" style={{ color: (p.level ?? 0) >= 16 ? "var(--color-accent-technical)" : (p.level ?? 0) >= 12 ? "var(--color-accent-tactical)" : "var(--text-muted)" }}>{p.level ?? "—"}</span>
+                <span className="text-xs font-mono shrink-0" style={{ color: (p.level ?? 0) >= 16 ? "var(--color-accent-technical)" : (p.level ?? 0) >= 12 ? "var(--color-accent-tactical)" : "var(--text-muted)" }}>{sortBy === "role_score" ? (p.best_role_score ?? "—") : (p.level ?? "—")}</span>
               </button>
             );
           })}

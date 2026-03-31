@@ -59,5 +59,5 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Target Man', 'CF', 'Holds up play, aerial dominance', 'Target', 'Powerhouse'),
   ('Poacher', 'CF', 'Box presence, clinical finishing', 'Striker', 'Sprinter'),
   ('False 9', 'CF', 'Drops deep, links play, creates space', 'Creator', 'Controller'),
-  ('Complete Forward', 'CF', 'All-round threat, does everything', 'Engine', 'Striker')
+  ('Prima Punta', 'CF', 'Clinical finisher, wins headers, occupies CBs', 'Striker', 'Target')
 ON CONFLICT (name, position) DO NOTHING;

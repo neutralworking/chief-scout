@@ -166,7 +166,7 @@ R_WIDE_TARGET  = ("Wide Target Forward", "Target", "Powerhouse", "Physical prese
 
 # CF roles
 R_POACHER      = ("Poacher", "Striker", "Dribbler", "Box instinct, movement, clinical")
-R_COMPLETE_FWD = ("Complete Forward", "Striker", "Creator", "Scores, creates, links, does everything")
+R_PRIMA_PUNTA  = ("Prima Punta", "Striker", "Target", "Clinical finisher, wins headers, occupies CBs")
 R_FALSO_NOVE   = ("Falso Nove", "Creator", "Controller", "Drops deep, creates space")
 R_SPEARHEAD    = ("Spearhead", "Engine", "Destroyer", "Leads the press from front")
 R_TARGET_FWD   = ("Target Forward", "Target", "Powerhouse", "Aerial, holds up, physical reference")
@@ -195,7 +195,7 @@ SYSTEM_SLOTS = {
         ("RM",  "WM", 8,  [role_tuple(R_WINGER_WM, True), role_tuple(R_TORNANTE)]),
         ("LM",  "WM", 9,  [role_tuple(R_WINGER_WM, True), role_tuple(R_TORNANTE)]),
         ("RS",  "CF", 10, [role_tuple(R_SPEARHEAD, True), role_tuple(R_TARGET_FWD)]),
-        ("LS",  "CF", 11, [role_tuple(R_COMPLETE_FWD), role_tuple(R_POACHER)]),
+        ("LS",  "CF", 11, [role_tuple(R_PRIMA_PUNTA), role_tuple(R_POACHER)]),
     ],
     "muralla": [
         ("GK",  "GK", 1,  [role_tuple(R_COMANDANTE, True), role_tuple(R_SHOTSTOPPER)]),
@@ -248,7 +248,7 @@ SYSTEM_SLOTS = {
         ("RCM", "CM", 7,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("CM",  "CM", 8,  [role_tuple(R_METODISTA, True), role_tuple(R_PLAYMAKER)]),
         ("LCM", "CM", 9,  [role_tuple(R_MEZZALA, True)]),
-        ("RS",  "CF", 10, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_SPEARHEAD)]),
+        ("RS",  "CF", 10, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_SPEARHEAD)]),
         ("LS",  "CF", 11, [role_tuple(R_POACHER, True), role_tuple(R_SECONDA_PUNTA_CF)]),
     ],
 
@@ -263,8 +263,8 @@ SYSTEM_SLOTS = {
         ("LDM", "DM", 7,  [role_tuple(R_ANCHOR, True)]),
         ("RW",  "WF", 8,  [role_tuple(R_WINGER_WF, True), role_tuple(R_INSIDE_FWD)]),
         ("LW",  "WF", 9,  [role_tuple(R_WINGER_WF, True), role_tuple(R_INSIDE_FWD)]),
-        ("RS",  "CF", 10, [role_tuple(R_POACHER, True), role_tuple(R_COMPLETE_FWD)]),
-        ("LS",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_SECONDA_PUNTA_CF)]),
+        ("RS",  "CF", 10, [role_tuple(R_POACHER, True), role_tuple(R_PRIMA_PUNTA)]),
+        ("LS",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_SECONDA_PUNTA_CF)]),
     ],
     "o_jogo": [
         ("GK",  "GK", 1,  [role_tuple(R_SHOTSTOPPER, True)]),
@@ -277,7 +277,7 @@ SYSTEM_SLOTS = {
         ("RW",  "WF", 8,  [role_tuple(R_WINGER_WF, True), role_tuple(R_WIDE_PM)]),
         ("AM",  "AM", 9,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_ENGANCHE)]),
         ("LW",  "WF", 10, [role_tuple(R_WINGER_WF, True), role_tuple(R_INSIDE_FWD)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_FALSO_NOVE)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_FALSO_NOVE)]),
     ],
     "ginga": [
         ("GK",  "GK", 1,  [role_tuple(R_SHOTSTOPPER, True), role_tuple(R_SWEEPER_GK)]),
@@ -290,7 +290,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("RW",  "WF", 9,  [role_tuple(R_WINGER_WF, True), role_tuple(R_INSIDE_FWD)]),
         ("LW",  "WF", 10, [role_tuple(R_WINGER_WF, True), role_tuple(R_INSIDE_FWD)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_POACHER)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_POACHER)]),
     ],
 
     # ── 4. Total Football ────────────────────────────────────────────────────
@@ -305,7 +305,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_FALSO_NOVE)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_FALSO_NOVE)]),
     ],
     "oranje": [
         ("GK",  "GK", 1,  [role_tuple(R_SWEEPER_GK, True)]),
@@ -317,7 +317,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 7,  [role_tuple(R_MEZZALA, True), role_tuple(R_TUTTOCAMPISTA)]),
         ("RW",  "WF", 8,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 10, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_FALSO_NOVE)]),
+        ("CF",  "CF", 10, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_FALSO_NOVE)]),
     ],
     "van_gaal_system": [
         ("GK",  "GK", 1,  [role_tuple(R_SWEEPER_GK, True), role_tuple(R_LIBERO_GK)]),
@@ -330,7 +330,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_PLAYMAKER, True)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_POACHER)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_POACHER)]),
     ],
 
     # ── 5. La Masia ──────────────────────────────────────────────────────────
@@ -345,7 +345,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_METODISTA, True), role_tuple(R_PLAYMAKER)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WIDE_PM)]),
-        ("CF",  "CF", 11, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
     "inverted_build": [
         ("GK",  "GK", 1,  [role_tuple(R_LIBERO_GK, True)]),
@@ -357,7 +357,7 @@ SYSTEM_SLOTS = {
         ("RW",  "WF", 7,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_SECONDA_PUNTA_AM)]),
         ("LW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WIDE_PM)]),
-        ("CF",  "CF", 10, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 10, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
     "relational_play": [
         ("GK",  "GK", 1,  [role_tuple(R_LIBERO_GK, True), role_tuple(R_SWEEPER_GK)]),
@@ -370,7 +370,7 @@ SYSTEM_SLOTS = {
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_ENGANCHE)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_WIDE_PM, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
 
     # ── 6. Gegenpressing ─────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ SYSTEM_SLOTS = {
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_BOXCRASHER)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
     "red_machine": [
         ("GK",  "GK", 1,  [role_tuple(R_SWEEPER_GK, True), role_tuple(R_LIBERO_GK)]),
@@ -398,7 +398,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_MEZZALA, True), role_tuple(R_METODISTA)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
     "red_bull_model": [
         ("GK",  "GK", 1,  [role_tuple(R_SWEEPER_GK, True)]),
@@ -439,7 +439,7 @@ SYSTEM_SLOTS = {
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_BOXCRASHER)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
     "la_furia": [
         ("GK",  "GK", 1,  [role_tuple(R_SWEEPER_GK, True)]),
@@ -452,7 +452,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_COMPLETE_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
 
     # ── 8. Transizione ───────────────────────────────────────────────────────
@@ -467,7 +467,7 @@ SYSTEM_SLOTS = {
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_SECONDA_PUNTA_AM)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_TARGET_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_TARGET_FWD)]),
     ],
     "les_bleus": [
         ("GK",  "GK", 1,  [role_tuple(R_COMANDANTE, True), role_tuple(R_SHOTSTOPPER)]),
@@ -480,7 +480,7 @@ SYSTEM_SLOTS = {
         ("AM",  "AM", 8,  [role_tuple(R_SECONDA_PUNTA_AM, True), role_tuple(R_TREQUARTISTA)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_SHADOW_STR)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_SHADOW_STR)]),
     ],
     "foxes": [
         ("GK",  "GK", 1,  [role_tuple(R_COMANDANTE, True), role_tuple(R_SHOTSTOPPER)]),
@@ -535,7 +535,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("RM",  "WM", 9,  [role_tuple(R_WINGER_WM, True)]),
         ("LM",  "WM", 10, [role_tuple(R_WINGER_WM, True)]),
-        ("RS",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_POACHER)]),
+        ("RS",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_POACHER)]),
         ("LS",  "CF", 12, [role_tuple(R_SECONDA_PUNTA_CF, True), role_tuple(R_SHADOW_STR)]),
     ],
     "european_nights": [
@@ -549,7 +549,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
         ("RM",  "WM", 9,  [role_tuple(R_TORNANTE, True), role_tuple(R_WINGER_WM)]),
         ("LM",  "WM", 10, [role_tuple(R_TORNANTE, True), role_tuple(R_FALSE_WINGER)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_TARGET_FWD)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_TARGET_FWD)]),
     ],
     "ancelotti_ball": [
         ("GK",  "GK", 1,  [role_tuple(R_COMANDANTE, True), role_tuple(R_SWEEPER_GK)]),
@@ -562,7 +562,7 @@ SYSTEM_SLOTS = {
         ("LCM", "CM", 8,  [role_tuple(R_METODISTA, True), role_tuple(R_TUTTOCAMPISTA)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_WIDE_PM, True), role_tuple(R_INSIDE_FWD)]),
-        ("CF",  "CF", 11, [role_tuple(R_COMPLETE_FWD, True), role_tuple(R_POACHER)]),
+        ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_POACHER)]),
     ],
 }
 

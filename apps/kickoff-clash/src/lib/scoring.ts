@@ -461,21 +461,7 @@ function applyRoleAbilities(
         addEffect(i, 'Relay', 'Engine cards get +5%', 0);
         break;
       }
-      case 'Complete Forward': {
-        const cats = new Set<string>();
-        for (const c of cards) {
-          for (const [cat, archetypes] of Object.entries(COMPOUND_CATEGORIES)) {
-            if (archetypes.includes(c.card.archetype) ||
-                (c.card.secondaryArchetype && archetypes.includes(c.card.secondaryArchetype))) {
-              cats.add(cat);
-            }
-          }
-        }
-        const bonus = Math.min(cats.size, 4) * 0.05;
-        states[i].powerMultiplier += bonus;
-        addEffect(i, 'Total', `+${(bonus * 100).toFixed(0)}% (${cats.size} categories)`, sc.card.power * bonus);
-        break;
-      }
+      // Complete Forward role removed — now an earned archetype
       case 'Prima Punta': {
         if (sc.card.archetype === 'Target') {
           states[i].powerMultiplier += 0.20;

@@ -332,7 +332,6 @@ ROLE_ABILITIES = {
     # CF roles
     "Prima Punta":      ("Target Man",      "+40% when receiving crosses (paired with Lateral/Winger)"),
     "Poacher":          ("Box Presence",    "+40% in CF slot, +0% elsewhere"),
-    "Complete Forward": ("Total Striker",   "+10% per unique compound category in lineup"),
     "Falso Nove":       ("The Drop",        "Counts as both CF and AM for synergies"),
 }
 

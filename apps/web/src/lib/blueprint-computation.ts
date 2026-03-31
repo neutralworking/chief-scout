@@ -224,7 +224,7 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   "Falso Nove": {
     default: "Falso Nove",
   },
-  // Poacher (Complete Forward): does everything (Benzema) — merged into Poacher key above
+  // Complete Forward is now an archetype, not a role
   // Spearhead (Pressing Forward): defends from the front (Firmino)
   "Spearhead": {
     default: "Spearhead",

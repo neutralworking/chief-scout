@@ -179,7 +179,6 @@ TACTICAL_ROLES = {
     ],
     "CF": [
         ("Striker",  "Target",     "Prima Punta"),
-        ("Striker",  "Creator",    "Complete Forward"),
         ("Creator",  "Controller", "Falso Nove"),
         ("Engine",   "Striker",    "Spearhead"),
         ("Target",   "Powerhouse", "Target Forward"),

@@ -1,8 +1,8 @@
 /**
  * Tactical role definitions — mirrors pipeline 27 + DB slot_roles.
  *
- * 38 roles validated bottom-up against real tactical systems.
- * Variable count per position (WM: 3, CF: 7).
+ * 37 roles validated bottom-up against real tactical systems.
+ * Variable count per position (WM: 4, CF: 6).
  */
 
 export type Pillar = 'technical' | 'tactical' | 'mental' | 'physical';
@@ -70,9 +70,8 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Wide Playmaker", position: "WF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Passer", tooltip: "Creates from wide — vision, passing, dictates", description: "Creates from wide areas with vision and passing, dictating play from the flank.", examples: "Neymar, Grealish, Rui Costa (wide)", origin: "English" },
   { name: "Wide Target Forward", position: "WF", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Physical presence from wide — holds up, wins aerials", description: "Physical wide forward who holds up the ball and wins aerial duels from wide positions.", examples: "Mandžukić (LW), Weghorst (wide), Arnautović", origin: "English" },
 
-  // CF (7)
+  // CF (6)
   { name: "Prima Punta", position: "CF", pillar: "technical", primaryModel: "Striker", secondaryModel: "Target", tooltip: "Clinical finisher with aerial presence", description: "The first striker — clinical finishing combined with aerial ability and box instinct.", examples: "Inzaghi, Haaland, Gerd Müller, Toni", origin: "Italian" },
-  { name: "Complete Forward", position: "CF", pillar: "technical", primaryModel: "Striker", secondaryModel: "Creator", tooltip: "Scores, creates, links, does everything", description: "The complete package — scores, creates, links play, and can do everything asked of a striker.", examples: "Lewandowski, Kane, Benzema, Rooney", origin: "English" },
   { name: "Falso Nove", position: "CF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Controller", tooltip: "Drops deep, creates space, false 9", description: "False nine who drops deep to create, pulling centre-backs out of position and opening space.", examples: "Messi 2011, Firmino, Cruyff", origin: "Spanish" },
   { name: "Spearhead", position: "CF", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Destroyer", tooltip: "Leads the press from front, work rate", description: "Leads the press from the front with relentless work rate, setting the tempo for the whole team.", examples: "Suárez, Okazaki, Bamford", origin: "English" },
   { name: "Target Forward", position: "CF", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Aerial, holds up, physical reference point", description: "Target striker who holds up the ball, wins aerial duels, and brings teammates into play.", examples: "Giroud, Crouch, Mandžukić, Llorente", origin: "English" },

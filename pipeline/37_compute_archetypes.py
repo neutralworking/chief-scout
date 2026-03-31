@@ -139,6 +139,12 @@ POSITIONAL_ARCHETYPES = {
         "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("drib_att_p90", 0) < 2),
         "personality": None,
     },
+    "Complete Forward": {
+        "positions": {"CF"},  # all-round striker — scores, creates, links, does everything
+        "check": lambda s, p: (s.get("gp90", 0) >= 0.35 and s.get("ap90", 0) >= 0.15 and s.get("drib_att_p90", 0) >= 1.5),
+        "personality": None,
+        "tier_elite": lambda s: s.get("gp90", 0) >= 0.45 and s.get("ap90", 0) >= 0.2,
+    },
 
     # ── DEFENSIVE ────────────────────────────────────────────────
     "Fortress": {
@@ -228,7 +234,7 @@ ARCHETYPE_PRIORITY = [
     # Physical / Combative
     "Titan", "Warrior", "Sentinel", "Terrier",
     # Direct
-    "Outlet", "Assassin",
+    "Outlet", "Assassin", "Complete Forward",
     # Defensive
     "Lockdown", "Reader",
     # Role players

@@ -486,7 +486,6 @@ ROLES = [
     ("Wide Playmaker",     "WF", "Creator",     "Passer"),
     ("Wide Target Forward","WF", "Target",      "Powerhouse"),
     ("Prima Punta",        "CF", "Striker",     "Target"),
-    ("Complete Forward",   "CF", "Striker",     "Creator"),
     ("Falso Nove",         "CF", "Creator",     "Controller"),
     ("Spearhead",          "CF", "Engine",      "Striker"),
     ("Target Forward",     "CF", "Target",      "Powerhouse"),
@@ -615,7 +614,7 @@ SYSTEMS = [
             ("RDM", "DM", 7, "Segundo Volante",   []),
             ("LW",  "WF", 8, "Winger",            []),
             ("RW",  "WF", 9, "Winger",            []),
-            ("LF",  "CF", 10, "Complete Forward",  []),
+            ("LF",  "CF", 10, "Prima Punta",  []),
             ("RF",  "CF", 11, "Prima Punta",           []),
         ],
     },
@@ -635,7 +634,7 @@ SYSTEMS = [
             ("LW",  "WF", 8, "Wide Playmaker",    []),
             ("AM",  "AM", 9, "Trequartista",      []),
             ("RW",  "WF", 10, "Winger",           []),
-            ("CF",  "CF", 11, "Complete Forward",  []),
+            ("CF",  "CF", 11, "Prima Punta",  []),
         ],
     },
     {
@@ -654,7 +653,7 @@ SYSTEMS = [
             ("RCM", "CM", 8, "Mezzala",          []),
             ("LW",  "WF", 9, "Winger",           []),
             ("RW",  "WF", 10, "Inside Forward",  []),
-            ("CF",  "CF", 11, "Complete Forward", []),
+            ("CF",  "CF", 11, "Prima Punta", []),
         ],
     },
     # ── Total Football ──
@@ -674,7 +673,7 @@ SYSTEMS = [
             ("RCM", "CM", 8, "Tuttocampista",     []),
             ("LW",  "WF", 9, "Winger",            []),
             ("RW",  "WF", 10, "Inside Forward",   []),
-            ("CF",  "CF", 11, "Complete Forward",  []),
+            ("CF",  "CF", 11, "Prima Punta",  []),
         ],
     },
     {
@@ -712,7 +711,7 @@ SYSTEMS = [
             ("RCM", "CM", 8, "Mezzala",           []),
             ("LW",  "WF", 9, "Winger",            []),
             ("RW",  "WF", 10, "Inside Forward",   []),
-            ("CF",  "CF", 11, "Complete Forward",  []),
+            ("CF",  "CF", 11, "Prima Punta",  []),
         ],
     },
     # ── La Masia ──
@@ -751,7 +750,7 @@ SYSTEMS = [
             ("LAM", "AM", 8, "Enganche",           []),
             ("RAM", "AM", 9, "Trequartista",       []),
             ("RW",  "WF", 10, "Wide Playmaker",    []),
-            ("CF",  "CF", 11, "Complete Forward",   []),
+            ("CF",  "CF", 11, "Prima Punta",   []),
         ],
     },
     {
@@ -885,7 +884,7 @@ SYSTEMS = [
             ("RCM", "CM", 7, "Tuttocampista",     []),
             ("RWB", "WD", 8, "Wing-back",         []),
             ("LW",  "WF", 9, "Raumdeuter",        []),
-            ("CF",  "CF", 10, "Complete Forward",  []),
+            ("CF",  "CF", 10, "Prima Punta",  []),
             ("RW",  "WF", 11, "Inside Forward",   []),
         ],
     },
@@ -1003,7 +1002,7 @@ SYSTEMS = [
             ("LCM", "CM", 8, "Playmaker",          []),
             ("RCM", "CM", 9, "Mezzala",            []),
             ("LF",  "CF", 10, "Prima Punta",           []),
-            ("RF",  "CF", 11, "Complete Forward",   []),
+            ("RF",  "CF", 11, "Prima Punta",   []),
         ],
     },
     {
@@ -1022,7 +1021,7 @@ SYSTEMS = [
             ("LCM", "CM", 8, "Tuttocampista",      []),
             ("CDM", "DM", 9, "Anchor",             []),
             ("RCM", "CM", 10, "Playmaker",         []),
-            ("CF",  "CF", 11, "Complete Forward",   []),
+            ("CF",  "CF", 11, "Prima Punta",   []),
         ],
     },
     {
@@ -1041,7 +1040,7 @@ SYSTEMS = [
             ("RCM", "CM", 8, "Playmaker",          []),
             ("LW",  "WF", 9, "Inside Forward",     []),
             ("RW",  "WF", 10, "Winger",            []),
-            ("CF",  "CF", 11, "Complete Forward",   []),
+            ("CF",  "CF", 11, "Prima Punta",   []),
         ],
     },
 ]

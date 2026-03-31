@@ -212,7 +212,7 @@ Philosophy → System → Formation → Slot → Role(s)
 
 Roles are validated **bottom-up**: every role in this taxonomy exists in at least one real tactical system. No role is invented to fill a grid.
 
-### The 41 Roles
+### The 40 Roles
 
 Role names use the term the football world actually uses. If the word came from Italian, Spanish, Portuguese, German, French, or Argentine football culture and became THE word for that role, we use it. No FIFA/FM generic compound names.
 
@@ -298,12 +298,11 @@ Each role's **primary model** determines its pillar alignment:
 | **Wide Playmaker** | Creates from wide with vision and combination play. Grealish → Neymar |
 | **Wide Target Forward** | Physical wide forward — holds up play, brings others into the game |
 
-#### CF (7 roles)
+#### CF (6 roles)
 
 | Role | Description |
 |------|-------------|
 | **Prima Punta** | The main striker — clinical finisher, wins headers, occupies CBs. Gerd Müller → Lewandowski → Kane |
-| **Complete Forward** | All-round striker — contributes to build-up, holds up, finishes. Lewandowski → Benzema |
 | **Falso Nove** | False 9 — drops deep, creates, pulls CBs out of shape. Hidegkuti (1953) → Messi (2009) |
 | **Spearhead** | Leads the press from front, relentless work rate. Firmino → Vardy → Suarez |
 | **Target Forward** | Aerial, holds up, physical reference point. Toni → Giroud → Lacazette |

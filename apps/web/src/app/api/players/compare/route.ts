@@ -13,7 +13,7 @@ const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   WM: [["Sprinter", "Dribbler", "Winger"], ["Engine", "Cover", "Tornante"], ["Controller", "Creator", "False Winger"], ["Creator", "Passer", "Wide Playmaker"]],
   AM: [["Dribbler", "Creator", "Trequartista"], ["Creator", "Controller", "Enganche"], ["Engine", "Striker", "Incursore"], ["Controller", "Creator", "Mediapunta"]],
   WF: [["Dribbler", "Striker", "Inside Forward"], ["Sprinter", "Dribbler", "Winger"], ["Creator", "Passer", "Wide Playmaker"], ["Target", "Powerhouse", "Wide Target Forward"]],
-  CF: [["Striker", "Target", "Prima Punta"], ["Striker", "Creator", "Complete Forward"], ["Creator", "Controller", "Falso Nove"], ["Engine", "Destroyer", "Spearhead"], ["Target", "Powerhouse", "Target Forward"], ["Creator", "Striker", "Seconda Punta"], ["Sprinter", "Striker", "Shadow Striker"]],
+  CF: [["Striker", "Target", "Prima Punta"], ["Creator", "Controller", "Falso Nove"], ["Engine", "Destroyer", "Spearhead"], ["Target", "Powerhouse", "Target Forward"], ["Creator", "Striker", "Seconda Punta"], ["Sprinter", "Striker", "Shadow Striker"]],
 };
 
 const IDENTITY_FIELDS = [

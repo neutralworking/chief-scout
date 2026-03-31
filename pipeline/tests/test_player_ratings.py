@@ -510,7 +510,7 @@ class TestKnownPlayers:
     """
 
     def test_kane_is_cf_role(self):
-        """Harry Kane profile → CF role (Prima Punta or Complete Forward)."""
+        """Harry Kane profile → CF role (Prima Punta or similar)."""
         grades = scout_grades({
             "finishing": 19, "shot_power": 17, "heading": 16, "movement": 18,
             "composure": 18, "vision": 15, "hold_up": 16, "strength": 15,

@@ -1,0 +1,308 @@
+# Claude Code Prompt: Kickoff Clash Match Engine v5 — Phase 1
+
+## Mode: Plan first, then implement after approval.
+
+-----
+
+## Context
+
+Kickoff Clash is a roguelike football card game inside a Next.js monorepo at `apps/kickoff-clash/`. The match engine is being rewritten from v4 (passive auto-resolution) to v5 (active card play where the player assigns cards to attack or defend each increment).
+
+**Read the full design spec before planning:**
+`apps/kickoff-clash/MATCH_ENGINE_V5.md`
+
+The current codebase has:
+
+- `src/lib/hand.ts` — v4 hand engine (11-card XI, 5 increments, passive scoring). **This is being replaced.**
+- `src/lib/scoring.ts` — v2 match engine (deprecated, has useful helpers like `seededRandom`, `findConnections` import, role ability logic). **Keep utilities, replace match logic.**
+- `src/lib/chemistry.ts` — Synergy detection across 4 tiers. **Needs modification** to support positional (attack/defence/cross) synergy detection.
+- `src/lib/actions.ts` — v2 action cards. **Fully deprecated. Do not use.**
+- `src/lib/jokers.ts` — Manager cards (Balatro jokers). **Keep as-is for Phase 1.**
+- `src/lib/tactics.ts` — Tactic card system. **Keep as-is for Phase 1.**
+- `src/lib/formations.ts` — Formation definitions with 11 slots. **Add `maxAttackers` field.**
+- `src/lib/run.ts` — Run state machine. **Minor updates to wire new match engine.**
+- `src/lib/economy.ts` — Shop, stadium, academy. **No changes.**
+- `src/lib/transform.ts` — Transforms `kc_characters.json` into Card objects. **No changes in Phase 1.**
+- `src/components/MatchPhase.tsx` — Match UI component (~990 lines). **Major rewrite for attack/defend interaction.**
+- `src/components/GameShell.tsx` — Top-level state machine. **Minor updates to pass new match result shape.**
+- `src/components/PostMatch.tsx` — Post-match summary. **Minor updates for new result data.**
+- `src/components/PlayerCard.tsx` — Card rendering. **Add attack/defend visual state.**
+
+-----
+
+## Phase 1 Scope
+
+Build the core active card play loop. Specifically:
+
+### 1. New Match Engine (`src/lib/match-v5.ts` — new file)
+
+Create a new match engine module. Do NOT modify `hand.ts` or `scoring.ts` directly — create a clean `match-v5.ts` that imports shared utilities from them.
+
+**Types:**
+
+```typescript
+interface MatchV5State {
+  xi: Card[];                    // 11 cards on pitch
+  bench: Card[];                 // 7 cards
+  remainingDeck: Card[];         // undrawn cards (visible to player)
+  attackerIds: Set<number>;      // card IDs committed to attack this increment
+  subsRemaining: number;         // starts at 5
+  discardsRemaining: number;     // starts at 3
+  currentIncrement: number;      // 0-4 index
+  isFirstHalf: boolean;
+  scores: IncrementResult[];
+  yourGoals: number;
+  opponentGoals: number;
+  formation: Formation;
+  playingStyle: string;
+  personalityBonus: PersonalityBonus; // calculated once at match start
+}
+
+interface PersonalityBonus {
+  attackMod: number;     // multiplier (e.g., 1.15 for Silk)
+  defenceMod: number;    // multiplier (e.g., 1.20 for Siege Mentality)
+  label: string | null;  // "Silk (3× Maestro)" or null
+  perfectDressingRoom: boolean;
+}
+
+interface AttackDefenceSplit {
+  attackScore: number;
+  defenceScore: number;
+  attackBreakdown: CascadeLine[];
+  defenceBreakdown: CascadeLine[];
+  attackSynergies: Connection[];
+  defenceSynergies: Connection[];
+  crossSynergies: Connection[];
+}
+
+interface CascadeLine {
+  label: string;
+  value: number;
+  type: 'base' | 'synergy' | 'style' | 'dual-role' | 'personality' | 'manager' | 'tactic' | 'ability';
+}
+
+interface IncrementResult {
+  minute: number;
+  split: AttackDefenceSplit;
+  opponentAttack: number;
+  opponentDefence: number;
+  yourGoalChance: number;
+  opponentGoalChance: number;
+  yourScored: boolean;
+  opponentScored: boolean;
+  event: MatchEvent;
+}
+```
+
+**Core functions to implement:**
+
+1. `initMatch(xi, bench, remainingDeck, formation, playingStyle, jokers, seed)` → `MatchV5State`
+- Sets up initial state.
+- Calculates `personalityBonus` once from XI composition (see spec §5.3–5.4).
+- Personality themes come from `card.personalityTheme` field.
+1. `commitAttackers(state, cardIds: number[])` → `MatchV5State`
+- Validates against formation soft cap (see spec §3.2 and §15).
+- Cards beyond `formation.maxAttackers` get flagged as diminished (50% power).
+- Returns updated state with `attackerIds` set.
+1. `evaluateSplit(state, jokers, tacticSlots)` → `AttackDefenceSplit`
+- This is the core scoring function. Must calculate:
+  - **Attack score:** Sum of attacker power (with soft cap diminishing) + attack synergies + style bonus + dual-role contributions from defenders + tactic attack bonus + manager attack bonus + personality attack mod.
+  - **Defence score:** Sum of defender power + defence synergies + dual-role contributions from attackers + tactic defence bonus + manager defence bonus + personality defence mod.
+- Returns full breakdown for cascade animation.
+- **Dual-role contributions** (spec §4.3):
+  - Controller defending: 30% of power → attack
+  - Passer defending: 25% of power → attack
+  - Engine: 70% to assigned side, 30% to other
+  - Regista (role) defending: 35% of power → attack
+  - Libero (role) defending: 20% of power → attack
+  - Commander attacking: 20% of power → defence
+1. `resolveIncrement(state, split, opponentAttack, opponentDefence, seed)` → `IncrementResult`
+- Goal resolution per spec §4.4.
+- `yourGoalChance = clamp(0.08 + (attackRatio - 1.0) * 0.20, 0.03, 0.45)`
+- `theirGoalChance = clamp(0.08 + (theirAttackRatio - 1.0) * 0.20, 0.03, 0.35)`
+- 90th minute (increment 4): both chances ×1.3.
+- Seeded random for deterministic results.
+- Generate commentary and match event.
+1. `advanceIncrement(state, result)` → `MatchV5State`
+- Apply goals, advance increment counter, update half flag.
+- Fatigue check on Glass/Phoenix cards that were committed to attack (spec §9.1):
+  - Glass: 15% fatigue chance per attack commitment
+  - Phoenix: 12% fatigue chance per attack commitment
+- Injured cards: can defend at 50% power, cannot attack.
+1. `makeSub(state, xiCardId, benchCardId)` → `MatchV5State`
+- Swap cards. Decrement subsRemaining. First half: injury subs only.
+1. `discardFromBench(state, benchCardIds: number[])` → `MatchV5State`
+- Remove specified bench cards. Draw replacements from remainingDeck immediately.
+- Decrement discardsRemaining (1 discard action = toss any number of bench cards, draw same number).
+1. `getMatchResult(state)` → `{ yourGoals, opponentGoals, result, scores, handState }`
+
+### 2. Chemistry Updates (`src/lib/chemistry.ts`)
+
+Add a new function alongside the existing `findConnections`:
+
+```typescript
+function findPositionalConnections(
+  attackers: SlottedCard[],
+  defenders: SlottedCard[],
+  round?: number
+): {
+  attackSynergies: Connection[];
+  defenceSynergies: Connection[];
+  crossSynergies: Connection[];
+}
+```
+
+- **Attack synergies:** Existing `findArchetypePairs` and `findRoleCombos` but only considering cards in the attacker set.
+- **Defence synergies:** Same functions but only considering cards in the defender set.
+- **Cross synergies:** New detection — pairs where one card attacks and one defends. Use the cross synergy table from spec §5.1:
+  - Counter Punch: Destroyer defending + Sprinter attacking → Sprinter +25%
+  - The Link: Creator/Passer defending + Striker attacking → Striker +20%
+  - Pressing Trap: Engine defending + Engine attacking → both +15%
+  - Shield & Sword: Cover defending + any attacking → Cover +15%, attacker +10%
+- **Personality resonance (Tier 3) and Perfect Dressing Room (Tier 4):** Do NOT include in positional connections. These are pre-calculated in `initMatch` and applied as flat modifiers.
+
+### 3. Formation Update (`src/lib/formations.ts`)
+
+Add `maxAttackers` to the `Formation` interface and each formation definition:
+
+```typescript
+interface Formation {
+  id: string;
+  name: string;
+  slots: FormationSlot[];
+  description: string;
+  maxAttackers: number;  // NEW — soft cap for full-power attack commitment
+}
+```
+
+Values per spec §3.2:
+
+- 4-3-3: 5
+- 4-4-2: 4
+- 3-5-2: 5
+- 3-4-3: 6
+- 5-3-2: 3
+- 5-4-1: 3
+- 4-2-3-1: 5
+- 4-1-2-1-2: 5
+
+### 4. MatchPhase Component Rewrite (`src/components/MatchPhase.tsx`)
+
+**This is the biggest change.** The current component auto-rolls XI and auto-resolves. The new version needs interactive deploy phases.
+
+**Sub-phases:**
+
+```
+'planning'    → Player taps cards to assign attack/defend. Live preview of scores and synergies.
+'resolving'   → Auto-animation of cascade and goal resolution (~5s).
+'between'     → Sub/discard window (second half only). Skip in first half.
+'halftime'    → Extended window: subs, discards, formation change. No timer.
+'finished'    → Match over, show final result, call onMatchComplete.
+```
+
+**Planning phase UI requirements:**
+
+- XI cards displayed on a pitch layout (use existing formation slot positions).
+- Tap a card → toggles it between attack (slides up / gold border) and defend (stays low / blue border).
+- Show real-time attack/defence score preview as cards are toggled.
+- Show synergies that would fire with current split (attack synergies in gold, defence in blue, cross in purple).
+- Show formation soft cap: “4/4 attackers” or “5/4 attackers (diminished)” with visual indicator.
+- “Kick Off” button to confirm and move to resolving.
+- No timer in PvE (unlimited time to decide).
+
+**Resolving phase UI requirements:**
+
+- Cascade animation: lines appear sequentially (base → synergies → style → dual-role → personality → manager → total).
+- Show attack cascade, then defence cascade.
+- Goal resolution: dice roll visual, then event text with commentary.
+- Auto-advance to next increment after ~3s or on tap.
+
+**Between-increments (second half):**
+
+- Show bench cards.
+- Allow sub (tap bench card, tap XI card to swap).
+- Allow discard (tap bench cards to mark, confirm to toss and draw).
+- “Continue” button to proceed to next planning phase.
+
+**Half-time:**
+
+- Same as between-increments PLUS formation change dropdown.
+
+**Data flow:**
+
+- MatchPhase receives `runState` (deck, formation, jokers, tactics, style, seed, round).
+- MatchPhase calls `initMatch` on mount.
+- Each increment: player commits attackers → `commitAttackers` → `evaluateSplit` → show preview → on confirm → `resolveIncrement` → `advanceIncrement`.
+- On match end: call `onMatchComplete` with result data.
+
+### 5. PlayerCard Visual State (`src/components/PlayerCard.tsx`)
+
+Add visual states for:
+
+- **Attacking:** Gold left border, slight upward shift or glow. Card name area gets gold tint.
+- **Defending:** Blue left border (existing default, but explicit). Slightly dimmed if not the focus.
+- **Injured:** Red overlay, “INJURED” badge. Cannot be tapped to attack.
+- **Diminished:** If beyond soft cap, show a “50%” badge on the card indicating reduced contribution.
+
+Use the existing pillar colour system: gold (#fbbf24) for attack, blue (#60a5fa) for defence.
+
+-----
+
+## What NOT to change in Phase 1
+
+- `actions.ts` — remains deprecated, do not touch.
+- `jokers.ts` — keep existing joker logic. New jokers come in Phase 4.
+- `tactics.ts` — keep existing. Updated tactic interactions come in Phase 4.
+- `economy.ts` — no changes.
+- `transform.ts` — character data audit is a separate task.
+- `packs.ts` — no changes.
+- `run.ts` — only update the match result type to accept v5 output and wire `onMatchComplete` correctly.
+- `GameShell.tsx` — only update the match result handler to work with new data shape.
+- `PostMatch.tsx` — only update to display new cascade data if needed.
+
+-----
+
+## File Summary
+
+|File                           |Action                                                                    |
+|-------------------------------|--------------------------------------------------------------------------|
+|`src/lib/match-v5.ts`          |**CREATE** — new match engine                                             |
+|`src/lib/chemistry.ts`         |**MODIFY** — add `findPositionalConnections`                              |
+|`src/lib/formations.ts`        |**MODIFY** — add `maxAttackers` to Formation interface and all definitions|
+|`src/components/MatchPhase.tsx`|**REWRITE** — interactive deploy phase                                    |
+|`src/components/PlayerCard.tsx`|**MODIFY** — attack/defend visual states                                  |
+|`src/lib/run.ts`               |**MODIFY** — update match result type, wire v5 engine                     |
+|`src/components/GameShell.tsx` |**MODIFY** — update match result handler                                  |
+
+-----
+
+## Validation Criteria
+
+After implementation, the following should work:
+
+1. Starting a match shows XI on pitch in formation layout.
+1. Tapping cards toggles them between attack (gold) and defend (blue).
+1. Attack/defence scores update live as cards are toggled.
+1. Synergy names appear/disappear as cards move between sides.
+1. Soft cap indicator shows when exceeding formation max attackers.
+1. “Kick Off” resolves the increment with cascade animation.
+1. Goals resolve based on attack/defence ratio vs opponent baselines.
+1. 5 increments complete a match with running score.
+1. Half-time allows subs, discards, and formation change.
+1. Second-half between-increments allow subs and discards.
+1. Injured cards cannot be committed to attack.
+1. Glass/Phoenix cards that attack have fatigue risk after resolution.
+1. Match result feeds back to GameShell correctly (wins/losses/shop flow).
+
+-----
+
+## Plan first.
+
+Before writing any code, produce a plan covering:
+
+1. The exact function signatures for `match-v5.ts`.
+1. The modifications needed in `chemistry.ts` (what’s added, what’s unchanged).
+1. The MatchPhase component structure (state variables, sub-phase transitions, event handlers).
+1. Any shared types that need extracting to a `types.ts` if the import graph gets circular.
+
+I will review the plan before you write code.

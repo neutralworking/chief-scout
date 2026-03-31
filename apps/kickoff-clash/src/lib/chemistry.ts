@@ -60,7 +60,7 @@ export const ROLE_COMBOS: {
   { name: "Wing Play", role1: "Lateral", role2: "Winger", multiplier: 1.2 },
   { name: "Inside Out", role1: "Invertido", role2: "Fantasista", multiplier: 1.2 },
   { name: "The Link", role1: "Enganche", role2: "Poacher", multiplier: 1.3 },
-  { name: "Space Creation", role1: "Raumdeuter", role2: "Falso Nove", multiplier: 1.2 },
+  { name: "Space Creation", role1: "Inside Forward", role2: "Falso Nove", multiplier: 1.2 },
   { name: "Engine Room", role1: "Tuttocampista", role2: "Relayeur", multiplier: 1.2 },
   { name: "The Provider", role1: "Libero", role2: "Prima Punta", multiplier: 1.2 },
   { name: "Last Line", role1: "Torwart", role2: "Sweeper", multiplier: 1.2 },

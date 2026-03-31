@@ -154,12 +154,13 @@ R_FALSE_WINGER = ("False Winger", "Controller", "Creator", "Starts wide, drifts 
 # AM roles
 R_TREQUARTISTA = ("Trequartista", "Dribbler", "Creator", "Free-roaming creator in the final third")
 R_ENGANCHE     = ("Enganche", "Creator", "Controller", "The hook, receives between lines")
-R_BOXCRASHER   = ("Boxcrasher", "Sprinter", "Striker", "Dynamic AM who arrives in the box")
+R_INCURSORE    = ("Incursore", "Engine", "Striker", "Raider AM who arrives in the box")
+R_MEDIAPUNTA   = ("Mediapunta", "Controller", "Creator", "Combinational 10, links through short passing")
 R_SECONDA_PUNTA_AM = ("Seconda Punta", "Creator", "Striker", "Second striker from AM, drops and links")
 
 # WF roles
 R_INSIDE_FWD   = ("Inside Forward", "Dribbler", "Striker", "Cuts inside on strong foot")
-R_RAUMDEUTER   = ("Raumdeuter", "Engine", "Striker", "Space interpreter, finds pockets")
+# Raumdeuter is now an archetype, not a role
 R_WINGER_WF    = ("Winger", "Dribbler", "Passer", "Wide, beats man, delivers")
 R_WIDE_PM      = ("Wide Playmaker", "Creator", "Passer", "Creates from wide, vision and passing")
 R_WIDE_TARGET  = ("Wide Target Forward", "Target", "Powerhouse", "Physical presence from wide")
@@ -315,7 +316,7 @@ SYSTEM_SLOTS = {
         ("RCM", "CM", 5,  [role_tuple(R_MEZZALA, True), role_tuple(R_TUTTOCAMPISTA)]),
         ("CM",  "CM", 6,  [role_tuple(R_PLAYMAKER, True), role_tuple(R_METODISTA)]),
         ("LCM", "CM", 7,  [role_tuple(R_MEZZALA, True), role_tuple(R_TUTTOCAMPISTA)]),
-        ("RW",  "WF", 8,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 8,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 10, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_FALSO_NOVE)]),
     ],
@@ -354,7 +355,7 @@ SYSTEM_SLOTS = {
         ("LCB", "CD", 4,  [role_tuple(R_DISTRIBUTOR, True)]),
         ("RB",  "WD", 5,  [role_tuple(R_INVERTIDO, True)]),
         ("LB",  "WD", 6,  [role_tuple(R_INVERTIDO, True)]),
-        ("RW",  "WF", 7,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 7,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_SECONDA_PUNTA_AM)]),
         ("LW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WIDE_PM)]),
         ("CF",  "CF", 10, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_PRIMA_PUNTA)]),
@@ -368,7 +369,7 @@ SYSTEM_SLOTS = {
         ("RDM", "DM", 6,  [role_tuple(R_REGISTA, True), role_tuple(R_PIVOTE)]),
         ("LDM", "DM", 7,  [role_tuple(R_PIVOTE, True)]),
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_ENGANCHE)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_WIDE_PM, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_FALSO_NOVE, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
@@ -382,8 +383,8 @@ SYSTEM_SLOTS = {
         ("LB",  "WD", 5,  [role_tuple(R_FULLBACK, True), role_tuple(R_WINGBACK)]),
         ("RDM", "DM", 6,  [role_tuple(R_ANCHOR, True), role_tuple(R_PIVOTE)]),
         ("LDM", "DM", 7,  [role_tuple(R_SEGUNDO_VOL, True)]),
-        ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_BOXCRASHER)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_INCURSORE)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
@@ -396,7 +397,7 @@ SYSTEM_SLOTS = {
         ("DM",  "DM", 6,  [role_tuple(R_ANCHOR, True), role_tuple(R_PIVOTE)]),
         ("RCM", "CM", 7,  [role_tuple(R_TUTTOCAMPISTA, True), role_tuple(R_MEZZALA)]),
         ("LCM", "CM", 8,  [role_tuple(R_MEZZALA, True), role_tuple(R_METODISTA)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
@@ -436,7 +437,7 @@ SYSTEM_SLOTS = {
         ("RDM", "DM", 5,  [role_tuple(R_ANCHOR, True)]),
         ("CDM", "DM", 6,  [role_tuple(R_PIVOTE, True)]),
         ("LDM", "DM", 7,  [role_tuple(R_SEGUNDO_VOL, True)]),
-        ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_BOXCRASHER)]),
+        ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_INCURSORE)]),
         ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
@@ -450,7 +451,7 @@ SYSTEM_SLOTS = {
         ("LWB", "WD", 6,  [role_tuple(R_WINGBACK, True)]),
         ("RCM", "CM", 7,  [role_tuple(R_TUTTOCAMPISTA, True), role_tuple(R_MEZZALA)]),
         ("LCM", "CM", 8,  [role_tuple(R_TUTTOCAMPISTA, True)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_SPEARHEAD, True), role_tuple(R_PRIMA_PUNTA)]),
     ],
@@ -465,7 +466,7 @@ SYSTEM_SLOTS = {
         ("RDM", "DM", 6,  [role_tuple(R_ANCHOR, True)]),
         ("LDM", "DM", 7,  [role_tuple(R_PIVOTE, True), role_tuple(R_SEGUNDO_VOL)]),
         ("AM",  "AM", 8,  [role_tuple(R_TREQUARTISTA, True), role_tuple(R_SECONDA_PUNTA_AM)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_TARGET_FWD)]),
     ],
@@ -478,7 +479,7 @@ SYSTEM_SLOTS = {
         ("RDM", "DM", 6,  [role_tuple(R_ANCHOR, True), role_tuple(R_PIVOTE)]),
         ("LDM", "DM", 7,  [role_tuple(R_SEGUNDO_VOL, True)]),
         ("AM",  "AM", 8,  [role_tuple(R_SECONDA_PUNTA_AM, True), role_tuple(R_TREQUARTISTA)]),
-        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_RAUMDEUTER)]),
+        ("RW",  "WF", 9,  [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("LW",  "WF", 10, [role_tuple(R_INSIDE_FWD, True), role_tuple(R_WINGER_WF)]),
         ("CF",  "CF", 11, [role_tuple(R_PRIMA_PUNTA, True), role_tuple(R_SHADOW_STR)]),
     ],

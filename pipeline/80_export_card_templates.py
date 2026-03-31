@@ -318,7 +318,7 @@ ROLE_ABILITIES = {
     # WM roles
     "Fantasista":       ("Silk Touch",      "30% chance to double connection bonuses for lineup"),
     "Winger":           ("Touchline",       "+25% in wide slot, -10% in central slot"),
-    "Raumdeuter":       ("Space Finder",    "Ignores opponent's defensive abilities"),
+    # Raumdeuter moved to archetypes
     "Tornante":         ("Full Flank",      "+10% for each Engine or Sprinter in lineup"),
     # AM roles
     "Trequartista":     ("Moment of Genius","30% chance of doubling own score, or +0%"),

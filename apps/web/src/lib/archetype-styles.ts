@@ -66,8 +66,9 @@ const ARCHETYPE_STYLES: Record<string, ArchetypeStyle> = {
   Lockdown:  { category: "defensive", color: "#64748b", bgClass: "bg-slate-500/15",  textClass: "text-slate-400" },
   Reader:    { category: "defensive", color: "#94a3b8", bgClass: "bg-slate-400/15",  textClass: "text-slate-300" },
 
-  // ── Complete Forward ──────────────────────────────────────
+  // ── Positional archetypes (attacking) ─────────────────────
   "Complete Forward": { category: "elite_attacking", color: "#ef4444", bgClass: "bg-red-500/15", textClass: "text-red-400" },
+  Raumdeuter: { category: "direct", color: "#fb923c", bgClass: "bg-orange-400/15", textClass: "text-orange-300" },
 
   // ── Role players ─────────────────────────────────────────
   Marshal:   { category: "role_player", color: "#2dd4bf", bgClass: "bg-teal-500/15",  textClass: "text-teal-400" },

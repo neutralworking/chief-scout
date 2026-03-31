@@ -212,7 +212,7 @@ Philosophy → System → Formation → Slot → Role(s)
 
 Roles are validated **bottom-up**: every role in this taxonomy exists in at least one real tactical system. No role is invented to fill a grid.
 
-### The 40 Roles
+### The 41 Roles
 
 Role names use the term the football world actually uses. If the word came from Italian, Spanish, Portuguese, German, French, or Argentine football culture and became THE word for that role, we use it. No FIFA/FM generic compound names.
 
@@ -262,7 +262,7 @@ Each role's **primary model** determines its pillar alignment:
 | **Ball Winner** | Ball-winner — aggressive, physical, disrupts. Gattuso → Kante → Caicedo |
 | **Segundo Volante** | Dynamic DM who arrives late into the box from deep |
 
-#### CM (4 roles)
+#### CM (5 roles)
 
 | Role | Description |
 |------|-------------|
@@ -270,6 +270,7 @@ Each role's **primary model** determines its pillar alignment:
 | **Metodista** | Orchestrator — controls rhythm with intelligent passing. Xavi → Kroos → Pedri |
 | **Mezzala** | Half-space runner — breaks lines, links wide and central. Barella → Valverde |
 | **Tuttocampista** | All-pitch midfielder — covers every blade, arrives in box. Lampard → Gerrard → Bellingham |
+| **Ball Winner** | Engine-driven midfielder who wins the ball back with intensity. Kanté → Gattuso → Vidal |
 
 #### WM (4 roles)
 
@@ -280,20 +281,20 @@ Each role's **primary model** determines its pillar alignment:
 | **False Winger** | Starts wide, drifts inside intelligently to create overloads. Bernardo Silva → Foden → Kulusevski |
 | **Wide Playmaker** | Creative wide presence — combines in tight spaces, picks passes from the flank |
 
-#### AM (3 roles)
+#### AM (4 roles)
 
 | Role | Description |
 |------|-------------|
 | **Trequartista** | Free-roaming 10 — dribbling genius in the final third. Baggio → Zidane → Messi |
 | **Enganche** | The hook — sees everything, threads impossible passes. Maradona → Riquelme → Dybala |
-| **Boxcrasher** | Dynamic AM who arrives in the box with pace and power. Havertz → Bruno Fernandes |
+| **Incursore** | The raider — reads space and arrives in the box with timing. Müller → Lampard → Havertz |
+| **Mediapunta** | The half-point — links play through short combinations and positional intelligence. David Silva → Pedri → Odegaard |
 
-#### WF (5 roles)
+#### WF (4 roles)
 
 | Role | Description |
 |------|-------------|
 | **Inside Forward** | Cuts inside on strong foot to shoot or create. Robben → Salah → Yamal |
-| **Raumdeuter** | Space interpreter — presses and finds pockets to score. Thomas Muller → Son → Mane |
 | **Winger** | Wide forward who runs channels, crosses and stretches the defence |
 | **Wide Playmaker** | Creates from wide with vision and combination play. Grealish → Neymar |
 | **Wide Target Forward** | Physical wide forward — holds up play, brings others into the game |

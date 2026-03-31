@@ -440,11 +440,7 @@ function applyRoleAbilities(
         }
         break;
       }
-      case 'Raumdeuter': {
-        states[i].powerMultiplier += 0.20;
-        addEffect(i, 'Space', '+20% to self', sc.card.power * 0.20);
-        break;
-      }
+      // Raumdeuter role removed — now an earned archetype
       case 'Invertido': {
         if (sc.card.archetype === 'Controller' || sc.card.archetype === 'Passer') {
           states[i].powerMultiplier += 0.15;

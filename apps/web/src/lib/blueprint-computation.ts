@@ -26,7 +26,7 @@ export const BLUEPRINT_VOCABULARY: Record<string, string[]> = {
   CM: ["Metronome", "Tuttocampista", "Mezzala", "Deep-Lying Playmaker", "Driver"],
   WM: ["False Winger", "Shuttler", "Wide Provider", "Work-Rate Winger"],
   AM: ["No.10", "Seconda Punta", "Trequartista", "Pressing Playmaker"],
-  WF: ["Inside Forward", "Inventor", "Explosive Winger", "Shuttler", "False Winger"],
+  WF: ["Inverted Winger", "Inventor", "Explosive Winger", "Shuttler", "False Winger"],
   CF: ["Poacher", "Prima Punta", "Falso Nove", "Spearhead", "Goal Machine"],
 };
 
@@ -187,23 +187,23 @@ const BLUEPRINT_MAP: Record<string, BlueprintRule> = {
   },
 
   // ── WF ──────────────────────────────────────────────────────────────────
-  // Inside Forward: cuts inside, shoots (Salah)
-  "Inside Forward": {
-    default: "Inside Forward",
+  // Inverted Winger: cuts inside, shoots (Salah)
+  "Inverted Winger": {
+    default: "Inverted Winger",
     maestro: "Inventor",    // composed inside forward → creative cutter (Bernardo)
     professor: "Inventor",
   },
   // Inventor (Inverted Winger): creates from inside (Bernardo Silva)
   "Inventor": {
     default: "Inventor",
-    catalyst: "Inside Forward",    // aggressive inverted winger → goal threat
-    general: "Inside Forward",
+    catalyst: "Inverted Winger",    // aggressive inverted winger → goal threat
+    general: "Inverted Winger",
   },
   // Extremo (Wide Forward): stretches defence, devastating pace (Mbappé)
   "Extremo": {
     default: "Explosive Winger",
-    maestro: "Inside Forward",     // composed wide forward → cuts in with purpose
-    professor: "Inside Forward",
+    maestro: "Inverted Winger",     // composed wide forward → cuts in with purpose
+    professor: "Inverted Winger",
     general: "Shuttler",           // systematic pace merchant → more structured
   },
 

@@ -87,7 +87,7 @@ ROLE_AXES = {
     "Enganche":           ["Creator", "Dribbler", "Controller", "Passer"],
     "Boxcrasher":         ["Striker", "Engine", "Powerhouse", "Dribbler"],
     # WF
-    "Inside Forward":     ["Dribbler", "Sprinter", "Striker", "Creator"],
+    "Inverted Winger":     ["Dribbler", "Sprinter", "Striker", "Creator"],
     "Extremo":            ["Sprinter", "Dribbler", "Striker", "Creator"],
     "Inventor":           ["Creator", "Dribbler", "Passer", "Sprinter"],
     "Raumdeuter":         ["Cover", "Striker", "Engine", "Sprinter"],

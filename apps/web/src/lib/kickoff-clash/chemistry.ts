@@ -51,7 +51,7 @@ export const ROLE_COMBOS: {
 }[] = [
   { name: "The Pirlo-Barella", role1: "Regista", role2: "Mezzala", multiplier: 1.3 },
   { name: "Shield & Sword", role1: "Anchor", role2: "Trequartista", multiplier: 1.3 },
-  { name: "Overlap", role1: "Lateral", role2: "Inside Forward", multiplier: 1.2 },
+  { name: "Overlap", role1: "Lateral", role2: "Inverted Winger", multiplier: 1.2 },
   { name: "The Guardiola", role1: "Falso Nove", role2: "Winger", multiplier: 1.2 },
   { name: "The Double Pivot", role1: "Anchor", role2: "Volante", multiplier: 1.2 },
   { name: "Counter Punch", role1: "Volante", role2: "Extremo", multiplier: 1.2 },
@@ -60,7 +60,7 @@ export const ROLE_COMBOS: {
   { name: "Wing Play", role1: "Lateral", role2: "Winger", multiplier: 1.2 },
   { name: "Inside Out", role1: "Invertido", role2: "Fantasista", multiplier: 1.2 },
   { name: "The Link", role1: "Enganche", role2: "Poacher", multiplier: 1.3 },
-  { name: "Space Creation", role1: "Inside Forward", role2: "Falso Nove", multiplier: 1.2 },
+  { name: "Space Creation", role1: "Inverted Winger", role2: "Falso Nove", multiplier: 1.2 },
   { name: "Engine Room", role1: "Tuttocampista", role2: "Relayeur", multiplier: 1.2 },
   { name: "The Provider", role1: "Libero", role2: "Prima Punta", multiplier: 1.2 },
   { name: "Last Line", role1: "Torwart", role2: "Sweeper", multiplier: 1.2 },

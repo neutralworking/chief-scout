@@ -414,7 +414,7 @@ export function analyzeDeck(deck: Card[], opponent: OpponentBuild): DeckAnalysis
   const ROLE_COMBOS_LIST = [
     { name: 'The Pirlo-Barella', role1: 'Regista', role2: 'Mezzala' },
     { name: 'Shield & Sword', role1: 'Anchor', role2: 'Trequartista' },
-    { name: 'Overlap', role1: 'Lateral', role2: 'Inside Forward' },
+    { name: 'Overlap', role1: 'Lateral', role2: 'Inverted Winger' },
     { name: 'The Guardiola', role1: 'Falso Nove', role2: 'Winger' },
     { name: 'The Double Pivot', role1: 'Anchor', role2: 'Volante' },
     { name: 'Counter Punch', role1: 'Volante', role2: 'Extremo' },

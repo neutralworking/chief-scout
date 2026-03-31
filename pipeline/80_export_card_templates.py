@@ -302,7 +302,7 @@ ROLE_ABILITIES = {
     "Sweeper":          ("The Shield",      "Lowest-scoring card gets +30%"),
     "Zagueiro":         ("Command Line",    "All cards in adjacent slots get +10%"),
     # WD roles
-    "Lateral":          ("Overlap",         "If paired with Inside Forward or Winger, both +15%"),
+    "Lateral":          ("Overlap",         "If paired with Inverted Winger or Winger, both +15%"),
     "Invertido":        ("Tuck Inside",     "Counts as both WD and CM for synergies"),
     "Carrilero":        ("Lane Runner",     "+20% in WD slot, +5% per Sprinter in lineup"),
     "Fluidificante":    ("Fluid Motion",    "+15% when lineup has 3+ different archetypes"),
@@ -325,7 +325,7 @@ ROLE_ABILITIES = {
     "Enganche":         ("The Hook",        "Pick one card: it gets +25%, this card gets -10%"),
     "Seconda Punta":    ("Between Lines",   "Counts as both AM and CF for synergies"),
     # WF roles
-    "Inside Forward":   ("Cut Inside",      "+20% when on opposite flank to strong foot"),
+    "Inverted Winger":   ("Cut Inside",      "+20% when on opposite flank to strong foot"),
     "Extremo":          ("Jet Heels",       "+30% if lineup has no other Sprinter"),
     "Inverted Winger":  ("Creator's Cut",   "+15% and generates +10 gate pull per match"),
     "Inventor":         ("Something From Nothing", "20% chance to trigger a bonus synergy"),

@@ -280,7 +280,7 @@ export const ROLE_INTELLIGENCE: Record<string, RoleIntelligence> = {
   },
 
   // ── WF ──────────────────────────────────────────────────────────────────
-  "Inside Forward": {
+  "Inverted Winger": {
     archetypes: ["Dribbler", "Sprinter", "Striker"],
     personalities: ["IXSP", "IXSC", "INSP"],
     minLevel: 13,
@@ -388,7 +388,7 @@ const BLUEPRINT_ROLE_MAP: Record<string, string> = {
   "Trequartista": "Trequartista",
   "Seconda Punta": "Seconda Punta",
   // WF
-  "Inside Forward": "Inside Forward",
+  "Inverted Winger": "Inverted Winger",
   "Wide Forward": "Wide Target Forward",
   "Inventor": "Wide Playmaker",
   // CF
@@ -579,7 +579,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Mezzala", blueprint: "Iniesta", demand: "Carries into the final third, unpredictable, arrives in the box" },
       ],
       WF: [
-        { role: "Inside Forward", blueprint: "Messi", demand: "Cuts inside from the right, finishes or creates — the system's apex" },
+        { role: "Inverted Winger", blueprint: "Messi", demand: "Cuts inside from the right, finishes or creates — the system's apex" },
         { role: "Traditional Winger", blueprint: "Henry/Villa", demand: "Stretches the defence wide left, runs in behind, clinical finishing" },
       ],
       CF: [{ role: "Falso Nove", blueprint: "Messi (2011)", demand: "Drops deep, drags CBs out, creates space for runners" }],
@@ -661,8 +661,8 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Anchor", blueprint: "Gündogan / Xabi Alonso", demand: "Dictates tempo when possession is established, shields the back line" },
       ],
       WF: [
-        { role: "Inside Forward", blueprint: "Reus / Di María", demand: "Cuts inside at speed, arrives in the box, creates chances from half-spaces" },
-        { role: "Inside Forward", blueprint: "Kuba / Ronaldo", demand: "Direct running, takes on full-backs, lethal in transition" },
+        { role: "Inverted Winger", blueprint: "Reus / Di María", demand: "Cuts inside at speed, arrives in the box, creates chances from half-spaces" },
+        { role: "Inverted Winger", blueprint: "Kuba / Ronaldo", demand: "Direct running, takes on full-backs, lethal in transition" },
       ],
       AM: [{ role: "Advanced Playmaker", blueprint: "Götze / Özil", demand: "Links midfield to attack, finds the killer pass, intelligent movement" }],
       CF: [{ role: "Prima Punta", blueprint: "Lewandowski / Benzema", demand: "Holds up, runs behind, presses, scores — does everything" }],
@@ -689,8 +689,8 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
         { role: "Wing-Back", blueprint: "Alonso", demand: "Goal threat from left wing-back, set-piece delivery, bombs forward" },
       ],
       WF: [
-        { role: "Inside Forward", blueprint: "Pedro", demand: "Movement, pressing, works the channels — intelligent not flashy" },
-        { role: "Inside Forward", blueprint: "Hazard", demand: "The X-factor — dribbles, creates, scores, pulls defences apart" },
+        { role: "Inverted Winger", blueprint: "Pedro", demand: "Movement, pressing, works the channels — intelligent not flashy" },
+        { role: "Inverted Winger", blueprint: "Hazard", demand: "The X-factor — dribbles, creates, scores, pulls defences apart" },
       ],
       CF: [{ role: "Prima Punta", blueprint: "Costa", demand: "Physical, aggressive, holds the line — scores ugly goals and loves it" }],
     },
@@ -769,7 +769,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       AM: [{ role: "Advanced Playmaker", blueprint: "Isco (Athl.) / Raphinha", demand: "Links the midfield three to the front three, final-third creator" }],
       WF: [
         { role: "Wide Forward", blueprint: "Harrison", demand: "Direct, pace, stretches the defence — Bielsa's outlet on the break" },
-        { role: "Inside Forward", blueprint: "Susaeta / Bamford", demand: "Works the channels, presses relentlessly, movement over technique" },
+        { role: "Inverted Winger", blueprint: "Susaeta / Bamford", demand: "Works the channels, presses relentlessly, movement over technique" },
       ],
       CF: [{ role: "Prima Punta", blueprint: "Llorente (Athl.) / Bamford", demand: "Holds up, presses, runs — the system's willing runner" }],
     },
@@ -795,7 +795,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       ],
       WF: [
         { role: "Traditional Winger", blueprint: "Garrincha", demand: "The joy of football — beats men for fun, crosses, scores, entertains" },
-        { role: "Inside Forward", blueprint: "Zagallo", demand: "The original inverted winger — tucks inside, creates overloads in midfield" },
+        { role: "Inverted Winger", blueprint: "Zagallo", demand: "The original inverted winger — tucks inside, creates overloads in midfield" },
       ],
       CF: [
         { role: "Prima Punta", blueprint: "Pelé", demand: "The complete forward — shoots, heads, dribbles, creates, defines the position" },
@@ -852,7 +852,7 @@ export const FORMATION_BLUEPRINTS: Record<string, FormationBlueprint> = {
       DM: [{ role: "Regista", blueprint: "Busquets", demand: "The pivot — everything goes through him, invisible but essential" }],
       AM: [{ role: "Trequartista", blueprint: "Fàbregas / Silva", demand: "The false striker — occupies CB attention, creates for runners" }],
       WF: [
-        { role: "Inside Forward", blueprint: "Pedro / Navas", demand: "Makes runs in behind when the no. 10 drops — constant movement" },
+        { role: "Inverted Winger", blueprint: "Pedro / Navas", demand: "Makes runs in behind when the no. 10 drops — constant movement" },
         { role: "Inventor", blueprint: "Silva / Mata", demand: "Drifts inside, finds pockets, creates with vision not pace" },
       ],
     },

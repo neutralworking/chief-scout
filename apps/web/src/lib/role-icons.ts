@@ -301,6 +301,21 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     keyTraits: ["Late arriving runs", "Finishing from midfield", "Stamina", "Tactical intelligence"],
   },
 
+  Carrilero: {
+    role: "Carrilero",
+    origin: "Spanish",
+    position: "CM",
+    iconPlayer: "Blaise Matuidi",
+    nationality: "France",
+    peakScore: 88,
+    peakEra: "2016–2018",
+    peakClub: "Juventus",
+    peakFormation: "4-3-1-2",
+    snapshot:
+      "Matuidi was the ultimate wide shuttle — a midfielder who covered the left channel so completely that his winger could push forward without fear. At Juventus under Allegri, he operated as a left-sided CM in the 4-3-1-2, screening the fullback, pressing the opposition's right-sided attackers, and recycling possession with simple, effective passes. He ran 12km+ every match and never stopped. Valverde at Real Madrid and Herrera at Atletico carry the same DNA: tireless, tactically disciplined, the unglamorous engine that makes attacking systems function.",
+    keyTraits: ["Flank screening", "Tireless running", "Tactical discipline", "Pressing intensity"],
+  },
+
   Metodista: {
     role: "Metodista",
     origin: "Italian",
@@ -467,8 +482,8 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
 
   // ── WF ──────────────────────────────────────────────────────────────────
 
-  "Inside Forward": {
-    role: "Inside Forward",
+  "Inverted Winger": {
+    role: "Inverted Winger",
     position: "WF",
     iconPlayer: "Arjen Robben",
     nationality: "Netherlands",
@@ -477,7 +492,7 @@ export const ROLE_ICONS: Record<string, RoleIcon> = {
     peakClub: "Bayern Munich",
     peakFormation: "4-2-3-1",
     snapshot:
-      "Everyone knew Robben would cut inside from the right onto his left foot — and nobody could stop him. That one move, executed with explosive acceleration, balletic balance, and a curling finish into the far corner, was the most devastating single action in modern football. At Bayern under Heynckes and Guardiola, he was the decisive match-winner in the biggest games, including the 2013 Champions League final. The Inside Forward role exists in its current form because of Robben.",
+      "Everyone knew Robben would cut inside from the right onto his left foot — and nobody could stop him. That one move, executed with explosive acceleration, balletic balance, and a curling finish into the far corner, was the most devastating single action in modern football. At Bayern under Heynckes and Guardiola, he was the decisive match-winner in the biggest games, including the 2013 Champions League final. The Inverted Winger role exists in its current form because of Robben.",
     keyTraits: ["Cut inside finish", "Explosive acceleration", "Left-foot curl", "Big-game decisiveness"],
   },
 

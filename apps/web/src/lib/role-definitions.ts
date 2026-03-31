@@ -3,8 +3,8 @@
  * Pipeline (27_player_ratings.py), ratings.ts, compare/route.ts, and
  * SACROSANCT.md must all stay in sync with this file.
  *
- * 41 roles validated bottom-up against real tactical systems.
- * Variable count per position (AM/WD/WM/WF: 4, CD/DM/CM: 5, CF: 6).
+ * 42 roles validated bottom-up against real tactical systems.
+ * Variable count per position (AM/WD/WM/WF: 4, CD/DM: 5, CM: 6, CF: 6).
  */
 
 export type Pillar = 'technical' | 'tactical' | 'mental' | 'physical';
@@ -55,6 +55,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Mezzala", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Creator", tooltip: "Half-space creator, arrives in the box", description: "Engine-first half-space specialist who arrives late in dangerous positions between the lines.", examples: "Iniesta, Bellingham, Mazzola, Litmanen", origin: "Italian" },
   { name: "Tuttocampista", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Cover", tooltip: "Box-to-box, covers every blade", description: "Complete midfielder who covers every blade of grass — tackles, passes, scores, and leads.", examples: "Keane, Vidal, Neeskens, Davids", origin: "Italian" },
   { name: "Ball Winner", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Destroyer", tooltip: "Engine-first ball-winner in midfield", description: "Engine-driven midfielder who wins the ball back with intensity and keeps the team ticking.", examples: "Kanté, Gattuso, Vidal", origin: "English" },
+  { name: "Carrilero", position: "CM", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Cover", tooltip: "Wide shuttle — screens the flank, links play", description: "Wide-shuttling midfielder who patrols the channel between midfield and defence, screening the flank and recycling possession.", examples: "Matuidi, Valverde, Herrera, Zubimendia", origin: "Spanish" },
 
   // WM (4)
   { name: "Winger", position: "WM", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Dribbler", tooltip: "Pace and skill from wide", description: "Wide midfielder who beats defenders with pace and dribbling, providing width and direct running.", examples: "Garrincha, Giggs, Beckham, Raphinha", origin: "English" },
@@ -69,7 +70,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Mediapunta", position: "AM", pillar: "mental", primaryModel: "Controller", secondaryModel: "Creator", tooltip: "Combinational 10 — links through short passing", description: "The half-point — a mobile, intelligent 10 who links play through short combinations and positional intelligence.", examples: "David Silva, Isco, Pedri, Odegaard", origin: "Spanish" },
 
   // WF (4)
-  { name: "Inside Forward", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Striker", tooltip: "Cuts inside on strong foot to shoot/create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create.", examples: "Salah, Robben, Mané, Ronaldo 2008", origin: "English" },
+  { name: "Inverted Winger", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Striker", tooltip: "Cuts inside on strong foot to shoot/create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create.", examples: "Salah, Robben, Mané, Ronaldo 2008", origin: "English" },
   { name: "Winger", position: "WF", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Dribbler", tooltip: "Pace and skill from wide", description: "Wide attacker who beats defenders with pace and dribbling, stretching the defence.", examples: "Vinícius, Overmars, Finidi", origin: "English" },
   { name: "Wide Playmaker", position: "WF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Passer", tooltip: "Creates from wide — vision, passing, dictates", description: "Creates from wide areas with vision and passing, dictating play from the flank.", examples: "Neymar, Grealish, Rui Costa (wide)", origin: "English" },
   { name: "Wide Target Forward", position: "WF", pillar: "physical", primaryModel: "Target", secondaryModel: "Powerhouse", tooltip: "Physical presence from wide — holds up, wins aerials", description: "Physical wide forward who holds up the ball and wins aerial duels from wide positions.", examples: "Mandžukić (LW), Weghorst (wide), Arnautović", origin: "English" },

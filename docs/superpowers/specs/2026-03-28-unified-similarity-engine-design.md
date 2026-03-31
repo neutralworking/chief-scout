@@ -215,7 +215,7 @@ GET /api/players/[id]/similar?lens=match|replacement&realistic=false&include_leg
     "id": 123,
     "name": "Bukayo Saka",
     "position": "WF",
-    "best_role": "Inside Forward",
+    "best_role": "Inverted Winger",
     "earned_archetype": "Marksman"
   },
   "results": [
@@ -225,7 +225,7 @@ GET /api/players/[id]/similar?lens=match|replacement&realistic=false&include_leg
         "name": "Mohammed Kudus",
         "position": "WF",
         "club": "West Ham",
-        "best_role": "Inside Forward",
+        "best_role": "Inverted Winger",
         "earned_archetype": "Marksman",
         "best_role_score": 86,
         "level": 85
@@ -246,7 +246,7 @@ GET /api/players/[id]/similar?lens=match|replacement&realistic=false&include_leg
         "club_diversity": 1.0
       },
       "match_reasons": [
-        "Same role (Inside Forward)",
+        "Same role (Inverted Winger)",
         "Same archetype (Marksman)",
         "Similar pillar profile",
         "3 shared traits"

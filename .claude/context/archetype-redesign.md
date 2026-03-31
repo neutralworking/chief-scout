@@ -18,7 +18,7 @@ Player
 
 ### Forbidden names (already used as skillset or role):
 Controller, Commander, Creator, Target, Sprinter, Powerhouse, Cover, Engine, Destroyer, Dribbler, Passer, Striker, GK,
-Sweeper Keeper, Shot Stopper, Ball-Playing CB, Stopper, Sweeper, Ball-Carrying CB, Inverted Full-Back, Overlapping Full-Back, Wing-Back, Regista, Anchor, Ball-Winner, Mezzala, Box-to-Box, Deep Playmaker, Wide Playmaker, Wide Provider, Direct Winger, Traditional Winger, Trequartista, Advanced Playmaker, Second Striker, Inside Forward, Inverted Winger, Wide Forward, Target Man, Poacher, False 9, Pressing Forward, Carrier
+Sweeper Keeper, Shot Stopper, Ball-Playing CB, Stopper, Sweeper, Ball-Carrying CB, Inverted Full-Back, Overlapping Full-Back, Wing-Back, Regista, Anchor, Ball-Winner, Mezzala, Box-to-Box, Deep Playmaker, Wide Playmaker, Wide Provider, Direct Winger, Traditional Winger, Trequartista, Advanced Playmaker, Second Striker, Inverted Winger, Inverted Winger, Wide Forward, Target Man, Poacher, False 9, Pressing Forward, Carrier
 
 ---
 

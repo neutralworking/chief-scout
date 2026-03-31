@@ -322,7 +322,7 @@ function applyRoleAbilities(
       }
       case 'Lateral': {
         for (let j = 0; j < cards.length; j++) {
-          if (j !== i && (cards[j].card.tacticalRole === 'Inside Forward' || cards[j].card.tacticalRole === 'Winger')) {
+          if (j !== i && (cards[j].card.tacticalRole === 'Inverted Winger' || cards[j].card.tacticalRole === 'Winger')) {
             states[i].powerMultiplier += 0.15;
             states[j].powerMultiplier += 0.15;
             addEffect(i, 'Overlap', `Paired with ${cards[j].card.name} — both +15%`, (sc.card.power + cards[j].card.power) * 0.15);
@@ -396,7 +396,7 @@ function applyRoleAbilities(
         }
         break;
       }
-      case 'Inside Forward': {
+      case 'Inverted Winger': {
         if (sc.card.archetype === 'Dribbler' || sc.card.archetype === 'Striker') {
           states[i].powerMultiplier += 0.15;
           addEffect(i, 'Cut Inside', `+15% (${sc.card.archetype})`, sc.card.power * 0.15);

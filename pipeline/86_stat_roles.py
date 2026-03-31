@@ -209,7 +209,7 @@ ROLE_PROFILES: dict[str, dict[str, list[tuple[str, str]]]] = {
     },
     # ── WF ────────────────────────────────────────────────
     "WF": {
-        "Inside Forward": [
+        "Inverted Winger": [
             ("goals_p90", "high"),
             ("shots_p90", "high"),
             ("dribbles_p90", "medium"),

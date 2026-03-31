@@ -63,7 +63,7 @@
 | 27 | Trequartista | AM | Dribbler | Creator |
 | 28 | Enganche | AM | Creator | Controller |
 | 29 | Boxcrasher | AM | Sprinter | Striker |
-| 30 | Inside Forward | WF | Dribbler | Striker |
+| 30 | Inverted Winger | WF | Dribbler | Striker |
 | 31 | Raumdeuter | WF | Engine | Striker |
 | 32 | Winger | WF | Dribbler | Passer |
 | 33 | Wide Playmaker | WF | Creator | Passer |
@@ -166,7 +166,7 @@ GK(GK): Shotstopper
 LCB(CD): Sweeper, RCB(CD): Centrale
 LB(WD): Fullback, RB(WD): Wing-back
 LCM(CM): Playmaker, CDM(DM): Pivote, RCM(CM): Mezzala
-LW(WF): Winger, RW(WF): Inside Forward
+LW(WF): Winger, RW(WF): Inverted Winger
 CF(CF): Complete Forward
 ```
 
@@ -178,7 +178,7 @@ GK(GK): Sweeper Keeper
 LCB(CD): Distributor, RCB(CD): Sweeper
 LB(WD): Fullback, RB(WD): Fullback
 LCM(CM): Playmaker, CDM(DM): Pivote, RCM(CM): Tuttocampista
-LW(WF): Winger, RW(WF): Inside Forward
+LW(WF): Winger, RW(WF): Inverted Winger
 CF(CF): Complete Forward
 ```
 
@@ -187,7 +187,7 @@ CF(CF): Complete Forward
 GK(GK): Sweeper Keeper
 LCB(CD): Distributor, CCB(CD): Sweeper, RCB(CD): Distributor
 LM(WM): Winger, LCM(CM): Tuttocampista, RCM(CM): Playmaker, RM(WM): Winger
-LW(WF): Inside Forward, CF(CF): Falso Nove, RW(WF): Inside Forward
+LW(WF): Inverted Winger, CF(CF): Falso Nove, RW(WF): Inverted Winger
 ```
 
 **Van Gaal System** (4-3-3) — Ajax 1995 / Van Gaal's Barcelona — "Structured positional play with width"
@@ -196,7 +196,7 @@ GK(GK): Distributor
 LCB(CD): Distributor, RCB(CD): Sweeper
 LB(WD): Wing-back, RB(WD): Wing-back
 LCM(CM): Metodista, CDM(DM): Regista, RCM(CM): Mezzala
-LW(WF): Winger, RW(WF): Inside Forward
+LW(WF): Winger, RW(WF): Inverted Winger
 CF(CF): Complete Forward
 ```
 
@@ -209,7 +209,7 @@ LCB(CD): Distributor, RCB(CD): Sweeper
 LB(WD): Invertido, RB(WD): Invertido
 CDM(DM): Pivote
 LCM(CM): Mezzala, RCM(CM): Metodista
-LW(WF): Inside Forward, RW(WF): Inside Forward
+LW(WF): Inverted Winger, RW(WF): Inverted Winger
 CF(CF): Falso Nove
 ```
 
@@ -218,7 +218,7 @@ CF(CF): Falso Nove
 GK(GK): Distributor
 LCB(CD): Distributor, CCB(CD): Centrale, RCB(CD): Distributor
 LDM(DM): Pivote, RDM(DM): Regista
-LW(WF): Inside Forward, LAM(AM): Enganche, RAM(AM): Trequartista, RW(WF): Wide Playmaker
+LW(WF): Inverted Winger, LAM(AM): Enganche, RAM(AM): Trequartista, RW(WF): Wide Playmaker
 CF(CF): Complete Forward
 ```
 
@@ -228,7 +228,7 @@ GK(GK): Distributor
 LCB(CD): Distributor, RCB(CD): Sweeper
 LB(WD): Invertido, RB(WD): Invertido
 LDM(DM): Pivote, RDM(DM): Regista
-LW(WF): Wide Playmaker, AM(AM): Enganche, RW(WF): Inside Forward
+LW(WF): Wide Playmaker, AM(AM): Enganche, RW(WF): Inverted Winger
 CF(CF): Falso Nove
 ```
 
@@ -251,7 +251,7 @@ LCB(CD): Centrale, RCB(CD): Stopper
 LB(WD): Wing-back, RB(WD): Wing-back
 CDM(DM): Anchor
 LCM(CM): Mezzala, RCM(CM): Tuttocampista
-LW(WF): Inside Forward, RW(WF): Inside Forward
+LW(WF): Inverted Winger, RW(WF): Inverted Winger
 CF(CF): Spearhead
 ```
 
@@ -283,7 +283,7 @@ GK(GK): Sweeper Keeper
 LCB(CD): Stopper, CCB(CD): Distributor, RCB(CD): Stopper
 LM(WM): Winger, CDM(DM): Ball Winner, RM(WM): Winger
 AM(AM): Trequartista
-LW(WF): Inside Forward, CF(CF): Spearhead, RW(WF): Inside Forward
+LW(WF): Inverted Winger, CF(CF): Spearhead, RW(WF): Inverted Winger
 ```
 
 **La Furia** (3-4-3) — Gasperini's Atalanta / Sampaoli's Chile — "Aggressive 3-at-back, wing-back mayhem"
@@ -291,7 +291,7 @@ LW(WF): Inside Forward, CF(CF): Spearhead, RW(WF): Inside Forward
 GK(GK): Sweeper Keeper
 LCB(CD): Stopper, CCB(CD): Centrale, RCB(CD): Stopper
 LWB(WD): Wing-back, LCM(CM): Mezzala, RCM(CM): Tuttocampista, RWB(WD): Wing-back
-LW(WF): Raumdeuter, CF(CF): Complete Forward, RW(WF): Inside Forward
+LW(WF): Raumdeuter, CF(CF): Complete Forward, RW(WF): Inverted Winger
 ```
 
 ### 8. Transizione
@@ -302,7 +302,7 @@ GK(GK): Shotstopper
 LCB(CD): Centrale, RCB(CD): Stopper
 LB(WD): Corner Back, RB(WD): Corner Back
 LDM(DM): Anchor, RDM(DM): Ball Winner
-LW(WF): Raumdeuter, AM(AM): Enganche, RW(WF): Inside Forward
+LW(WF): Raumdeuter, AM(AM): Enganche, RW(WF): Inverted Winger
 CF(CF): Poacher
 ```
 
@@ -377,7 +377,7 @@ LCB(CD): Centrale, RCB(CD): Stopper
 LB(WD): Fullback, RB(WD): Fullback
 CDM(DM): Anchor
 LCM(CM): Mezzala, RCM(CM): Playmaker
-LW(WF): Inside Forward, RW(WF): Winger
+LW(WF): Inverted Winger, RW(WF): Winger
 CF(CF): Complete Forward
 ```
 
@@ -416,7 +416,7 @@ Every role appears in at least one system slot:
 | Trequartista | AM | O Jogo, Heavy Metal, El Loco, Inverted Build |
 | Enganche | AM | Special One, Relational Play, Inverted Build |
 | Boxcrasher | AM | Les Bleus |
-| Inside Forward | WF | Ginga, Ajax Model, Oranje, Van Gaal, Positional Play, Red Machine, El Loco, La Furia, Special One, Relational Play, Inverted Build, Ancelotti Ball |
+| Inverted Winger | WF | Ginga, Ajax Model, Oranje, Van Gaal, Positional Play, Red Machine, El Loco, La Furia, Special One, Relational Play, Inverted Build, Ancelotti Ball |
 | Raumdeuter | WF | Heavy Metal, La Furia, Special One, Les Bleus |
 | Winger | WF | Samba, O Jogo, Ancelotti Ball |
 | Wide Playmaker | WF | O Jogo, Inverted Build, Relational Play |
@@ -583,7 +583,7 @@ ROLES = [
     ("Trequartista",       "AM", "Dribbler",    "Creator"),
     ("Enganche",           "AM", "Creator",     "Controller"),
     ("Boxcrasher",         "AM", "Sprinter",    "Striker"),
-    ("Inside Forward",     "WF", "Dribbler",    "Striker"),
+    ("Inverted Winger",     "WF", "Dribbler",    "Striker"),
     ("Raumdeuter",         "WF", "Engine",      "Striker"),
     ("Winger",             "WF", "Dribbler",    "Passer"),
     ("Wide Playmaker",     "WF", "Creator",     "Passer"),
@@ -758,7 +758,7 @@ SYSTEMS = [
             ("CDM", "DM", 7, "Pivote",           []),
             ("RCM", "CM", 8, "Mezzala",          []),
             ("LW",  "WF", 9, "Winger",           []),
-            ("RW",  "WF", 10, "Inside Forward",  []),
+            ("RW",  "WF", 10, "Inverted Winger",  []),
             ("CF",  "CF", 11, "Complete Forward", []),
         ],
     },
@@ -778,7 +778,7 @@ SYSTEMS = [
             ("CDM", "DM", 7, "Pivote",            []),
             ("RCM", "CM", 8, "Tuttocampista",     []),
             ("LW",  "WF", 9, "Winger",            []),
-            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("RW",  "WF", 10, "Inverted Winger",   []),
             ("CF",  "CF", 11, "Complete Forward",  []),
         ],
     },
@@ -796,9 +796,9 @@ SYSTEMS = [
             ("LCM", "CM", 6, "Tuttocampista",     []),
             ("RCM", "CM", 7, "Playmaker",         []),
             ("RM",  "WM", 8, "Winger",            []),
-            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("LW",  "WF", 9, "Inverted Winger",    []),
             ("CF",  "CF", 10, "Falso Nove",       []),
-            ("RW",  "WF", 11, "Inside Forward",   []),
+            ("RW",  "WF", 11, "Inverted Winger",   []),
         ],
     },
     {
@@ -816,7 +816,7 @@ SYSTEMS = [
             ("CDM", "DM", 7, "Regista",           []),
             ("RCM", "CM", 8, "Mezzala",           []),
             ("LW",  "WF", 9, "Winger",            []),
-            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("RW",  "WF", 10, "Inverted Winger",   []),
             ("CF",  "CF", 11, "Complete Forward",  []),
         ],
     },
@@ -835,8 +835,8 @@ SYSTEMS = [
             ("CDM", "DM", 6, "Pivote",            []),
             ("LCM", "CM", 7, "Mezzala",           []),
             ("RCM", "CM", 8, "Metodista",         []),
-            ("LW",  "WF", 9, "Inside Forward",    []),
-            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("LW",  "WF", 9, "Inverted Winger",    []),
+            ("RW",  "WF", 10, "Inverted Winger",   []),
             ("CF",  "CF", 11, "Falso Nove",       []),
         ],
     },
@@ -852,7 +852,7 @@ SYSTEMS = [
             ("RCB", "CD", 4, "Distributor",        []),
             ("LDM", "DM", 5, "Pivote",             []),
             ("RDM", "DM", 6, "Regista",            []),
-            ("LW",  "WF", 7, "Inside Forward",     []),
+            ("LW",  "WF", 7, "Inverted Winger",     []),
             ("LAM", "AM", 8, "Enganche",           []),
             ("RAM", "AM", 9, "Trequartista",       []),
             ("RW",  "WF", 10, "Wide Playmaker",    []),
@@ -874,7 +874,7 @@ SYSTEMS = [
             ("RDM", "DM", 7, "Regista",           []),
             ("LW",  "WF", 8, "Wide Playmaker",    []),
             ("AM",  "AM", 9, "Enganche",          []),
-            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("RW",  "WF", 10, "Inverted Winger",   []),
             ("CF",  "CF", 11, "Falso Nove",       []),
         ],
     },
@@ -912,8 +912,8 @@ SYSTEMS = [
             ("CDM", "DM", 6, "Anchor",            []),
             ("LCM", "CM", 7, "Mezzala",           []),
             ("RCM", "CM", 8, "Tuttocampista",     []),
-            ("LW",  "WF", 9, "Inside Forward",    []),
-            ("RW",  "WF", 10, "Inside Forward",   []),
+            ("LW",  "WF", 9, "Inverted Winger",    []),
+            ("RW",  "WF", 10, "Inverted Winger",   []),
             ("CF",  "CF", 11, "Spearhead",        []),
         ],
     },
@@ -970,9 +970,9 @@ SYSTEMS = [
             ("CDM", "DM", 6, "Ball Winner",       []),
             ("RM",  "WM", 7, "Winger",            []),
             ("AM",  "AM", 8, "Trequartista",      []),
-            ("LW",  "WF", 9, "Inside Forward",    []),
+            ("LW",  "WF", 9, "Inverted Winger",    []),
             ("CF",  "CF", 10, "Spearhead",        []),
-            ("RW",  "WF", 11, "Inside Forward",   []),
+            ("RW",  "WF", 11, "Inverted Winger",   []),
         ],
     },
     {
@@ -991,7 +991,7 @@ SYSTEMS = [
             ("RWB", "WD", 8, "Wing-back",         []),
             ("LW",  "WF", 9, "Raumdeuter",        []),
             ("CF",  "CF", 10, "Complete Forward",  []),
-            ("RW",  "WF", 11, "Inside Forward",   []),
+            ("RW",  "WF", 11, "Inverted Winger",   []),
         ],
     },
     # ── Transizione ──
@@ -1010,7 +1010,7 @@ SYSTEMS = [
             ("RDM", "DM", 7, "Ball Winner",      []),
             ("LW",  "WF", 8, "Raumdeuter",       []),
             ("AM",  "AM", 9, "Enganche",         []),
-            ("RW",  "WF", 10, "Inside Forward",  []),
+            ("RW",  "WF", 10, "Inverted Winger",  []),
             ("CF",  "CF", 11, "Poacher",         []),
         ],
     },
@@ -1144,7 +1144,7 @@ SYSTEMS = [
             ("CDM", "DM", 6, "Anchor",             []),
             ("LCM", "CM", 7, "Mezzala",            []),
             ("RCM", "CM", 8, "Playmaker",          []),
-            ("LW",  "WF", 9, "Inside Forward",     []),
+            ("LW",  "WF", 9, "Inverted Winger",     []),
             ("RW",  "WF", 10, "Winger",            []),
             ("CF",  "CF", 11, "Complete Forward",   []),
         ],
@@ -1454,7 +1454,7 @@ TACTICAL_ROLES = {
         ("Sprinter", "Striker",    "Boxcrasher"),
     ],
     "WF": [
-        ("Dribbler", "Striker",    "Inside Forward"),
+        ("Dribbler", "Striker",    "Inverted Winger"),
         ("Engine",   "Striker",    "Raumdeuter"),
         ("Dribbler", "Passer",     "Winger"),
         ("Creator",  "Passer",     "Wide Playmaker"),
@@ -1582,7 +1582,7 @@ cur.execute('''
         'Playmaker','Metodista','Mezzala','Tuttocampista',
         'Winger','Tornante','False Winger','Wide Playmaker',
         'Trequartista','Enganche','Boxcrasher',
-        'Inside Forward','Raumdeuter','Wide Target Forward',
+        'Inverted Winger','Raumdeuter','Wide Target Forward',
         'Poacher','Complete Forward','Falso Nove','Spearhead',
         'Target Forward','Seconda Punta','Shadow Striker'
       )

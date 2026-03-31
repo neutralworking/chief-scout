@@ -43,6 +43,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Tuttocampista":   { models: ["Engine", "Cover", "Destroyer", "Powerhouse", "Sprinter"], labels: [] },
   "Metodista":       { models: ["Controller", "Passer", "Creator", "Cover"],            labels: [] },
   "Relayeur":        { models: ["Sprinter", "Engine", "Passer", "Cover"],               labels: [] },
+  "Carrilero":       { models: ["Engine", "Cover", "Destroyer", "Sprinter"],            labels: [] },
   // ── WM ──
   "Winger":          { models: ["Dribbler", "Passer", "Sprinter", "Engine"],            labels: [] },
   "Tornante":        { models: ["Engine", "Cover", "Sprinter", "Destroyer"],            labels: [] },
@@ -54,7 +55,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Enganche":        { models: ["Controller", "Creator", "Passer", "Dribbler"],         labels: [] },
   "Boxcrasher":      { models: ["Sprinter", "Striker", "Engine", "Dribbler"],           labels: [] },
   // ── WF ──
-  "Inside Forward":  { models: ["Dribbler", "Sprinter", "Striker", "Creator"],          labels: [] },
+  "Inverted Winger":  { models: ["Dribbler", "Sprinter", "Striker", "Creator"],          labels: [] },
   "Raumdeuter":      { models: ["Engine", "Striker", "Cover", "Dribbler"],              labels: [] },
   "Inventor":        { models: ["Creator", "Dribbler", "Passer", "Sprinter"],           labels: [] },
   "Extremo":         { models: ["Sprinter", "Striker", "Dribbler", "Creator"],          labels: [] },

@@ -48,7 +48,7 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Enganche',        'AM', 'The hook — sees everything, threads impossible passes',               'Controller', 'Creator',    'mental'),
   ('Boxcrasher',      'AM', 'Dynamic AM who arrives in the box with pace and power',               'Sprinter',   'Striker',    'physical'),
   -- WF
-  ('Inside Forward',  'WF', 'Cuts inside on strong foot to shoot or create',                      'Dribbler',   'Sprinter',   'technical'),
+  ('Inverted Winger',  'WF', 'Cuts inside on strong foot to shoot or create',                      'Dribbler',   'Sprinter',   'technical'),
   ('Raumdeuter',      'WF', 'Space interpreter — presses and finds pockets to score',              'Engine',     'Striker',    'tactical'),
   ('Inventor',        'WF', 'Creates something from nothing — vision from wide',                   'Creator',    'Dribbler',   'mental'),
   ('Extremo',         'WF', 'Electric pace and power — stretches the defence',                     'Sprinter',   'Striker',    'physical'),
@@ -72,6 +72,6 @@ DELETE FROM tactical_roles WHERE name NOT IN (
   'Mezzala', 'Tuttocampista', 'Metodista', 'Relayeur',
   'Winger', 'Tornante', 'False Winger', 'Shuttler',
   'Trequartista', 'Seconda Punta', 'Enganche', 'Boxcrasher',
-  'Inside Forward', 'Raumdeuter', 'Inventor', 'Extremo',
+  'Inverted Winger', 'Raumdeuter', 'Inventor', 'Extremo',
   'Poacher', 'Spearhead', 'Falso Nove', 'Prima Punta'
 );

@@ -66,7 +66,7 @@ TACTICAL_ROLES = {
         ("Sprinter", "Striker",   "Boxcrasher"),     # Havertz, Bruno Fernandes: arrives in box
     ],
     "WF": [
-        ("Dribbler", "Sprinter",  "Inside Forward"), # Robben, Salah: cuts inside to shoot
+        ("Dribbler", "Sprinter",  "Inverted Winger"), # Robben, Salah: cuts inside to shoot
         ("Engine", "Striker",     "Raumdeuter"),     # Son, Mane: space interpreter, presses + scores
         ("Creator", "Dribbler",   "Inventor"),       # Grealish, Neymar: creates from nothing
         ("Sprinter", "Striker",   "Extremo"),        # Henry, Mbappe: electric pace + power
@@ -152,7 +152,7 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Enganche',        'AM', 'The hook — sees everything, threads impossible passes',               'Controller', 'Creator',    'mental'),
   ('Boxcrasher',      'AM', 'Dynamic AM who arrives in the box with pace and power',               'Sprinter',   'Striker',    'physical'),
   -- WF
-  ('Inside Forward',  'WF', 'Cuts inside on strong foot to shoot or create',                      'Dribbler',   'Sprinter',   'technical'),
+  ('Inverted Winger',  'WF', 'Cuts inside on strong foot to shoot or create',                      'Dribbler',   'Sprinter',   'technical'),
   ('Raumdeuter',      'WF', 'Space interpreter — presses and finds pockets to score',              'Engine',     'Striker',    'tactical'),
   ('Inventor',        'WF', 'Creates something from nothing — vision from wide',                   'Creator',    'Dribbler',   'mental'),
   ('Extremo',         'WF', 'Electric pace and power — stretches the defence',                     'Sprinter',   'Striker',    'physical'),
@@ -176,7 +176,7 @@ DELETE FROM tactical_roles WHERE name NOT IN (
   'Mezzala', 'Tuttocampista', 'Metodista', 'Relayeur',
   'Winger', 'Tornante', 'False Winger', 'Shuttler',
   'Trequartista', 'Seconda Punta', 'Enganche', 'Boxcrasher',
-  'Inside Forward', 'Raumdeuter', 'Inventor', 'Extremo',
+  'Inverted Winger', 'Raumdeuter', 'Inventor', 'Extremo',
   'Poacher', 'Spearhead', 'Falso Nove', 'Prima Punta'
 );
 ```
@@ -244,7 +244,7 @@ const PIPELINE_TACTICAL_ROLES: Record<string, [string, string, string][]> = {
     ["Sprinter", "Striker", "Boxcrasher"],
   ],
   WF: [
-    ["Dribbler", "Sprinter", "Inside Forward"],
+    ["Dribbler", "Sprinter", "Inverted Winger"],
     ["Engine", "Striker", "Raumdeuter"],
     ["Creator", "Dribbler", "Inventor"],
     ["Sprinter", "Striker", "Extremo"],
@@ -346,7 +346,7 @@ const ROLE_DEFINITIONS: RoleDefinition[] = [
   { name: "Boxcrasher", position: "AM", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Striker", tooltip: "Dynamic AM who arrives in the box with pace and power", description: "Dynamic attacking midfielder who arrives in the box with pace and power, converting half-chances.", examples: "Havertz, Bruno Fernandes, Ramsey", origin: "English" },
 
   // WF
-  { name: "Inside Forward", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Sprinter", tooltip: "Cuts inside on strong foot to shoot or create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create, combining pace with directness.", examples: "Robben, Salah, Yamal", origin: "English" },
+  { name: "Inverted Winger", position: "WF", pillar: "technical", primaryModel: "Dribbler", secondaryModel: "Sprinter", tooltip: "Cuts inside on strong foot to shoot or create", description: "Wide attacker who cuts inside onto their stronger foot to shoot or create, combining pace with directness.", examples: "Robben, Salah, Yamal", origin: "English" },
   { name: "Raumdeuter", position: "WF", pillar: "tactical", primaryModel: "Engine", secondaryModel: "Striker", tooltip: "Space interpreter — presses and finds pockets to score", description: "Space interpreter who presses relentlessly and finds pockets of space to score from wide positions.", examples: "Son, Mane", origin: "German" },
   { name: "Inventor", position: "WF", pillar: "mental", primaryModel: "Creator", secondaryModel: "Dribbler", tooltip: "Creates something from nothing — vision from wide", description: "The creator who makes something from nothing, combining vision and dribbling from wide areas.", examples: "Grealish, Neymar", origin: "English" },
   { name: "Extremo", position: "WF", pillar: "physical", primaryModel: "Sprinter", secondaryModel: "Striker", tooltip: "Electric pace and power — stretches the defence", description: "Devastating wide forward who uses electric pace and power to stretch defences and score from wide areas.", examples: "Henry, Mbappe, Vinicius Jr", origin: "Portuguese" },
@@ -429,7 +429,7 @@ export const ROLE_RADAR_AXES: Record<string, RoleRadarConfig> = {
   "Boxcrasher":      { models: ["Sprinter", "Striker", "Engine", "Dribbler"],           labels: [] },
 
   // ── WF ──
-  "Inside Forward":  { models: ["Dribbler", "Sprinter", "Striker", "Creator"],          labels: [] },
+  "Inverted Winger":  { models: ["Dribbler", "Sprinter", "Striker", "Creator"],          labels: [] },
   "Raumdeuter":      { models: ["Engine", "Striker", "Cover", "Dribbler"],              labels: [] },
   "Inventor":        { models: ["Creator", "Dribbler", "Passer", "Sprinter"],           labels: [] },
   "Extremo":         { models: ["Sprinter", "Striker", "Dribbler", "Creator"],          labels: [] },
@@ -481,7 +481,7 @@ const TACTICAL_ROLES = [
   // AM
   "Trequartista", "Seconda Punta", "Enganche", "Boxcrasher",
   // WF
-  "Inside Forward", "Raumdeuter", "Inventor", "Extremo",
+  "Inverted Winger", "Raumdeuter", "Inventor", "Extremo",
   // CF
   "Poacher", "Spearhead", "Falso Nove", "Prima Punta",
 ];
@@ -515,7 +515,7 @@ const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   CM: [["Passer", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Controller", "Passer", "Metodista"], ["Sprinter", "Engine", "Relayeur"]],
   WM: [["Dribbler", "Passer", "Winger"], ["Engine", "Cover", "Tornante"], ["Controller", "Cover", "False Winger"], ["Sprinter", "Engine", "Shuttler"]],
   AM: [["Dribbler", "Creator", "Trequartista"], ["Engine", "Striker", "Seconda Punta"], ["Controller", "Creator", "Enganche"], ["Sprinter", "Striker", "Boxcrasher"]],
-  WF: [["Dribbler", "Sprinter", "Inside Forward"], ["Engine", "Striker", "Raumdeuter"], ["Creator", "Dribbler", "Inventor"], ["Sprinter", "Striker", "Extremo"]],
+  WF: [["Dribbler", "Sprinter", "Inverted Winger"], ["Engine", "Striker", "Raumdeuter"], ["Creator", "Dribbler", "Inventor"], ["Sprinter", "Striker", "Extremo"]],
   CF: [["Striker", "Dribbler", "Poacher"], ["Engine", "Destroyer", "Spearhead"], ["Creator", "Controller", "Falso Nove"], ["Target", "Powerhouse", "Prima Punta"]],
 };
 ```
@@ -560,7 +560,7 @@ Mapping for renaming keys:
 - `"Shadow Striker"` → `"Boxcrasher"` or `"Seconda Punta"`
 - `"Inverted Winger"` → `"Inventor"`
 - `"Wide Forward"` → `"Extremo"`
-- `"Inside Forward"` → keep (if at WF)
+- `"Inverted Winger"` → keep (if at WF)
 - `"Target Man"` → `"Prima Punta"`
 - `"Complete Forward"` → remove (role dropped)
 - `"False 9"` → `"Falso Nove"`

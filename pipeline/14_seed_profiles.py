@@ -2588,7 +2588,7 @@ PLAYERS = [
             "level": 93,
             "overall": 92,
             "archetype": "Sprinter-Striker",
-            "blueprint": "Inside Forward",
+            "blueprint": "Inverted Winger",
             "profile_tier": 1,
         },
         "personality": {

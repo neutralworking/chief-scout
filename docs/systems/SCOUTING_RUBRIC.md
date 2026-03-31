@@ -309,7 +309,7 @@
 - **Carry progressive distance** can be inflated by long diagonal runs in transition that lead nowhere. Filter for carries ending in a shot or key pass.
 
 ### Role Suitability
-- High Dribbler + Sprinter → **Inside Forward** (Salah type: cuts inside on strong foot, shoots or creates)
+- High Dribbler + Sprinter → **Inverted Winger** (Salah type: cuts inside on strong foot, shoots or creates)
 - High Engine + Striker → **Raumdeuter** (Muller type: interprets space, arrives in scoring positions without the ball)
 - High Creator + Dribbler → **Inventor** (Neymar type: creates something from nothing, vision from wide areas)
 - High Sprinter + Striker → **Extremo** (Mbappe type: electric pace stretches defences, direct and devastating)

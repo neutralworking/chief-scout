@@ -97,7 +97,7 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 ### WF
 | Role | Primary | Secondary | Formula |
 |------|---------|-----------|---------|
-| Inside Forward | Dribbler | Sprinter | Dribbler×0.6 + Sprinter×0.4 |
+| Inverted Winger | Dribbler | Sprinter | Dribbler×0.6 + Sprinter×0.4 |
 | Extremo | Sprinter | Striker | Sprinter×0.6 + Striker×0.4 |
 | Inventor | Creator | Dribbler | Creator×0.6 + Dribbler×0.4 |
 
@@ -114,9 +114,9 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 
 ## Known Issues (2026-03-17)
 
-### 1. Inside Forward dominates WF
+### 1. Inverted Winger dominates WF
 - **Dribbler** (avg 13.5/20) and **Sprinter** (avg 13.9/20) have the highest attribute coverage AND the highest average scores among WF players
-- Result: Inside Forward score ≈ 13.5×5×0.6 + 13.9×5×0.4 = 40.5 + 27.8 = **68.3** baseline
+- Result: Inverted Winger score ≈ 13.5×5×0.6 + 13.9×5×0.4 = 40.5 + 27.8 = **68.3** baseline
 - Meanwhile **Inventor** needs Creator (avg 9.2/20), dragging it down: 9.2×5×0.6 + 13.5×5×0.4 = 27.6 + 27.0 = **54.6** baseline
 - Fix needed: either differentiate the Dribbler/Sprinter models more, or add weighting to the role formula
 
@@ -131,12 +131,12 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 - This means role_score rewards attribute profile shape regardless of quality tier
 
 ### 4. Role distribution is heavily skewed
-- 592 Inside Forwards, 516 Prima Puntas, 1361 Mezzalas vs 2 Fantasistas, 5 Falso Noves, 2 Sweepers
+- 592 Inverted Wingers, 516 Prima Puntas, 1361 Mezzalas vs 2 Fantasistas, 5 Falso Noves, 2 Sweepers
 - Roles with Creator/Controller primary struggle because those attributes (guile, tempo, unpredictability) are rarely populated
 - Mental compound avg = 26.8 (vs Physical = 64.1) — mental attributes are dramatically under-represented in data
 
 ### 5. Position-role mismatches
-- AM Seconda Punta uses Dribbler+Striker — same as WF's Inside Forward. Ødegaard (AM) gets Seconda Punta at 86 but he's really a Trequartista/Enganche
+- AM Seconda Punta uses Dribbler+Striker — same as WF's Inverted Winger. Ødegaard (AM) gets Seconda Punta at 86 but he's really a Trequartista/Enganche
 - Creator model attributes (creativity, unpredictability, vision, guile) are rarely scored, making creative roles impossible to achieve
 
 ---

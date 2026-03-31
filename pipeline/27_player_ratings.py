@@ -123,7 +123,7 @@ POSITION_WEIGHTS = {
     "CF":  {"Striker": 1.0, "Sprinter": 0.95, "Target": 0.9, "Creator": 0.9, "Engine": 0.9, "Powerhouse": 0.85, "Dribbler": 0.85, "Controller": 0.8, "Destroyer": 0.8},
 }
 
-# Tactical roles — 41 roles synced from role-definitions.ts (single source of truth).
+# Tactical roles — 42 roles synced from role-definitions.ts (single source of truth).
 # Each role exists in at least one system in the tactical_systems hierarchy.
 # See docs/superpowers/specs/2026-03-29-systems-and-roles-design.md
 TACTICAL_ROLES = {
@@ -159,6 +159,7 @@ TACTICAL_ROLES = {
         ("Engine",     "Creator",   "Mezzala"),
         ("Engine",     "Cover",     "Tuttocampista"),
         ("Engine",     "Destroyer", "Ball Winner"),
+        ("Engine",     "Cover",     "Carrilero"),
     ],
     "WM": [
         ("Sprinter",   "Dribbler", "Winger"),
@@ -173,7 +174,7 @@ TACTICAL_ROLES = {
         ("Controller", "Creator",    "Mediapunta"),
     ],
     "WF": [
-        ("Dribbler", "Striker",    "Inside Forward"),
+        ("Dribbler", "Striker",    "Inverted Winger"),
         ("Sprinter", "Dribbler",   "Winger"),
         ("Creator",  "Passer",     "Wide Playmaker"),
         ("Target",   "Powerhouse", "Wide Target Forward"),

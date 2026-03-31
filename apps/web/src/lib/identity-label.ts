@@ -52,7 +52,7 @@ const GENERIC_BLUEPRINTS = new Set([
 // ── Synonyms for redundant blueprints ──────────────────────────────────────
 // When blueprint = role name, swap to a shorter/more evocative synonym first.
 const BLUEPRINT_SYNONYM: Record<string, string> = {
-  "Inside Forward": "Attacker",
+  "Inverted Winger": "Attacker",
   "Shotstopper": "Shot-Stopper",
 };
 
@@ -128,7 +128,7 @@ const OVERRIDE: Record<string, string> = {
   "Clinical·Shot-Stopper": "Clinical Keeper",
   "Commanding·Shot-Stopper": "Commanding Keeper",
 
-  // Attacker (synonym for redundant Inside Forward)
+  // Attacker (synonym for redundant Inverted Winger)
   "Unpredictable·Attacker": "Unpredictable Attacker",
   "Imposing·Attacker": "Direct Attacker",
   "Explosive·Attacker": "Explosive Attacker",
@@ -164,7 +164,7 @@ export function computeIdentityLabel(
 ): string | null {
   if (!blueprint) return null;
 
-  // Apply synonym if blueprint is redundant with role (e.g. Inside Forward → Attacker)
+  // Apply synonym if blueprint is redundant with role (e.g. Inverted Winger → Attacker)
   let bp = blueprint;
   if (isRedundant(bp, bestRole ?? null) && BLUEPRINT_SYNONYM[bp]) {
     bp = BLUEPRINT_SYNONYM[bp];

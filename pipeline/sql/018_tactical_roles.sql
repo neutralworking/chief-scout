@@ -52,7 +52,7 @@ INSERT INTO tactical_roles (name, position, description, primary_archetype, seco
   ('Advanced Playmaker', 'AM', 'Links midfield to attack, final third control', 'Controller', 'Creator'),
   ('Shadow Striker', 'AM', 'Late runs into box, second striker movement', 'Sprinter', 'Striker'),
   -- WF
-  ('Inside Forward', 'WF', 'Cuts inside on opposite foot, shoots', 'Striker', 'Dribbler'),
+  ('Inverted Winger', 'WF', 'Cuts inside on opposite foot, shoots', 'Striker', 'Dribbler'),
   ('Inverted Winger', 'WF', 'Creates from inside, vision and technique', 'Creator', 'Dribbler'),
   ('Wide Forward', 'WF', 'Stretches defense, pace in behind', 'Sprinter', 'Striker'),
   -- CF

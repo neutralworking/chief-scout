@@ -31,16 +31,16 @@ const POSITION_COMPOUND_WEIGHTS: Record<string, Record<string, number>> = {
   CF: { Technical: 0.3, Tactical: 0.1, Physical: 0.3, Mental: 0.3 },
 };
 
-// 41-role taxonomy — synced from role-definitions.ts (single source of truth)
+// 42-role taxonomy — synced from role-definitions.ts (single source of truth)
 const TACTICAL_ROLES: Record<string, [string, string, string][]> = {
   GK: [["GK", "Commander", "Comandante"], ["GK", "Cover", "Sweeper Keeper"], ["GK", "Passer", "Distributor"], ["GK", "Powerhouse", "Shotstopper"]],
   CD: [["Commander", "Destroyer", "Centrale"], ["Passer", "Cover", "Distributor"], ["Powerhouse", "Destroyer", "Stopper"], ["Cover", "Controller", "Sweeper"], ["Target", "Powerhouse", "Colossus"]],
   WD: [["Engine", "Passer", "Fullback"], ["Engine", "Dribbler", "Wing-back"], ["Cover", "Destroyer", "Corner Back"], ["Controller", "Passer", "Invertido"]],
   DM: [["Passer", "Controller", "Regista"], ["Controller", "Cover", "Pivote"], ["Cover", "Engine", "Anchor"], ["Destroyer", "Engine", "Ball Winner"], ["Powerhouse", "Engine", "Segundo Volante"]],
-  CM: [["Creator", "Passer", "Playmaker"], ["Controller", "Passer", "Metodista"], ["Engine", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Engine", "Destroyer", "Ball Winner"]],
+  CM: [["Creator", "Passer", "Playmaker"], ["Controller", "Passer", "Metodista"], ["Engine", "Creator", "Mezzala"], ["Engine", "Cover", "Tuttocampista"], ["Engine", "Destroyer", "Ball Winner"], ["Engine", "Cover", "Carrilero"]],
   WM: [["Sprinter", "Dribbler", "Winger"], ["Engine", "Cover", "Tornante"], ["Controller", "Creator", "False Winger"], ["Creator", "Passer", "Wide Playmaker"]],
   AM: [["Dribbler", "Creator", "Trequartista"], ["Creator", "Controller", "Enganche"], ["Engine", "Striker", "Incursore"], ["Controller", "Creator", "Mediapunta"]],
-  WF: [["Dribbler", "Striker", "Inside Forward"], ["Sprinter", "Dribbler", "Winger"], ["Creator", "Passer", "Wide Playmaker"], ["Target", "Powerhouse", "Wide Target Forward"]],
+  WF: [["Dribbler", "Striker", "Inverted Winger"], ["Sprinter", "Dribbler", "Winger"], ["Creator", "Passer", "Wide Playmaker"], ["Target", "Powerhouse", "Wide Target Forward"]],
   CF: [["Striker", "Target", "Prima Punta"], ["Creator", "Controller", "Falso Nove"], ["Engine", "Destroyer", "Spearhead"], ["Target", "Powerhouse", "Target Forward"], ["Creator", "Striker", "Seconda Punta"], ["Sprinter", "Striker", "Shadow Striker"]],
 };
 

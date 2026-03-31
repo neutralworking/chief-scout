@@ -5,6 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { POSITION_COLORS } from "@/lib/types";
 import { UpgradeCTA } from "@/components/UpgradeCTA";
+import {
+  FORMATION_BLUEPRINTS,
+  scorePlayerForRole,
+} from "@/lib/formation-intelligence";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +20,7 @@ interface PoolPlayer {
   overall_pillar_score: number | null;
   archetype: string | null;
   personality_type: string | null;
+  preferred_foot: string | null;
   age: number | null;
   club: string | null;
   best_role: string | null;
@@ -78,6 +83,99 @@ const FORMATION_SLOTS: Record<string, string[]> = {
   "3-4-3": ["GK", "CD", "CD", "CD", "WM", "CM", "CM", "WM", "WF", "CF", "WF"],
   "4-1-2-1-2": ["GK", "WD", "CD", "CD", "WD", "DM", "CM", "CM", "AM", "CF", "CF"],
 };
+
+// ── Smart XI slot assignment using formation-intelligence scoring ────────────
+
+interface XISlot {
+  position: string;
+  role: string;
+  side?: "L" | "R";
+  player: PoolPlayer | null;
+  roleScore: number;
+  idx: number;
+}
+
+function flattenBlueprintSlots(formationName: string): { position: string; role: string; side?: "L" | "R" }[] {
+  const bp = FORMATION_BLUEPRINTS[formationName];
+  if (!bp) return [];
+  const slots: { position: string; role: string; side?: "L" | "R" }[] = [];
+  for (const [pos, slotArr] of Object.entries(bp.slots)) {
+    for (const slot of slotArr) {
+      slots.push({ position: pos, role: slot.role, side: slot.side });
+    }
+  }
+  return slots;
+}
+
+/**
+ * Assign XI players to formation slots using scorePlayerForRole + side awareness.
+ * Uses greedy best-fit: scores every player for every slot, then assigns highest first.
+ * Respects preferred side — a right-footed WD won't get placed at LB.
+ */
+function assignXIToSlots(formationName: string, xiPlayers: PoolPlayer[]): XISlot[] {
+  const blueprintSlots = flattenBlueprintSlots(formationName);
+  if (blueprintSlots.length === 0) {
+    // Fallback: use FORMATION_SLOTS without intelligence
+    const simpleSlots = FORMATION_SLOTS[formationName] ?? FORMATION_SLOTS["4-3-3"];
+    const used = new Set<number>();
+    return simpleSlots.map((slotPos, idx) => {
+      const candidate = xiPlayers
+        .filter((p) => !used.has(p.person_id) && p.position === slotPos)
+        .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))[0];
+      if (candidate) {
+        used.add(candidate.person_id);
+        return { position: slotPos, role: slotPos, player: candidate, roleScore: candidate.level ?? 0, idx };
+      }
+      return { position: slotPos, role: slotPos, player: null, roleScore: 0, idx };
+    });
+  }
+
+  // Score every player for every slot (role intelligence + side awareness)
+  const scores: { slotIdx: number; player: PoolPlayer; score: number }[] = [];
+  for (let si = 0; si < blueprintSlots.length; si++) {
+    const slot = blueprintSlots[si];
+    for (const p of xiPlayers) {
+      const s = scorePlayerForRole(
+        {
+          level: p.level,
+          archetype: p.archetype,
+          personality_type: p.personality_type,
+          position: p.position,
+          preferred_foot: p.preferred_foot,
+        },
+        slot.role,
+        slot.side
+      );
+      scores.push({ slotIdx: si, player: p, score: s });
+    }
+  }
+
+  // Greedy assignment: sort by score descending, assign greedily
+  scores.sort((a, b) => b.score - a.score);
+  const usedSlots = new Set<number>();
+  const usedPlayers = new Set<number>();
+  const assignments = new Map<number, { player: PoolPlayer; score: number }>();
+
+  for (const entry of scores) {
+    if (usedSlots.has(entry.slotIdx) || usedPlayers.has(entry.player.person_id)) continue;
+    assignments.set(entry.slotIdx, { player: entry.player, score: entry.score });
+    usedSlots.add(entry.slotIdx);
+    usedPlayers.add(entry.player.person_id);
+    if (usedSlots.size === blueprintSlots.length || usedPlayers.size === xiPlayers.length) break;
+  }
+
+  return blueprintSlots.map((slot, idx) => {
+    const assignment = assignments.get(idx);
+    return {
+      position: slot.position,
+      role: slot.role,
+      side: slot.side,
+      player: assignment?.player ?? null,
+      roleScore: assignment?.score ?? 0,
+      idx,
+    };
+  });
+}
 
 // ── Step Progress Bar ────────────────────────────────────────────────────────
 
@@ -166,7 +264,7 @@ export default function SquadBuilderPage() {
   const [posFilter, setPosFilter] = useState<string | null>(null);
   const [catFilter, setCatFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
-  const [sortBy, setSortBy] = useState<"level" | "age" | "name">("level");
+  const [sortBy, setSortBy] = useState<"level" | "role_score" | "age" | "name">("level");
 
   // Reveal state
   const [idealData, setIdealData] = useState<IdealData | null>(null);
@@ -236,6 +334,7 @@ export default function SquadBuilderPage() {
       })
       .sort((a, b) => {
         if (sortBy === "level") return (b.level ?? 0) - (a.level ?? 0);
+        if (sortBy === "role_score") return (b.best_role_score ?? 0) - (a.best_role_score ?? 0);
         if (sortBy === "age") return (a.age ?? 99) - (b.age ?? 99);
         return a.name.localeCompare(b.name);
       });
@@ -617,8 +716,9 @@ export default function SquadBuilderPage() {
           </div>
           <div className="flex gap-2">
             <input type="text" placeholder="Search players..." value={searchText} onChange={(e) => setSearchText(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg text-xs" style={{ background: "var(--bg-surface)", color: "var(--text-primary)", border: "1px solid var(--border-subtle)" }} />
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "level" | "age" | "name")} className="px-2 py-1.5 rounded-lg text-xs cursor-pointer" style={{ background: "var(--bg-surface)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "level" | "role_score" | "age" | "name")} className="px-2 py-1.5 rounded-lg text-xs cursor-pointer" style={{ background: "var(--bg-surface)", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}>
               <option value="level">Level</option>
+              <option value="role_score">Role Score</option>
               <option value="age">Age</option>
               <option value="name">Name</option>
             </select>
@@ -671,21 +771,9 @@ export default function SquadBuilderPage() {
   if (step === "pick-xi") {
     const squadPlayers = nationData.players.filter((p) => selectedIds.has(p.person_id));
 
-    // Map XI players to formation slots
-    const xiPitchSlots = (() => {
-      const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
-      const used = new Set<number>();
-      return slots.map((slotPos, idx) => {
-        const candidate = squadPlayers
-          .filter((p) => !used.has(p.person_id) && xiIds.has(p.person_id) && p.position === slotPos)
-          .sort((a, b) => (b.level ?? 0) - (a.level ?? 0))[0];
-        if (candidate) {
-          used.add(candidate.person_id);
-          return { slot: slotPos, idx, player: candidate };
-        }
-        return { slot: slotPos, idx, player: null as PoolPlayer | null };
-      });
-    })();
+    // Smart slot assignment using formation-intelligence scoring (respects preferred side)
+    const xiPlayers = squadPlayers.filter((p) => xiIds.has(p.person_id));
+    const xiPitchSlots = assignXIToSlots(formation, xiPlayers);
 
     const xiPitchRowSizes = PITCH_ROWS[formation] ?? [1, 4, 3, 3];
     const xiPitchRows: (typeof xiPitchSlots)[] = [];
@@ -793,13 +881,23 @@ export default function SquadBuilderPage() {
                       >
                         <div
                           className="w-9 h-9 rounded-full flex items-center justify-center text-[9px] font-bold mx-auto"
-                          style={{ background: "var(--color-accent-tactical)", color: "#000" }}
+                          style={{
+                            background: s.player.position === s.position
+                              ? "var(--color-accent-tactical)"
+                              : "var(--color-accent-personality)",
+                            color: "#000",
+                          }}
                         >
                           {s.player.position}
                         </div>
                         <div className="text-[8px] mt-0.5 truncate leading-tight font-medium" style={{ color: "#fff", maxWidth: "60px" }}>
                           {s.player.name.split(" ").pop()}
                         </div>
+                        {s.side && (
+                          <div className="text-[6px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                            {s.side === "L" ? "Left" : "Right"}
+                          </div>
+                        )}
                       </button>
                     ) : (
                       <div className="text-center">
@@ -807,8 +905,13 @@ export default function SquadBuilderPage() {
                           className="w-9 h-9 rounded-full flex items-center justify-center text-[9px] font-mono mx-auto"
                           style={{ border: "1.5px dashed rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.35)" }}
                         >
-                          {s.slot}
+                          {s.position}
                         </div>
+                        {s.side && (
+                          <div className="text-[6px] mt-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+                            {s.side === "L" ? "Left" : "Right"}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

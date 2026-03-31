@@ -168,8 +168,6 @@ export default function OnThePlanePage() {
                   </h3>
                   <div className="flex items-center gap-1.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
                     <span>{nation.confederation}</span>
-                    <span>·</span>
-                    <span>{nation.player_count} players</span>
                     {nation.total_entries > 0 && (
                       <>
                         <span>·</span>

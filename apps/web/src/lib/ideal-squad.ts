@@ -7,6 +7,7 @@
 
 import {
   FORMATION_BLUEPRINTS,
+  scorePlayerForRole,
   scorePlayerForSlot,
   type FormationBlueprint,
 } from "@/lib/formation-intelligence";
@@ -152,11 +153,11 @@ const CANDIDATE_FORMATIONS = [
 
 // ── Core Algorithm ───────────────────────────────────────────────────────────
 
-function flattenBlueprint(bp: FormationBlueprint): { position: string; role: string }[] {
-  const slots: { position: string; role: string }[] = [];
+function flattenBlueprint(bp: FormationBlueprint): { position: string; role: string; side?: "L" | "R" }[] {
+  const slots: { position: string; role: string; side?: "L" | "R" }[] = [];
   for (const [pos, slotArr] of Object.entries(bp.slots)) {
     for (const slot of slotArr) {
-      slots.push({ position: pos, role: slot.role });
+      slots.push({ position: pos, role: slot.role, side: slot.side });
     }
   }
   return slots;
@@ -181,13 +182,17 @@ function scoreFormation(
 
     for (const p of players) {
       if (used.has(p.person_id)) continue;
-      const s = scorePlayerForSlot(
+      // Use role intelligence with side awareness for wide slots
+      const s = scorePlayerForRole(
         {
           level: p.level,
+          archetype: p.archetype,
+          personality_type: p.personality_type,
           position: p.position,
-          best_role_score: p.best_role_score,
+          preferred_foot: p.preferred_foot,
         },
-        slot.position
+        slot.role,
+        slot.side
       );
       if (s > bestScore) {
         bestScore = s;

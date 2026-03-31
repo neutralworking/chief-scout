@@ -123,17 +123,17 @@ export async function GET(
     });
   }
 
-  // Fetch DOBs for age computation
+  // Fetch DOBs, preferred_foot for age computation + side awareness
   const personIds = allPlayers.map((p) => p.person_id);
   if (personIds.length > 0) {
     const { data: people } = await sb
       .from("people")
-      .select("id, dob, international_caps")
+      .select("id, dob, international_caps, preferred_foot")
       .in("id", personIds);
 
-    const dobMap = new Map<number, { dob: string | null; caps: number | null }>();
+    const dobMap = new Map<number, { dob: string | null; caps: number | null; preferred_foot: string | null }>();
     for (const p of people ?? []) {
-      dobMap.set(p.id, { dob: p.dob, caps: p.international_caps });
+      dobMap.set(p.id, { dob: p.dob, caps: p.international_caps, preferred_foot: p.preferred_foot });
     }
 
     for (const player of allPlayers) {
@@ -145,6 +145,7 @@ export async function GET(
         );
       }
       player.international_caps = info?.caps ?? null;
+      player.preferred_foot = info?.preferred_foot ?? null;
     }
   }
 

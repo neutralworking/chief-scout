@@ -18,7 +18,6 @@ import {
   discardFromBench,
   getMatchResult,
 } from '../../lib/kickoff-clash/match-v5';
-import JokerCardComp from './JokerCard';
 import MatchScorebar from './match/MatchScorebar';
 import DeployPhase from './match/DeployPhase';
 import ResolvingPhase from './match/ResolvingPhase';
@@ -215,7 +214,7 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
   return (
     <div
       style={{
-        maxWidth: 430,
+        maxWidth: 720,
         margin: '0 auto',
         height: '100dvh',
         display: 'flex',
@@ -227,25 +226,42 @@ export default function MatchPhase({ runState, onMatchComplete }: MatchPhaseProp
         overflow: 'hidden',
       }}
     >
-      {/* Joker row */}
+      {/* Joker row — compact inline pills to save vertical space */}
       <div
         style={{
           display: 'flex',
-          gap: 4,
-          padding: '3px 10px',
+          gap: 6,
+          padding: '4px 10px',
           background: 'rgba(0,0,0,0.25)',
           alignItems: 'center',
           overflowX: 'auto',
           flexShrink: 0,
         }}
       >
+        <span style={{ fontSize: 9, color: 'var(--dust, #8a7560)', flexShrink: 0 }}>
+          {'\u{1F454}'}
+        </span>
         {runState.jokers.length === 0 && (
-          <span style={{ fontSize: 11, color: 'var(--dust, #8a7560)' }}>
-            No managers active
+          <span style={{ fontSize: 10, color: 'var(--dust, #8a7560)' }}>
+            No managers
           </span>
         )}
         {runState.jokers.map((j) => (
-          <JokerCardComp key={j.id} joker={j} compact />
+          <span
+            key={j.id}
+            style={{
+              fontSize: 9,
+              color: 'var(--cream, #f5f0e8)',
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: 'rgba(212,160,53,0.12)',
+              border: '1px solid rgba(212,160,53,0.3)',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {j.name}
+          </span>
         ))}
       </div>
 

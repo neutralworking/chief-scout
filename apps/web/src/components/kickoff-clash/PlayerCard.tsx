@@ -39,7 +39,7 @@ const POSITION_COLORS: Record<string, string> = {
 
 interface PlayerCardProps {
   card: Card;
-  size?: 'full' | 'mini' | 'pill';
+  size?: 'full' | 'mini' | 'pill' | 'hand';
   onClick?: () => void;
   selected?: boolean;
   dimmed?: boolean;
@@ -119,9 +119,10 @@ export default function PlayerCard({
   }
 
   // ---- Shared card dimensions ----
-  const isMini = size === 'mini';
-  const w = isMini ? 72 : 130;
-  const h = isMini ? 98 : 170;
+  const isHand = size === 'hand';
+  const isMini = size === 'mini' || isHand;
+  const w = isHand ? 82 : size === 'mini' ? 72 : 130;
+  const h = isHand ? 112 : size === 'mini' ? 98 : 170;
 
   // v5 assignment styling
   const isAttacking = assignment === 'attacking';
@@ -180,8 +181,8 @@ export default function PlayerCard({
           style={{
             background: posColor,
             color: '#f5f0e0',
-            fontSize: isMini ? 8 : 10,
-            padding: isMini ? '2px 4px' : '3px 6px',
+            fontSize: isHand ? 9 : isMini ? 8 : 10,
+            padding: isHand ? '2px 5px' : isMini ? '2px 4px' : '3px 6px',
           }}
         >
           {card.position}
@@ -193,7 +194,7 @@ export default function PlayerCard({
           style={{
             fontFamily: "var(--font-display, sans-serif)",
             color: rarityColor,
-            fontSize: isMini ? 14 : 22,
+            fontSize: isHand ? 16 : isMini ? 14 : 22,
           }}
         >
           {card.power}
@@ -209,7 +210,7 @@ export default function PlayerCard({
           className="w-full truncate font-bold leading-tight"
           style={{
             color: '#f5f0e0',
-            fontSize: isMini ? 9 : 13,
+            fontSize: isHand ? 10 : isMini ? 9 : 13,
           }}
         >
           {card.name}
@@ -237,8 +238,8 @@ export default function PlayerCard({
           {durabilityBadge}
         </span>
 
-        {!isMini && (
-          <span style={{ fontSize: 14, lineHeight: 1, opacity: 0.7 }}>
+        {(isHand || !isMini) && (
+          <span style={{ fontSize: isHand ? 12 : 14, lineHeight: 1, opacity: 0.7 }}>
             {themeIcon}
           </span>
         )}
@@ -247,7 +248,7 @@ export default function PlayerCard({
       {/* ---- Bottom rarity bar ---- */}
       <div
         style={{
-          height: isMini ? 2 : 3,
+          height: isHand ? 2.5 : isMini ? 2 : 3,
           background: rarityColor,
           width: '100%',
         }}

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import type { MatchV5State } from '../../../lib/kickoff-clash/match-v5';
 import { ALL_FORMATIONS } from '../../../lib/kickoff-clash/formations';
 import PlayerCard from '../PlayerCard';
+import CardHand from '../CardHand';
 
 interface BetweenPhaseProps {
   matchState: MatchV5State;
@@ -83,7 +84,6 @@ export default function BetweenPhase({
         padding: '8px 10px',
         gap: 8,
         minHeight: 0,
-        overflow: 'auto',
       }}
     >
       {/* Header */}
@@ -102,36 +102,41 @@ export default function BetweenPhase({
         </div>
       </div>
 
-      {/* XI cards */}
+      {/* XI cards — hand fan */}
       <div>
-        <div style={{ fontSize: 10, color: 'var(--dust, #8a7560)', marginBottom: 4 }}>
+        <div style={{ fontSize: 10, color: 'var(--dust, #8a7560)', marginBottom: 2, textAlign: 'center' }}>
           XI — tap to select for sub
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+        <CardHand
+          cardCount={matchState.xi.length}
+          cardWidth={72}
+          maxSpreadDeg={matchState.xi.length > 8 ? 22 : 16}
+          selectedIndex={selectedXiId !== null ? matchState.xi.findIndex(c => c.id === selectedXiId) : null}
+        >
           {matchState.xi.map((card) => (
             <PlayerCard
               key={card.id}
               card={card}
-              size="pill"
+              size="mini"
               onClick={() => handleXiTap(card.id)}
               selected={selectedXiId === card.id}
               dimmed={!!card.injured}
             />
           ))}
-        </div>
+        </CardHand>
       </div>
 
       {/* Bench */}
       <div>
-        <div style={{ fontSize: 10, color: 'var(--dust, #8a7560)', marginBottom: 4 }}>
+        <div style={{ fontSize: 10, color: 'var(--dust, #8a7560)', marginBottom: 2, textAlign: 'center' }}>
           Bench — tap to sub or mark for discard
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', padding: '0 8px' }}>
           {matchState.bench.map((card) => (
             <div key={card.id} style={{ position: 'relative' }}>
               <PlayerCard
                 card={card}
-                size="pill"
+                size="mini"
                 onClick={() => handleBenchTap(card.id)}
                 selected={selectedBenchId === card.id || markedForDiscard.has(card.id)}
               />

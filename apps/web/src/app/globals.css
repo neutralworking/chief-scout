@@ -305,3 +305,52 @@ body {
     transform: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Kickoff Clash — card hand fan layout
+   --------------------------------------------------------------------------- */
+
+.card-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  perspective: 800px;
+  padding: 6px 12px 4px;
+  min-height: 120px;
+}
+
+.card-hand-slot {
+  flex-shrink: 0;
+  transform-origin: bottom center;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .card-hand-slot:not(.card-hand-selected):hover {
+    transform: translateY(-12px) scale(1.04) rotate(0deg) !important;
+    z-index: 30 !important;
+  }
+}
+
+.card-hand-selected {
+  transform: translateY(-28px) scale(1.08) rotate(0deg) !important;
+  z-index: 50 !important;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+}
+
+@media (min-width: 768px) {
+  .card-hand {
+    min-height: 140px;
+  }
+}
+
+/* KC button pulse */
+@keyframes kcPulseButton {
+  0%, 100% { box-shadow: 0 0 10px rgba(232, 98, 26, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(232, 98, 26, 0.4), 0 0 50px rgba(232, 98, 26, 0.2); }
+}
+
+.advance-btn-pulse {
+  animation: kcPulseButton 1.5s ease-in-out infinite;
+}

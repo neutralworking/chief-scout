@@ -11,7 +11,7 @@ import {
   type FullAssessment,
 } from "@/lib/assessment/four-pillars";
 import { computeAge } from "@/lib/types";
-import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY, SOURCE_SCALE } from "@/lib/models";
 import { computeTraitProfileScore } from "@/lib/assessment/trait-role-impact";
 
 export async function GET(
@@ -109,7 +109,7 @@ export async function GET(
     const priority = SOURCE_PRIORITY[source] ?? 1;
     sourcesSeen.add(source);
 
-    const scale = raw > 10 ? 20.0 : 10.0;
+    const scale = g.scout_grade != null ? 20.0 : (SOURCE_SCALE[source] ?? 10.0);
     const normalized = (raw / scale) * 100;
 
     const existing = attrBest.get(attr);

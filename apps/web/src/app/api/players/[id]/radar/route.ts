@@ -1,6 +1,6 @@
 import { supabaseServer } from "@/lib/supabase-server";
 import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
-import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY, SOURCE_SCALE } from "@/lib/models";
 
 // Proxy mapping: canonical model attributes → existing DB attributes we have data for.
 // These are not identity mappings — they're "best available proxy" for attributes
@@ -18,7 +18,7 @@ const ATTR_PROXIES: Record<string, string> = {
   decisions:        "tactical",      // tactical score reflects decision quality
   tempo:            "composure",     // composure governs tempo control
 
-  // Creator: unpredictability has no proxy but creativity+vision+guile cover 3/4
+  // Creator: flair+threat now have AF composites; aliases cover sparse data
 
   // GK: agility + handling have no direct proxies
   agility:          "reactions",     // reaction speed approximates agility
@@ -113,11 +113,7 @@ export async function GET(
   // ── Priority fallback per attribute ──
   // For each attribute, use the score from the highest-priority source.
   // This prevents eafc garbage (all 10s) from diluting real statistical data.
-  // Source-specific scales (not heuristic — based on actual data ranges)
-  const SOURCE_SCALE: Record<string, number> = {
-    scout_assessment: 20, eafc_inferred: 20, statsbomb: 20,
-    api_football: 10, fbref: 10, understat: 10, computed: 10,
-  };
+  // SOURCE_SCALE imported from @/lib/models — single source of truth
 
   // Some attributes are quality ratings (how good is this player at X?) while
   // external sources grade them from rate stats (how often does X happen per 90?).
@@ -128,7 +124,7 @@ export async function GET(
     "composure",      // avg_rating ≠ composure
     "creativity",     // key_passes_p90 penalises non-creators
     "vision",         // assists_p90 penalises non-assisters
-    "guile",          // fouls_drawn_p90 — barely related
+    "threat",         // composite of shots+goals+kp+assists
     "pass_accuracy",  // pass % — position-dependent
     "take_ons",       // dribble success % — sample size issues
     "duels",          // duel win % — position-dependent
@@ -153,7 +149,7 @@ export async function GET(
       continue;
     }
 
-    const scale = SOURCE_SCALE[source] ?? (raw > 10 ? 20.0 : 10.0);
+    const scale = g.scout_grade != null ? 20.0 : (SOURCE_SCALE[source] ?? 10.0);
     const normalized = (raw / scale) * 100;
 
     const existing = attrBest.get(attr);

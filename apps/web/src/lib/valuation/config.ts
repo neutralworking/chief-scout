@@ -116,6 +116,6 @@ export const VALUE_TAGS: Record<string, number> = {
 
 export const LOW_OBSERVABILITY_ATTRIBUTES = new Set([
   "vision", "anticipation", "composure", "decisions", "creativity",
-  "communication", "concentration", "drive", "leadership", "guile",
-  "unpredictability", "tempo", "discipline", "awareness",
+  "communication", "concentration", "drive", "leadership", "threat",
+  "flair", "tempo", "discipline", "awareness",
 ]);

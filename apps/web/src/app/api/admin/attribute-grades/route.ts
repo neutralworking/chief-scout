@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { SOURCE_PRIORITY } from "@/lib/models";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 
 export const dynamic = "force-dynamic";
-
-// Source priority for picking best stat_score
-const SOURCE_PRIORITY: Record<string, number> = {
-  scout_assessment: 5,
-  statsbomb: 4,
-  fbref: 3,
-  api_football: 3,
-  understat: 2,
-  computed: 1,
-  eafc_inferred: 0,
-};
 
 // GET /api/admin/attribute-grades?person_id=123 (or player_id=123)
 export async function GET(req: NextRequest) {
@@ -50,7 +40,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (row.source === "scout_assessment" && row.scout_grade != null) {
-      grades[attr].scout_grade = row.scout_grade;
+      // DB stores 1-20; UI uses 0-10 buttons. Halve for display.
+      grades[attr].scout_grade = Math.round(row.scout_grade / 2);
     }
 
     if (row.stat_score != null && row.source !== "scout_assessment") {

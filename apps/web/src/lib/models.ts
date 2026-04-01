@@ -9,7 +9,7 @@
 export const MODEL_ATTRIBUTES: Record<string, string[]> = {
   Controller:  ["anticipation", "composure", "decisions", "tempo"],
   Commander:   ["communication", "concentration", "drive", "leadership"],
-  Creator:     ["creativity", "unpredictability", "vision", "guile"],
+  Creator:     ["creativity", "flair", "vision", "threat"],
   Target:      ["aerial_duels", "heading", "jumping", "volleys"],
   Sprinter:    ["acceleration", "balance", "movement", "pace"],
   Powerhouse:  ["aggression", "duels", "shielding", "stamina"],
@@ -132,19 +132,46 @@ export function getModelLabel(archetype: string | null): string | null {
   return MODEL_LABELS[archetype] ?? archetype;
 }
 
-/** Source priority for fallback scoring (higher = preferred) */
+/** Source priority for fallback scoring (higher = preferred).
+ *  Must match pipeline/lib/models.py SOURCE_PRIORITY. */
 export const SOURCE_PRIORITY: Record<string, number> = {
   scout_assessment: 5,
   statsbomb: 4,
-  fbref: 3,
   api_football: 3,
+  kaggle_pl: 2,
+  kaggle_euro: 2,
   understat: 2,
+  allsportsapi: 2,
+  llm_inferred: 1,
+  proxy_inferred: 1,
+  playstyle_derived: 1,
   computed: 1,
+  fbref: 0,
   eafc_inferred: 0,
+};
+
+/** Scale per source — scout_grade is always 1-20, stat_score is 1-10.
+ *  Used to normalize raw grades to 0-100 in assessment/radar routes.
+ *  scout_assessment uses scout_grade column (1-20); all others use stat_score (1-10). */
+export const SOURCE_SCALE: Record<string, number> = {
+  scout_assessment: 20,
+  // All stat sources write stat_score on 1-10 scale
+  statsbomb: 10,
+  api_football: 10,
+  kaggle_pl: 10,
+  kaggle_euro: 10,
+  understat: 10,
+  allsportsapi: 10,
+  llm_inferred: 10,
+  proxy_inferred: 10,
+  playstyle_derived: 10,
+  computed: 10,
+  fbref: 10,
+  eafc_inferred: 20, // EAFC uses ~12-18 range, treat as /20
 };
 
 /** Attribute aliases for DB inconsistencies */
 export const ATTR_ALIASES: Record<string, string> = {
   takeons: "take_ons",
-  unpredicability: "unpredictability",
+  unpredicability: "flair",
 };

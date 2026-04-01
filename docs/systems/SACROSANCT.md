@@ -101,7 +101,7 @@ Every player is scored 0-100 on all 13 models. The highest score determines thei
 |----------|-------|--------------------------|-------------------|
 | **Mental** | Controller | Anticipation, Composure, Decisions, Tempo | Regista, deep playmaker |
 | **Mental** | Commander | Communication, Concentration, Drive, Leadership | Captain, experienced CB/GK |
-| **Mental** | Creator | Creativity, Guile, Unpredictability, Vision | No. 10, advanced playmaker |
+| **Mental** | Creator | Creativity, Flair, Vision, Threat | No. 10, advanced playmaker |
 | **Physical** | Target | Aerial Duels, Heading, Jumping, Volleys | Target striker, aerial CB |
 | **Physical** | Sprinter | Acceleration, Balance, Movement, Pace | Winger, inside forward |
 | **Physical** | Powerhouse | Aggression, Duels, Shielding, Throwing | Ball-winning mid, target man |

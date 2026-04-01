@@ -1,5 +1,5 @@
 import { supabaseServer } from "@/lib/supabase-server";
-import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY } from "@/lib/models";
+import { MODEL_ATTRIBUTES, ATTR_ALIASES, SOURCE_PRIORITY, SOURCE_SCALE } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 // ── Tactical roles: position → [primary, secondary, roleName] tuples ──
@@ -52,7 +52,7 @@ function computeModelScores(
     const source = g.source ?? "eafc_inferred";
     const priority = SOURCE_PRIORITY[source] ?? 1;
 
-    const scale = raw > 10 ? 20.0 : 10.0;
+    const scale = g.scout_grade != null ? 20.0 : (SOURCE_SCALE[source] ?? 10.0);
     const normalized = (raw / scale) * 100;
 
     const existing = attrBest.get(attr);

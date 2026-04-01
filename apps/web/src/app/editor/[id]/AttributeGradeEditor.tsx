@@ -36,7 +36,7 @@ const PILLAR_MODELS: {
     models: [
       { name: "Controller", attrs: ["anticipation", "composure", "decisions", "tempo"] },
       { name: "Commander", attrs: ["communication", "concentration", "drive", "leadership"] },
-      { name: "Creator", attrs: ["creativity", "unpredictability", "vision", "guile"] },
+      { name: "Creator", attrs: ["creativity", "flair", "vision", "threat"] },
     ],
   },
   {
@@ -60,7 +60,7 @@ const ATTR_LABELS: Record<string, string> = {
   intensity: "Intensity", pressing: "Pressing", stamina: "Stamina", versatility: "Versatility",
   anticipation: "Anticipation", composure: "Composure", decisions: "Decisions", tempo: "Tempo",
   communication: "Comms", concentration: "Concentration", drive: "Drive", leadership: "Leadership",
-  creativity: "Creativity", unpredictability: "Flair", vision: "Vision", guile: "Guile",
+  creativity: "Creativity", flair: "Flair", vision: "Vision", threat: "Threat",
   aerial_duels: "Aerial Duels", heading: "Heading", jumping: "Jumping", volleys: "Volleys",
   acceleration: "Acceleration", balance: "Balance", movement: "Movement", pace: "Pace",
   aggression: "Aggression", duels: "Duels", shielding: "Shielding",

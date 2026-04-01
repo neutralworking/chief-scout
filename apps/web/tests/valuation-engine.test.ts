@@ -62,7 +62,7 @@ function makePlayerData(overrides: Partial<SupabasePlayerData> = {}): SupabasePl
     },
     grades: overrides.grades ?? makeGrades({
       anticipation: 15, composure: 14, decisions: 13, tempo: 14,
-      creativity: 12, vision: 14, pass_range: 13, guile: 11,
+      creativity: 12, vision: 14, pass_range: 13, threat: 11,
       tackling: 10, aggression: 9, marking: 8, blocking: 7,
       pace: 12, acceleration: 13, sprint_speed: 11, agility: 12,
     }),
@@ -304,7 +304,7 @@ describe("confidence", () => {
   it("scout-heavy data produces high or medium confidence", () => {
     const grades = makeGrades({
       anticipation: 15, composure: 14, decisions: 13, tempo: 14,
-      creativity: 12, vision: 14, pass_range: 13, guile: 11,
+      creativity: 12, vision: 14, pass_range: 13, threat: 11,
       tackling: 10, aggression: 9, marking: 8, blocking: 7,
       pace: 12, acceleration: 13, sprint_speed: 11, agility: 12,
       finishing: 10, shot_power: 11, heading: 9, movement: 12,

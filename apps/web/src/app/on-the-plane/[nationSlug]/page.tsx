@@ -74,6 +74,18 @@ function posGroup(pos: string): string {
   return "FWD";
 }
 
+// Balance counter color — early visual guidance
+function balanceColor(grp: string, cnt: number, total: number): string {
+  if (total < 5) return cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)";
+  if (grp === "GK" && cnt === 0) return "#ef4444";
+  if (total > 15) {
+    if (grp === "DEF" && cnt < 4) return "#f59e0b";
+    if (grp === "MID" && cnt < 3) return "#f59e0b";
+    if (grp === "FWD" && cnt < 2) return "#f59e0b";
+  }
+  return cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)";
+}
+
 // Formation slot definitions (simplified — position + count)
 const FORMATION_SLOTS: Record<string, string[]> = {
   "4-3-3": ["GK", "WD", "CD", "CD", "WD", "CM", "CM", "CM", "WF", "CF", "WF"],
@@ -179,10 +191,10 @@ function assignXIToSlots(formationName: string, xiPlayers: PoolPlayer[]): XISlot
 
 // ── Step Progress Bar ────────────────────────────────────────────────────────
 
-const STEPS: { key: Step; label: string }[] = [
-  { key: "pick-squad", label: "Squad" },
-  { key: "pick-xi", label: "Starting XI" },
-  { key: "reveal", label: "Results" },
+const STEPS: { key: Step; label: string; shortLabel: string }[] = [
+  { key: "pick-squad", label: "Squad", shortLabel: "Squad" },
+  { key: "pick-xi", label: "Starting XI", shortLabel: "XI" },
+  { key: "reveal", label: "Results", shortLabel: "Results" },
 ];
 
 function StepBar({ current }: { current: Step }) {
@@ -209,6 +221,10 @@ function StepBar({ current }: { current: Step }) {
               >
                 {done ? "✓" : i + 1}
               </div>
+              <span className="text-[10px] sm:hidden"
+                style={{ color: active ? "var(--text-primary)" : "var(--text-muted)" }}>
+                {s.shortLabel}
+              </span>
               <span className="text-[10px] hidden sm:inline"
                 style={{ color: active ? "var(--text-primary)" : "var(--text-muted)" }}>
                 {s.label}
@@ -276,6 +292,7 @@ export default function SquadBuilderPage() {
     tier: string;
   } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // ── Score animation (must be before early returns — hooks rule) ──────────
   const displayScore = useCountUp(comparison?.score ?? 0);
@@ -356,7 +373,7 @@ export default function SquadBuilderPage() {
 
   // ── Squad balance warnings ────────────────────────────────────────────────
   const balanceWarnings = useMemo(() => {
-    if (selectedIds.size < 20) return []; // Don't nag early
+    if (selectedIds.size < 10) return []; // Show warnings once picking is underway
     const warnings: string[] = [];
     if (squadBalance.GK === 0) warnings.push("No goalkeeper selected");
     if (squadBalance.GK > 3) warnings.push(`${squadBalance.GK} goalkeepers is excessive`);
@@ -404,6 +421,40 @@ export default function SquadBuilderPage() {
     },
     []
   );
+
+  // ── Quick Pick ──────────────────────────────────────────────────────────
+
+  const quickPick = useCallback(() => {
+    if (!nationData) return;
+    const targets: Record<string, number> = { GK: 3, DEF: 8, MID: 9, FWD: 6 };
+    const counts: Record<string, number> = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
+    const picked = new Set<number>();
+
+    const sorted = [...nationData.players].sort(
+      (a, b) => (b.best_role_score ?? b.level ?? 0) - (a.best_role_score ?? a.level ?? 0)
+    );
+
+    // First pass: fill each position group to target
+    for (const p of sorted) {
+      if (picked.size >= 26) break;
+      const grp = posGroup(p.position ?? "CM");
+      if (counts[grp] < targets[grp]) {
+        picked.add(p.person_id);
+        counts[grp]++;
+      }
+    }
+
+    // Second pass: fill remaining with best available
+    for (const p of sorted) {
+      if (picked.size >= 26) break;
+      if (!picked.has(p.person_id)) {
+        picked.add(p.person_id);
+      }
+    }
+
+    setSelectedIds(picked);
+    setXiIds(new Set());
+  }, [nationData]);
 
   // ── Submit ───────────────────────────────────────────────────────────────
 
@@ -575,14 +626,29 @@ export default function SquadBuilderPage() {
                   {selectedIds.size}/26
                 </p>
               </div>
-              <button
-                onClick={() => selectedIds.size === 26 && setStep("pick-xi")}
-                disabled={selectedIds.size !== 26}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
-              >
-                Next →
-              </button>
+              <div className="flex items-center gap-2">
+                {selectedIds.size === 0 && (
+                  <button
+                    onClick={quickPick}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+                    style={{
+                      background: "transparent",
+                      color: "var(--color-accent-personality)",
+                      border: "1px solid var(--color-accent-personality)",
+                    }}
+                  >
+                    Quick Pick
+                  </button>
+                )}
+                <button
+                  onClick={() => selectedIds.size === 26 && setStep("pick-xi")}
+                  disabled={selectedIds.size !== 26}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{ background: "var(--color-accent-personality)", color: "var(--bg-base)" }}
+                >
+                  Next →
+                </button>
+              </div>
             </div>
           </div>
           <StepBar current={step} />
@@ -602,7 +668,7 @@ export default function SquadBuilderPage() {
               </div>
               <div className="flex items-center gap-3">
                 {Object.entries(squadBalance).map(([grp, cnt]) => (
-                  <span key={grp} className="text-[10px] font-mono" style={{ color: cnt > 0 ? "var(--text-secondary)" : "var(--text-muted)" }}>
+                  <span key={grp} className="text-[10px] font-mono" style={{ color: balanceColor(grp, cnt, selectedIds.size) }}>
                     {grp} {cnt}
                   </span>
                 ))}
@@ -1028,6 +1094,13 @@ export default function SquadBuilderPage() {
   );
   const userSelectedPlayers = nationData.players.filter((p) => selectedIds.has(p.person_id));
 
+  // Matched XI player names for reveal highlights
+  const matchedXINames = comparison && comparison.xi_matches > 0
+    ? nationData.players
+        .filter((p) => xiIds.has(p.person_id) && idealXIIds.has(p.person_id))
+        .map((p) => p.name)
+    : [];
+
   const scoreColor = comparison
     ? comparison.score >= 75
       ? "var(--color-accent-technical)"
@@ -1111,6 +1184,38 @@ export default function SquadBuilderPage() {
                 </div>
               ))}
             </div>
+
+            {/* Matched XI highlights */}
+            {matchedXINames.length > 0 && (
+              <div
+                className="otp-stat-reveal mb-6 px-4 py-3 rounded-xl text-left max-w-md mx-auto"
+                style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-subtle)",
+                  borderLeftColor: "var(--color-accent-personality)",
+                  borderLeftWidth: "3px",
+                  animationDelay: "1.3s",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                  You nailed it
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {matchedXINames.map((name) => (
+                    <span
+                      key={name}
+                      className="px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{
+                        background: "rgba(168,85,247,0.15)",
+                        color: "var(--color-accent-personality)",
+                      }}
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Conversion CTA */}
             <UpgradeCTA
@@ -1275,14 +1380,16 @@ export default function SquadBuilderPage() {
             onClick={() => {
               const text = `On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
               navigator.clipboard?.writeText(text);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
             }}
-            className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+            className="px-4 py-2 rounded-lg text-sm cursor-pointer transition-colors"
             style={{
-              background: "var(--color-accent-personality)",
+              background: copied ? "var(--color-accent-tactical)" : "var(--color-accent-personality)",
               color: "var(--bg-base)",
             }}
           >
-            Copy Result
+            {copied ? "Copied!" : "Copy Result"}
           </button>
         </div>
       </div>

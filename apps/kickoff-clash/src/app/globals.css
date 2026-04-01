@@ -191,3 +191,45 @@ body {
 .card-appear {
   animation: cardAppear 0.3s ease-out forwards;
 }
+
+/* ---------------------------------------------------------------------------
+   Card hand fan layout
+   --------------------------------------------------------------------------- */
+
+.card-hand {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  perspective: 800px;
+  padding: 6px 12px 4px;
+  min-height: 120px;
+}
+
+.card-hand-slot {
+  flex-shrink: 0;
+  transform-origin: bottom center;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover lift — desktop only */
+@media (hover: hover) {
+  .card-hand-slot:not(.card-hand-selected):hover {
+    transform: translateY(-12px) scale(1.04) rotate(0deg) !important;
+    z-index: 30 !important;
+  }
+}
+
+/* Selected lift */
+.card-hand-selected {
+  transform: translateY(-28px) scale(1.08) rotate(0deg) !important;
+  z-index: 50 !important;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+}
+
+/* Desktop: scale up cards */
+@media (min-width: 768px) {
+  .card-hand {
+    min-height: 140px;
+  }
+}

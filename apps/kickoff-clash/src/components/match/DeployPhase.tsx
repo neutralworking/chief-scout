@@ -8,6 +8,7 @@ import type { JokerCard } from '../../lib/jokers';
 import type { TacticSlots } from '../../lib/tactics';
 import type { Card } from '../../lib/scoring';
 import PlayerCard from '../PlayerCard';
+import CardHand from '../CardHand';
 import SynergyPreview from './SynergyPreview';
 
 interface DeployPhaseProps {
@@ -52,35 +53,35 @@ export default function DeployPhase({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* Synergy preview */}
+      {/* Synergy preview — compact */}
       <SynergyPreview
         attackSynergies={split.attackSynergies}
         defenceSynergies={split.defenceSynergies}
         crossSynergies={split.crossSynergies}
       />
 
-      {/* Score preview + cap indicator */}
+      {/* Score preview — compact row */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           gap: 16,
-          padding: '4px 10px',
+          padding: '2px 10px',
           flexShrink: 0,
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 10, color: '#fbbf24', fontWeight: 700 }}>ATK</div>
-          <div
+          <span style={{ fontSize: 10, color: '#fbbf24', fontWeight: 700 }}>ATK </span>
+          <span
             style={{
               fontFamily: 'var(--font-display, sans-serif)',
-              fontSize: 20,
+              fontSize: 18,
               color: '#fbbf24',
             }}
           >
             {split.attackScore}
-          </div>
+          </span>
         </div>
 
         <div
@@ -91,132 +92,85 @@ export default function DeployPhase({
             textAlign: 'center',
           }}
         >
-          {atkCount}/{maxAtk} attackers
-          {overCap && <div style={{ fontSize: 9, color: '#ef4444' }}>diminished!</div>}
+          {atkCount}/{maxAtk} atk
+          {overCap && <span style={{ fontSize: 9, color: '#ef4444' }}> dim!</span>}
         </div>
 
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 10, color: '#60a5fa', fontWeight: 700 }}>DEF</div>
-          <div
+          <span style={{ fontSize: 10, color: '#60a5fa', fontWeight: 700 }}>DEF </span>
+          <span
             style={{
               fontFamily: 'var(--font-display, sans-serif)',
-              fontSize: 20,
+              fontSize: 18,
               color: '#60a5fa',
             }}
           >
             {split.defenceScore}
-          </div>
+          </span>
         </div>
       </div>
 
-      {/* Attack zone */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: 0,
-          gap: 2,
-        }}
+      {/* Attack hand */}
+      <CardHand
+        cardCount={attackers.length}
+        cardWidth={82}
+        maxSpreadDeg={attackers.length > 5 ? 22 : 16}
+        label="Attack"
+        labelColor="#fbbf24"
       >
-        {/* Attack zone label */}
-        {attackers.length > 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              fontSize: 9,
-              fontWeight: 700,
-              color: '#fbbf24',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              padding: '2px 0',
-            }}
-          >
-            Attack
-          </div>
-        )}
+        {attackers.map((card) => (
+          <PlayerCard
+            key={card.id}
+            card={card}
+            size="hand"
+            assignment="attacking"
+            diminished={sortedAttackerIds.has(card.id)}
+            onClick={() => onToggleAttacker(card.id)}
+          />
+        ))}
+      </CardHand>
 
-        {/* Attacker cards */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: 4,
-            padding: '0 4px',
-          }}
-        >
-          {attackers.map((card) => (
-            <PlayerCard
-              key={card.id}
-              card={card}
-              size="pill"
-              assignment="attacking"
-              diminished={sortedAttackerIds.has(card.id)}
-              onClick={() => onToggleAttacker(card.id)}
-            />
-          ))}
-        </div>
-
-        {/* Pitch line */}
-        <div
-          style={{
-            height: 1,
-            background: 'rgba(245,158,11,0.2)',
-            margin: '4px 20px',
-          }}
-        />
-
-        {/* Defence zone label */}
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: 9,
-            fontWeight: 700,
-            color: '#60a5fa',
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            padding: '2px 0',
-          }}
-        >
-          Defend
-        </div>
-
-        {/* Defender cards */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: 4,
-            padding: '0 4px',
-          }}
-        >
-          {defenders.map((card) => (
-            <PlayerCard
-              key={card.id}
-              card={card}
-              size="pill"
-              assignment="defending"
-              onClick={card.injured ? undefined : () => onToggleAttacker(card.id)}
-              dimmed={!!card.injured}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Kick Off button */}
+      {/* Pitch line */}
       <div
         style={{
-          padding: '6px 12px',
+          height: 1,
+          background: 'linear-gradient(90deg, transparent 10%, rgba(245,158,11,0.25) 50%, transparent 90%)',
+          margin: '2px 20px',
+          flexShrink: 0,
+        }}
+      />
+
+      {/* Defence hand */}
+      <CardHand
+        cardCount={defenders.length}
+        cardWidth={82}
+        maxSpreadDeg={defenders.length > 5 ? 22 : 16}
+        label="Defend"
+        labelColor="#60a5fa"
+      >
+        {defenders.map((card) => (
+          <PlayerCard
+            key={card.id}
+            card={card}
+            size="hand"
+            assignment="defending"
+            onClick={card.injured ? undefined : () => onToggleAttacker(card.id)}
+            dimmed={!!card.injured}
+          />
+        ))}
+      </CardHand>
+
+      {/* Kick Off button — pinned at bottom */}
+      <div
+        style={{
+          padding: '8px 12px',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 4,
+          justifyContent: 'center',
           flexShrink: 0,
         }}
       >
         <button
+          className="advance-btn-pulse"
           onClick={onKickOff}
           style={{
             width: '100%',

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PackContents } from '../lib/packs';
 import type { Card } from '../lib/scoring';
 import PlayerCard from './PlayerCard';
+import CardHand from './CardHand';
 import TacticCardComp from './TacticCard';
 import JokerCardComp from './JokerCard';
 import { RARITY_COLORS } from './theme';
@@ -351,7 +352,7 @@ export default function CardReveal({ contents, onComplete }: CardRevealProps) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 12,
+            gap: 8,
           }}
         >
           <span
@@ -363,39 +364,83 @@ export default function CardReveal({ contents, onComplete }: CardRevealProps) {
           >
             Your Squad
           </span>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 4,
-              justifyContent: 'center',
-              maxWidth: 400,
-            }}
-          >
-            {revealedCards.map(card => (
-              <PlayerCard key={card.id} card={card} size="pill" />
-            ))}
-          </div>
+
+          {/* Two-row hand fan for 11 cards */}
+          {revealedCards.length > 6 ? (
+            <>
+              <CardHand
+                cardCount={Math.ceil(revealedCards.length / 2)}
+                cardWidth={72}
+                maxSpreadDeg={20}
+              >
+                {revealedCards.slice(0, Math.ceil(revealedCards.length / 2)).map(card => (
+                  <PlayerCard key={card.id} card={card} size="mini" />
+                ))}
+              </CardHand>
+              <CardHand
+                cardCount={Math.floor(revealedCards.length / 2)}
+                cardWidth={72}
+                maxSpreadDeg={18}
+              >
+                {revealedCards.slice(Math.ceil(revealedCards.length / 2)).map(card => (
+                  <PlayerCard key={card.id} card={card} size="mini" />
+                ))}
+              </CardHand>
+            </>
+          ) : (
+            <CardHand
+              cardCount={revealedCards.length}
+              cardWidth={72}
+              maxSpreadDeg={24}
+            >
+              {revealedCards.map(card => (
+                <PlayerCard key={card.id} card={card} size="mini" />
+              ))}
+            </CardHand>
+          )}
         </div>
       )}
 
-      {/* --- Revealed row (during player reveal) --- */}
+      {/* --- Revealed row (during player reveal) — growing hand fan --- */}
       {stage === 'players' && revealedCards.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 3,
-            padding: '8px 0',
-            overflowX: 'auto',
-            maxWidth: '100%',
-            flexShrink: 0,
-          }}
-        >
-          {revealedCards.map(card => (
-            <div key={card.id} style={{ flexShrink: 0 }}>
-              <PlayerCard card={card} size="pill" />
-            </div>
-          ))}
+        <div style={{ flexShrink: 0, padding: '4px 0' }}>
+          <CardHand
+            cardCount={revealedCards.length}
+            cardWidth={48}
+            maxSpreadDeg={Math.min(revealedCards.length * 3, 24)}
+            overlapPx={revealedCards.length > 4 ? -12 : -6}
+          >
+            {revealedCards.map(card => (
+              <div
+                key={card.id}
+                className="card-appear"
+                style={{
+                  width: 48,
+                  height: 66,
+                  borderRadius: 6,
+                  border: `1.5px solid ${RARITY_COLORS[card.rarity] ?? '#71717a'}`,
+                  background: 'linear-gradient(160deg, #1a1a2e, #101020)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 7,
+                    fontWeight: 700,
+                    color: '#f5f0e0',
+                    textAlign: 'center',
+                    lineHeight: 1.1,
+                    padding: '0 2px',
+                  }}
+                >
+                  {card.name.split(' ').pop()}
+                </span>
+              </div>
+            ))}
+          </CardHand>
         </div>
       )}
 

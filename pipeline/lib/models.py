@@ -40,6 +40,7 @@ SOURCE_PRIORITY = {
     "understat": 2,
     "llm_inferred": 1,  # LLM-estimated mental/tactical attrs (pipeline 93)
     "computed": 1,
+    "playstyle_derived": 1,  # Trait→grade bridge (pipeline 56e)
     "eafc_inferred": 0,
 }
 

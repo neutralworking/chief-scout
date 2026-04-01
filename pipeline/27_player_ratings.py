@@ -261,7 +261,7 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
         # League strength scaling: discount stat grades from weaker leagues.
         # Scout grades, computed, API-Football (pre-scaled in p66), LLM and
         # proxy grades are all context-aware or synthetic — no league scaling.
-        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football", "llm_inferred", "proxy_inferred"}
+        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football", "llm_inferred", "proxy_inferred", "playstyle_derived"}
         if source not in PRESCALED_SOURCES and league_strength is not None:
             score_20 = score_20 * league_strength
         # Level-scale proxy_inferred: these are synthetic estimates that
@@ -443,8 +443,7 @@ def compute_best_role(model_scores, position):
     pos_weights = POSITION_WEIGHTS.get(position, {})
 
     best_role = None
-    best_score = -1
-    best_max_score = 1
+    best_normalised = -1
     for primary, secondary, name in roles:
         p_raw = model_scores.get(primary)
         s_raw = model_scores.get(secondary)
@@ -456,21 +455,23 @@ def compute_best_role(model_scores, position):
         if s_raw is None:
             # Single-model penalty: keep max_possible at the two-model
             # level so the normalisation actually penalises missing data.
-            # Previously 0.85 on both score AND max cancelled out.
             score = p_raw * p_weight * 0.6
             max_possible = 99 * p_weight * 0.6 + 99 * s_weight * 0.4
         else:
             score = p_raw * p_weight * 0.6 + s_raw * s_weight * 0.4
             max_possible = 99 * p_weight * 0.6 + 99 * s_weight * 0.4
-        if score > best_score:
-            best_score = score
+        # Normalize BEFORE comparing — different roles have different
+        # max_possible due to position weights. Comparing raw scores
+        # biases toward roles with high-weight models even when the
+        # player is better suited to a lower-weight role.
+        normalised = (score / max_possible) * 99 if max_possible > 0 else score
+        if normalised > best_normalised:
+            best_normalised = normalised
             best_role = name
-            best_max_score = max_possible
 
     if best_role is None:
         return None, 0
-    # Normalize to 0-99: a player with all-99 model scores gets role score 99
-    normalised = (best_score / best_max_score) * 99 if best_max_score > 0 else best_score
+    normalised = best_normalised
 
     # Top-end stretch: scout grades practically cap at 16/20, compressing
     # elite players into the 80-89 band. Power curve above 70 stretches
@@ -715,20 +716,12 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        # Blend raw + anchored scores for role computation.
-        # Thin data → lean on anchored (level-boosted) scores.
-        # Rich data → trust raw data-driven scores.
-        grade_count = len(grades)
-        if grade_count >= 50:
-            role_scores = raw_scores
-        else:
-            # Blend factor: how much anchored influence (0.0 = all raw, 0.4 = heavy anchor)
-            anchor_pct = max(0.05, 0.40 - grade_count * 0.007)
-            role_scores = {}
-            for k in set(raw_scores.keys()) | set(anchored_scores.keys()):
-                r = raw_scores.get(k, 0)
-                a = anchored_scores.get(k, 0)
-                role_scores[k] = round(r * (1 - anchor_pct) + a * anchor_pct)
+        # Always use anchored scores for role computation.
+        # Anchored scores already blend level into thin models (<3 of 4
+        # attrs), so they naturally boost data-sparse players without a
+        # hard floor. This replaces the old raw-vs-anchored cutoff and
+        # eliminates the flat clustering from level floors.
+        role_scores = dict(anchored_scores)
 
         # GK fix: the overridden MODEL_ATTRIBUTES["GK"] uses positioning/
         # awareness/pass_range/throwing for compound scoring, but data sources
@@ -750,17 +743,14 @@ def main():
         if real_grade_count < min_grades:
             best_role_score = None
 
-        # Level floor: role score can't drop too far below level.
-        # Gap WIDENS with sparse data — data must prove itself.
+        # Soft level blend + safety net. Replaces the hard floor that
+        # clustered all data-sparse players at the same score.
+        # 60+ real grades = pure data. 30 = 50/50. 10 = 83% level.
+        # Safety net at level-8 prevents catastrophic drops (Mbappé, VVD).
         if level and best_role_score is not None:
-            if real_grade_count < 30:
-                gap = 8
-            elif real_grade_count < 50:
-                gap = 5
-            else:
-                gap = 3
-            level_floor = max(level - gap, 50)
-            best_role_score = max(best_role_score, level_floor)
+            data_pct = min(real_grade_count / 60, 1.0)
+            blended = round(best_role_score * data_pct + level * (1 - data_pct))
+            best_role_score = max(blended, level - 8)
 
         results.append({
             "person_id": pid,

@@ -18,9 +18,10 @@
 ## Medium Priority
 
 ### Data Quality
+- [ ] **Rerun Gaffer question generator** — `python pipeline/47_generate_gaffer_questions.py` (no --force) to pick up ~17 remaining clusters that failed from LLM rate limits. International Duty category under-represented (only 1 question).
 - [ ] **Compound score calibration** — Technical/Tactical avg 55-57/100, may need rescaling
 - [ ] **Data quality dashboard** — per-field completeness heatmap + stale data flags in `/admin`
-- [ ] **StatsBomb event extraction** — progressive carries, pressure events, shot-creating actions from `sb_events`
+- [ ] ~~**StatsBomb event extraction**~~ — deprioritised: sb_events purged in DB cleanup, AF+EAFC cover 113k+189k grades now
 - [ ] Club stadium capacities — Wikidata P115 qualifier spotty
 - [ ] ~2,600 clubs without wikidata_ids — build bulk SPARQL name matcher
 - [ ] **Wikidata enrichment level 75-77** — 69_wikidata_quick_enrich.py done for 78+, lower tiers remain (~600 players)

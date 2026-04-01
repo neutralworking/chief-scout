@@ -115,8 +115,8 @@ def compute_proxy(
     avg_z = z_total / w_total
     # Map z-score to target attribute scale
     result = target_mean + avg_z * target_std
-    # Clamp to 1-19 (valid grade range)
-    return max(1.0, min(19.0, round(result, 1)))
+    # Clamp to 1-10 (standardized stat_score scale)
+    return max(1.0, min(10.0, round(result, 1)))
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -164,12 +164,12 @@ for attr, vals in attr_values.items():
         attr_stats[attr] = {"mean": mean, "std": std}
 
 # Manual fallback stats for ultra-sparse attributes (<50 real grades).
-# These are reasonable priors based on the scout assessment scale (1-19).
+# These are reasonable priors based on the 1-10 stat_score scale.
 FALLBACK_STATS = {
-    "leadership": {"mean": 8.0, "std": 4.0},
-    "communication": {"mean": 8.0, "std": 4.0},
-    "concentration": {"mean": 9.0, "std": 3.5},
-    "drive": {"mean": 9.0, "std": 3.5},
+    "leadership": {"mean": 4.5, "std": 2.0},
+    "communication": {"mean": 4.5, "std": 2.0},
+    "concentration": {"mean": 5.0, "std": 2.0},
+    "drive": {"mean": 5.0, "std": 2.0},
 }
 for attr, stats in FALLBACK_STATS.items():
     if attr not in attr_stats:

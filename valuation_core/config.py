@@ -65,7 +65,7 @@ DISAGREEMENT_THRESHOLD_STDEV = 1.0  # flag when delta > 1 std dev
 MODEL_ATTRIBUTES: dict[str, list[str]] = {
     "Controller":  ["anticipation", "composure", "decisions", "tempo"],
     "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
+    "Creator":     ["creativity", "flair", "vision", "threat"],
     "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
     "Sprinter":    ["acceleration", "balance", "movement", "pace"],
     "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
@@ -327,8 +327,8 @@ CONTRACT_MULTIPLIERS = {
 
 LOW_OBSERVABILITY_ATTRIBUTES = {
     "vision", "anticipation", "composure", "decisions", "creativity",
-    "communication", "concentration", "drive", "leadership", "guile",
-    "unpredictability", "tempo", "discipline", "awareness",
+    "communication", "concentration", "drive", "leadership", "threat",
+    "flair", "tempo", "discipline", "awareness",
 }
 
 # ── Source priority (from SACROSANCT) ─────────────────────────────────────────

@@ -35,36 +35,116 @@ DRY_RUN = args.dry_run
 MIN_MINUTES = args.min_minutes
 SOURCE = "api_football"
 
-# ── Metric → Attribute mapping ───────────────────────────────────────────────
+# ── Composite attribute mapping ──────────────────────────────────────────────
+# Each attribute blends multiple raw metrics with weights.
+# Percentile ranking happens on the blended value, not individual stats.
+# Inverted signals (lower=better) are marked with "_inv" suffix in metrics.
 
-METRIC_MAP = {
-    # Attacking
-    "goals_p90":          {"attr": "close_range",   "positions": {"attacker", "midfielder"}},
-    "shot_accuracy":      {"attr": "mid_range",     "positions": {"attacker", "midfielder"}},
-    "shots_p90":          {"attr": "long_range",    "positions": {"attacker", "midfielder"}},
-    # Passing
-    "passes_key_p90":     {"attr": "creativity",    "positions": {"attacker", "midfielder", "defender"}},
-    "assists_p90":        {"attr": "vision",        "positions": {"attacker", "midfielder"}},
-    "pass_accuracy":      {"attr": "pass_accuracy", "positions": {"attacker", "midfielder", "defender"}},
-    # Defending
-    # tackles_p90 REMOVED: volume metric, not quality. Positional CBs (Dias,
-    # VVD) get 1/10 because they rarely need to tackle. def_actions_p90
-    # already captures overall defensive contribution via awareness.
-    "blocks_p90":         {"attr": "blocking",      "positions": {"midfielder", "defender"}},
-    "interceptions_p90":  {"attr": "interceptions", "positions": {"midfielder", "defender"}},
-    "def_actions_p90":    {"attr": "awareness",     "positions": {"midfielder", "defender"}},
-    # Duels
-    "duel_win_pct":       {"attr": "duels",         "positions": {"attacker", "midfielder", "defender"}},
-    # Dribbling (volume of successful dribbles, not success %)
-    "dribbles_p90":         {"attr": "take_ons",     "positions": {"attacker", "midfielder"}},
-    # Physical proxy
-    "fouls_drawn_p90":    {"attr": "guile",         "positions": {"attacker", "midfielder"}},
-    # Discipline (inverted — more cards = lower score)
-    "discipline":         {"attr": "discipline",    "positions": {"attacker", "midfielder", "defender"}},
-    # Penalties
-    "penalty_pct":        {"attr": "penalties",     "positions": {"attacker"}},
-    # Match rating (form/composure proxy)
-    "avg_rating":         {"attr": "composure",     "positions": {"attacker", "midfielder", "defender"}},
+COMPOSITE_MAP = {
+    # ── Striker model ────────────────────────────────────────────────────────
+    # Advanced metrics: goals_per_shot (conversion), npg_p90 (non-pen goals),
+    # avg_rating in every attr. These separate Kane (0.38 conv, 7.95 rating)
+    # from Chris Wood (0.12 conv, 6.58 rating).
+    "close_range": {
+        "signals": [("goals_per_shot", 0.35), ("npg_p90", 0.30), ("avg_rating", 0.20), ("shot_accuracy", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "mid_range": {
+        "signals": [("shot_accuracy", 0.35), ("goals_per_shot", 0.25), ("avg_rating", 0.20), ("shots_p90", 0.20)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "long_range": {
+        "signals": [("shots_p90", 0.35), ("shot_distance_bias", 0.30), ("goals_p90", 0.20), ("avg_rating", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "penalties": {
+        "signals": [("penalty_pct", 0.70), ("avg_rating", 0.30)],
+        "positions": {"attacker"},
+    },
+    # ── Creator model ────────────────────────────────────────────────────────
+    # Each attribute has a distinct dominant signal to avoid overlap:
+    # creativity=key_passes, vision=assists, flair=dribble_success, threat=shots
+    "creativity": {
+        "signals": [("key_passes_p90", 0.40), ("dribbles_p90", 0.25), ("assists_p90", 0.20), ("fouls_drawn_p90", 0.15)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "vision": {
+        "signals": [("assists_p90", 0.40), ("key_passes_p90", 0.30), ("avg_rating", 0.30)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "flair": {
+        "signals": [("dribble_success_rate", 0.40), ("fouls_drawn_p90", 0.35), ("dribbles_p90", 0.25)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "threat": {
+        "signals": [("shots_p90", 0.35), ("goals_p90", 0.30), ("key_passes_p90", 0.20), ("assists_p90", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Passer model ─────────────────────────────────────────────────────────
+    "pass_accuracy": {
+        "signals": [("pass_accuracy", 0.55), ("pass_volume_quality", 0.35), ("avg_rating", 0.10)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "through_balls": {
+        "signals": [("assists_p90", 0.35), ("key_passes_p90", 0.35), ("pass_volume_quality", 0.30)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Dribbler model ───────────────────────────────────────────────────────
+    "take_ons": {
+        "signals": [("dribbles_p90", 0.55), ("dribble_success_rate", 0.35), ("fouls_drawn_p90", 0.10)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "skills": {
+        "signals": [("dribble_success_rate", 0.45), ("avg_rating", 0.30), ("dribbles_p90", 0.25)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Cover model ──────────────────────────────────────────────────────────
+    "awareness": {
+        "signals": [("interceptions_p90", 0.35), ("avg_rating", 0.35), ("tackles_p90", 0.15), ("blocks_p90", 0.15)],
+        "positions": {"midfielder", "defender"},
+    },
+    "discipline": {
+        "signals": [("cards_p90_inv", 0.40), ("fouls_p90_inv", 0.40), ("avg_rating", 0.20)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "interceptions": {
+        "signals": [("interceptions_p90", 0.60), ("avg_rating", 0.25), ("blocks_p90", 0.15)],
+        "positions": {"midfielder", "defender"},
+    },
+    # ── Destroyer model ──────────────────────────────────────────────────────
+    "blocking": {
+        "signals": [("blocks_p90", 0.50), ("duel_win_pct", 0.30), ("duels_won_p90", 0.20)],
+        "positions": {"midfielder", "defender"},
+    },
+    "tackling": {
+        "signals": [("tackles_p90", 0.55), ("duel_win_pct", 0.30), ("fouls_committed_p90", 0.15)],
+        "positions": {"midfielder", "defender"},
+    },
+    "marking": {
+        "signals": [("duel_win_pct", 0.40), ("tackles_p90", 0.30), ("interceptions_p90", 0.20), ("avg_rating", 0.10)],
+        "positions": {"defender"},
+    },
+    # ── Powerhouse model ─────────────────────────────────────────────────────
+    "duels": {
+        "signals": [("duels_won_p90", 0.45), ("duel_win_pct", 0.35), ("avg_rating", 0.20)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "aggression": {
+        "signals": [("fouls_committed_p90", 0.40), ("duels_won_p90", 0.30), ("tackles_p90", 0.30)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    # ── Controller model ─────────────────────────────────────────────────────
+    "composure": {
+        "signals": [("avg_rating", 0.50), ("pass_accuracy", 0.25), ("cards_p90_inv", 0.25)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    # ── Engine model ─────────────────────────────────────────────────────────
+    # Pressing = disciplined ball recovery (fouls_inv rewards clean tackling).
+    # Contrast with aggression which rewards fouling.
+    "pressing": {
+        "signals": [("interceptions_p90", 0.35), ("tackles_p90", 0.35), ("fouls_p90_inv", 0.30)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
 }
 
 
@@ -138,24 +218,50 @@ def main():
         player_league_strength[pid] = league_strength.get(p["league_name"], default_strength)
 
         metrics = {}
+        # ── Raw per-90 and percentage metrics ────────────────────────────────
         metrics["goals_p90"] = per90(p["goals"], mins)
         metrics["shots_p90"] = per90(p["shots_total"], mins)
         metrics["shot_accuracy"] = pct(p["shots_on"], p["shots_total"])
         metrics["assists_p90"] = per90(p["assists"], mins)
-        metrics["passes_key_p90"] = per90(p["passes_key"], mins)
-        metrics["pass_accuracy"] = p["passes_accuracy"]
+        metrics["key_passes_p90"] = per90(p["passes_key"], mins)
+        metrics["pass_accuracy"] = float(p["passes_accuracy"]) if p["passes_accuracy"] is not None else None
         metrics["tackles_p90"] = per90(p["tackles_total"], mins)
         metrics["blocks_p90"] = per90(p["blocks"], mins)
         metrics["interceptions_p90"] = per90(p["interceptions"], mins)
-        metrics["def_actions_p90"] = per90((p["tackles_total"] or 0) + (p["interceptions"] or 0), mins)
         metrics["duel_win_pct"] = pct(p["duels_won"], p["duels_total"])
+        metrics["duels_won_p90"] = per90(p["duels_won"], mins)
         metrics["dribbles_p90"] = per90(p["dribbles_success"], mins)
+        metrics["dribble_success_rate"] = pct(p["dribbles_success"], p["dribbles_attempted"])
         metrics["fouls_drawn_p90"] = per90(p["fouls_drawn"], mins)
+        metrics["fouls_committed_p90"] = per90(p["fouls_committed"], mins)
         total_cards = (p["cards_yellow"] or 0) + (p["cards_red"] or 0) * 2
-        metrics["discipline"] = per90(total_cards, mins)
+        metrics["cards_p90"] = per90(total_cards, mins)
         pen_total = (p["penalties_scored"] or 0) + (p["penalties_missed"] or 0)
         metrics["penalty_pct"] = pct(p["penalties_scored"], pen_total, min_denom=2) if pen_total >= 2 else None
         metrics["avg_rating"] = float(p["rating"]) if p["rating"] else None
+
+        # ── Derived / composite raw signals ──────────────────────────────────
+        # Inverted metrics (lower raw = better) — flip so higher = better
+        metrics["cards_p90_inv"] = (1.0 / max(metrics["cards_p90"], 0.01)) if metrics["cards_p90"] is not None else None
+        metrics["fouls_p90_inv"] = (1.0 / max(metrics["fouls_committed_p90"], 0.01)) if metrics["fouls_committed_p90"] is not None else None
+        # Long range bias: low shot accuracy = more long-range attempts
+        metrics["shot_distance_bias"] = (1.0 - (metrics["shot_accuracy"] or 0) / 100.0) if metrics["shot_accuracy"] is not None else None
+        # Pass volume quality: passes_p90 × accuracy (rewards accurate high-volume passers)
+        passes_p90 = per90(p["passes_total"], mins)
+        if passes_p90 is not None and metrics["pass_accuracy"] is not None:
+            metrics["pass_volume_quality"] = passes_p90 * (metrics["pass_accuracy"] / 100.0)
+        else:
+            metrics["pass_volume_quality"] = None
+        # Goals per shot: conversion rate — quality signal that separates
+        # Kane (0.38) from Chris Wood (0.12). Volume-neutral.
+        shots = p["shots_total"] or 0
+        goals = p["goals"] or 0
+        metrics["goals_per_shot"] = (goals / shots) if shots >= 5 else None
+        # Non-penalty goals p90: strips penalty inflation from goal tallies.
+        pens_scored = p["penalties_scored"] or 0
+        metrics["npg_p90"] = per90(goals - pens_scored, mins) if goals >= pens_scored else metrics["goals_p90"]
+        # Goal involvement p90: goals + assists combined output
+        metrics["goal_involvement_p90"] = per90(goals + (p["assists"] or 0), mins)
 
         player_metrics[pid] = metrics
 
@@ -172,39 +278,66 @@ def main():
     now_iso = datetime.now(timezone.utc).isoformat()
     grades_to_write = []
 
-    for metric_name, config in METRIC_MAP.items():
-        attr_name = config["attr"]
-        valid_positions = config["positions"]
-        is_inverted = metric_name == "discipline"
+    # ── Step 1: Rank each raw signal independently per position group ────────
+    # This normalizes all signals to 0-100 percentile so they can be blended
+    # without scale differences (pass_accuracy 0-100% vs goals_p90 0-3).
 
-        for pos_group in valid_positions:
-            pids_in_group = groups.get(pos_group, [])
-            if len(pids_in_group) < 3:
-                continue
+    # Collect all signal names used across composites
+    all_signal_names = set()
+    for config in COMPOSITE_MAP.values():
+        for metric_name, _ in config["signals"]:
+            all_signal_names.add(metric_name)
 
-            # Pre-scale raw values by league strength before ranking
+    # signal_percentiles[pos_group][metric_name][pid] = percentile (0-100)
+    signal_percentiles: dict[str, dict[str, dict[int, float]]] = {}
+
+    for pos_group in ["attacker", "midfielder", "defender"]:
+        pids_in_group = groups.get(pos_group, [])
+        if len(pids_in_group) < 3:
+            continue
+        signal_percentiles[pos_group] = {}
+
+        for metric_name in all_signal_names:
+            # Build (pid, value) pairs with league strength pre-scaling
             values = []
             for pid in pids_in_group:
                 raw_val = player_metrics.get(pid, {}).get(metric_name)
                 if raw_val is None:
                     values.append((pid, None))
                 else:
-                    raw_val = float(raw_val)
                     strength = player_league_strength.get(pid, 1.0)
-                    # For inverted metrics (discipline=cards), stronger league
-                    # should penalise LESS, so divide instead of multiply
-                    if is_inverted:
-                        adjusted = raw_val / max(strength, 0.3)
-                    else:
-                        adjusted = raw_val * strength
+                    adjusted = float(raw_val) * strength
                     values.append((pid, adjusted))
 
             ranks = percentile_rank(values)
+            signal_percentiles[pos_group][metric_name] = ranks
 
-            for pid, pct_val in ranks.items():
-                if is_inverted:
-                    pct_val = 100 - pct_val
-                score = percentile_to_score_10(pct_val)
+    # ── Step 2: Blend signal percentiles per attribute ────────────────────────
+
+    for attr_name, config in COMPOSITE_MAP.items():
+        signals = config["signals"]
+        valid_positions = config["positions"]
+
+        for pos_group in valid_positions:
+            if pos_group not in signal_percentiles:
+                continue
+            pids_in_group = groups.get(pos_group, [])
+
+            for pid in pids_in_group:
+                # Weighted average of signal percentiles
+                blend = 0.0
+                total_weight = 0.0
+                for metric_name, weight in signals:
+                    pct_val = signal_percentiles[pos_group].get(metric_name, {}).get(pid)
+                    if pct_val is not None:
+                        blend += pct_val * weight
+                        total_weight += weight
+
+                if total_weight == 0:
+                    continue
+
+                blended_pct = blend / total_weight
+                score = percentile_to_score_10(blended_pct)
                 grades_to_write.append({
                     "player_id": pid,
                     "attribute": attr_name,

@@ -39,28 +39,108 @@ SOURCE = "allsportsapi"
 # ── Metric → Attribute mapping ───────────────────────────────────────────────
 # Same attributes as AF grades (script 66) for consistency.
 
-METRIC_MAP = {
-    # Attacking
-    "goals_p90":          {"attr": "close_range",   "positions": {"attacker", "midfielder"}},
-    "shot_accuracy":      {"attr": "mid_range",     "positions": {"attacker", "midfielder"}},
-    "shots_p90":          {"attr": "long_range",    "positions": {"attacker", "midfielder"}},
-    # Passing
-    "key_passes_p90":     {"attr": "creativity",    "positions": {"attacker", "midfielder", "defender"}},
-    "assists_p90":        {"attr": "vision",        "positions": {"attacker", "midfielder"}},
-    "pass_accuracy":      {"attr": "pass_accuracy", "positions": {"attacker", "midfielder", "defender"}},
-    # Defending
-    "blocks_p90":         {"attr": "blocking",      "positions": {"midfielder", "defender"}},
-    "interceptions_p90":  {"attr": "interceptions", "positions": {"midfielder", "defender"}},
-    "def_actions_p90":    {"attr": "awareness",     "positions": {"midfielder", "defender"}},
-    "clearances_p90":     {"attr": "marking",       "positions": {"defender"}},
-    # Duels
-    "duel_win_pct":       {"attr": "duels",         "positions": {"attacker", "midfielder", "defender"}},
-    # Dribbling
-    "dribbles_p90":       {"attr": "take_ons",      "positions": {"attacker", "midfielder"}},
-    # Discipline (inverted — more cards = lower score)
-    "discipline":         {"attr": "discipline",    "positions": {"attacker", "midfielder", "defender"}},
-    # Match rating (form/composure proxy)
-    "avg_rating":         {"attr": "composure",     "positions": {"attacker", "midfielder", "defender"}},
+# ── Composite attribute mapping ──────────────────────────────────────────────
+# Mirrors pipeline 66 architecture. ASA has clearances + dispossessed but no fouls_drawn.
+
+COMPOSITE_MAP = {
+    # ── Striker model ────────────────────────────────────────────────────────
+    # ASA: no fouls_drawn, no penalty data. Uses conversion + avg_rating.
+    "close_range": {
+        "signals": [("goals_per_shot", 0.35), ("npg_p90", 0.30), ("avg_rating", 0.20), ("shot_accuracy", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "mid_range": {
+        "signals": [("shot_accuracy", 0.35), ("goals_per_shot", 0.25), ("avg_rating", 0.20), ("shots_p90", 0.20)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "long_range": {
+        "signals": [("shots_p90", 0.35), ("shot_distance_bias", 0.30), ("goals_p90", 0.20), ("avg_rating", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Creator model ────────────────────────────────────────────────────────
+    # Each attribute has a distinct dominant signal.
+    # ASA: no fouls_drawn, so creativity/flair drop that signal.
+    "creativity": {
+        "signals": [("key_passes_p90", 0.45), ("dribbles_p90", 0.30), ("assists_p90", 0.25)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "vision": {
+        "signals": [("assists_p90", 0.40), ("key_passes_p90", 0.30), ("avg_rating", 0.30)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "flair": {
+        "signals": [("dribble_success_rate", 0.60), ("dribbles_p90", 0.40)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "threat": {
+        "signals": [("shots_p90", 0.35), ("goals_p90", 0.30), ("key_passes_p90", 0.20), ("assists_p90", 0.15)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Passer model ─────────────────────────────────────────────────────────
+    "pass_accuracy": {
+        "signals": [("pass_accuracy", 0.55), ("pass_volume_quality", 0.35), ("avg_rating", 0.10)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "through_balls": {
+        "signals": [("assists_p90", 0.35), ("key_passes_p90", 0.35), ("pass_volume_quality", 0.30)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Dribbler model ───────────────────────────────────────────────────────
+    # ASA: no fouls_drawn
+    "take_ons": {
+        "signals": [("dribbles_p90", 0.55), ("dribble_success_rate", 0.45)],
+        "positions": {"attacker", "midfielder"},
+    },
+    "skills": {
+        "signals": [("dribble_success_rate", 0.50), ("dribbles_p90", 0.25), ("avg_rating", 0.25)],
+        "positions": {"attacker", "midfielder"},
+    },
+    # ── Cover model ──────────────────────────────────────────────────────────
+    # ASA: has clearances (unique to ASA)
+    "awareness": {
+        "signals": [("interceptions_p90", 0.30), ("avg_rating", 0.30), ("tackles_p90", 0.15), ("clearances_p90", 0.15), ("blocks_p90", 0.10)],
+        "positions": {"midfielder", "defender"},
+    },
+    "discipline": {
+        "signals": [("cards_p90_inv", 0.40), ("fouls_p90_inv", 0.40), ("avg_rating", 0.20)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "interceptions": {
+        "signals": [("interceptions_p90", 0.60), ("avg_rating", 0.25), ("blocks_p90", 0.15)],
+        "positions": {"midfielder", "defender"},
+    },
+    # ── Destroyer model ──────────────────────────────────────────────────────
+    "blocking": {
+        "signals": [("blocks_p90", 0.50), ("duel_win_pct", 0.30), ("duels_won_p90", 0.20)],
+        "positions": {"midfielder", "defender"},
+    },
+    "tackling": {
+        "signals": [("tackles_p90", 0.55), ("duel_win_pct", 0.30), ("fouls_committed_p90", 0.15)],
+        "positions": {"midfielder", "defender"},
+    },
+    "marking": {
+        "signals": [("duel_win_pct", 0.35), ("tackles_p90", 0.25), ("clearances_p90", 0.15), ("interceptions_p90", 0.15), ("avg_rating", 0.10)],
+        "positions": {"defender"},
+    },
+    # ── Powerhouse model ─────────────────────────────────────────────────────
+    "duels": {
+        "signals": [("duels_won_p90", 0.45), ("duel_win_pct", 0.35), ("avg_rating", 0.20)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    "aggression": {
+        "signals": [("fouls_committed_p90", 0.40), ("duels_won_p90", 0.30), ("tackles_p90", 0.30)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    # ── Controller model ─────────────────────────────────────────────────────
+    "composure": {
+        "signals": [("avg_rating", 0.50), ("pass_accuracy", 0.25), ("cards_p90_inv", 0.25)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
+    # ── Engine model ─────────────────────────────────────────────────────────
+    "pressing": {
+        "signals": [("interceptions_p90", 0.35), ("tackles_p90", 0.35), ("fouls_p90_inv", 0.30)],
+        "positions": {"attacker", "midfielder", "defender"},
+    },
 }
 
 # League strength overrides for AllSportsAPI leagues not in league_coefficients.
@@ -167,22 +247,46 @@ def main():
         shots_on_est = min(p["goals"] or 0, shots_total) if shots_total > 0 else 0
 
         metrics = {}
+        # ── Raw per-90 and percentage metrics ────────────────────────────────
         metrics["goals_p90"] = per90(p["goals"], mins)
         metrics["shots_p90"] = per90(shots_total, mins)
         metrics["shot_accuracy"] = pct(shots_on_est, shots_total) if shots_total >= 5 else None
         metrics["assists_p90"] = per90(p["assists"], mins)
         metrics["key_passes_p90"] = per90(p["key_passes"], mins)
         # AllSportsAPI passes_accuracy is raw count of accurate passes, not %
-        metrics["pass_accuracy"] = pct(p["passes_accuracy"], p["passes_total"])
+        pa = pct(p["passes_accuracy"], p["passes_total"])
+        metrics["pass_accuracy"] = float(pa) if pa is not None else None
         metrics["blocks_p90"] = per90(p["blocks"], mins)
         metrics["interceptions_p90"] = per90(p["interceptions"], mins)
-        metrics["def_actions_p90"] = per90((p["tackles"] or 0) + (p["interceptions"] or 0), mins)
         metrics["clearances_p90"] = per90(p["clearances"], mins)
+        metrics["tackles_p90"] = per90(p["tackles"], mins)
         metrics["duel_win_pct"] = pct(p["duels_won"], p["duels_total"])
+        metrics["duels_won_p90"] = per90(p["duels_won"], mins)
         metrics["dribbles_p90"] = per90(p["dribble_success"], mins)
+        metrics["dribble_success_rate"] = pct(p["dribble_success"], p["dribble_attempts"])
+        metrics["fouls_committed_p90"] = per90(p["fouls_committed"], mins)
         total_cards = (p["cards_yellow"] or 0) + (p["cards_red"] or 0) * 2
-        metrics["discipline"] = per90(total_cards, mins)
+        metrics["cards_p90"] = per90(total_cards, mins)
         metrics["avg_rating"] = float(p["rating"]) if p["rating"] else None
+
+        # ── Derived signals ──────────────────────────────────────────────────
+        metrics["cards_p90_inv"] = (1.0 / max(metrics["cards_p90"], 0.01)) if metrics["cards_p90"] is not None else None
+        metrics["fouls_p90_inv"] = (1.0 / max(metrics["fouls_committed_p90"], 0.01)) if metrics["fouls_committed_p90"] is not None else None
+        metrics["shot_distance_bias"] = (1.0 - (metrics["shot_accuracy"] or 0) / 100.0) if metrics["shot_accuracy"] is not None else None
+        passes_p90 = per90(p["passes_total"], mins)
+        if passes_p90 is not None and metrics["pass_accuracy"] is not None:
+            metrics["pass_volume_quality"] = passes_p90 * (metrics["pass_accuracy"] / 100.0)
+        else:
+            metrics["pass_volume_quality"] = None
+        # Goals per shot: conversion rate
+        shots = p["shots_total"] or 0
+        goals = p["goals"] or 0
+        metrics["goals_per_shot"] = (goals / shots) if shots >= 5 else None
+        # Non-penalty goals p90
+        pens_scored = p.get("pen_scored") or 0
+        metrics["npg_p90"] = per90(goals - pens_scored, mins) if goals >= pens_scored else metrics["goals_p90"]
+        # Goal involvement p90
+        metrics["goal_involvement_p90"] = per90(goals + (p["assists"] or 0), mins)
 
         player_metrics[pid] = metrics
 
@@ -196,36 +300,59 @@ def main():
     now_iso = datetime.now(timezone.utc).isoformat()
     grades_to_write = []
 
-    for metric_name, config in METRIC_MAP.items():
-        attr_name = config["attr"]
-        valid_positions = config["positions"]
-        is_inverted = metric_name == "discipline"
+    # ── Step 1: Rank each signal independently per position group ────────────
+    all_signal_names = set()
+    for config in COMPOSITE_MAP.values():
+        for metric_name, _ in config["signals"]:
+            all_signal_names.add(metric_name)
 
-        for pos_group in valid_positions:
-            pids_in_group = groups.get(pos_group, [])
-            if len(pids_in_group) < 3:
-                continue
+    signal_percentiles: dict[str, dict[str, dict[int, float]]] = {}
 
+    for pos_group in ["attacker", "midfielder", "defender"]:
+        pids_in_group = groups.get(pos_group, [])
+        if len(pids_in_group) < 3:
+            continue
+        signal_percentiles[pos_group] = {}
+
+        for metric_name in all_signal_names:
             values = []
             for pid in pids_in_group:
                 raw_val = player_metrics.get(pid, {}).get(metric_name)
                 if raw_val is None:
                     values.append((pid, None))
                 else:
-                    raw_val = float(raw_val)
                     strength = player_league_strength.get(pid, 0.35)
-                    if is_inverted:
-                        adjusted = raw_val / max(strength, 0.3)
-                    else:
-                        adjusted = raw_val * strength
+                    adjusted = float(raw_val) * strength
                     values.append((pid, adjusted))
 
             ranks = percentile_rank(values)
+            signal_percentiles[pos_group][metric_name] = ranks
 
-            for pid, pct_val in ranks.items():
-                if is_inverted:
-                    pct_val = 100 - pct_val
-                score = percentile_to_score_10(pct_val)
+    # ── Step 2: Blend signal percentiles per attribute ────────────────────────
+
+    for attr_name, config in COMPOSITE_MAP.items():
+        signals = config["signals"]
+        valid_positions = config["positions"]
+
+        for pos_group in valid_positions:
+            if pos_group not in signal_percentiles:
+                continue
+            pids_in_group = groups.get(pos_group, [])
+
+            for pid in pids_in_group:
+                blend = 0.0
+                total_weight = 0.0
+                for metric_name, weight in signals:
+                    pct_val = signal_percentiles[pos_group].get(metric_name, {}).get(pid)
+                    if pct_val is not None:
+                        blend += pct_val * weight
+                        total_weight += weight
+
+                if total_weight == 0:
+                    continue
+
+                blended_pct = blend / total_weight
+                score = percentile_to_score_10(blended_pct)
                 grades_to_write.append({
                     "player_id": pid,
                     "attribute": attr_name,

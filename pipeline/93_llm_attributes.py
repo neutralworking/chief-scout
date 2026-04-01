@@ -325,20 +325,21 @@ def main():
                     continue
                 if not isinstance(score, (int, float)):
                     continue
-                score = max(1, min(20, int(round(score))))
+                # LLM outputs 1-20; halve to 1-10 stat_score scale
+                score_10 = max(1, min(10, int(round(score / 2))))
 
                 if args.dry_run:
-                    print(f"    [DRY] {name}: {attr_clean} = {score}/20")
+                    print(f"    [DRY] {name}: {attr_clean} = {score_10}/10")
                     written += 1
                 else:
                     # Upsert: only write if no higher-priority source exists
                     cur.execute("""
-                        INSERT INTO attribute_grades (player_id, attribute, scout_grade, source)
+                        INSERT INTO attribute_grades (player_id, attribute, stat_score, source)
                         VALUES (%s, %s, %s, 'llm_inferred')
                         ON CONFLICT (player_id, attribute, source)
-                        DO UPDATE SET scout_grade = EXCLUDED.scout_grade
+                        DO UPDATE SET stat_score = EXCLUDED.stat_score
                         WHERE attribute_grades.source = 'llm_inferred'
-                    """, (p["id"], attr_clean, score))
+                    """, (p["id"], attr_clean, score_10))
                     written += 1
 
             if written > 0:

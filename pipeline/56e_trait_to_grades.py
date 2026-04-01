@@ -44,14 +44,14 @@ SOURCE = "playstyle_derived"
 # Base grades are conservative — these are inferred signals, not observations.
 
 TRAIT_MAP = {
-    # Creator model (creativity, unpredictability, vision, guile)
+    # Creator model (creativity, flair, vision, threat)
     "Playmaker":          [("creativity", 16), ("vision", 16)],
     "playmaker_vision":   [("vision", 16), ("creativity", 14)],
-    "Trickery":           [("unpredictability", 16), ("skills", 14)],
-    "flamboyant":         [("unpredictability", 16), ("skills", 14)],
-    "Trivela":            [("unpredictability", 14), ("guile", 14)],
-    "through_ball_king":  [("guile", 16), ("vision", 14)],
-    "one_touch_play":     [("guile", 14), ("first_touch", 14)],
+    "Trickery":           [("flair", 16), ("skills", 14)],
+    "flamboyant":         [("flair", 16), ("skills", 14)],
+    "Trivela":            [("flair", 14), ("threat", 14)],
+    "through_ball_king":  [("threat", 16), ("vision", 14)],
+    "one_touch_play":     [("threat", 14), ("first_touch", 14)],
 
     # Dribbler model (carries, first_touch, skills, take_ons)
     "Dribbler":           [("take_ons", 16), ("skills", 14)],

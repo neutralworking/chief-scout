@@ -76,11 +76,11 @@ def get_position_group(pos: str | None) -> str | None:
 # All adapters map their raw metrics to these canonical names.
 
 METRIC_POSITIONS = {
-    # Striker
-    "close_range":    {"attacker", "midfielder"},
-    "mid_range":      {"attacker", "midfielder"},
-    "long_range":     {"attacker", "midfielder"},
-    "penalties":      {"attacker"},
+    # Striker — REMOVED: now handled by AF/ASA composite grades (pipeline 66/68)
+    # with quality signals (goals_per_shot, avg_rating, npg_p90). Old understat
+    # methodology mapped raw goals_p90 → close_range which inflated mid-tier
+    # strikers (Gabriel Jesus RS 88 with 6.56 avg_rating).
+    # "close_range", "mid_range", "long_range", "penalties" — see pipeline 66
     # Creator
     "creativity":     {"attacker", "midfielder", "defender"},
     "vision":         {"attacker", "midfielder"},
@@ -110,7 +110,7 @@ METRIC_POSITIONS = {
     # Controller
     "composure":      {"attacker", "midfielder", "defender"},
     # Other
-    "guile":          {"attacker", "midfielder"},
+    "threat":         {"attacker", "midfielder"},
     # GK
     "reactions":      {"gk"},
     "handling":       {"gk"},
@@ -291,7 +291,7 @@ def fetch_api_football(cur) -> dict[int, dict[str, float]]:
         m["awareness"] = _per90((_num(d.get("tackles_total")) or 0) + (_num(d.get("interceptions")) or 0), mins)
         m["duels"] = _pct(d.get("duels_won"), d.get("duels_total"))
         m["take_ons"] = _pct(d.get("dribbles_success"), d.get("dribbles_attempted"))
-        m["guile"] = _per90(d.get("fouls_drawn"), mins)
+        m["threat"] = _per90(d.get("fouls_drawn"), mins)
 
         # Discipline: fewer cards = better (inverted in percentile step)
         total_cards = (_num(d.get("cards_yellow")) or 0) + (_num(d.get("cards_red")) or 0) * 2
@@ -634,7 +634,7 @@ def fetch_kaggle_pl(cur) -> dict[int, dict[str, float]]:
         m["interceptions"] = _per90(d.get("interceptions"), mins)
         m["blocking"] = _per90(d.get("blocks"), mins)
         m["awareness"] = _per90((_num(d.get("tackles")) or 0) + (_num(d.get("interceptions")) or 0), mins)
-        m["guile"] = _per90(d.get("sca"), mins)
+        m["threat"] = _per90(d.get("sca"), mins)
         m["through_balls"] = _per90(d.get("gca"), mins)
         pass_comp = _num(d.get("pass_completion"))
         if pass_comp is not None:

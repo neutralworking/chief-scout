@@ -123,7 +123,7 @@ MENTAL_COLS = {
     "Decisions": "decisions", "Composure": "composure",
     "Leadership": "leadership", "Communication": "communication",
     "Drive": "drive", "Discipline": "discipline",
-    "Guile": "guile", "Vision": "vision",
+    "Guile": "threat", "Vision": "vision",
     "Flair": "flair", "Anticipation": "anticipation",
     "Bravery": "bravery", "Concentraion": "concentration",
     "Awareness": "awareness", "Reactions": "reactions",

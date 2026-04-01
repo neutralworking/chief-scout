@@ -9,7 +9,7 @@ Mirrors apps/web/src/lib/models.ts — keep in sync.
 MODEL_ATTRIBUTES = {
     "Controller":  ["anticipation", "composure", "decisions", "tempo"],
     "Commander":   ["communication", "concentration", "drive", "leadership"],
-    "Creator":     ["creativity", "unpredictability", "vision", "guile"],
+    "Creator":     ["creativity", "flair", "vision", "threat"],
     "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
     "Sprinter":    ["acceleration", "balance", "movement", "pace"],
     "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
@@ -32,15 +32,17 @@ MODEL_SHORT = {
 # Source priority for fallback scoring (higher = preferred)
 SOURCE_PRIORITY = {
     "scout_assessment": 5,
-    "statsbomb": 4,
-    "fbref": 0,  # Demoted: CSV import only has goals/assists, no advanced stats. Grades for creativity/vision/through_balls are all assists_per_90 — garbage proxy that poisons scores.
+    "statsbomb": 1,           # Demoted: open data, 522 players, grades all metrics regardless of position
     "api_football": 3,
     "kaggle_pl": 2,
     "kaggle_euro": 2,
     "understat": 2,
-    "llm_inferred": 1,  # LLM-estimated mental/tactical attrs (pipeline 93)
+    "allsportsapi": 2,
+    "llm_inferred": 1,   # LLM-estimated mental/tactical attrs (pipeline 93)
+    "proxy_inferred": 1,  # Z-score derived sparse attrs (pipeline 38)
     "computed": 1,
     "playstyle_derived": 1,  # Trait→grade bridge (pipeline 56e)
+    "fbref": 0,           # Demoted: CSV only has goals/assists, garbage proxies
     "eafc_inferred": 0,
 }
 
@@ -234,5 +236,5 @@ def get_model_label(archetype: str | None) -> str | None:
 ATTR_ALIASES = {
     "takeons": "take_ons",
     "Leadership": "leadership",
-    "unpredicability": "unpredictability",
+    "unpredicability": "flair",
 }

@@ -76,6 +76,15 @@ def stat_grades(attrs: dict[str, float], source: str = "fbref") -> list[dict]:
     return [grade(a, stat=v, source=source) for a, v in attrs.items()]
 
 
+def curved_score(avg: float) -> float:
+    """Match the curved conversion from compute_model_scores.
+    Linear up to 12/20 (=60/100), then accelerating curve above."""
+    if avg <= 12:
+        return min(avg * 5, 99)
+    excess = avg - 12
+    return min(60 + (excess / 8) ** 0.7 * 39, 99)
+
+
 # ── Grade Normalisation ──────────────────────────────────────────────────────
 
 class TestGradeNormalisation:
@@ -88,8 +97,7 @@ class TestGradeNormalisation:
 
     def _expected(self, score_20: float) -> int:
         """Expected raw score for a single-attribute model input."""
-        # avg = score_20 (1 value), full = min(avg*5, 99), raw = full * 0.70
-        return round(min(score_20 * 5, 99) * 0.70)
+        return round(curved_score(score_20) * 0.70)
 
     def test_scout_grade_passthrough(self):
         """Scout grades (1-20) pass through unchanged."""
@@ -104,35 +112,28 @@ class TestGradeNormalisation:
         _, raw = ratings.compute_model_scores(grades)
         assert raw["Creator"] == self._expected(20)
 
-    def test_statsbomb_1_to_10_doubled(self):
-        """StatsBomb stat_score (1-10) is doubled to 0-20 scale."""
-        grades = [grade("creativity", stat=7, source="statsbomb")]
+    def test_stat_score_unified_compression(self):
+        """All stat sources use unified compression: ×1.8, cap 18."""
+        # 7 * 1.8 = 12.6 (using api_football since statsbomb is excluded)
+        grades = [grade("creativity", stat=7, source="api_football")]
         _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(14)  # 7 * 2 = 14
+        assert raw["Creator"] == self._expected(12.6)
+
+        # 10 * 1.8 = 18 (at cap)
+        grades = [grade("creativity", stat=10, source="understat")]
+        _, raw = ratings.compute_model_scores(grades)
+        assert raw["Creator"] == self._expected(18)
+
+        # 8 * 1.8 = 14.4
+        grades = [grade("creativity", stat=8, source="fbref")]
+        _, raw = ratings.compute_model_scores(grades)
+        assert raw["Creator"] == self._expected(14.4)
 
     def test_eafc_excluded_from_scoring(self):
         """EAFC grades are excluded from model scoring entirely."""
         grades = [grade("creativity", stat=16, source="eafc_inferred")]
         _, raw = ratings.compute_model_scores(grades)
         assert "Creator" not in raw  # EAFC skipped → no data → no model score
-
-    def test_understat_compression(self):
-        """Understat scores are compressed: score * 1.7, capped at 17."""
-        # 10 * 1.7 = 17 (capped)
-        grades = [grade("creativity", stat=10, source="understat")]
-        _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(17)
-
-        # 5 * 1.7 = 8.5
-        grades = [grade("creativity", stat=5, source="understat")]
-        _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(8.5)
-
-    def test_fbref_doubled(self):
-        """FBRef/other stat_score (1-10) is doubled to 2-20."""
-        grades = [grade("creativity", stat=8, source="fbref")]
-        _, raw = ratings.compute_model_scores(grades)
-        assert raw["Creator"] == self._expected(16)
 
     def test_zero_scores_skipped(self):
         """Grades with 0 or None scores are ignored."""
@@ -146,7 +147,7 @@ class TestGradeNormalisation:
     def test_source_priority_higher_wins(self):
         """Higher-priority source wins when both exist for same attribute."""
         grades = [
-            grade("creativity", stat=8, source="fbref"),       # priority 3, norm=16
+            grade("creativity", stat=8, source="fbref"),       # norm=8*1.8=14.4
             grade("creativity", scout=18, source="scout_assessment"),  # priority 5, norm=18
         ]
         _, raw = ratings.compute_model_scores(grades)
@@ -169,44 +170,44 @@ class TestAliasFallback:
     """Verify alias resolution when primary attribute is missing."""
 
     def test_alias_used_when_primary_missing(self):
-        """unpredictability → take_ons fallback works, discounted at 0.7×."""
-        # Creator model needs: creativity, unpredictability, vision, guile
-        # unpredictability aliases to take_ons (discounted)
+        """flair → take_ons fallback works, discounted at 0.7×."""
+        # Creator model needs: creativity, flair, vision, threat
+        # flair aliases to take_ons (discounted)
         grades = [
             grade("creativity", scout=14),
-            grade("take_ons", scout=12),  # alias for unpredictability → 12 * 0.7 = 8.4
+            grade("take_ons", scout=12),  # alias for flair → 12 * 0.7 = 8.4
             grade("vision", scout=16),
-            grade("guile", scout=10),     # could alias to through_balls but primary exists
+            grade("threat", scout=10),     # could alias to through_balls but primary exists
         ]
         _, raw = ratings.compute_model_scores(grades)
         assert "Creator" in raw
         # 3 direct + 1 alias: confidence blended between 4-attr and 3-attr
         avg = (14 + 12 * 0.7 + 16 + 10) / 4  # alias discounted
         blended_conf = (1.0 + 0.95) / 2  # avg of 4-attr and 3-attr confidence
-        assert raw["Creator"] == round(min(avg * 5, 99) * blended_conf)
+        assert raw["Creator"] == round(curved_score(avg) * blended_conf)
 
     def test_primary_preferred_over_alias(self):
         """When both primary and alias exist, primary wins."""
         grades = [
-            grade("unpredictability", scout=18),  # primary
+            grade("flair", scout=18),  # primary
             grade("take_ons", scout=5),            # alias — should be ignored
             grade("creativity", scout=14),
             grade("vision", scout=16),
-            grade("guile", scout=10),
+            grade("threat", scout=10),
         ]
         _, raw = ratings.compute_model_scores(grades)
         avg = (14 + 18 + 16 + 10) / 4
-        assert raw["Creator"] == round(min(avg * 5, 99) * 1.0)
+        assert raw["Creator"] == round(curved_score(avg) * 1.0)
 
     def test_no_double_counting_aliases(self):
         """An alias already used by one attribute can't be reused by another."""
         # If two attributes alias to the same underlying attr, only one should use it
         # This is tested implicitly: used_attrs set prevents double-counting
         grades = [
-            grade("take_ons", scout=15),  # alias for unpredictability
+            grade("take_ons", scout=15),  # alias for flair
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # Creator should have 1 attr (take_ons as unpredictability alias, discounted)
+        # Creator should have 1 attr (take_ons as flair alias, discounted)
         # 1 alias → confidence blended between 1-attr(0.70) and 0-attr(0.70) = 0.70
         if "Creator" in raw:
             discounted = 15 * 0.7
@@ -218,37 +219,37 @@ class TestAliasFallback:
 class TestCoverageConfidence:
     """Verify confidence penalty based on attribute coverage.
 
-    Uses Creator model (creativity, unpredictability, vision, guile) with
+    Uses Creator model (creativity, flair, vision, threat) with
     all primary attrs provided directly to avoid alias cross-contamination.
     """
 
     def _creator_grades(self, n: int) -> list[dict]:
         """Build n grades for the Creator model."""
-        attrs = ["creativity", "unpredictability", "vision", "guile"][:n]
+        attrs = ["creativity", "flair", "vision", "threat"][:n]
         return [grade(a, scout=16) for a in attrs]
 
     def test_4_of_4_full_confidence(self):
         """4/4 attributes → confidence 1.0."""
         _, raw = ratings.compute_model_scores(self._creator_grades(4))
-        expected = round(min(16 * 5, 99) * 1.0)
+        expected = round(curved_score(16) * 1.0)
         assert raw["Creator"] == expected
 
     def test_3_of_4_slight_penalty(self):
         """3/4 attributes → confidence 0.95."""
         _, raw = ratings.compute_model_scores(self._creator_grades(3))
-        expected = round(min(16 * 5, 99) * 0.95)
+        expected = round(curved_score(16) * 0.95)
         assert raw["Creator"] == expected
 
     def test_2_of_4_moderate_penalty(self):
         """2/4 attributes → confidence 0.85."""
         _, raw = ratings.compute_model_scores(self._creator_grades(2))
-        expected = round(min(16 * 5, 99) * 0.85)
+        expected = round(curved_score(16) * 0.85)
         assert raw["Creator"] == expected
 
     def test_1_of_4_heavy_penalty(self):
         """1/4 attributes → confidence 0.70."""
         _, raw = ratings.compute_model_scores(self._creator_grades(1))
-        expected = round(min(16 * 5, 99) * 0.70)
+        expected = round(curved_score(16) * 0.70)
         assert raw["Creator"] == expected
 
 
@@ -262,7 +263,7 @@ class TestLevelAnchoring:
 
     def test_no_anchoring_with_3_plus_attrs(self):
         """3+ attributes → no anchoring, raw = anchored."""
-        grades = [grade(a, scout=10) for a in ["creativity", "unpredictability", "vision"]]
+        grades = [grade(a, scout=10) for a in ["creativity", "flair", "vision"]]
         anchored, raw = ratings.compute_model_scores(grades, level=85)
         assert anchored["Creator"] == raw["Creator"]
 
@@ -271,7 +272,7 @@ class TestLevelAnchoring:
         grades = [grade("creativity", scout=10)]
         anchored, raw = ratings.compute_model_scores(grades, level=85)
         # raw: 10*5=50 → *0.70 = 35
-        raw_score = round(min(10 * 5, 99) * 0.70)
+        raw_score = round(curved_score(10) * 0.70)
         assert raw["Creator"] == raw_score
         # anchored: raw * (1/4) + 85 * (3/4)
         data_weight = 1 / 4  # 1 attr out of 4
@@ -284,7 +285,7 @@ class TestLevelAnchoring:
         anchored, _ = ratings.compute_model_scores(grades, level=99)
         # Anchor uses min(99, 95) = 95
         data_weight = 1 / 4
-        raw_score = round(min(10 * 5, 99) * 0.70)
+        raw_score = round(curved_score(10) * 0.70)
         expected = round(raw_score * data_weight + 95 * (1 - data_weight))
         assert anchored["Creator"] == expected
 
@@ -441,16 +442,16 @@ class TestBestRole:
         new_roles = {
             "CF": {
                 "Prima Punta": ("Striker", "Target"),
-                "Spearhead": ("Engine", "Striker"),
+                "Spearhead": ("Engine", "Destroyer"),
                 "Shadow Striker": ("Sprinter", "Striker"),
             },
             "CM": {
-                "Playmaker": ("Passer", "Creator"),
+                "Playmaker": ("Creator", "Passer"),
                 "Mezzala": ("Engine", "Creator"),
             },
             "DM": {
                 "Anchor": ("Cover", "Destroyer"),
-                "Ball Winner": ("Engine", "Destroyer"),
+                "Ball Winner": ("Destroyer", "Engine"),
             },
             "GK": {
                 "Distributor": ("GK", "Passer"),
@@ -472,7 +473,7 @@ class TestBestRole:
 
     def test_role_count_per_position(self):
         """Each position has the expected number of roles."""
-        expected = {"GK": 4, "CD": 5, "WD": 4, "DM": 5, "CM": 4, "WM": 4, "AM": 3, "WF": 5, "CF": 7}
+        expected = {"GK": 4, "CD": 5, "WD": 4, "DM": 5, "CM": 6, "WM": 4, "AM": 4, "WF": 4, "CF": 6}
         for pos, count in expected.items():
             actual = len(ratings.TACTICAL_ROLES.get(pos, []))
             assert actual == count, f"{pos}: expected {count} roles, got {actual}"
@@ -525,7 +526,7 @@ class TestKnownPlayers:
         """Pirlo profile → DM Regista or Pivote (both playmaker-controller DM roles)."""
         grades = scout_grades({
             "anticipation": 18, "composure": 19, "decisions": 17, "tempo": 19,
-            "creativity": 17, "vision": 19, "pass_range": 18, "guile": 16,
+            "creativity": 17, "vision": 19, "pass_range": 18, "threat": 16,
             "tackling": 10, "aggression": 8, "pace": 8, "strength": 9,
         })
         _, raw = ratings.compute_model_scores(grades)
@@ -560,7 +561,8 @@ class TestGKBaseModelFallback:
         ]
         score = ratings._compute_base_gk_score(grades)
         assert score is not None
-        # avg = (16+14+18+17)/4 = 16.25, full = 81.25, confidence 1.0 → 81
+        # _compute_base_gk_score uses linear formula (not curved)
+        # avg = (16+14+18+17)/4 = 16.25, full = min(81.25, 99), confidence 1.0 → 81
         assert score == round(min(16.25 * 5, 99) * 1.0)
 
     def test_base_gk_score_none_when_no_gk_attrs(self):
@@ -580,7 +582,8 @@ class TestGKBaseModelFallback:
         ]
         score = ratings._compute_base_gk_score(grades)
         assert score is not None
-        # avg = 17, full = 85, 2/4 confidence = 0.85 → 72
+        # _compute_base_gk_score uses linear formula
+        # avg = 17, full = min(85, 99), 2/4 confidence = 0.85 → 72
         assert score == round(min(17 * 5, 99) * 0.85)
 
     def test_eafc_excluded_from_base_gk_score(self):
@@ -642,36 +645,35 @@ class TestFBRefPriorityDemotion:
     def test_eafc_excluded_fbref_survives(self):
         """When both EAFC and fbref exist, EAFC is excluded and fbref is used."""
         grades = [
-            grade("through_balls", stat=2, source="fbref"),      # priority 0, norm=4
+            grade("through_balls", stat=2, source="fbref"),      # norm=2*1.8=3.6
             grade("through_balls", stat=16, source="eafc_inferred"),  # EXCLUDED
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # EAFC excluded → only fbref (norm=4) remains
+        # EAFC excluded → only fbref (norm=3.6) remains
         assert "Passer" in raw
-        expected = round(min(4 * 5, 99) * 0.70)  # 1/4 confidence
+        expected = round(curved_score(3.6) * 0.70)  # 1/4 confidence
         assert raw["Passer"] == expected
 
-    def test_api_football_beats_fbref(self):
-        """api_football (priority 3) overrides fbref (priority 0)."""
+    def test_higher_stat_wins_across_sources(self):
+        """Among stat sources, highest normalized score wins regardless of priority."""
         grades = [
-            grade("through_balls", stat=1, source="fbref"),          # priority 0, norm=2
-            grade("through_balls", stat=8, source="api_football"),   # priority 3, norm=16
+            grade("through_balls", stat=1, source="fbref"),          # norm=1*1.8=1.8
+            grade("through_balls", stat=8, source="api_football"),   # norm=8*1.8=14.4
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # api_football should win — through_balls norm=16
-        # Passer model has 4 attrs; only through_balls present → 1/4 confidence
-        expected = round(min(16 * 5, 99) * 0.70)
+        # api_football has higher score → wins (best-score-wins among stats)
+        expected = round(curved_score(14.4) * 0.70)
         assert raw["Passer"] == expected
 
-    def test_understat_beats_fbref(self):
-        """understat (priority 2) overrides fbref (priority 0)."""
+    def test_understat_beats_af_when_higher(self):
+        """Multiple stat sources are priority-weighted averaged."""
         grades = [
-            grade("creativity", stat=1, source="fbref"),          # priority 0, norm=2
-            grade("creativity", stat=7, source="understat"),      # priority 2, norm=11.9
+            grade("creativity", stat=5, source="api_football"),   # norm=9.0, pri=3
+            grade("creativity", stat=9, source="understat"),      # norm=16.2, pri=2
         ]
         _, raw = ratings.compute_model_scores(grades)
-        # understat wins — creativity norm = 7*1.7 = 11.9
-        expected = round(min(11.9 * 5, 99) * 0.70)
+        # weighted avg: (9.0*3 + 16.2*2) / (3+2) = 59.4/5 = 11.88
+        expected = round(curved_score(11.88) * 0.70)
         assert raw["Creator"] == expected
 
 
@@ -685,8 +687,8 @@ class TestEAFCExclusion:
         grades = [
             grade("creativity", stat=18, source="eafc_inferred"),
             grade("vision", stat=17, source="eafc_inferred"),
-            grade("unpredictability", stat=16, source="eafc_inferred"),
-            grade("guile", stat=15, source="eafc_inferred"),
+            grade("flair", stat=16, source="eafc_inferred"),
+            grade("threat", stat=15, source="eafc_inferred"),
         ]
         _, raw = ratings.compute_model_scores(grades)
         assert raw == {}  # All EAFC → all excluded → empty
@@ -695,10 +697,10 @@ class TestEAFCExclusion:
         """When EAFC and real sources coexist, only real sources are used."""
         grades = [
             grade("creativity", stat=18, source="eafc_inferred"),  # EXCLUDED
-            grade("creativity", stat=7, source="api_football"),    # priority 3, norm=14
+            grade("creativity", stat=7, source="api_football"),    # norm=7*1.8=12.6
         ]
         _, raw = ratings.compute_model_scores(grades)
-        expected = round(min(14 * 5, 99) * 0.70)
+        expected = round(curved_score(12.6) * 0.70)
         assert raw["Creator"] == expected
 
     def test_eafc_excluded_from_base_gk(self):
@@ -741,12 +743,11 @@ class TestLeagueStrengthScaling:
         _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.60)
         assert raw_no_ls["Creator"] == raw_with_ls["Creator"]
 
-    def test_statsbomb_scaled_by_league_strength(self):
-        """StatsBomb grades are scaled by league strength."""
+    def test_statsbomb_excluded_from_scoring(self):
+        """StatsBomb grades are excluded from model scoring (open data, position-blind)."""
         grades = [grade("creativity", stat=8, source="statsbomb")]
-        _, raw_no_ls = ratings.compute_model_scores(grades, league_strength=None)
-        _, raw_with_ls = ratings.compute_model_scores(grades, league_strength=0.70)
-        assert raw_with_ls["Creator"] < raw_no_ls["Creator"]
+        _, raw = ratings.compute_model_scores(grades)
+        assert "Creator" not in raw  # StatsBomb excluded → no data → no model
 
     def test_computed_not_scaled(self):
         """Computed grades are NOT scaled by league strength."""
@@ -779,7 +780,7 @@ class TestGKScoutRescaleRemoval:
         ]
         _, raw = ratings.compute_model_scores(grades, position="GK")
         # At face value: avg=15, score = 15*5 = 75, confidence 1.0 → 75
-        assert raw["GK"] == round(min(15 * 5, 99) * 1.0)
+        assert raw["GK"] == round(curved_score(15) * 1.0)
 
     def test_gk_and_outfield_same_scout_grade_same_score(self):
         """Same scout grade produces same normalised score regardless of position."""

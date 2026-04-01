@@ -74,8 +74,8 @@ MODEL_ATTRIBUTES = {
 # Extends the base ATTR_ALIASES from lib.models with ratings-specific proxies.
 ATTRIBUTE_ALIASES = {
     **_BASE_ATTR_ALIASES,
-    "unpredictability": "take_ons",     # flair proxy (skills is in Dribbler, avoid double-count)
-    "guile":            "through_balls", # cunning ≈ incisive passing
+    "flair":            "take_ons",     # 1v1 skill proxy (when no direct data)
+    "threat":           "through_balls", # attacking danger proxy (non-circular fallback)
     "decisions":        "positioning",  # decision-making ≈ reading the game
     "communication":    "leadership",   # vocal ≈ captain material
     "concentration":    "discipline",   # focus ≈ discipline (not awareness — already in Cover)
@@ -232,66 +232,70 @@ def compute_model_scores(grades, level=None, position=None, league_strength=None
       - raw_scores: pure data-driven scores — used for role selection where
         inflated thin-data models would distort role fit.
     """
-    # Build best-grade-per-attribute map (prefer highest-priority source)
-    best = {}  # attr -> (normalised_score_0_20, priority)
+    # Build best-grade-per-attribute map using priority-weighted averaging.
+    #
+    # Scout grades (priority 5) always override all stat sources.
+    # Among stat sources, we take a priority-weighted average rather than
+    # max or strict-priority. This prevents any single source from spiking
+    # a player's score (understat inflates Striker attrs for average players)
+    # while still letting multiple agreeing sources boost the score.
+    PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football", "llm_inferred", "proxy_inferred", "playstyle_derived"}
+
+    # First pass: collect all normalised grades per attribute
+    EXCLUDED_SOURCES = {"eafc_inferred", "statsbomb"}
+    # EAFC: video game numbers. StatsBomb: open data, 522 players, grades
+    # ALL metrics regardless of position (strikers get tackling=3, aerial=3)
+    # which poisons weighted averages for physical/defensive models.
+
+    all_grades_by_attr = {}  # attr -> [(score_20, priority, is_scout)]
     for g in grades:
         source = g.get("source", "")
-        # EAFC ratings are video game numbers, not scouting data.
-        # They stay in DB for reference but don't feed model scores.
-        if source == "eafc_inferred":
+        if source in EXCLUDED_SOURCES:
             continue
         attr = g["attribute"].lower().replace(" ", "_")
-        # Normalise to 0-20 scale regardless of source.
-        # Only scout_assessment can reach 19-20; all stat sources cap at 18.
-        # This reserves the top of the scale for human assessment.
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
-            score_20 = min(g["scout_grade"], 20)  # clamp to 1-20; only scouts hit 19-20
+            score_20 = min(g["scout_grade"], 20)
         elif g.get("stat_score") is not None and g["stat_score"] > 0:
-            # Unified stat compression: all stat sources ×1.5, cap 15.
-            # Only scout_assessment can reach 16-20. This prevents
-            # volume-based stats (tackles, blocks) from producing
-            # inflated model scores (Destroyer was 90 for mid-tier CBs).
-            score_20 = min(g["stat_score"] * 1.5, 15)
+            score_20 = min(g["stat_score"] * 1.8, 18)
         else:
             continue
-        # League strength scaling: discount stat grades from weaker leagues.
-        # Scout grades reflect context-aware human assessment — no scaling.
-        # API-Football grades are already pre-scaled in pipeline 66.
-        # Computed grades are derived — no scaling.
-        # League strength scaling: discount stat grades from weaker leagues.
-        # Scout grades, computed, API-Football (pre-scaled in p66), LLM and
-        # proxy grades are all context-aware or synthetic — no league scaling.
-        PRESCALED_SOURCES = {"scout_assessment", "computed", "api_football", "llm_inferred", "proxy_inferred", "playstyle_derived"}
         if source not in PRESCALED_SOURCES and league_strength is not None:
             score_20 = score_20 * league_strength
-        # Level-scale proxy_inferred: these are synthetic estimates that
-        # should reflect the player's calibre. Without this, Commander is
-        # a flat 80 for everyone — VVD and Milenković get the same proxy.
-        # Steeper curve: level IS the signal for unobservable traits like
-        # leadership and concentration. 80→0.85, 85→1.0, 88→1.09, 90→1.15
         if source == "proxy_inferred" and level:
             level_factor = min(0.70 + (level - 75) * 0.030, 1.15)
             score_20 = score_20 * level_factor
         priority = SOURCE_PRIORITY.get(source, 0)
-        existing = best.get(attr)
-        if existing is None:
-            best[attr] = (score_20, priority)
-        elif priority > existing[1]:
-            # Higher priority wins — UNLESS it's garbage (≤3/20) overriding
-            # a much better lower-priority score (≥10.5/20, i.e. ≥7/10 stat).
-            # This prevents AF percentile 1/10 from clobbering understat 10/10.
-            if score_20 <= 3 and existing[0] >= 10.5:
-                pass  # keep the better lower-priority value
+        is_scout = source == "scout_assessment"
+        if attr not in all_grades_by_attr:
+            all_grades_by_attr[attr] = []
+        all_grades_by_attr[attr].append((score_20, priority, is_scout))
+
+    # Second pass: resolve to single best grade per attribute
+    best = {}  # attr -> (score_20, priority)
+    for attr, entries in all_grades_by_attr.items():
+        scout_entries = [(s, p) for s, p, is_s in entries if is_s]
+        stat_entries = [(s, p) for s, p, is_s in entries if not is_s]
+
+        if scout_entries:
+            # Scout always wins — take highest scout grade
+            best_scout = max(scout_entries, key=lambda x: x[0])
+            best[attr] = best_scout
+        elif stat_entries:
+            if len(stat_entries) == 1:
+                best[attr] = stat_entries[0]
             else:
-                best[attr] = (score_20, priority)
-        elif priority < existing[1]:
-            # Lower priority normally loses — UNLESS existing is garbage
-            # and this source has much better data (same threshold).
-            if existing[0] <= 3 and score_20 >= 10.5:
-                best[attr] = (score_20, priority)
-        elif score_20 > existing[0]:
-            # Equal priority: higher value wins
-            best[attr] = (score_20, priority)
+                # Priority-weighted average across stat sources.
+                # Higher-priority sources contribute more to the average.
+                # This dampens single-source outliers (understat inflating
+                # Chris Wood) while letting multi-source consensus boost
+                # deserving players (KDB creativity).
+                total_weight = sum(p for _, p in stat_entries)
+                if total_weight > 0:
+                    weighted_score = sum(s * p for s, p in stat_entries) / total_weight
+                else:
+                    weighted_score = max(s for s, _ in stat_entries)
+                best_priority = max(p for _, p in stat_entries)
+                best[attr] = (weighted_score, best_priority)
 
     # Level-derived anchor: what a player of this level "should" score
     # Conservative: level itself, not inflated. A level 85 player anchors at 85.
@@ -473,15 +477,16 @@ def compute_best_role(model_scores, position):
         return None, 0
     normalised = best_normalised
 
-    # Top-end stretch: scout grades practically cap at 16/20, compressing
-    # elite players into the 80-89 band. Power curve above 70 stretches
-    # the top end so elite players get proper separation.
-    # 70→70, 75→81, 80→86, 85→90, 87→92, 89→93
-    if normalised > 70:
-        excess = normalised - 70
-        max_excess = 29  # 99 - 70
-        stretched = (excess / max_excess) ** 0.55 * max_excess
-        normalised = 70 + stretched
+    # Soft top-end stretch: only kicks in above 80 (was 70 with the old
+    # ×1.5 multiplier). With ×1.8, raw model scores already reach the 75-88
+    # range for good players, so the stretch only helps separate the elite.
+    # Power 0.65 is gentler than the old 0.55.
+    # 80→80, 82→84, 85→88, 88→91, 90→93, 95→96
+    if normalised > 80:
+        excess = normalised - 80
+        max_excess = 19  # 99 - 80
+        stretched = (excess / max_excess) ** 0.65 * max_excess
+        normalised = 80 + stretched
 
     return best_role, round(min(max(normalised, 0), 99))
 
@@ -509,7 +514,7 @@ def _compute_base_gk_score(grades):
     best = {}
     for g in grades:
         source = g.get("source", "")
-        if source == "eafc_inferred":
+        if source in ("eafc_inferred", "statsbomb"):
             continue
         attr = g["attribute"].lower().replace(" ", "_")
         if g["scout_grade"] is not None and g["scout_grade"] > 0:
@@ -716,12 +721,12 @@ def main():
         for comp, score in compound_scores.items():
             compound_distribution[comp].append(score)
 
-        # Always use anchored scores for role computation.
-        # Anchored scores already blend level into thin models (<3 of 4
-        # attrs), so they naturally boost data-sparse players without a
-        # hard floor. This replaces the old raw-vs-anchored cutoff and
-        # eliminates the flat clustering from level floors.
-        role_scores = dict(anchored_scores)
+        # Use raw scores for role selection. Anchored scores blend level
+        # into thin models (<3 of 4 attrs), which inflates data-sparse
+        # models for high-level players — e.g. Kane's Sprinter (2/4 attrs)
+        # gets boosted by level 91 to beat his data-rich Creator (4/4).
+        # Role selection should reflect what the DATA says, not the level.
+        role_scores = dict(raw_scores)
 
         # GK fix: the overridden MODEL_ATTRIBUTES["GK"] uses positioning/
         # awareness/pass_range/throwing for compound scoring, but data sources
@@ -735,12 +740,13 @@ def main():
         best_role, best_role_score = compute_best_role(role_scores, position)
 
         # Minimum grade threshold: insufficient data → no role score.
-        # Level 87+ players get a lower threshold (10) because they're
-        # editorially calibrated and some stat data exists.
-        # UI shows level instead for NULL role scores.
-        real_grade_count = sum(1 for g in grades if g.get("source") != "eafc_inferred")
-        min_grades = 10 if level and level >= 87 else 15
-        if real_grade_count < min_grades:
+        # Require grades from at least 2 distinct real sources to avoid
+        # single-source inflation (e.g. understat-only → vision=10).
+        # Level 88+ get a lower grade threshold (editorially calibrated).
+        real_grade_count = sum(1 for g in grades if g.get("source") not in ("eafc_inferred", "computed"))
+        real_sources = set(g.get("source") for g in grades if g.get("source") not in ("eafc_inferred", "computed", None))
+        min_grades = 15 if level and level >= 88 else 20
+        if real_grade_count < min_grades or len(real_sources) < 2:
             best_role_score = None
 
         # Soft level blend + safety net. Replaces the hard floor that

@@ -150,10 +150,10 @@ class TestNormalizeGrades:
         assert "leadership" in scores
         assert "Leadership" not in scores
 
-    def test_alias_unpredictability_typo(self):
+    def test_alias_flair_typo(self):
         grades = [{"attribute": "unpredicability", "scout_grade": 8, "stat_score": None}]
         scores, _, _, _ = refine.normalize_grades(grades)
-        assert "unpredictability" in scores
+        assert "flair" in scores
 
 
 # ── Model Scoring ────────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ class TestModelScoring:
 
     def test_pure_creator(self):
         grades = make_grades({
-            "creativity": 9, "unpredictability": 8, "vision": 9,
+            "creativity": 9, "flair": 8, "vision": 9,
             "pace": 4, "acceleration": 4, "balance": 4, "movement": 4,
         })
         arch = score_player(grades, "AM")

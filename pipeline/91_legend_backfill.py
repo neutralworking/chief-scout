@@ -30,7 +30,7 @@ FORCE = args.force
 # ── Pillar category mappings (using actual attribute_grades.attribute names) ──
 # DB attributes: acceleration, aerial_duels, aggression, awareness, balance,
 #   blocking, carries, clearances, close_range, composure, creativity, crossing,
-#   discipline, duels, first_touch, footwork, guile, heading, intensity,
+#   discipline, duels, first_touch, footwork, threat, heading, intensity,
 #   interceptions, jumping, long_range, marking, mental, mid_range, movement,
 #   pace, pass_accuracy, pass_range, penalties, physical, positioning, pressing,
 #   reactions, shielding, skills, stamina, tackling, tactical, take_ons,
@@ -46,7 +46,7 @@ TACTICAL_ATTRS = {
 }
 MENTAL_ATTRS = {
     "aggression", "creativity", "composure", "mental",
-    "reactions", "discipline", "guile", "intensity",
+    "reactions", "discipline", "threat", "intensity",
 }
 PHYSICAL_ATTRS = {
     "pace", "acceleration", "stamina", "physical", "jumping",

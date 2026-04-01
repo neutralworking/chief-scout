@@ -326,7 +326,7 @@ PERSONALITY_DIMENSIONS: dict[str, list[tuple[str, bool]]] = {
         ("leadership", True),      # inverted: high leadership → Leader (low tf)
         ("communication", True),   # inverted: high communication → Leader (low tf)
         ("creativity", False),     # creative types tend to be soloists
-        ("unpredictability", False),  # unpredictable players are self-focused
+        ("flair", False),  # flair players tend to be soloists
     ],
     # jp: high = Competitor (confrontational)
     #     Competitor: high aggression, duels

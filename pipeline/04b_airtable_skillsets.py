@@ -80,7 +80,7 @@ AIRTABLE_ATTR_MAP = {
     "Tempo": "tempo",
     "ThroughBalls": "through_balls",
     "Throwing": "throwing",
-    "Unpredictability": "unpredictability",
+    "Unpredictability": "flair",
     "Vision": "vision",
     "Volleys": "volleys",
 }

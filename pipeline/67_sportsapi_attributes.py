@@ -221,12 +221,14 @@ def main():
     conn = require_conn()
     cur = conn.cursor()
 
-    # Ensure tables exist
+    # Ensure tables exist (raise timeout for DDL — Supabase default 2min can be too short)
     sql_path = os.path.join(os.path.dirname(__file__), "sql", "051_sportsapi.sql")
     if os.path.exists(sql_path):
+        cur.execute("SET statement_timeout = '5min'")
         with open(sql_path) as f:
             cur.execute(f.read())
         conn.commit()
+        cur.execute("RESET statement_timeout")
 
     # Load existing links
     cur.execute("SELECT person_id, external_id FROM player_id_links WHERE source = %s", (SOURCE,))

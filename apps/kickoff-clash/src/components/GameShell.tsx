@@ -25,12 +25,15 @@ import { openPack } from '../lib/packs';
 import { getTacticById, rehydrateTacticSlots } from '../lib/tactics';
 import { calculateAttendance, getTransferFee } from '../lib/economy';
 import { findConnections } from '../lib/chemistry';
+import type { PackContents } from '../lib/packs';
 import TitleScreen from './TitleScreen';
 import SetupPhase from './SetupPhase';
+import CardReveal from './CardReveal';
 import MatchPhase from './MatchPhase';
 import PostMatch from './PostMatch';
 import ShopPhase from './ShopPhase';
 import EndScreen from './EndScreen';
+import PhaseTransition from './PhaseTransition';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -122,7 +125,7 @@ function saveHistory(state: RunState): void {
 // Phase type
 // ---------------------------------------------------------------------------
 
-type Phase = 'title' | 'setup' | 'match' | 'postmatch' | 'shop' | 'end';
+type Phase = 'title' | 'setup' | 'reveal' | 'match' | 'postmatch' | 'shop' | 'end';
 
 function phaseFromStatus(status: RunState['status']): Phase {
   if (status === 'won' || status === 'lost') return 'end';
@@ -141,6 +144,9 @@ export default function GameShell() {
   const [hasExistingRun, setHasExistingRun] = useState(false);
   const [durabilityResult, setDurabilityResult] = useState<DurabilityResult | null>(null);
   const [lastMatchResult, setLastMatchResult] = useState<MatchResult | null>(null);
+  const [pendingContents, setPendingContents] = useState<PackContents | null>(null);
+  const [pendingStyle, setPendingStyle] = useState<string | null>(null);
+  const [pendingSeed, setPendingSeed] = useState<number>(0);
 
   // Check for existing run on mount
   useEffect(() => {
@@ -174,15 +180,25 @@ export default function GameShell() {
     }
   }, []);
 
-  // --- Setup (Pack Opening) ---
+  // --- Setup (Pack Opening) → Reveal → Match ---
   const handleStart = useCallback((packType: PackType, style: string) => {
     const seed = Date.now();
     const contents = openPack(packType, seed);
-    const run = createRun(contents, style, seed);
+    setPendingContents(contents);
+    setPendingStyle(style);
+    setPendingSeed(seed);
+    setPhase('reveal');
+  }, []);
+
+  const handleRevealComplete = useCallback(() => {
+    if (!pendingContents || !pendingStyle) return;
+    const run = createRun(pendingContents, pendingStyle, pendingSeed);
     setRunState(run);
+    setPendingContents(null);
+    setPendingStyle(null);
     setPhase('match');
     saveRun(run);
-  }, []);
+  }, [pendingContents, pendingStyle, pendingSeed]);
 
   // --- Match Complete ---
   const handleMatchComplete = useCallback((result: { yourGoals: number; opponentGoals: number; result: 'win' | 'draw' | 'loss'; handState: HandState }) => {
@@ -350,71 +366,84 @@ export default function GameShell() {
   // Render
   // =========================================================================
 
-  switch (phase) {
-    case 'title':
-      return (
-        <TitleScreen
-          onNewRun={handleNewRun}
-          onContinue={handleContinue}
-          hasExistingRun={hasExistingRun}
-        />
-      );
+  function renderPhase() {
+    switch (phase) {
+      case 'title':
+        return (
+          <TitleScreen
+            onNewRun={handleNewRun}
+            onContinue={handleContinue}
+            hasExistingRun={hasExistingRun}
+          />
+        );
 
-    case 'setup':
-      return <SetupPhase onStart={handleStart} />;
+      case 'setup':
+        return <SetupPhase onStart={handleStart} />;
 
-    case 'match': {
-      if (!runState) return null;
-      return (
-        <MatchPhase
-          runState={runState}
-          onMatchComplete={handleMatchComplete}
-        />
-      );
+      case 'reveal':
+        return pendingContents ? (
+          <CardReveal contents={pendingContents} onComplete={handleRevealComplete} />
+        ) : null;
+
+      case 'match': {
+        if (!runState) return null;
+        return (
+          <MatchPhase
+            runState={runState}
+            onMatchComplete={handleMatchComplete}
+          />
+        );
+      }
+
+      case 'postmatch': {
+        if (!lastMatchResult || !durabilityResult) return null;
+        return (
+          <PostMatch
+            matchResult={lastMatchResult}
+            durabilityResult={durabilityResult}
+            onContinue={handlePostMatchContinue}
+          />
+        );
+      }
+
+      case 'shop': {
+        if (!runState) return null;
+        const shopSeed = runState.seed + runState.round * 999;
+        return (
+          <ShopPhase
+            state={runState}
+            onBuyCard={handleBuyCard}
+            onSellCard={handleSellCard}
+            onBuyJoker={handleBuyJoker}
+            onBuyAcademy={handleBuyAcademy}
+            onUpgradeAcademy={handleUpgradeAcademy}
+            onBuyTacticPack={handleBuyTacticPack}
+            onBuyFormation={handleBuyFormation}
+            onTrainPlayer={handleTrainPlayer}
+            onNext={handleShopNext}
+            shopSeed={shopSeed}
+          />
+        );
+      }
+
+      case 'end': {
+        if (!runState) return null;
+        return (
+          <EndScreen
+            state={runState}
+            onNewRun={handleEndNewRun}
+          />
+        );
+      }
+
+      default:
+        return null;
     }
-
-    case 'postmatch': {
-      if (!lastMatchResult || !durabilityResult) return null;
-      return (
-        <PostMatch
-          matchResult={lastMatchResult}
-          durabilityResult={durabilityResult}
-          onContinue={handlePostMatchContinue}
-        />
-      );
-    }
-
-    case 'shop': {
-      if (!runState) return null;
-      const shopSeed = runState.seed + runState.round * 999;
-      return (
-        <ShopPhase
-          state={runState}
-          onBuyCard={handleBuyCard}
-          onSellCard={handleSellCard}
-          onBuyJoker={handleBuyJoker}
-          onBuyAcademy={handleBuyAcademy}
-          onUpgradeAcademy={handleUpgradeAcademy}
-          onBuyTacticPack={handleBuyTacticPack}
-          onBuyFormation={handleBuyFormation}
-          onTrainPlayer={handleTrainPlayer}
-          onNext={handleShopNext}
-          shopSeed={shopSeed}
-        />
-      );
-    }
-
-    case 'end': {
-      if (!runState) return null;
-      return (
-        <EndScreen
-          state={runState}
-          onNewRun={handleEndNewRun}
-        />
-      );
-    }
-
-    default:
-      return null;
   }
+
+  return (
+    <PhaseTransition phase={phase}>
+      {renderPhase()}
+    </PhaseTransition>
+  );
 }

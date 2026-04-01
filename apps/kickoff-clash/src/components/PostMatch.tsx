@@ -87,17 +87,18 @@ export default function PostMatch({ matchResult, durabilityResult, onContinue }:
 
       {/* Result banner */}
       <div
-        className="transition-all duration-500"
         style={{
           opacity: revealStep >= 1 ? 1 : 0,
-          transform: revealStep >= 1 ? 'scale(1)' : 'scale(0.75)',
         }}
       >
         <div className="text-center">
           <div
-            className="text-6xl uppercase tracking-widest"
+            className={revealStep >= 1 ? 'score-pop' : ''}
             style={{
               fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(48px, 12vw, 72px)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
               color: resultColor,
               textShadow: `0 0 30px ${resultColor}`,
             }}

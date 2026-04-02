@@ -387,7 +387,7 @@ function GradePanel({ player, onSaved }: { player: QueuePlayer; onSaved: (pid: n
   );
 }
 
-/* ── Compact attribute row — designed for speed ───────────────────────────── */
+/* ── Compact attribute row — designed for speed (1-20 scale) ──────────────── */
 function CompactAttrRow({
   attr,
   grade,
@@ -404,11 +404,12 @@ function CompactAttrRow({
   const currentValue = dirtyValue ?? grade.scout_grade;
   const hasStat = grade.stat_score !== null;
   const isDirty = dirtyValue !== undefined;
+  const statPct = hasStat ? ((grade.stat_score! - 1) / 19) * 100 : 0;
 
   return (
-    <div className={`flex items-center gap-1 py-[3px] px-1 rounded ${isDirty ? "bg-[var(--color-accent-tactical)]/5" : ""}`}>
+    <div className={`flex items-center gap-1.5 py-[3px] px-1 rounded ${isDirty ? "bg-[var(--color-accent-tactical)]/5" : ""}`}>
       {/* Label */}
-      <span className="text-[10px] text-[var(--text-muted)] w-14 shrink-0 truncate" title={attr}>
+      <span className="text-[10px] text-[var(--text-muted)] w-16 shrink-0 truncate" title={attr}>
         {ATTR_LABELS[attr] ?? attr}
       </span>
 
@@ -417,30 +418,53 @@ function CompactAttrRow({
         {hasStat ? grade.stat_score : ""}
       </span>
 
-      {/* Quick grade buttons: 0-10 */}
-      <div className="flex gap-[2px] ml-1">
-        {Array.from({ length: 11 }, (_, i) => {
-          const isSelected = currentValue === i;
-          const isStatMatch = hasStat && Math.round(grade.stat_score!) === i;
-          return (
-            <button
-              key={i}
-              onClick={() => setGrade(attr, i)}
-              className={`w-5 h-5 rounded text-[9px] font-mono font-bold transition-all ${
-                isSelected
-                  ? "text-white shadow-sm"
-                  : isStatMatch
-                    ? "bg-[var(--bg-elevated)]/80 text-[var(--text-secondary)] border border-[var(--border-subtle)]"
-                    : "bg-transparent text-[var(--text-muted)]/40 hover:text-[var(--text-muted)] hover:bg-[var(--bg-elevated)]/40"
-              }`}
-              style={isSelected ? { background: pillarColor } : undefined}
-              title={`Set ${attr} to ${i}`}
-            >
-              {i}
-            </button>
-          );
-        })}
+      {/* Slider (1-20) */}
+      <div className="flex-1 relative h-5 flex items-center min-w-[60px]">
+        {hasStat && (
+          <div
+            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-[var(--text-muted)]/20 rounded-full pointer-events-none z-[1]"
+            style={{ left: `${statPct}%` }}
+            title={`Pipeline: ${grade.stat_score}`}
+          />
+        )}
+        <input
+          type="range"
+          min={1}
+          max={20}
+          step={1}
+          value={currentValue ?? 10}
+          onChange={(e) => setGrade(attr, parseInt(e.target.value))}
+          className="w-full h-1.5 rounded-full appearance-none cursor-pointer grade-slider"
+          style={{
+            background: currentValue
+              ? `linear-gradient(to right, ${pillarColor} 0%, ${pillarColor} ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) 100%)`
+              : "var(--bg-elevated)",
+            opacity: currentValue ? 1 : 0.3,
+          }}
+        />
       </div>
+
+      {/* Value display */}
+      <input
+        type="number"
+        min={1}
+        max={20}
+        value={currentValue ?? ""}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v !== "") {
+            setGrade(attr, Math.min(20, Math.max(1, parseInt(v) || 1)));
+          }
+        }}
+        placeholder="--"
+        className={`w-7 h-5 text-center text-[10px] font-mono font-bold rounded border bg-transparent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+          currentValue
+            ? isDirty
+              ? "border-[var(--color-accent-tactical)]/50 text-[var(--text-primary)]"
+              : "border-[var(--border-subtle)] text-[var(--text-secondary)]"
+            : "border-transparent text-[var(--text-muted)]/30"
+        }`}
+      />
     </div>
   );
 }

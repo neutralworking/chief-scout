@@ -14,6 +14,7 @@ import { PlayerRadar } from "@/components/PlayerRadar";
 import { PlayerShortlists } from "@/components/PlayerShortlists";
 import { AddToShortlist } from "@/components/AddToShortlist";
 import { PlayerQuickEdit } from "@/components/PlayerQuickEdit";
+import { ScoutGradeEditor } from "@/components/ScoutGradeEditor";
 import { BackLink } from "@/components/BackLink";
 import { ScoutingNotesAdmin } from "@/components/ScoutingNotesAdmin";
 import { RoleScoreEditor } from "@/components/RoleScoreEditor";
@@ -535,6 +536,8 @@ export default async function PlayerDetailPage({
           <div data-onboarding="radar">
             <PlayerRadar playerId={player.person_id} position={player.position} compact storedBestRole={player.best_role} />
           </div>
+
+          <ScoutGradeEditor personId={player.person_id} position={player.position} />
 
           <SystemFit
             clubId={player.club_id}

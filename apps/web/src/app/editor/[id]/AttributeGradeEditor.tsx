@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 /**
  * 13 SACROSANCT models grouped by four-pillar category.
- * Each model has 4 core attributes. Scout grades are 0-10.
+ * Each model has 4 core attributes. Scout grades are 1-20.
  */
 const PILLAR_MODELS: {
   pillar: string;
@@ -194,7 +194,7 @@ export default function AttributeGradeEditor({ personId }: Props) {
         <h2 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Attribute Grades</h2>
         <span className="text-[10px] text-[var(--text-muted)] font-mono">{coveredCount}/{allAttrs.length} attrs</span>
       </div>
-      <p className="text-[10px] text-[var(--text-muted)] mb-3">Scout grades (0-10). Grey numbers = pipeline stat scores. Tap +/- or type directly.</p>
+      <p className="text-[10px] text-[var(--text-muted)] mb-3">Scout grades (1-20). Grey numbers = pipeline stat scores. Tap +/- or type directly.</p>
 
       {/* Pillar tabs */}
       <div className="flex gap-1 mb-4 overflow-x-auto">
@@ -405,7 +405,7 @@ function AttrInput({
       <div className="flex items-center gap-1">
         <button
           onClick={() => {
-            if (hasScout && currentValue > 0) setGrade(attr, currentValue - 1);
+            if (hasScout && currentValue > 1) setGrade(attr, currentValue - 1);
           }}
           className="w-7 h-7 flex items-center justify-center rounded bg-[var(--bg-elevated)]/60 text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--bg-elevated)] text-sm font-bold shrink-0"
         >
@@ -413,15 +413,15 @@ function AttrInput({
         </button>
         <input
           type="number"
-          min={0}
-          max={10}
+          min={1}
+          max={20}
           value={hasScout ? currentValue : ""}
           onChange={(e) => {
             const v = e.target.value;
             if (v === "") {
               clearGrade(attr);
             } else {
-              const n = Math.min(10, Math.max(0, parseInt(v) || 0));
+              const n = Math.min(20, Math.max(1, parseInt(v) || 1));
               setGrade(attr, n);
             }
           }}
@@ -430,7 +430,7 @@ function AttrInput({
         />
         <button
           onClick={() => {
-            const next = hasScout ? Math.min(10, currentValue + 1) : 5;
+            const next = hasScout ? Math.min(20, currentValue + 1) : 10;
             setGrade(attr, next);
           }}
           className="w-7 h-7 flex items-center justify-center rounded bg-[var(--bg-elevated)]/60 text-[var(--text-muted)] hover:text-[var(--text-primary)] active:bg-[var(--bg-elevated)] text-sm font-bold shrink-0"

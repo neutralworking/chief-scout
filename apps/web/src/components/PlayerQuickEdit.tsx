@@ -97,12 +97,20 @@ export function PlayerQuickEdit({ player }: { player: PlayerData }) {
 
   if (!editing) {
     return (
-      <button
-        onClick={() => setEditing(true)}
-        className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--accent-tactical)] transition-colors"
-      >
-        Edit
-      </button>
+      <div className="flex items-center gap-2">
+        <a
+          href={`/editor/${player.person_id}`}
+          className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--color-accent-tactical)] transition-colors"
+        >
+          Full Editor
+        </a>
+        <button
+          onClick={() => setEditing(true)}
+          className="text-[9px] font-semibold text-[var(--text-muted)] hover:text-[var(--color-accent-tactical)] transition-colors"
+        >
+          Quick Edit
+        </button>
+      </div>
     );
   }
 

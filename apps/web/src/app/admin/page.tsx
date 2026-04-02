@@ -6,11 +6,9 @@ import { DashboardTab } from "@/components/admin/DashboardTab";
 import { EditorTab } from "@/components/admin/EditorTab";
 import { PersonalityTab } from "@/components/admin/PersonalityTab";
 import { KCPreviewTab } from "@/components/admin/KCPreviewTab";
-import { GradingTab } from "@/components/admin/GradingTab";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
-  { id: "grading", label: "Grading" },
   { id: "editor", label: "Editor" },
   { id: "personality", label: "Personality" },
   { id: "kc-preview", label: "KC Cards" },
@@ -60,7 +58,6 @@ function AdminTabs() {
 
       {/* Tab content */}
       {activeTab === "dashboard" && <DashboardTab />}
-      {activeTab === "grading" && <GradingTab />}
       {activeTab === "editor" && <EditorTab />}
       {activeTab === "personality" && <PersonalityTab />}
       {activeTab === "kc-preview" && <KCPreviewTab />}

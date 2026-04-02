@@ -22,9 +22,7 @@ export async function POST(request: Request) {
     const rows = grades.map((g: { attribute: string; scout_grade: number }) => ({
       player_id: person_id,
       attribute: g.attribute,
-      // UI sends 0-10; DB stores scout_grade on 1-20 scale.
-      // 0 → null (ungraded), 1-10 → 2-20.
-      scout_grade: g.scout_grade === 0 ? null : g.scout_grade * 2,
+      scout_grade: g.scout_grade,
       source: "scout_assessment",
     }));
 

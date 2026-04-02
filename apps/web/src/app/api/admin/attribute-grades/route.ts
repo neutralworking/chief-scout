@@ -40,8 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (row.source === "scout_assessment" && row.scout_grade != null) {
-      // DB stores 1-20; UI uses 0-10 buttons. Halve for display.
-      grades[attr].scout_grade = Math.round(row.scout_grade / 2);
+      grades[attr].scout_grade = row.scout_grade;
     }
 
     if (row.stat_score != null && row.source !== "scout_assessment") {

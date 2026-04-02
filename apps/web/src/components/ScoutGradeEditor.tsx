@@ -29,7 +29,7 @@ const PILLAR_MODELS = [
     models: [
       { name: "Controller", attrs: ["anticipation", "composure", "decisions", "tempo"] },
       { name: "Commander", attrs: ["communication", "concentration", "drive", "leadership"] },
-      { name: "Creator", attrs: ["creativity", "unpredictability", "vision", "guile"] },
+      { name: "Creator", attrs: ["creativity", "flair", "vision", "threat"] },
     ],
   },
   {
@@ -53,7 +53,7 @@ const ATTR_LABELS: Record<string, string> = {
   intensity: "Intensity", pressing: "Pressing", stamina: "Stamina", versatility: "Versatility",
   anticipation: "Anticipation", composure: "Composure", decisions: "Decisions", tempo: "Tempo",
   communication: "Comms", concentration: "Concentration", drive: "Drive", leadership: "Leadership",
-  creativity: "Creativity", unpredictability: "Flair", vision: "Vision", guile: "Guile",
+  creativity: "Creativity", flair: "Flair", vision: "Vision", threat: "Threat",
   aerial_duels: "Aerial Duels", heading: "Heading", jumping: "Jumping", volleys: "Volleys",
   acceleration: "Acceleration", balance: "Balance", movement: "Movement", pace: "Pace",
   aggression: "Aggression", duels: "Duels", shielding: "Shielding",
@@ -342,56 +342,58 @@ function GradeRow({ attr, grade, dirtyValue, setGrade, pillarColor }: {
         {hasStat ? grade.stat_score : ""}
       </span>
 
-      {/* Slider */}
-      <div className="flex-1 relative h-5 flex items-center min-w-[80px]">
-        {/* Pipeline reference marker */}
-        {hasStat && (
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-[var(--text-muted)]/20 rounded-full pointer-events-none z-[1]"
-            style={{ left: `${statPct}%` }}
-            title={`Pipeline: ${grade.stat_score}`}
+      {/* Slider or set button */}
+      {currentValue ? (
+        <>
+          <div className="flex-1 relative h-5 flex items-center min-w-[80px]">
+            {hasStat && (
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-[var(--text-muted)]/20 rounded-full pointer-events-none z-[1]"
+                style={{ left: `${statPct}%` }}
+                title={`Pipeline: ${grade.stat_score}`}
+              />
+            )}
+            <input
+              type="range"
+              min={1}
+              max={20}
+              step={1}
+              value={currentValue}
+              onChange={(e) => setGrade(attr, parseInt(e.target.value))}
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer grade-slider"
+              style={{
+                background: `linear-gradient(to right, ${pillarColor} 0%, ${pillarColor} ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) 100%)`,
+              }}
+            />
+          </div>
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={currentValue}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "") {
+                setGrade(attr, null);
+              } else {
+                setGrade(attr, Math.min(20, Math.max(1, parseInt(v) || 1)));
+              }
+            }}
+            className={`w-8 h-6 text-center text-[11px] font-mono font-bold rounded border transition-colors bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+              isDirty
+                ? "border-[var(--color-accent-tactical)]/50 text-[var(--text-primary)]"
+                : "border-[var(--border-subtle)] text-[var(--text-primary)]"
+            }`}
           />
-        )}
-        <input
-          type="range"
-          min={1}
-          max={20}
-          step={1}
-          value={currentValue ?? 10}
-          onChange={(e) => setGrade(attr, parseInt(e.target.value))}
-          className="w-full h-1.5 rounded-full appearance-none cursor-pointer grade-slider"
-          style={{
-            background: currentValue
-              ? `linear-gradient(to right, ${pillarColor} 0%, ${pillarColor} ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) ${((currentValue - 1) / 19) * 100}%, var(--bg-elevated) 100%)`
-              : "var(--bg-elevated)",
-            opacity: currentValue ? 1 : 0.3,
-          }}
-        />
-      </div>
-
-      {/* Value input */}
-      <input
-        type="number"
-        min={1}
-        max={20}
-        value={currentValue ?? ""}
-        onChange={(e) => {
-          const v = e.target.value;
-          if (v === "") {
-            setGrade(attr, null);
-          } else {
-            setGrade(attr, Math.min(20, Math.max(1, parseInt(v) || 1)));
-          }
-        }}
-        placeholder="--"
-        className={`w-8 h-6 text-center text-[11px] font-mono font-bold rounded border transition-colors bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-          currentValue
-            ? isDirty
-              ? "border-[var(--color-accent-tactical)]/50 text-[var(--text-primary)]"
-              : "border-[var(--border-subtle)] text-[var(--text-primary)]"
-            : "border-[var(--border-subtle)]/50 text-[var(--text-muted)]/30"
-        }`}
-      />
+        </>
+      ) : (
+        <button
+          onClick={() => setGrade(attr, hasStat ? Math.min(20, Math.max(1, Math.round(grade.stat_score!))) : 10)}
+          className="flex-1 h-6 rounded bg-[var(--bg-elevated)]/40 text-[9px] text-[var(--text-muted)]/60 hover:text-[var(--text-muted)] hover:bg-[var(--bg-elevated)]/70 transition-colors cursor-pointer"
+        >
+          tap to grade
+        </button>
+      )}
     </div>
   );
 }

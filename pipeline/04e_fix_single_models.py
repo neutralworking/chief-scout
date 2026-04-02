@@ -71,7 +71,7 @@ EAFC_PHYSICAL_DAMPENING = 0.40  # applied ON TOP of 0.75 base weight
 EAFC_PHYSICAL_ATTRS = {
     "acceleration", "balance", "movement", "pace",          # Sprinter
     "aerial_duels", "heading", "jumping", "volleys",        # Target
-    "aggression", "duels", "shielding", "stamina",          # Powerhouse
+    "aggression", "duels", "shielding", "throwing",          # Powerhouse
 }
 
 

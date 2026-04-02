@@ -68,7 +68,7 @@ MODEL_ATTRIBUTES: dict[str, list[str]] = {
     "Creator":     ["creativity", "flair", "vision", "threat"],
     "Target":      ["aerial_duels", "heading", "jumping", "volleys"],
     "Sprinter":    ["acceleration", "balance", "movement", "pace"],
-    "Powerhouse":  ["aggression", "duels", "shielding", "stamina"],
+    "Powerhouse":  ["aggression", "duels", "shielding", "throwing"],
     "Cover":       ["awareness", "discipline", "interceptions", "positioning"],
     "Engine":      ["intensity", "pressing", "stamina", "versatility"],
     "Destroyer":   ["blocking", "clearances", "marking", "tackling"],

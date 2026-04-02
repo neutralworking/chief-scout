@@ -89,7 +89,7 @@ TRAIT_MAP = {
     "Speed Merchant":     [("pace", 16), ("acceleration", 16)],
     "pace_merchant":      [("pace", 16), ("acceleration", 14)],
 
-    # Powerhouse model (aggression, duels, shielding, stamina)
+    # Powerhouse model (aggression, duels, shielding, throwing)
     "Strength":           [("shielding", 16), ("duels", 14)],
     "hard_man":           [("aggression", 16), ("duels", 16)],
 

@@ -26,10 +26,10 @@ Minimum 2 of 4 attributes required (added 2026-03-17 to prevent single-attribute
 |-------|-----------|----------|
 | **Controller** | anticipation, composure, decisions, tempo | Mental |
 | **Commander** | communication, concentration, drive, leadership | Mental |
-| **Creator** | creativity, unpredictability, vision, guile | Mental |
+| **Creator** | creativity, flair, vision, threat | Mental |
 | **Target** | aerial_duels, heading, jumping, volleys | Physical |
 | **Sprinter** | acceleration, balance, movement, pace | Physical |
-| **Powerhouse** | aggression, duels, shielding, stamina | Physical |
+| **Powerhouse** | aggression, duels, shielding, throwing | Physical |
 | **Cover** | awareness, discipline, interceptions, positioning | Tactical |
 | **Engine** | intensity, pressing, stamina, versatility | Tactical |
 | **Destroyer** | blocking, clearances, marking, tackling | Tactical |

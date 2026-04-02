@@ -41,7 +41,7 @@ const PILLAR_MODELS = [
     models: [
       { name: "Target", attrs: ["aerial_duels", "heading", "jumping", "volleys"] },
       { name: "Sprinter", attrs: ["acceleration", "balance", "movement", "pace"] },
-      { name: "Powerhouse", attrs: ["aggression", "duels", "shielding", "stamina"] },
+      { name: "Powerhouse", attrs: ["aggression", "duels", "shielding", "throwing"] },
     ],
   },
 ] as const;
@@ -61,7 +61,7 @@ const ATTR_LABELS: Record<string, string> = {
   creativity: "Create", flair: "Flair", vision: "Vision", threat: "Threat",
   aerial_duels: "Aerial", heading: "Head", jumping: "Jump", volleys: "Volley",
   acceleration: "Accel", balance: "Bal", movement: "Move", pace: "Pace",
-  aggression: "Aggr", duels: "Duels", shielding: "Shield",
+  aggression: "Aggr", duels: "Duels", shielding: "Shield", throwing: "Throw",
 };
 
 const POSITIONS = ["All", "GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];

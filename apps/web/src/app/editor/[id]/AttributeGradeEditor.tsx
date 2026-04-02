@@ -45,7 +45,7 @@ const PILLAR_MODELS: {
     models: [
       { name: "Target", attrs: ["aerial_duels", "heading", "jumping", "volleys"] },
       { name: "Sprinter", attrs: ["acceleration", "balance", "movement", "pace"] },
-      { name: "Powerhouse", attrs: ["aggression", "duels", "shielding", "stamina"] },
+      { name: "Powerhouse", attrs: ["aggression", "duels", "shielding", "throwing"] },
     ],
   },
 ];
@@ -63,7 +63,7 @@ const ATTR_LABELS: Record<string, string> = {
   creativity: "Creativity", flair: "Flair", vision: "Vision", threat: "Threat",
   aerial_duels: "Aerial Duels", heading: "Heading", jumping: "Jumping", volleys: "Volleys",
   acceleration: "Acceleration", balance: "Balance", movement: "Movement", pace: "Pace",
-  aggression: "Aggression", duels: "Duels", shielding: "Shielding",
+  aggression: "Aggression", duels: "Duels", shielding: "Shielding", throwing: "Throwing",
 };
 
 interface GradeData {

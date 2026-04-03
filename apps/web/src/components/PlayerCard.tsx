@@ -12,6 +12,7 @@ import {
   type PillarKey,
 } from "@/lib/pillar-colors";
 import { getArchetypeColor } from "@/lib/archetype-styles";
+import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
 
 const PILLAR_BORDER: Record<PillarKey, string> = {
   technical: "border-l-amber-500",
@@ -73,6 +74,7 @@ export function PlayerCard({ player }: { player: PlayerCardType }) {
           <h3 className="text-sm font-semibold text-[var(--text-primary)] truncate flex-1">
             {player.name}
           </h3>
+          <GradeBadge grade={scoreToGrade(player.best_role_score)} />
           {overall != null && (
             <span
               className="text-base font-mono font-bold shrink-0"

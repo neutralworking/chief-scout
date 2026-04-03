@@ -1,0 +1,17 @@
+---
+title: 2-3-2-3 (Metodo)
+category: tactics
+tags: [formation]
+updated: 2026-04-03
+source: compiled
+confidence: medium
+summary: Tactical analysis of the 2-3-2-3 (Metodo) formation.
+---
+
+# 2-3-2-3 (Metodo)
+
+[![](https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/2-3-2-3_formation.svg/170px-2-3-2-3_formation.svg.png)](https://en.wikipedia.org/wiki/File:2-3-2-3_formation.svg)
+
+The Metodo formation
+
+The metodo was devised by [Vittorio Pozzo](https://en.wikipedia.org/wiki/Vittorio_Pozzo "Vittorio Pozzo"), coach of the [Italy national team](https://en.wikipedia.org/wiki/Italy_national_football_team "Italy national football team") in the 1930s.[[4]](https://en.wikipedia.org/wiki/Formation_(association_football)#cite_note-4) It was a derivation of the Danubian school. The system was based on the 2–3–5 formation; Pozzo realised that his half-backs would need some more support in order to be superior to the opponents' midfield, so he pulled two of the forwards to just in front of midfield, creating a 2–3–2–3 formation. This created a stronger defence than previous systems, as well as allowing effective counter-attacks. The Italy national team won back-to-back [World Cups](https://en.wikipedia.org/wiki/FIFA_World_Cup "FIFA World Cup"), in [1934](https://en.wikipedia.org/wiki/1934_FIFA_World_Cup "1934 FIFA World Cup") and [1938](https://en.wikipedia.org/wiki/1938_FIFA_World_Cup "1938 FIFA World Cup"), using this system. It has been argued that [Pep Guardiola](https://en.wikipedia.org/wiki/Pep_Guardiola "Pep Guardiola")'s [Barcelona](https://en.wikipedia.org/wiki/FC_Barcelona "FC Barcelona") and [Bayern Munich](https://en.wikipedia.org/wiki/FC_Bayern_Munich "FC Bayern Munich") used a modern version of this formation.[[5]](https://en.wikipedia.org/wiki/Formation_(association_football)#cite_note-5) This formation is also similar to the standard in [table football](https://en.wikipedia.org/wiki/Table_football "Table football"), featuring two defenders, five midfielders and three strikers (which cannot be altered as the "players" are mounted on axles). It can be called MM (if the goalkeeper is at the top of the diagram) or WW (if the goalkeeper is at the bottom).

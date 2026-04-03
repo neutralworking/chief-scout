@@ -27,6 +27,7 @@ import type { PlayerValuation } from "@/lib/types";
 import { getArchetypeColor, getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import { ProfileOnboarding } from "@/components/ProfileOnboarding";
 import { isProduction } from "@/lib/env";
+import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
 
 
 function nationFlag(code: string | null | undefined): string {
@@ -384,7 +385,7 @@ export default async function PlayerDetailPage({
                 <Link href={`/players?position=${player.position ?? ""}`} className={`text-[11px] font-bold tracking-wider px-1.5 py-0.5 ${posColor} text-white shrink-0 hover:brightness-110 transition-all`}>
                   {player.position ?? "–"}{player.side && ["WF", "WD", "WM"].includes(player.position ?? "") ? ` · ${player.side}` : ""}
                 </Link>
-                {/* TODO: secondary positions when data available */}
+                <GradeBadge grade={scoreToGrade(player.best_role_score)} />
                 {!player.active && (
                   <span className="text-[11px] font-semibold px-1.5 py-0.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] shrink-0">Inactive</span>
                 )}

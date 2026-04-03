@@ -8,6 +8,7 @@ import { EditableCell } from "@/components/EditableCell";
 import { getArchetypeBadgeClasses } from "@/lib/archetype-styles";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ROLE_INTELLIGENCE } from "@/lib/formation-intelligence";
+import { GradeBadge, scoreToGrade } from "@/components/GradeBadge";
 import Link from "next/link";
 
 const PAGE_SIZES = [25, 50, 100] as const;
@@ -517,6 +518,7 @@ function PlayersContent() {
                         </td>
                         <td className="py-1.5 px-3">
                           <div className="flex items-center gap-1.5">
+                            <GradeBadge grade={scoreToGrade(player.best_role_score)} />
                             <Link href={`/players/${player.person_id}`}
                               className="text-[var(--text-primary)] hover:text-white transition-colors font-medium text-sm">
                               {player.name}
@@ -630,6 +632,7 @@ function PlayersContent() {
                         <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${posColor} text-white shrink-0`}>
                           {player.position ?? "–"}
                         </span>
+                        <GradeBadge grade={scoreToGrade(player.best_role_score)} />
                         <Link href={`/players/${player.person_id}`} className="min-w-0">
                           <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                             {player.name}

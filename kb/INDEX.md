@@ -8,15 +8,28 @@
 | Category | Articles | Words | Last Updated |
 |---|---|---|---|
 | [Players](players/_index.md) | 0 | 0 | — |
-| [Archetypes](archetypes/_index.md) | 0 | 0 | — |
+| [Archetypes](archetypes/_index.md) | 13 | 2,018 | 2026-04-03 |
 | [Tactics](tactics/_index.md) | 33 | 13,893 | 2026-04-03 |
 | [Clubs](clubs/_index.md) | 0 | 0 | — |
 | [Concepts](concepts/_index.md) | 0 | 0 | — |
 | [Queries](queries/_index.md) | 0 | 0 | — |
-| **Total** | **33** | **13,893** | |
+| **Total** | **46** | **15,911** | |
 
 ## Recently Updated
 
+- [[commander]] Commander (archetypes) — 2026-04-03
+- [[controller]] Controller (archetypes) — 2026-04-03
+- [[cover]] Cover (archetypes) — 2026-04-03
+- [[creator]] Creator (archetypes) — 2026-04-03
+- [[destroyer]] Destroyer (archetypes) — 2026-04-03
+- [[dribbler]] Dribbler (archetypes) — 2026-04-03
+- [[engine]] Engine (archetypes) — 2026-04-03
+- [[gk]] GK (archetypes) — 2026-04-03
+- [[passer]] Passer (archetypes) — 2026-04-03
+- [[powerhouse]] Powerhouse (archetypes) — 2026-04-03
+- [[sprinter]] Sprinter (archetypes) — 2026-04-03
+- [[striker]] Striker (archetypes) — 2026-04-03
+- [[target]] Target (archetypes) — 2026-04-03
 - [[1-2-7]] 1-2-7 (tactics) — 2026-04-03
 - [[1-6-3-kamikaze]] 1-6-3 (Kamikaze) (tactics) — 2026-04-03
 - [[2-3-2-3-metodo]] 2-3-2-3 (Metodo) (tactics) — 2026-04-03
@@ -24,16 +37,3 @@
 - [[2-3-5-wm]] 2-3-5 (WM) (tactics) — 2026-04-03
 - [[3-1-6]] 3-1-6 (tactics) — 2026-04-03
 - [[3-2-2-3-wm]] 3-2-2-3 (WM) (tactics) — 2026-04-03
-- [[3-2-3-2-ww]] 3-2-3-2 (WW) (tactics) — 2026-04-03
-- [[3-2-5]] 3-2-5 (tactics) — 2026-04-03
-- [[3-3-1-3]] 3-3-1-3 (tactics) — 2026-04-03
-- [[3-3-4]] 3-3-4 (tactics) — 2026-04-03
-- [[3-4-1-2]] 3-4-1-2 (tactics) — 2026-04-03
-- [[3-4-2-1]] 3-4-2-1 (tactics) — 2026-04-03
-- [[3-4-3]] 3-4-3 (tactics) — 2026-04-03
-- [[3-5-2]] 3-5-2 (tactics) — 2026-04-03
-- [[3-6-1]] 3-6-1 (tactics) — 2026-04-03
-- [[352]] 3–5–2 (tactics) — 2026-04-03
-- [[4-1-2-1-2]] 4-1-2-1-2 (tactics) — 2026-04-03
-- [[4-1-3-2]] 4-1-3-2 (tactics) — 2026-04-03
-- [[4-2-1-3]] 4-2-1-3 (tactics) — 2026-04-03

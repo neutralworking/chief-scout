@@ -67,6 +67,7 @@ Scripts in `pipeline/` numbered by phase. Each script has `--dry-run` and `--for
 | 65-66 | API-Football (ingest + grades) |
 | 70-79 | One-off fixes (archive) |
 | 90-92 | Scouting notes (LLM), Wikipedia national squads |
+| 95-96 | Knowledge Base (compile articles, rebuild indexes) |
 
 ## CSS Variables
 Use `--color-accent-*` prefix (not `--accent-*`):
@@ -82,6 +83,16 @@ Use `--color-accent-*` prefix (not `--accent-*`):
 - Profile tiers: 1 = scout-assessed with archetype, 2 = data-derived, 3 = skeleton
 - Key reference: `docs/systems/SACROSANCT.md` — single source of truth for classification systems
 - News cron: daily 6am UTC via Vercel. Requires `GEMINI_API_KEY`.
+
+## Knowledge Base
+- **Location**: `kb/` — LLM-compiled knowledge articles (git-tracked markdown)
+- **Compile**: `python pipeline/95_compile_kb.py` — builds player/archetype/club/tactic articles from DB + raw docs
+- **Index**: `python pipeline/96_kb_index.py` — rebuilds INDEX.md + per-category _index.md files
+- **Search**: `python pipeline/tools/kb_search.py "query"` — CLI full-text search for LLM agents
+- **Q&A**: `/kb` slash command — query the KB, optionally file answers back with `--file`
+- **Categories**: players, archetypes, tactics, clubs, concepts, queries
+- **Article format**: YAML frontmatter + markdown body + `[[wikilink]]` cross-references
+- **Incremental**: Only recompiles changed entries. Use `--force` for full rebuild.
 
 ## Multi-Window Workflow
 See `docs/MULTI_WINDOW_WORKFLOW.md`. Commit with `[zone]` prefix, never force push.

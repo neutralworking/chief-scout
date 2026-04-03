@@ -245,25 +245,32 @@ Be concise and analytical. Focus on what makes this player distinctive."""
 
 # ── Phase B: Archetypes ──────────────────────────────────────────────────────
 
-def compile_archetypes(conn):
-    """Compile archetype articles (13 models)."""
-    cur = get_dict_cursor(conn)
+def compile_archetypes(conn=None):
+    """Compile archetype articles (13 models). Works with or without DB."""
     compiled = 0
 
     for model, attributes in MODEL_ATTRIBUTES.items():
-        # Find top exemplars
-        cur.execute("""
-            SELECT p.name, pp.position, c.clubname AS club_name, pp.overall
-            FROM people p
-            JOIN player_profiles pp ON pp.person_id = p.id
-            LEFT JOIN clubs c ON c.id = p.club_id
-            WHERE pp.archetype LIKE %s
-              AND pp.overall IS NOT NULL
-              AND p.active = true
-            ORDER BY pp.overall DESC NULLS LAST
-            LIMIT 10
-        """, (f"{model}%",))
-        exemplars = [dict(row) for row in cur.fetchall()]
+        exemplars = []
+
+        # Try DB for real exemplars
+        if conn:
+            cur = get_dict_cursor(conn)
+            cur.execute("""
+                SELECT p.name, pp.position, c.clubname AS club_name, pp.overall
+                FROM people p
+                JOIN player_profiles pp ON pp.person_id = p.id
+                LEFT JOIN clubs c ON c.id = p.club_id
+                WHERE pp.archetype LIKE %s
+                  AND pp.overall IS NOT NULL
+                  AND p.active = true
+                ORDER BY pp.overall DESC NULLS LAST
+                LIMIT 10
+            """, (f"{model}%",))
+            exemplars = [dict(row) for row in cur.fetchall()]
+
+        # Fallback: extract canonical exemplars from MODEL_LABELS comments
+        if not exemplars:
+            exemplars = _canonical_exemplars(model)
 
         # Gather compound archetypes for this model
         compounds = {k: v for k, v in MODEL_LABELS.items() if k.startswith(f"{model}-")}
@@ -282,6 +289,31 @@ def compile_archetypes(conn):
             print(f"  {model}: {len(exemplars)} exemplars → {path}")
 
     return compiled
+
+
+# Canonical exemplar players for each model (from MODEL_LABELS comments)
+_CANONICAL_EXEMPLARS = {
+    "Controller":  [("Rodri", "DM"), ("Pedri", "CM"), ("Frenkie de Jong", "CM"), ("Kroos", "CM"), ("Berbatov", "CF")],
+    "Commander":   [("Maldini", "CD"), ("Roy Keane", "CM"), ("Henderson", "CM"), ("Vieira", "DM"), ("Gerrard", "CM")],
+    "Creator":     [("Ronaldinho", "AM"), ("Bruno Fernandes", "AM"), ("Özil", "AM"), ("Messi", "WF"), ("Kaká", "AM")],
+    "Target":      [("Souček", "CM"), ("Ibrahimović", "CF"), ("Ronaldo", "CF"), ("Crouch", "CF"), ("Godín", "CD")],
+    "Sprinter":    [("Mbappé", "CF"), ("Pedro Neto", "WF"), ("Robertson", "WD"), ("Adama Traoré", "WF"), ("Overmars", "WF")],
+    "Powerhouse":  [("Yaya Touré", "CM"), ("Pogba", "CM"), ("Drogba", "CF"), ("Essien", "CM"), ("Morgan Rogers", "AM")],
+    "Cover":       [("Van Dijk", "CD"), ("John Stones", "CD"), ("Baresi", "CD"), ("Pau Torres", "CD"), ("Marcelo", "WD")],
+    "Engine":      [("Nedved", "WM"), ("Gattuso", "DM"), ("Bale", "WF"), ("Zanetti", "WD"), ("Brozović", "DM")],
+    "Destroyer":   [("Makélélé", "DM"), ("Gattuso", "DM"), ("Roy Keane", "CM"), ("Redondo", "DM"), ("Camavinga", "CM")],
+    "Dribbler":    [("Ribéry", "WF"), ("Son", "WF"), ("Robben", "WF"), ("Leão", "WF"), ("Isco", "AM")],
+    "Passer":      [("Thiago", "CM"), ("Laudrup", "AM"), ("Platini", "AM"), ("Xabi Alonso", "DM"), ("Pirlo", "DM")],
+    "Striker":     [("Bergkamp", "CF"), ("Totti", "CF"), ("Batistuta", "CF"), ("Cantona", "CF"), ("Bale", "WF")],
+    "GK":          [("Neuer", "GK"), ("Alisson", "GK"), ("De Gea", "GK"), ("Buffon", "GK"), ("Ederson", "GK")],
+}
+
+def _canonical_exemplars(model: str) -> list[dict]:
+    """Return canonical exemplar dicts for offline archetype compilation."""
+    return [
+        {"name": name, "position": pos, "club_name": "—", "overall": "—"}
+        for name, pos in _CANONICAL_EXEMPLARS.get(model, [])
+    ]
 
 
 # ── Phase C: Clubs ───────────────────────────────────────────────────────────
@@ -379,14 +411,14 @@ def main():
 
         if cat == "players" and conn:
             results[cat] = compile_players(conn, router)
-        elif cat == "archetypes" and conn:
-            results[cat] = compile_archetypes(conn)
+        elif cat == "archetypes":
+            results[cat] = compile_archetypes(conn)  # works without DB
         elif cat == "clubs" and conn:
             results[cat] = compile_clubs(conn)
         elif cat == "tactics":
             results[cat] = compile_tactics()
         else:
-            if not conn:
+            if not conn and cat not in ("tactics", "archetypes"):
                 print(f"  ⚠ Skipping {cat} — no DB connection")
             results[cat] = 0
 

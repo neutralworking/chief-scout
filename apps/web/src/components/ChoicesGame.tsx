@@ -93,22 +93,17 @@ const POS_BG: Record<string, string> = {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export function ChoicesGame({ categories }: { categories: Category[] }) {
+export function ChoicesGame() {
   const { fcUserId } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [results, setResults] = useState<VoteResult[] | null>(null);
   const [chosenIds, setChosenIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [streak, setStreak] = useState(0);
-  const [prevStreak, setPrevStreak] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [animatingOut, setAnimatingOut] = useState(false);
-  const [streakAnim, setStreakAnim] = useState<"bounce" | "shake" | null>(null);
   const [identity, setIdentity] = useState<ReturnType<typeof computeIdentity> | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const timerRef = useRef<number>(0);
-
-  void categories;
 
   const pickCount = currentQuestion?.pick_count ?? 1;
 
@@ -201,12 +196,13 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
       if (data.results) {
         setResults(data.results);
       } else if (currentQuestion.is_dynamic) {
+        // No crowd data for dynamic questions — show pick confirmation only
         setResults(
           currentQuestion.options.map((o) => ({
             id: o.id,
             label: o.label,
             subtitle: o.subtitle,
-            vote_count: ids.has(o.id) ? 1 : 0,
+            vote_count: -1, // sentinel: skip percentage bars
             person_id: o.person_id,
             image_url: o.image_url,
           }))
@@ -227,30 +223,25 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
         setIdentity(computeIdentity(dims));
       }
 
-      setPrevStreak(streak);
-      setStreak((s) => s + 1);
-      setStreakAnim("bounce");
-      setTimeout(() => setStreakAnim(null), 350);
+      // totalAnswered already incremented above
 
       const newTotal = totalAnswered + 1;
       setTotalAnswered(newTotal);
       localStorage.setItem("fc_total_answered", String(newTotal));
 
-      setTimeout(() => nextQuestion(), 2200);
+      timerRef.current = window.setTimeout(() => nextQuestion(), 2200);
     } catch (err) {
       console.error("Failed to submit vote:", err);
     }
   };
 
   const nextQuestion = () => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = 0; }
     setAnimatingOut(true);
     setTimeout(() => {
       fetchQuestion();
     }, 250);
   };
-
-  // Suppress unused var warning
-  void prevStreak;
 
   // ── Full viewport layout ─────────────────────────────────────────────────
 
@@ -268,19 +259,11 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           Gaffer
         </div>
         <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-          {streak > 0 && (
-            <span
-              className={`font-data ${
-                streakAnim === "bounce" ? "gaffer-streak-bounce" : ""
-              } ${streakAnim === "shake" ? "gaffer-streak-shake" : ""}`}
-            >
-              <span className="text-[var(--color-accent-tactical)] font-bold">
-                {streak}
-              </span>{" "}
-              streak
+          {totalAnswered > 0 && (
+            <span className="font-data">
+              <span className="text-[var(--color-accent-tactical)] font-bold">{totalAnswered}</span> answered
             </span>
           )}
-          <span className="font-data">{totalAnswered}</span>
         </div>
       </div>
 
@@ -297,7 +280,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           {identity ? (
             <>
               <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">You manage like</div>
-              <div className="text-2xl font-bold text-[var(--accent-tactical)] mb-1">{identity.name}</div>
+              <div className="text-2xl font-bold text-[var(--color-accent-tactical)] mb-1">{identity.name}</div>
               <div className="text-xs text-[var(--text-secondary)] italic mb-2">&ldquo;{identity.tagline}&rdquo;</div>
               <div className="text-sm text-[var(--text-primary)] font-medium mb-4">{identity.summary}</div>
               <Link
@@ -316,14 +299,10 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
           ) : (
             <>
               <div className="text-4xl mb-4">⚽</div>
-              <div className="text-lg font-bold mb-2">All caught up!</div>
+              <div className="text-lg font-bold mb-2">No questions right now</div>
               <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
-                You&apos;ve answered everything. New questions coming soon.
+                Check back soon — new scenarios are always being added.
               </p>
-              <UpgradeCTA
-                message="Your manager style is taking shape"
-                detail="See which players match your philosophy with full scouting intelligence."
-              />
             </>
           )}
           <button
@@ -396,7 +375,7 @@ export function ChoicesGame({ categories }: { categories: Category[] }) {
             {results ? (
               <>
                 <span className="text-xs text-[var(--text-muted)] font-data">
-                  {currentQuestion.total_votes + 1} votes
+                  {currentQuestion.is_dynamic ? "" : `${currentQuestion.total_votes + 1} votes`}
                 </span>
                 {identity ? (
                   <Link
@@ -454,8 +433,9 @@ function OptionGrid({
   onVote: (id: number) => void;
   isDynamic: boolean;
 }) {
-  const totalVotes = results
-    ? results.reduce((sum, r) => sum + (r.vote_count ?? 0), 0)
+  const hasCrowdData = results ? results.some((r) => r.vote_count >= 0) : false;
+  const totalVotes = hasCrowdData
+    ? results!.reduce((sum, r) => sum + (r.vote_count ?? 0), 0)
     : 0;
 
   const count = options.length;
@@ -513,8 +493,8 @@ function OptionGrid({
             `}
             style={{ animationDelay: `${index * 80}ms` }}
           >
-            {/* Vote percentage bar background */}
-            {results && (
+            {/* Vote percentage bar background — only for questions with real crowd data */}
+            {results && hasCrowdData && (
               <div
                 className={`absolute inset-0 transition-all duration-700 ease-out ${
                   isWinner
@@ -561,7 +541,7 @@ function OptionGrid({
                     />
                   </svg>
                 )}
-                {results && (
+                {results && hasCrowdData && (
                   <span
                     className={`text-sm font-bold font-data ml-auto ${
                       isWinner
@@ -570,6 +550,11 @@ function OptionGrid({
                     }`}
                   >
                     {pct}%
+                  </span>
+                )}
+                {results && !hasCrowdData && isChosen && (
+                  <span className="text-[10px] font-medium ml-auto text-[var(--color-accent-tactical)]">
+                    Your pick
                   </span>
                 )}
               </div>

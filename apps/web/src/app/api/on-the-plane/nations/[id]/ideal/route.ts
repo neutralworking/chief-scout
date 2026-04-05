@@ -43,13 +43,7 @@ export async function GET(
     });
   }
 
-  // Compute on-the-fly — fetch the player pool
-  const poolRes = await fetch(
-    `${supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/dummy`,
-    { method: "HEAD" }
-  ).catch(() => null);
-
-  // Fetch players directly
+  // Compute on-the-fly — fetch players directly
   const { data: primaryPlayers } = await sb
     .from("players")
     .select(`

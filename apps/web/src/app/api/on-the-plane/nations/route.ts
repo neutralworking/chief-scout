@@ -4,6 +4,9 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.SUPABASE_URL ?? "";
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY ?? "";
 
+// Cache for 5 minutes — avoids 48 individual count queries on every page load
+export const revalidate = 300;
+
 /**
  * GET /api/on-the-plane/nations
  * List all World Cup 2026 nations with metadata + player pool size.

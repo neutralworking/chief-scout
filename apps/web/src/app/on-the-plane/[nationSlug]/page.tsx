@@ -66,6 +66,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const FORMATIONS = ["4-3-3", "4-2-3-1", "3-5-2", "4-4-2", "3-4-3", "4-1-2-1-2"];
 
+function titleCase(s: string): string {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // Position group for squad balance
 function posGroup(pos: string): string {
   if (pos === "GK") return "GK";
@@ -293,6 +297,7 @@ export default function SquadBuilderPage() {
   } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [formationMsg, setFormationMsg] = useState<string | null>(null);
 
   // ── Score animation (must be before early returns — hooks rule) ──────────
   const displayScore = useCountUp(comparison?.score ?? 0);
@@ -428,7 +433,14 @@ export default function SquadBuilderPage() {
     if (!nationData) return;
     const targets: Record<string, number> = { GK: 3, DEF: 8, MID: 9, FWD: 6 };
     const counts: Record<string, number> = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
-    const picked = new Set<number>();
+    const picked = new Set<number>(selectedIds);
+
+    // Count already-selected players by position group
+    for (const id of picked) {
+      const p = nationData.players.find((pp) => pp.person_id === id);
+      const grp = posGroup(p?.position ?? "CM");
+      counts[grp] = (counts[grp] ?? 0) + 1;
+    }
 
     const sorted = [...nationData.players].sort(
       (a, b) => (b.best_role_score ?? b.level ?? 0) - (a.best_role_score ?? a.level ?? 0)
@@ -437,6 +449,7 @@ export default function SquadBuilderPage() {
     // First pass: fill each position group to target
     for (const p of sorted) {
       if (picked.size >= 26) break;
+      if (picked.has(p.person_id)) continue;
       const grp = posGroup(p.position ?? "CM");
       if (counts[grp] < targets[grp]) {
         picked.add(p.person_id);
@@ -453,8 +466,8 @@ export default function SquadBuilderPage() {
     }
 
     setSelectedIds(picked);
-    setXiIds(new Set());
-  }, [nationData]);
+    if (selectedIds.size === 0) setXiIds(new Set());
+  }, [nationData, selectedIds]);
 
   // ── Submit ───────────────────────────────────────────────────────────────
 
@@ -627,7 +640,7 @@ export default function SquadBuilderPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {selectedIds.size === 0 && (
+                {selectedIds.size < 26 && (
                   <button
                     onClick={quickPick}
                     className="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
@@ -637,7 +650,20 @@ export default function SquadBuilderPage() {
                       border: "1px solid var(--color-accent-personality)",
                     }}
                   >
-                    Quick Pick
+                    {selectedIds.size === 0 ? "Quick Pick" : "Fill Remaining"}
+                  </button>
+                )}
+                {selectedIds.size > 0 && (
+                  <button
+                    onClick={() => { setSelectedIds(new Set()); setXiIds(new Set()); }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+                    style={{
+                      background: "transparent",
+                      color: "var(--text-muted)",
+                      border: "1px solid var(--border-subtle)",
+                    }}
+                  >
+                    Clear
                   </button>
                 )}
                 <button
@@ -811,7 +837,7 @@ export default function SquadBuilderPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</span>
-                    <span className="text-[8px] px-1 py-0.5 rounded shrink-0" style={{ background: `${CATEGORY_COLORS[p.pool_category] ?? "#71717a"}20`, color: CATEGORY_COLORS[p.pool_category] ?? "#71717a" }}>{p.pool_category.replace("_", " ")}</span>
+                    <span className="text-[8px] px-1 py-0.5 rounded shrink-0" style={{ background: `${CATEGORY_COLORS[p.pool_category] ?? "#71717a"}20`, color: CATEGORY_COLORS[p.pool_category] ?? "#71717a" }}>{titleCase(p.pool_category.replace(/_/g, " "))}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
                     {p.club && <span className="truncate" style={{ maxWidth: "100px" }}>{p.club}</span>}
@@ -904,6 +930,11 @@ export default function SquadBuilderPage() {
                     used[pos] = (used[pos] ?? 0) + 1;
                     if (used[pos] <= (slotCounts[pos] ?? 0)) kept.add(id);
                   }
+                  const removed = xiIds.size - kept.size;
+                  if (removed > 0) {
+                    setFormationMsg(`${removed} player${removed > 1 ? "s" : ""} removed — didn't fit ${f}`);
+                    setTimeout(() => setFormationMsg(null), 2500);
+                  }
                   setXiIds(kept);
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-mono shrink-0 cursor-pointer"
@@ -917,6 +948,9 @@ export default function SquadBuilderPage() {
               </button>
             ))}
           </div>
+          {formationMsg && (
+            <p className="text-xs text-center mt-1" style={{ color: "#f59e0b" }}>{formationMsg}</p>
+          )}
         </div>
 
         {/* Pitch — primary XI selection UI */}
@@ -1378,7 +1412,7 @@ export default function SquadBuilderPage() {
           </button>
           <button
             onClick={() => {
-              const text = `On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${slug.replace(/-/g, " ")}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
+              const text = `On The Plane — I scored ${comparison?.score ?? 0}/100 (${comparison?.tier ?? ""}) picking ${titleCase(slug.replace(/-/g, " "))}'s World Cup squad! ${comparison?.squad_matches ?? 0}/26 squad matches, ${comparison?.xi_matches ?? 0}/11 XI matches. Try it: ${window.location.origin}/on-the-plane`;
               navigator.clipboard?.writeText(text);
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);

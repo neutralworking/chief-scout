@@ -105,7 +105,7 @@ export async function POST(request: Request) {
   try {
     await sb.rpc("update_otp_nation_stats", { p_nation_id: nation_id });
   } catch {
-    // RPC may not exist yet — ignore
+    // Best-effort stats update — non-critical
   }
 
   return NextResponse.json({
